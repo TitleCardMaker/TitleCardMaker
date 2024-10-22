@@ -766,7 +766,7 @@ let currentFilePage = 1;
  * @param {number} page - Page number of source files to query and display.
  */
 async function getSourceFileData(page=currentFilePage) {
-  const rowTemplate = document.getElementById('file-row-template');
+  const rowTemplate = document.getElementById('source-row-template');
 
   $.ajax({
     type: 'GET',

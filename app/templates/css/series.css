@@ -162,6 +162,11 @@
 #source-images td[data-column="mirror"]:hover i {
   color: #a291fb;
 }
+/* Mirror icon should color semantic red on hover */
+#source-images i[data-action="delete"]:hover,
+#source-images td[data-column="delete"]:hover i {
+  color: #db2828;
+}
 
 /* The TMDb logo should be 14px high */
 img[data-action="browse-tmdb"] {
