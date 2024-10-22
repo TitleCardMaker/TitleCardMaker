@@ -2099,12 +2099,35 @@ function loadCards(interfaceId, libraryName, reload=false) {
 
   $.ajax({
     type: 'PUT',
-    url:`/api/cards/series/{{series.id}}/load/library?${params.toString()}`,
+    url: `/api/cards/series/{{series.id}}/load?${params.toString()}`,
     success: () => {
       showInfoToast('Loaded Title Cards');
       getStatistics();
     },
     error: response => showErrorToast({title: 'Error Loading Title Cards', response}),
+  });
+}
+
+/**
+ * Submit an API request to reload the Title Cards for the Episode of the given
+ * ID.
+ * @param {number} episodeId ID of the Episode to load the Title Cards of.
+ */
+function loadEpisodeCards(episodeId) {
+  $.ajax({
+    type: 'PUT',
+    url: `/api/cards/episode/${episodeId}/load`,
+    /**
+     * Card reloaded. Change the loaded icon and update the tooltip text.
+     */
+    success: () => {
+      showInfoToast('Loaded Title Card');
+      $(`#card-popup-episode${episodeId} .header i`)
+        .toggleClass('red times circle', false)
+        .toggleClass('green check square outline', true);
+      document.querySelector(`#card-popup-episode${episodeId} .header [data-value="unloaded"]`).dataset.tooltip = 'Card is loaded';
+    },
+    error: response => showErrorToast({title: 'Error Loading Title Card', response}),
   });
 }
 
