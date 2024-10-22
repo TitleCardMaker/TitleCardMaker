@@ -2047,21 +2047,6 @@ function uploadBackdrop(seasonNumber) {
 }
 
 /**
- * Submit an API request to download the Source Image for the given Episode.
- * This marks the given cardElementId as loading while processing.
- */
-function searchEpisodeSourceImage(episodeId, sourceElementId) {
-  document.getElementById(sourceElementId).classList.add('loading');
-  $.ajax({
-    type: 'POST',
-    url: `/api/sources/episode/${episodeId}`,
-    success: sourceImage => showInfoToast(sourceImage ? 'Downloaded Image' : 'Unable to Download Image'),
-    error: response => showErrorToast({title: 'Error Downloading Source Image', response}),
-    complete: () => document.getElementById(sourceElementId).classList.remove('loading'),
-  });
-}
-
-/**
  * Submit an API request to gather source images for this Series. This disables
  * the button while processing, and if successful the File data is refreshed.
  */
@@ -2101,9 +2086,9 @@ function createTitleCards() {
 /**
  * Submit an API request to delete this Series' Title Cards. Series statistics
  * are re-queried if successful.
- * @param {number} interfaceId - ID of the library's interface.
- * @param {string} libraryName - Name of the library to load cards into.
- * @param {bool} [reload] - Whether to force reload the cards.
+ * @param {number} interfaceId ID of the library's interface.
+ * @param {string} libraryName Name of the library to load cards into.
+ * @param {bool} [reload] Whether to force reload the cards.
  */
 function loadCards(interfaceId, libraryName, reload=false) {
   const params = new URLSearchParams({
