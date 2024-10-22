@@ -747,7 +747,6 @@ let currentFilePage = 1;
  * @param {number} page - Page number of source files to query and display.
  */
 async function getSourceFileData(page=currentFilePage) {
-  const fileTemplate = document.getElementById('file-card-template');
   const rowTemplate = document.getElementById('file-row-template');
 
   $.ajax({
@@ -786,12 +785,10 @@ async function getSourceFileData(page=currentFilePage) {
         height.dataset.sortValue = source.height;
         // Filesize
         const filesize = row.querySelector('td[data-column="filesize"]');
+
         if (source.exists) {
           filesize.innerText = formatBytes(source.filesize, 1);
           filesize.dataset.sortValue = source.filesize;
-          // Disable search cell
-          row.querySelector('[data-column="search"]').classList.add('disabled');
-          row.querySelector('[data-column="search"] i').classList.add('disabled');
           // Add mirror API request to mirror icon
           row.querySelector('a[data-action="mirror"]').onclick = () => mirrorSourceImage(source.episode_id);
         } else {
@@ -799,7 +796,6 @@ async function getSourceFileData(page=currentFilePage) {
           width.classList.add('error');
           height.classList.add('error');
           filesize.classList.add('error');
-          row.querySelector('a[data-action="search"]').onclick = () => searchEpisodeSourceImage(source.episode_id, elementId);
           row.querySelector('[data-column="mirror"]').classList.add('disabled');
           row.querySelector('[data-column="mirror"] i').classList.add('disabled');
         }
@@ -1078,7 +1074,7 @@ function getCardData(
     page=currentCardPage,
     transition=false,
     scroll=false,
-    updateLivePreview=false
+    updateLivePreview=false,
   ) {
 
   $.ajax({

@@ -264,24 +264,6 @@
     </div>
   </template>
 
-  <template id="file-card-template">
-    <div class="ui card">
-      <div class="content">
-        <i data-action="mirror" class="right floated exchange alternate icon" title="Horizontally mirror this image"></i>
-        <i data-action="upload" class="right floated file import icon" title="Upload a new source image"></i>
-        <i data-action="search" class="right floated search icon" title="Search for this image"></i>
-        <i data-action="browse" class="right floated border all icon" title="Browse source images"></i>
-        <div data-value="index" class="header">{descriptive name}</div>
-        <div class="meta">
-          <span data-value="path">{path}</span>
-          <div data-value="missing" class="ui tiny red label">Missing</div>
-          <div data-value="dimension" class="ui tiny uninvertible label">{dimensions}</div>
-          <div data-value="filesize" class="ui tiny uninvertible label">{filesize}</div>
-        </div>
-      </div>
-    </div>
-  </template>
-
   <template id="source-image-template">
     <div class="ui image" style="width: {{ (100.0 / (preferences.source_preview_page_dimensions.split('x')[1]|int)) - 1 }}% !important;">
       <div class="ui bottom dimmer">
@@ -318,9 +300,6 @@
       <td data-column="filesize" class="center aligned collapsing"></td>
       <td data-column="browse" class="center aligned collapsing selectable">
         <a data-action="browse"><i data-action="browse" class="border all icon"></i></a>
-      </td>
-      <td data-column="search" class="center aligned collapsing selectable">
-        <a data-action="search"><i data-action="search" class="ui search icon"></i></a>
       </td>
       <td data-column="upload" class="center aligned collapsing selectable">
         <a data-action="upload"><i data-action="upload" class="ui file import icon"></i></a>
@@ -1146,10 +1125,7 @@
                   <th class="collapsing">Width</th>
                   <th class="collapsing">Height</th>
                   <th class="collapsing">Filesize</th>
-                  {% if preferences.use_tmdb %}
                   <th class="collapsing">Browse</th>
-                  <th class="collapsing">Search</th>
-                  {% endif %}
                   <th class="collapsing">Upload</th>
                   <th class="collapsing">Mirror</th>
                 </tr>
