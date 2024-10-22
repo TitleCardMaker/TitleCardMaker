@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import not_
@@ -344,15 +345,15 @@ def get_series_cards(
     )
 
 
-@card_router.put('/series/{series_id}/load/all', tags=['Series'])
-def load_series_title_cards_into_all_libraries(
-        series_id: int,
+@card_router.put('/series/{series_id}/load/all', deprecated=True)
+def load_all_series_title_cards_(
         request: Request,
+        series_id: int,
         reload: bool = Query(default=False),
         db: Session = Depends(get_database),
     ) -> None:
     """
-    Load all of the given Series' Cards.
+    Load the Title Cards for the given Series into all libraries.
 
     - series_id: ID of the Series whose Cards are being loaded.
     - reload: Whether to "force" reload all Cards, even those that have
@@ -360,7 +361,7 @@ def load_series_title_cards_into_all_libraries(
     previously (or that have changed) are loaded.
     """
 
-    # Get this Series, raise 404 if DNE
+    # Get this Series and Interface, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
     load_all_series_title_cards(
@@ -368,7 +369,7 @@ def load_series_title_cards_into_all_libraries(
     )
 
 
-@card_router.put('/series/{series_id}/load/library', tags=['Series'])
+@card_router.put('/series/{series_id}/load/library', deprecated=True)
 def load_series_title_cards_into_library(
         request: Request,
         series_id: int,
@@ -382,8 +383,9 @@ def load_series_title_cards_into_library(
     given index.
 
     - series_id: ID of the Series whose Cards are being loaded.
-    - library_index: Index in Series' library list of the library to
-    load the Cards into.
+    - interface_id: ID of the interface whose library is being loaded.
+    - library_name: Name of the library in the given interface to load
+    the Title Cards into.
     - reload: Whether to "force" reload all Cards, even those that have
     already been loaded. If false, only Cards that have not been loaded
     previously (or that have changed) are loaded.
@@ -393,6 +395,7 @@ def load_series_title_cards_into_library(
     series = get_series(db, series_id, raise_exc=True)
     interface = get_interface(interface_id, raise_exc=True)
 
+    # Verify the interface ID was a valid type
     if not interface.INTERFACE_TYPE in ('Emby', 'Jellyfin', 'Plex'):
         raise HTTPException(
             status_code=400,
@@ -401,9 +404,61 @@ def load_series_title_cards_into_library(
 
     # Load Cards
     load_series_title_cards(
-        series, library_name, interface_id, db, interface,
+        series, library_name, interface_id, db, interface, # type: ignore
         reload, log=request.state.log,
     )
+
+
+@card_router.put('/series/{series_id}/load', tags=['Series'])
+def load_series_title_cards_(
+        request: Request,
+        series_id: int,
+        interface_id: Optional[int] = Query(default=None),
+        library_name: Optional[str] = Query(default=None),
+        reload: bool = Query(default=False),
+        db: Session = Depends(get_database),
+    ) -> None:
+    """
+    Load the Title Cards for the given Series into the library of the
+    associated interface.
+
+    - series_id: ID of the Series whose Cards are being loaded.
+    - library_index: Index in Series' library list of the library to
+    load the Cards into.
+    - reload: Whether to "force" reload all Cards, even those that have
+    already been loaded. If false, only Cards that have not been loaded
+    previously (or that have changed) are loaded.
+    """
+
+    # Interface ID and library name must be provided together
+    if bool(interface_id) != bool(library_name):
+        raise HTTPException(
+            status_code=422,
+            detail='Both interface ID and library name must be provided'
+        )
+
+    # Get this Series, raise 404 if DNE
+    series = get_series(db, series_id, raise_exc=True)
+
+    # Load Title Cards into only the specified library
+    if library_name and interface_id:
+        interface = get_interface(interface_id, raise_exc=True)
+
+        if not interface.INTERFACE_TYPE in ('Emby', 'Jellyfin', 'Plex'):
+            raise HTTPException(
+                status_code=400,
+                detail='Cannot load Cards into a non-media-server Connection'
+            )
+        # Load Cards
+        load_series_title_cards(
+            series, library_name, interface_id, db, interface, # type: ignore
+            reload, log=request.state.log,
+        )
+    # Load Title Cards into all libraries
+    else:
+        load_all_series_title_cards(
+            series, db, force_reload=reload, log=request.state.log,
+        )
 
 
 @card_router.get('/episode/{episode_id}', tags=['Episodes'])
