@@ -16,7 +16,6 @@ from app.dependencies import (
     get_preferences,
     Preferences,
 )
-from app import models
 from app.internal.auth import get_current_user
 from app.internal.cards import (
     create_episode_cards,
@@ -69,7 +68,7 @@ def create_preview_card(
     """
 
     # Get contextual logger
-    log = request.state.log
+    log: Logger = request.state.log
 
     # Get the effective card class
     CardClass = preferences.get_card_type_class(card.card_type, log=log)
@@ -265,14 +264,16 @@ def create_preview_card_for_episode(
 
 
 @card_router.get('/all')
-def get_all_title_cards(db: Session = Depends(get_database)) -> Page[TitleCard]:
+def get_all_title_cards(
+        db: Session = Depends(get_database)
+    ) -> Page[TitleCard]: # type: ignore
     """
     Get all defined Title Cards.
 
     - order_by: How to order the Cards in the returned list.
     """
 
-    return paginate(db.query(models.card.Card))
+    return paginate(db.query(Card))
 
 
 @card_router.get('/card/{card_id}')
@@ -325,7 +326,7 @@ def create_cards_for_series(
 def get_series_cards(
         series_id: int,
         db: Session = Depends(get_database)
-    ) -> Page[TitleCard]:
+    ) -> Page[TitleCard]: # type: ignore
     """
     Get all TitleCards for the given Series. Cards are returned in the
     order of their release (e.g. season number, episode number).
@@ -409,7 +410,7 @@ def load_series_title_cards_into_library(
 def get_episode_cards(
         episode_id: int,
         db: Session = Depends(get_database),
-    ) -> Page[TitleCard]:
+    ) -> Page[TitleCard]: # type: ignore
     """
     Get all TitleCards for the given Episode.
 
@@ -531,7 +532,7 @@ def create_card_for_episode(
 @card_router.get('/missing', deprecated=True)
 def get_missing_cards(
         db: Session = Depends(get_database),
-    ) -> Page[EpisodeSchema]:
+    ) -> Page[EpisodeSchema]: # type: ignore
     """
     Get all the Episodes that do not have any associated Cards.
     """
