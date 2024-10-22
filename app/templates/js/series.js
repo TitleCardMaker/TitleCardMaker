@@ -739,6 +739,25 @@ function mirrorSourceImage(episodeId) {
   });
 }
 
+/**
+ * Submit an API request to delete the Source Image of the given Episode. If
+ * successful, then re-query the File and Card data.
+ * @param {number} episodeId: ID of the Episode whose Source Image is being
+ * deleted.
+ */
+function deleteSourceImage(episodeId) {
+  $.ajax({
+    type: 'DELETE',
+    url: `/api/sources/episode/${episodeId}`,
+    success: () => {
+      showInfoToast('Deleted Source Image');
+      getSourceFileData();
+      getCardData();
+    },
+    error: response => showErrorToast({title: 'Error Deleting Source Image', response}),
+  });
+}
+
 /** @type {number} Current page number for the source files. */
 let currentFilePage = 1;
 
@@ -791,6 +810,7 @@ async function getSourceFileData(page=currentFilePage) {
           filesize.dataset.sortValue = source.filesize;
           // Add mirror API request to mirror icon
           row.querySelector('a[data-action="mirror"]').onclick = () => mirrorSourceImage(source.episode_id);
+          row.querySelector('a[data-action="delete"]').onclick = () => deleteSourceImage(source.episode_id);
         } else {
           filesize.innerText = 'Missing'; filesize.dataset.sortValue = 0;
           width.classList.add('error');
@@ -798,6 +818,8 @@ async function getSourceFileData(page=currentFilePage) {
           filesize.classList.add('error');
           row.querySelector('[data-column="mirror"]').classList.add('disabled');
           row.querySelector('[data-column="mirror"] i').classList.add('disabled');
+          row.querySelector('[data-column="delete"]').classList.add('disabled');
+          row.querySelector('[data-column="delete"] i').classList.add('disabled');
         }
         // Launch browse modal when clicked
         row.querySelector('a[data-action="browse"]').onclick = () => browseSourceImages(source.episode_id, elementId, episodeIds);
@@ -1114,6 +1136,8 @@ function getCardData(
             );
           }
         }
+        preview.querySelector('.popup [data-action="delete"]').onclick = () => deleteEpisodeCard(card.episode_id);
+        preview.querySelector('.popup [data-action="reload"]').onclick = () => loadEpisodeCards(card.episode_id);
 
         // If library unique mode is enabled, add the library name to the text (if present)
         if (global_library_unique_cards) {
@@ -1820,7 +1844,6 @@ function downloadSeriesBackdrop(url, seasonNumber=null) {
  * navigating through Source Images.
  */
 function browseSourceImages(episodeId, cardElementId, episodeIds) {
-  document.getElementById(cardElementId).classList.add('loading');
   $.ajax({
     type: 'GET',
     url: `/api/sources/episode/${episodeId}/browse`,
