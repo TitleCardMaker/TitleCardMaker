@@ -158,9 +158,12 @@ function deleteEpisodeCard(episodeId, onComplete) {
   $.ajax({
     type: 'DELETE',
     url: `/api/cards/episode/${episodeId}`,
-    success: () => showInfoToast('Deleted Title Card(s)'),
+    success: () => {
+      document.getElementById(`card-episode${episodeId}`).remove();
+      showInfoToast('Deleted Title Card');
+    },
     error: response => showErrorToast({title: 'Error Creating Title Card(s)', response}),
-    success: onComplete,
+    complete: onComplete,
   });
 }
 
