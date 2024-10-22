@@ -574,9 +574,11 @@ function populateBlueprintCard(card, blueprint, blueprintId) {
  * Get a time-difference string from now to `previousRun`.
  * @param {Date} previousRun Previous date to format the text relative from.
  * @param {?boolean} addAgo When to add "ago" to the end of the text.
+ * @param {?string} defaultText Default text to display when the difference
+ * text cannot be generated.
  * @returns String describing how along ago `previousRun` was.
  */
-function timeDiffString(previousRun, addAgo=true) {
+function timeDiffString(previousRun, addAgo=true, defaultText='Some time') {
   const previous = new Date(previousRun);
 
   // Get current time
@@ -596,7 +598,7 @@ function timeDiffString(previousRun, addAgo=true) {
   if (diffSeconds % 60 > 1) { timeUnits.push(`${diffSeconds%60} seconds`); }
   else if (diffSeconds % 60 > 0) { timeUnits.push(`<${diffSeconds%60} second`); }
 
-  return timeUnits.slice(0, 2).join(', ') + (addAgo ? ' ago' : '');
+  return (timeUnits.slice(0, 2).join(', ') || defaultText) + (addAgo ? ' ago' : '');
 }
 
 /**
