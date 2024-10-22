@@ -83,13 +83,13 @@ def _get_obj(
 
 @overload
 def get_blueprint(
-        db: Session, blueprint_id: Literal[None], *, raise_exc: bool
+        db: Session, blueprint_id: Literal[None], *, raise_exc: bool = True
     ) -> Literal[None]:
     ...
 
 @overload
 def get_blueprint(
-        db: Session, blueprint_id: int, *, raise_exc: Literal[True]
+        db: Session, blueprint_id: int, *, raise_exc: Literal[True] = True
     ) -> Blueprint:
     ...
 
@@ -225,19 +225,19 @@ def get_episode(
 
 @overload
 def get_font(
-        db: Session, font_id: Literal[None], *, raise_exc: bool,
+        db: Session, font_id: Literal[None], *, raise_exc: bool = True,
     ) -> Literal[None]:
     ...
 
 @overload
 def get_font(
-        db: Session, font_id: int, *, raise_exc: Literal[True],
+        db: Session, font_id: int, *, raise_exc: Literal[True] = True,
     ) -> Font:
     ...
 
 @overload
 def get_font(
-        db: Session, font_id: int, *, raise_exc: Literal[False],
+        db: Session, font_id: int, *, raise_exc: bool,
     ) -> Optional[Font]:
     ...
 
