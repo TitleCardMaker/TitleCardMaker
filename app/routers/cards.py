@@ -28,6 +28,7 @@ from app.internal.cards import (
 from app.internal.episodes import update_episode_config
 from app.internal.series import (
     load_all_series_title_cards,
+    load_episode_title_card,
     load_series_title_cards,
     update_series_config,
 )
@@ -458,6 +459,34 @@ def load_series_title_cards_(
     else:
         load_all_series_title_cards(
             series, db, force_reload=reload, log=request.state.log,
+        )
+
+
+@card_router.put('/episode/{episode_id}/load', tags=['Episodes'])
+def force_reload_episode_cards(
+        episode_id: int,
+        request: Request,
+        db: Session = Depends(get_database),
+    ) -> None:
+    """
+    Reload the Title Cards associated with the given Episode. This is a
+    "force" reload.
+
+    - episode_id: ID of the Episode whose Cards to load.
+    """
+
+    # Get this Episode, raise 404 if DNE
+    episode = get_episode(db, episode_id, raise_exc=True)
+
+    # Load Cards for all libraries
+    for library in episode.series.libraries:
+        load_episode_title_card(
+            episode,
+            db,
+            library['name'],
+            library['interface_id'],
+            get_interface(library['interface_id']), # type: ignore
+            log=request.state.log,
         )
 
 
