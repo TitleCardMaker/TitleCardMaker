@@ -191,8 +191,8 @@ class NegativeSpaceTitleCard(BaseCardType):
         # Extras
         self.episode_text_color = episode_text_color
         self.episode_text_font_size = episode_text_font_size
-        self.number_horizontal_offset = episode_text_horizontal_offset
-        self.number_vertical_offset = episode_text_vertical_offset
+        self.episode_text_horizontal_offset = episode_text_horizontal_offset
+        self.episode_text_vertical_offset = episode_text_vertical_offset
         self.title_text_horizontal_offset = title_text_horizontal_offset
         if text_side == 'random':
             text_side = 'left' if random() <= 0.5 else 'right'
@@ -274,7 +274,7 @@ class NegativeSpaceTitleCard(BaseCardType):
         gravity = 'west' if self.text_side == 'left' else 'east'
 
         # Determine horizontal offset
-        x = self.number_horizontal_offset + {
+        x = self.episode_text_horizontal_offset + {
             '0': 50,
             '1': -50,
             '4': 50,
@@ -288,7 +288,7 @@ class NegativeSpaceTitleCard(BaseCardType):
             f'-fill "{color}"',
             f'-pointsize {1250 * self.episode_text_font_size}',
             f'-kerning -125', # -150
-            f'-annotate {x:+}{self.number_vertical_offset:+}',
+            f'-annotate {x:+}{self.episode_text_vertical_offset:+}',
             f'"{self.episode_text}"',
         ]
 
