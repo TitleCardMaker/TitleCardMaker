@@ -127,7 +127,7 @@ def create_preview_card(
 
     # Get Font if indicated
     font_template_dict = {}
-    if getattr(card, 'font_id', None) is not None:
+    if getattr(card, 'font_id', None) is not None and card.font_id:
         font = get_font(db, card.font_id, raise_exc=True)
         font_template_dict = font.card_properties
 

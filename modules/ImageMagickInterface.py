@@ -213,13 +213,13 @@ class ImageMagickInterface:
 
     def delete_intermediate_images(self, *paths: Optional[Path]) -> None:
         """
-        Delete all the provided intermediate files.
+        Delete all the provided intermediate files. The files do not
+        have to exist.
 
         Args:
             paths: Any number of files to delete.
         """
 
-        # Delete (unlink) each image, don't raise FileNotFoundError if DNE
         for image in paths:
             if image is not None:
                 image.unlink(missing_ok=True)
@@ -229,9 +229,11 @@ class ImageMagickInterface:
         """Print the command history of this Interface."""
 
         for command, stdout, stderr in self.__history:
-            log.debug(f'Command:\n{command}\n\n'
-                      f'stdout:\n{stdout.decode()}\n\n'
-                      f'stderr:\n{stderr.decode()}')
+            log.debug(
+                f'Command:\n{command}\n\n'
+                f'stdout:\n{stdout.decode()}\n\n'
+                f'stderr:\n{stderr.decode()}'
+            )
 
 
     def get_image_dimensions(self, image: Path) -> Dimensions:
@@ -342,22 +344,18 @@ class ImageMagickInterface:
             height: Height dimension to resize toward (if indicated).
 
         Raises:
-            ValueError if by is not "width" or "height".
             ValueError if the indicated dimension is not provided or
                 less than 0.
         """
-
-        if by not in ('width', 'height'):
-            raise ValueError(f'Can only resize by "width" or "height"')
 
         if by == 'width' and width is not None and width > 0:
             resize_command = f'-resize {width}x'
         elif by == 'height' and height is not None and height > 0:
             resize_command = f'-resize x{height}'
         else:
-            raise ValueError(f'Resized dimension must be greater than zero')
+            raise ValueError('Resized dimension must be greater than zero')
 
-        command = ' '.join([
+        self.run([
             f'convert "{input_image.resolve()}"',
             f'-sampling-factor "4:4:4"',
             f'-set colorspace sRGB',
@@ -367,8 +365,6 @@ class ImageMagickInterface:
             resize_command,
             f'"{output_image.resolve()}"',
         ])
-
-        self.run(command)
 
         return output_image
 
