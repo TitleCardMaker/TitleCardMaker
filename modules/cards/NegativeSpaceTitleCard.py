@@ -279,6 +279,7 @@ class NegativeSpaceTitleCard(BaseCardType):
             '1': -50,
             '4': 50,
             '5': 50,
+            '7': 0 if self.text_side == 'left' else 25,
             '9': 50,
         }.get(self.episode_text[0 if self.text_side == 'left' else -1], 0)
 
