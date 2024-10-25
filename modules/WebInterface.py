@@ -7,7 +7,7 @@ from typing import Any, Optional, TypedDict, Union
 
 from PIL import Image
 from re import IGNORECASE, compile as re_compile
-from niquests import get, Session
+from requests import get, Session
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 import urllib3
 
