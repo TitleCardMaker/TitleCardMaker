@@ -158,9 +158,15 @@ class InterfaceID:
 
         if self._libraries and isinstance(connection_id, tuple):
             connection_id, library = connection_id
-            del self._ids[connection_id][library]
-        else:
-            del self._ids[connection_id]
+            try:
+                del self._ids[connection_id][library]
+            except KeyError:
+                pass
+        elif isinstance(connection_id, int):
+            try:
+                del self._ids[connection_id]
+            except KeyError:
+                pass
 
 
     def __eq__(self, other: Union[str, 'InterfaceID']) -> bool:
