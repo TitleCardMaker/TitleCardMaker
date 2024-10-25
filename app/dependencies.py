@@ -489,9 +489,12 @@ def require_interface(interface_id: int = Query(...)) -> AnyInterface:
     """
 
     groups = (
-        (EmbyInterfaces, 'Emby'), (JellyfinInterfaces, 'Jellyfin'),
-        (PlexInterfaces, 'Plex'), (SonarrInterfaces, 'Sonarr'),
-        (TMDbInterfaces, 'TMDb'), (TVDbInterfaces, 'TVDb')
+        (EmbyInterfaces, 'Emby'),
+        (JellyfinInterfaces, 'Jellyfin'),
+        (PlexInterfaces, 'Plex'),
+        (SonarrInterfaces, 'Sonarr'),
+        (TMDbInterfaces, 'TMDb'),
+        (TVDbInterfaces, 'TVDb')
     )
 
     for interface_group, name in groups:

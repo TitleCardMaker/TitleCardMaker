@@ -209,9 +209,15 @@ def download_series_logo(
     if (logo_file := series.get_logo_file()).exists():
         return f'/source/{series.path_safe_name}/logo.png'
 
+    # Resolve image source priority
+    image_source_priority = TieredSettings.resolve_singular_setting(
+        get_preferences().image_source_priority,
+        series.image_source_priority,
+    )
+
     # Go through all image sources
     logo = None
-    for interface_id in get_preferences().image_source_priority:
+    for interface_id in image_source_priority:
         # Skip if there is no interface for this ID
         if not (interface := get_interface(interface_id)):
             continue
