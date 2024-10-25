@@ -224,6 +224,8 @@ def download_series_logo(
 
         # Skip interfaces which cannot provide logos
         if isinstance(interface, (PlexInterface, SonarrInterface)):
+            log.trace(f'{interface.INTERFACE_TYPE}[{interface_id}] cannot '
+                      f'provide logos')
             continue
 
         # Handle TMDb and TVDb separately
@@ -242,6 +244,8 @@ def download_series_logo(
 
         # If no logo was returned, move on to next image source
         if logo is None:
+            log.trace(f'{interface.INTERFACE_TYPE}[{interface_id}] did not '
+                      f'return a logo')
             continue
 
         # If logo is an svg, convert
