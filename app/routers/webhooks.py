@@ -1,5 +1,6 @@
+from asyncio import wait_for, TimeoutError as AsyncTimeoutError
 from time import sleep
-from typing import Optional
+from typing import Optional, cast
 
 from fastapi import (
     APIRouter,
@@ -7,8 +8,10 @@ from fastapi import (
     Body,
     Depends,
     Query,
-    Request
+    Request,
+    UploadFile
 )
+from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import HTTPException
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
@@ -80,6 +83,7 @@ async def process_plex_webhook(
         snapshot: bool = Query(default=True),
         require_owner: bool = Query(default=True),
         trigger_on: str = Query(default='library.new,media.scrobble'),
+        timeout: int = Query(min=5, max=600, default=120),
         db: Session = Depends(get_database),
         plex_interface: PlexInterface = Depends(require_plex_interface),
     ) -> None:
@@ -94,6 +98,8 @@ async def process_plex_webhook(
     - require_owner: Whether to only process triggers which come from
     the owner of the server.
     - trigger_on: String containing webhook event types to trigger on.
+    - timeout: Maximum amount of time allowed for the API request before
+    the request is terminated.
     """
 
     # Get contextual logger
@@ -101,13 +107,15 @@ async def process_plex_webhook(
 
     # Parse Webhook from payload
     try:
-        webhook = PlexWebhook.parse_raw((await request.form()).get('payload'))
+        form: dict[str, bytes] = await wait_for(request.form(), timeout=timeout)
+        webhook = PlexWebhook.parse_raw(form.get('payload', b''))
     except ValidationError as exc:
         raise HTTPException(
             status_code=422,
             detail='Webhook format is invalid'
         ) from exc
     except Exception as exc:
+        log.exception('Error occurred while parsing Webhook')
         raise HTTPException(
             status_code=422,
             detail='Error occurred while parsing Webhook'
@@ -119,14 +127,25 @@ async def process_plex_webhook(
         log.trace(f'Skipping Webhook of trigger "{webhook.event}"')
         return None
 
-    return process_rating_key(
-        db,
-        plex_interface,
-        webhook.Metadata.ratingKey,
-        new_only=webhook.event == 'library.new',
-        snapshot=snapshot,
-        log=log,
-    )
+    try:
+        await wait_for(
+            run_in_threadpool(
+                process_rating_key,
+                db,
+                plex_interface,
+                webhook.Metadata.ratingKey,
+                new_only=webhook.event == 'library.new',
+                snapshot=snapshot,
+                log=log,
+            ),
+            timeout=timeout,
+        )
+    except AsyncTimeoutError as exc:
+        log.exception('Webhook request has timed out')
+        raise HTTPException(
+            status_code=504,
+            detail='Webhook has timed out'
+        ) from exc
 
 
 @webhook_router.post('/sonarr/cards', tags=['Sonarr'])
