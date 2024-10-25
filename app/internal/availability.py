@@ -3,7 +3,7 @@ from json import loads
 from typing import Optional
 
 from fastapi import HTTPException
-from niquests import JSONDecodeError, get as get
+from requests import JSONDecodeError, get
 
 from app.models.preferences import Preferences
 from app.schemas.card import LocalCardType, RemoteCardType

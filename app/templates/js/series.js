@@ -160,6 +160,7 @@ function deleteEpisodeCard(episodeId, onComplete) {
     url: `/api/cards/episode/${episodeId}`,
     success: () => {
       document.getElementById(`card-episode${episodeId}`).remove();
+      document.getElementById(`card-popup-episode${episodeId}`).remove();
       showInfoToast('Deleted Title Card');
     },
     error: response => showErrorToast({title: 'Error Creating Title Card(s)', response}),
@@ -838,7 +839,15 @@ async function getSourceFileData(page=currentFilePage) {
         const image = template.content.cloneNode(true);
         image.querySelector('.dimmer .content').innerHTML = `<h4>Season ${source.season_number} Episode ${source.episode_number} (${source.source_file_name})</h4>`;
         image.querySelector('img').src = `${source.source_url}?${source.filesize}`;
-        image.querySelector('img').onclick = () => browseSourceImages(source.episode_id, getSourceImageElementId(source.episode_id), episodeIds);
+        // Populate popup
+        image.querySelector('.popup [data-value="season_number"]').innerText = source.season_number;
+        image.querySelector('.popup [data-value="episode_number"]').innerText = source.episode_number;
+        image.querySelector('.popup [data-action="browse"]').onclick = () => browseSourceImages(source.episode_id, getSourceImageElementId(source.episode_id), episodeIds);
+        // image.querySelector('.popup [data-action="create-mask"]').onclick = () => 
+        image.querySelector('.popup [data-action="delete"]').onclick = () => deleteSourceImage(source.episode_id);
+        image.querySelector('.popup [data-action="mirror"]').onclick = () => mirrorSourceImage(source.episode_id);
+        image.querySelector('.popup [data-action="upload"]').onclick = () => uploadEpisodeSource(source.episode_id);
+        // image.querySelector('.popup [data-action="view-mask"]').onclick = () => 
         sourceImages.push(image);
       });
       document.getElementById('source-image-previews').replaceChildren(...sourceImages);
@@ -854,6 +863,7 @@ async function getSourceFileData(page=currentFilePage) {
       });
       refreshTheme();
       $('#source-image-previews .image .dimmer').dimmer({transition: 'fade up', on: 'hover'});
+      $('#source-image-previews .image').popup({on: 'click', inline: true});
     },
     error: response => showErrorToast({title: 'Error Loading Series Source Images', response}),
   });
@@ -1047,6 +1057,7 @@ function querySeriesLogs() {
     size: 100,
     shallow: false,
   });
+
   $.ajax({
     type: 'GET',
     url: `/api/logs/query?${params.toString()}`,
@@ -1069,11 +1080,12 @@ function querySeriesLogs() {
         event.querySelector('[data-value="date"]').innerText = timeDiffString(log.time);
         event.querySelector('[data-value="context_id"]').innerText = log.context_id || '';
         event.querySelector('[data-value="message"]').innerText = log.message
-          .replace(`Series[{{series.id}}] ${series_full_name}`, series_full_name);
+          .replace(`Series[{{ series.id }}] ${series_full_name}`, series_full_name);
 
         return event;
       })
 
+      document.getElementById('logs-loader').remove();
       document.querySelector('.feed').replaceChildren(...events);
       refreshTheme();
     },
@@ -1120,21 +1132,27 @@ function getCardData(
           preview.querySelector('.image').classList.add('transition', 'hidden');
         }
 
-        // Remove check label if not loaded
-        if (!card.loaded) {
-          preview.querySelector('.label[data-value="loaded"]').remove();
-        }
+        // Add item IDs
+        preview.querySelector('.image').id = `card-episode${card.episode_id}`;
+        preview.querySelector('.popup').id = `card-popup-episode${card.episode_id}`;
 
-        // Re-create Card when image is clicked or right-clicked (if enabled)
-        if (interactive_card_previews) {
-          preview.querySelector('img').onclick = () => createEpisodeCard(card.episode_id);
-          // Delete Card and then recreate when image is clicked
-          preview.querySelector('img').oncontextmenu = () => {
-            deleteEpisodeCard(
-              card.episode_id,
-              () => createEpisodeCard(card.episode_id),
-            );
-          }
+        // Populate popup
+        // Populate header text
+        preview.querySelector('.popup [data-value="season_number"]').innerText = card.episode.season_number;
+        preview.querySelector('.popup [data-value="episode_number"]').innerText = card.episode.episode_number;
+        // Remove irrelevant icon based on loaded status
+        if (card.loaded) {
+          preview.querySelector('[data-value="unloaded"]').remove();
+        } else {
+          preview.querySelector('[data-value="loaded"]').remove();
+        }
+        // Assign button functionality
+        preview.querySelector('.popup [data-action="recreate"]').onclick = () => {
+          deleteEpisodeCard(
+            card.episode_id,
+            // Re-create the Card after deletion
+            () => createEpisodeCard(card.episode_id),
+          );
         }
         preview.querySelector('.popup [data-action="delete"]').onclick = () => deleteEpisodeCard(card.episode_id);
         preview.querySelector('.popup [data-action="reload"]').onclick = () => loadEpisodeCards(card.episode_id);
@@ -1183,6 +1201,7 @@ function getCardData(
         pages: cards.pages,
         amountVisible: isSmallScreen() ? 6 : 12,
       });
+      $('#card-previews .image').popup({on: 'click', inline: true});
 
       // Refresh theme, initialize dimmers
       setTimeout(() => {

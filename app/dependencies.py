@@ -3,7 +3,7 @@ from typing import Iterator, Optional, TypeVar, Union
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import HTTPException, Query, Request
-from niquests import get
+from requests import get
 from sqlalchemy.orm import Session
 
 from app.database.session import (

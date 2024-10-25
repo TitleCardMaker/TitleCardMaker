@@ -274,6 +274,41 @@
       </div>
       <img loading="lazy">
     </div>
+    <div class="ui uninvertible popup right center">
+      <div class="header">
+        Season <span data-value="season_number">0</span> Episode <span data-value="episode_number">0</span>
+      </div>
+      <div class="content">
+        <div class="ui uninvertible vertical labeled icon fluid buttons">
+          <button class="ui uninvertible button" data-action="browse">
+            <i class="border all icon"></i>
+            Browse
+          </button>
+          <!-- Temporarily disabled -->
+          <!-- <button class="ui uninvertible disabled button" data-action="create-mask">
+            <i class="theater masks icon"></i>
+            Create Mask
+          </button> -->
+          <button class="ui uninvertible button" data-action="delete">
+            <i class="trash alternate icon"></i>
+            Delete
+          </button>
+          <button class="ui uninvertible button" data-action="mirror">
+            <i class="exchange alternate icon"></i>
+            Mirror
+          </button>
+          <button class="ui uninvertible button" data-action="upload">
+            <i class="upload icon"></i>
+            Upload
+          </button>
+          <!-- Temporarily disabled -->
+          <!-- <button class="ui uninvertible disabled button" data-action="view-mask">
+            <i class="eye icon"></i>
+            View Mask
+          </button> -->
+        </div>
+      </div>
+    </div>
   </template>
 
   <template id="card-image-template">
@@ -285,9 +320,57 @@
         </div>
       </div>
       <img loading="lazy">
-      <a data-value="loaded" class="ui left corner label" style="border-color: transparent;">
-        <i style="background-color: #000000cc;border-radius: 4px;padding:3px;height:auto;" class="large green check icon"></i>
-      </a>
+    </div>
+    <div class="ui uninvertible popup right center">
+      <div class="header">
+        Season <span data-value="season_number">0</span> Episode <span data-value="episode_number">0</span>
+        <span data-value="loaded" data-tooltip="Card is loaded"><i class="green check square outline icon"></i></span>
+        <span data-value="unloaded" data-tooltip="Card is not loaded"><i class="red times circle icon"></i></span>
+      </div>
+      <div class="content">
+        <div class="ui uninvertible vertical labeled icon fluid buttons">
+          <button class="ui uninvertible button" data-action="recreate">
+            <i class="paint brush icon"></i>
+            Recreate
+          </button>
+          <button class="ui uninvertible button" data-action="delete">
+            <i class="trash alternate icon"></i>
+            Delete
+          </button>
+          <button class="ui icon top left pointing dropdown uninvertible button">
+            <i class="wrench icon"></i>
+            <div class="menu">
+              <div class="header">Display Density</div>
+              <div class="item">Comfortable</div>
+              <div class="item">Cozy</div>
+              <div class="item">Compact</div>
+              <div class="ui divider"></div>
+              <div class="item">Settings</div>
+              <div class="item">
+                <i class="dropdown icon"></i>
+                <span class="text">Upload Settings</span>
+                <div class="menu">
+                  <div class="item">
+                    <i class="check icon"></i>
+                    Convert Uploaded Files to PDF
+                  </div>
+                  <div class="item">
+                    <i class="check icon"></i>
+                    Digitize Text from Uploaded Files
+                  </div>
+                </div>
+              </div>
+              <div class="item">Manage Apps</div>
+              <div class="item">Keyboard Shortcuts</div>
+              <div class="item">Help</div>
+            </div>
+          </button>
+          <button class="ui uninvertible button" data-action="reload">
+            <i class="cloud upload icon"></i>
+            Reload
+          </button>
+        </div>
+      </div>
     </div>
   </template>
 
@@ -1390,6 +1473,7 @@
 
         <!-- Logs Tab -->
         <div class="ui bottom attached tab segment" data-tab="logs">
+          <div class="ui active centered inline blue elastic loader" id="logs-loader"></div>
           <div class="ui connected feed"></div>
         </div>
       </div>
