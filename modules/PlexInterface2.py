@@ -895,8 +895,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 self.__retry_upload(plex_episode, image.resolve(), log=log)
 
                 # If integrating with Kometa, remove label
-                if self.integrate_with_kometa:
+                if (self.integrate_with_kometa and
+                    any(lbl.tag == 'Overlay' for lbl in plex_episode.labels)):
                     plex_episode.removeLabel(['Overlay'])
+                    plex_episode.reload()
                     log.trace(f'Removed "Overlay" label from {plex_episode}')
                 log.debug(f'{series_info} {plex_episode.seasonEpisode} loaded '
                           f'Card {image.name} into "{library_name}"')
