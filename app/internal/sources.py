@@ -219,7 +219,7 @@ def download_series_logo(
     logo = None
     for interface_id in image_source_priority:
         # Skip if there is no interface for this ID
-        if not (interface := get_interface(interface_id)):
+        if not (interface := get_interface(interface_id, raise_exc=False)):
             continue
 
         # Skip interfaces which cannot provide logos
