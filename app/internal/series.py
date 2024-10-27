@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 from fastapi import BackgroundTasks, HTTPException
 from PIL import Image, UnidentifiedImageError
-from niquests import get
+from requests import get
 from sqlalchemy.exc import InvalidRequestError, OperationalError
 from sqlalchemy.orm import Session
 

@@ -3,7 +3,7 @@ from importlib.util import spec_from_file_location, module_from_spec
 
 from pathlib import Path
 from typing import Optional
-from niquests import get
+from requests import get
 from tinydb import where
 from modules.BaseCardType import BaseCardType
 

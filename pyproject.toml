@@ -47,7 +47,6 @@ dependencies = [
     "sqlalchemy==2.0.36",
     "huey>=2.5.1",
     "starlette==0.38.4",
-    "niquests==3.9.1",
 ]
 
 [build-system]

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from niquests import Response, get
+from requests import Response, get
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 from tinydb import where
 

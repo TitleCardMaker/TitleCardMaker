@@ -1,6 +1,6 @@
 from asyncio import wait_for, TimeoutError as AsyncTimeoutError
 from time import sleep
-from typing import Optional, cast
+from typing import Optional
 
 from fastapi import (
     APIRouter,
@@ -83,7 +83,7 @@ async def process_plex_webhook(
         snapshot: bool = Query(default=True),
         require_owner: bool = Query(default=True),
         trigger_on: str = Query(default='library.new,media.scrobble'),
-        timeout: int = Query(min=5, max=600, default=120),
+        timeout: int = Query(min=5, max=600, default=300),
         db: Session = Depends(get_database),
         plex_interface: PlexInterface = Depends(require_plex_interface),
     ) -> None:

@@ -2,7 +2,7 @@ from pathlib import Path
 from re import compile as re_compile, IGNORECASE
 
 from fastapi import HTTPException
-from niquests import get
+from requests import get
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_preferences
