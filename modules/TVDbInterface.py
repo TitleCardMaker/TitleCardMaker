@@ -464,7 +464,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         artwork: list[TVDbArtwork] = []
         for language in self.language_priority:
-            artwork += self.__get_series_artwork(tvdb_id, language, 'poster')
+            artwork += self.__get_series_artwork(tvdb_id, language, art_type)
 
         if not artwork:
             log.debug(f'TVDb has no {art_type}s for TVDb {tvdb_id}')
