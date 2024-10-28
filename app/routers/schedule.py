@@ -1,6 +1,5 @@
 from datetime import datetime
 from functools import wraps
-from logging import Logger
 from typing import Callable, Literal, Optional
 
 from apscheduler.job import Job
@@ -34,8 +33,7 @@ from app.schemas.schedule import (
     ScheduledTask,
     UpdateSchedule
 )
-
-from modules.Debug import contextualize, log, tz
+from modules.Debug import Logger, contextualize, log, tz
 
 
 # Do not allow tasks to be scheduled faster than this interval
@@ -257,6 +255,11 @@ def initialize_scheduler(override: bool = False) -> None:
     # Schedule all defined Jobs
     changed = False
     for job in BaseJobs.values():
+        # Skip if Job is running
+        if BaseJobs[job.id].running:
+            log.debug(f'Skipping Task[{job.id}] - currently running')
+            continue
+
         # Determine if the job schedule is bad
         bad_job = (
             scheduler.get_job(job.id) is not None
