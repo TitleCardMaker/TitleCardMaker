@@ -1222,12 +1222,11 @@ async function initAll() {
   getBlueprintCount();
   refreshTheme();
   getEpisodeOverviews();
+  querySeriesLogs();
   
   // Schedule recurring statistics query
   getStatistics();
   getStatisticsId = setInterval(getStatistics, 90000);
-  setInterval(getCardData, 90000);
-  querySeriesLogs();
 
   // Open tab indicated by URL param
   const tab = window.location.hash.substring(1) || 'options';
@@ -2292,7 +2291,7 @@ function updateSeries(formName) {
 function deleteTitleCards(onSuccess) {
   $.ajax({
     type: 'DELETE',
-    url: '/api/cards/series/{{series.id}}',
+    url: '/api/cards/series/{{ series.id }}',
     success: response => {
       showInfoToast(`Deleted ${response.deleted} Cards`);
       if (onSuccess !== undefined) { onSuccess(); }

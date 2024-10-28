@@ -41,6 +41,9 @@ $(document).ready(function() {
 
   // Enable webhook if passed as true in the script tag
   if (Object.fromEntries(new URL(_thisScript.src).searchParams).websocket.toLowerCase() === 'true') {
+    /**
+     * Function to create (or get) the log message element.
+     */
     const createLogMessage = () => {
       const elem = document.createElement('div');
       elem.id = '__current_log';
@@ -48,13 +51,13 @@ $(document).ready(function() {
       document.querySelector('body').appendChild(elem);
       return elem;
     }
-  
+
     const addMessage = (message) => {
       // Either replace currently displayed message or create a new one
       document.getElementById('__current_log')?.remove();
       const info = createLogMessage();
       info.innerText = message;
-  
+
       // Remove message after 5 seconds
       setTimeout(() => {
         info.innerHTML = '<i class="exclamation circle icon"></i>';
@@ -66,7 +69,7 @@ $(document).ready(function() {
         });
       }, 5000);
     };
-
+    
     // Open logging WebSocket
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws/logs`;
