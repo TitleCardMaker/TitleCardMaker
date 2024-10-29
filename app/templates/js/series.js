@@ -771,7 +771,7 @@ async function getSourceFileData(page=currentFilePage) {
 
   $.ajax({
     type: 'GET',
-    url: `/api/sources/series/{{series.id}}?page=${page}&size=${sourceImagePreviewPageSize}`,
+    url: `/api/sources/series/{{ series.id }}?page=${page}&size=${sourceImagePreviewPageSize}`,
     /**
      * Sources queried, create elements to display on the page.
      * @param {SourceImagePage} allFiles - Page of Source Images for this Series.
@@ -1135,6 +1135,7 @@ function getCardData(
         // Add item IDs
         preview.querySelector('.image').id = `card-episode${card.episode_id}`;
         preview.querySelector('.popup').id = `card-popup-episode${card.episode_id}`;
+        preview.querySelector('.popup').dataset.episodeId = card.episode_id;
 
         // Populate popup
         // Populate header text
@@ -1201,6 +1202,8 @@ function getCardData(
         pages: cards.pages,
         amountVisible: isSmallScreen() ? 6 : 12,
       });
+
+      // Initialize popups on all images
       $('#card-previews .image').popup({on: 'click', inline: true});
 
       // Refresh theme, initialize dimmers
@@ -1351,6 +1354,7 @@ async function initAll() {
       if (!editedEpisodeIds.includes(episodeId*1)) { editedEpisodeIds.push(episodeId*1); }
     });
 
+  // Show popup when poster is clicked
   $('#poster').popup({on: 'click', inline: true, position: 'right center'});
 }
 
@@ -2299,6 +2303,19 @@ function deleteTitleCards(onSuccess) {
     },
     error: response => showErrorToast({title: 'Error Deleting Title Cards', response}),
     complete: () => getStatistics(),
+  });
+}
+
+/**
+ * Submit an API request to delete this Series' Source Images.
+ */
+function deleteSourceImages() {
+  $.ajax({
+    type: 'DELETE',
+    url: '/api/sources/series/{{ series.id }}',
+    success: () => {},
+    error: response => showErrorToast({title: 'Error Deleting Source Images', response}),
+    complete: () => getSourceFileData(),
   });
 }
 

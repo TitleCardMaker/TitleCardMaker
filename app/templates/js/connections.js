@@ -354,10 +354,6 @@ function _deleteConnectionRequest(connectionId, deleteCards=false) {
       if (deleteCards) { showInfoToast('Deleted Title Cards'); }
       showInfoToast('Reloading page..');
       setTimeout(window.reload, 2500);
-      // Delete this connection from the page, refresh Sonarr so server dropdowns update
-      // document.getElementById(`connection${connectionId}-title`).remove();
-      // document.getElementById(`connection${connectionId}`).remove();
-      // getAllConnections().then(initializeSonarr);
     },
     error: response => showErrorToast({title: 'Error Deleting Connection', response}),
   });
@@ -469,7 +465,8 @@ function initializeEmby() {
               };
             }),
           });
-        }, error: response => showErrorToast({title: `Error Querying ${connection.name} Usernames`, response}),
+        },
+        error: response => showErrorToast({title: `Error Querying ${connection.name} Usernames`, response}),
       });
     } else if (connection.username) {
       const dropdown = $(`#connection${connection.id} .dropdown[data-value="username"]`);
@@ -488,6 +485,7 @@ function initializeEmby() {
       if (!$(`#connection${connection.id} form`).form('is valid')) { return; }
       updateConnection(new FormData(event.target), connection.id, 'Emby');
     });
+
     // Assign delete function to button
     $(`#connection${connection.id} button[data-action="delete"]`).on('click', (event) => {
       event.preventDefault();
@@ -559,6 +557,7 @@ function initializeJellyfin() {
         values: [{name: connection.username, value: connection.username, selected: true}],
       });
     }
+
     // SSL
     $(`#connection${connection.id} .checkbox[data-value="use_ssl"]`).checkbox(
       connection.use_ssl ? 'check' : 'uncheck'
@@ -625,6 +624,7 @@ function initializePlex() {
     $(`#connection${connection.id} .checkbox[data-value="integrate_with_kometa"]`).checkbox(
       connection.integrate_with_kometa ? 'check' : 'uncheck'
     );
+
     // Assign appropriate Tautulli modal form launch to button
     $(`#connection${connection.id} .button[data-action="tautulli"]`).on('click', () => {
       initializeTautulliForm(connection.id);
@@ -638,6 +638,7 @@ function initializePlex() {
       if (!$(`#connection${connection.id} form`).form('is valid')) { return; }
       updateConnection(new FormData(event.target), connection.id, 'Plex');
     });
+
     // Assign delete function to button
     $(`#connection${connection.id} button[data-action="delete"]`).on('click', (event) => {
       event.preventDefault();

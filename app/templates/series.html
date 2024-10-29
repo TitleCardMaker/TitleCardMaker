@@ -337,32 +337,35 @@
             <i class="trash alternate icon"></i>
             Delete
           </button>
-          <button class="ui icon top left pointing dropdown uninvertible button">
+          <button class="ui dropdown uninvertible button" data-action="manually-reload">
             <i class="wrench icon"></i>
+            Manually Load
             <div class="menu">
-              <div class="header">Display Density</div>
-              <div class="item">Comfortable</div>
-              <div class="item">Cozy</div>
-              <div class="item">Compact</div>
-              <div class="ui divider"></div>
-              <div class="item">Settings</div>
-              <div class="item">
-                <i class="dropdown icon"></i>
-                <span class="text">Upload Settings</span>
-                <div class="menu">
-                  <div class="item">
-                    <i class="check icon"></i>
-                    Convert Uploaded Files to PDF
+              {% for connection in all_connections %}
+                {% if connection.interface_type == 'Emby' or connection.interface_type == 'Jellyfin' or connection.interface_type == 'Plex' %}
+                  {% if connection.enabled %}
+                  <div class="connection item" data-connection-id="{{ connection.id }}">
+                  {% else %}
+                  <div class="disabled connection item" data-connection-id="{{ connection.id }}">
+                  {% endif %}
+                    <i class="dropdown icon"></i>
+                    <span class="text">{{ connection.name }}</span>
+                    <div class="menu">
+                      {% for library in preferences.libraries[connection.id] %}
+                      <div class="item">
+                        <i class="dropdown icon"></i>
+                        <span class="text" onmouseover="queryLibraryEpisodes(event);" onmouseout="stopQuery(event);">{{ library }}</span>
+                        <div class="menu">
+                          <div class="item">
+                            <div class="ui active centered inline small elastic indeterminate text loader">Loading</div>
+                          </div>
+                        </div>
+                      </div>
+                      {% endfor %}
+                    </div>
                   </div>
-                  <div class="item">
-                    <i class="check icon"></i>
-                    Digitize Text from Uploaded Files
-                  </div>
-                </div>
-              </div>
-              <div class="item">Manage Apps</div>
-              <div class="item">Keyboard Shortcuts</div>
-              <div class="item">Help</div>
+                {% endif %}
+              {% endfor %}
             </div>
           </button>
           <button class="ui uninvertible button" data-action="reload">
@@ -538,7 +541,7 @@
             </div>
             <div class="ui invisible segment">
               <h2 class="ui header">
-                {{series.name}}
+                <span contenteditable="">{{series.name}}</span>
                 <div class="sub header">{{series.year}}</div>
                 <div id="card-progress" class="ui bottom attached progress">
                   <div class="green bar"></div>
@@ -1768,6 +1771,51 @@
       </div>
       <div class="actions">
         <button class="ui primary button" type="submit" form="import-mediux-form" onclick="importMediuxYaml(event);">Import</button>
+      </div>
+    </div>
+
+    <!-- Card loading modal -->
+    <div class="ui large modal" id="loadCardsModal">
+      <div class="header">Manual Card Loading</div>
+      <div class="scrolling content">
+        <form class="ui form">
+          {% for connection in all_connections %}
+            {% if connection.interface_type == 'Emby' or connection.interface_type == 'Jellyfin' or connection.interface_type == 'Plex' %}
+              {% set status = '' if connection.enabled else 'disabled' %}
+              <!-- Header -->
+              <h3 class="ui {{ status }} dividing header">{{ connection.name }}</h3>
+
+              <!-- Content -->
+              <div class="ui two {{ status }} fields">
+                <div class="four wide field" data-value="library">
+                  <label>Library</label>
+                  <div class="ui selection dropdown" data-value="load-episode-library" data-connection-id="{{ connection.id }}">
+                    <input class="noselection" type="hidden" name="library" value="">
+                    <div class="default text">Select a Library</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                      {% for library in preferences.libraries[connection.id] %}
+                      <div class="item" data-value="{{ library }}">{{ library }}</div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="twelve wide disabled field" data-value="episodes" data-connection-id="{{ connection.id }}">
+                  <label>Episode</label>
+                  <div class="ui selection search dropdown">
+                    <input type="hidden" name="episode_index">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">Select Episode</div>
+                    <div class="menu">
+                      <!-- Added asynchronously -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </form>
       </div>
     </div>
 
