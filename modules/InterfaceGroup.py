@@ -1,7 +1,6 @@
-from logging import Logger
 from typing import Generic, Iterable, Iterator, Mapping, Optional, TypeVar
 
-from modules.Debug import log
+from modules.Debug import Logger, log
 from modules.Interface import Interface
 
 _InterfaceID = TypeVar('_InterfaceID', bound=int)
