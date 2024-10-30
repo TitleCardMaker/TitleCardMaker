@@ -2120,7 +2120,7 @@ function loadCards(interfaceId, libraryName, reload=false) {
 
   $.ajax({
     type: 'PUT',
-    url: `/api/cards/series/{{series.id}}/load?${params.toString()}`,
+    url: `/api/cards/series/{{ series.id }}/load?${params.toString()}`,
     success: () => {
       showInfoToast('Loaded Title Cards');
       getStatistics();

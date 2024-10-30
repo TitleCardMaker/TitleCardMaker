@@ -324,7 +324,15 @@ def get_all_episodes_on_connection(
         jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
     ) -> list[EpisodeData]:
-    """"""
+    """
+    Get a list of all episode data for the given Series on the given
+    Connection.
+
+    - series_id: ID of the Series whose Episode data to query.
+    - interface_id: ID of the Connection to query Episode data from.
+    - library_name: Name of the library on the associated Connection to
+    look for Episode data within.
+    """
 
     # Get associated Series and Connection
     series = get_series(db, series_id, raise_exc=True)
@@ -338,23 +346,31 @@ def get_all_episodes_on_connection(
         )
 
     # Get associated Interface from group
-    interface = None
+    interface, uid_attr = None, None
     if connection.interface_type == 'Emby':
         interface = emby_interfaces[interface_id]
+        uid_attr = 'emby_id'
     elif connection.interface_type == 'Jellyfin':
         interface = jellyfin_interfaces[interface_id]
+        uid_attr = 'jellyfin_id'
     elif connection.interface_type == 'Plex':
         interface = plex_interfaces[interface_id]
+        uid_attr = 'plex_id'
 
     # Verify interface is available and valid
-    if not interface or not interface.active:
+    if not interface or not interface.active or not uid_attr:
         raise HTTPException(
             status_code=422,
             detail='Interface ID or Connection is invalid'
         )
 
     return [
-        episode_info
+        EpisodeData(
+            season_number=episode_info.season_number,
+            episode_number=episode_info.episode_number,
+            title=episode_info.title,
+            uid=getattr(episode_info, uid_attr)[interface_id, library_name]
+        )
         for episode_info, _ in interface.get_all_episodes(
             library_name,
             series.as_series_info,

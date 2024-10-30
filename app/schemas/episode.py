@@ -167,6 +167,7 @@ class EpisodeData(Base):
     season_number: int
     episode_number: int
     title: str
+    uid: Any
 
 class Episode(Base):
     id: int
