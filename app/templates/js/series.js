@@ -496,7 +496,7 @@ function queryTMDbPoster() {
         $('#poster-dialog input[name="url"]').val(posterUrl);
       }
     },
-    error: () => $.ajax({class: 'error', title: 'TMDb returned no images'}),
+    error: () => showErrorToast({class: 'error', title: 'TMDb returned no images'}),
     complete: () => $('#poster-dialog .input[data-value="url"]').toggleClass('loading', false),
   });
 }
@@ -1148,8 +1148,8 @@ function getCardData(
         }
         // Assign button functionality
         preview.querySelector('.popup [data-action="recreate"]').onclick = () => {
-          deleteEpisodeCard(
-            card.episode_id,
+          deleteCard(
+            card.id,
             // Re-create the Card after deletion
             () => createEpisodeCard(card.episode_id),
           );
