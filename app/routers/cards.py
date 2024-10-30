@@ -30,6 +30,7 @@ from app.internal.series import (
     load_all_series_title_cards,
     load_episode_title_card,
     load_series_title_cards,
+    load_title_card,
     update_series_config,
 )
 from app.models.card import Card
@@ -424,14 +425,15 @@ def load_series_title_cards_(
     associated interface.
 
     - series_id: ID of the Series whose Cards are being loaded.
-    - library_index: Index in Series' library list of the library to
-    load the Cards into.
+    - interface_id: Optional ID of the Connection to load into.
+    - library_name: Optional name of the specific library to load Cards
+    into.
     - reload: Whether to "force" reload all Cards, even those that have
     already been loaded. If false, only Cards that have not been loaded
     previously (or that have changed) are loaded.
     """
 
-    # Interface ID and library name must be provided together
+    # Interface ID and library name must be provided together or not at all
     if bool(interface_id) != bool(library_name):
         raise HTTPException(
             status_code=422,
@@ -488,6 +490,53 @@ def force_reload_episode_cards(
             get_interface(library['interface_id']), # type: ignore
             log=request.state.log,
         )
+
+
+@card_router.put('/card/{card_id}/load')
+def reload_card(
+        card_id: int,
+        request: Request,
+        interface_id: Optional[int] = Query(default=None),
+        library_name: Optional[str] = Query(default=None),
+        db: Session = Depends(get_database),
+    ) -> None:
+    """
+    Reload the Title Card. This is a "force" reload.
+
+    - card_id: ID of the Card to load.
+    """
+
+    # Interface ID and library name must be provided together or not at all
+    if bool(interface_id) != bool(library_name):
+        raise HTTPException(
+            status_code=422,
+            detail='Both interface ID and library name must be provided'
+        )
+
+    # Get this Card, raise 404 if DNE
+    card = get_card(db, card_id, raise_exc=True)
+
+    # Load Title Cards into only the specified library
+    if library_name and interface_id:
+        load_title_card(
+            card,
+            db,
+            library_name,
+            interface_id,
+            get_interface(interface_id), # type: ignore
+            log=request.state.log,
+        )
+    else:
+    # Load Cards for all libraries
+        for library in card.episode.series.libraries:
+            load_title_card(
+                card,
+                db,
+                library['name'],
+                library['interface_id'],
+                get_interface(library['interface_id']), # type: ignore
+                log=request.state.log,
+            )
 
 
 @card_router.get('/episode/{episode_id}', tags=['Episodes'])

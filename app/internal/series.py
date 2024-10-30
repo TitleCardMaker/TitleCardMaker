@@ -611,7 +611,7 @@ def load_episode_title_card(
         episode: Episode to load the Title Card of.
         db: Database to look for and add Loaded records from/to.
         media_server: Which media server to load Title Cards into.
-        *_interface: Interface to load Title Cards into.
+        interface: Interface to load Title Cards into.
         attempts: How many times to attempt loading the given Card.
         log: Logger for all log messages.
 
@@ -680,6 +680,77 @@ def load_episode_title_card(
         episode_id=episode.id,
         interface_id=interface_id,
         series_id=episode.series.id,
+        filesize=card.filesize,
+        library_name=library_name,
+    ))
+    db.commit()
+    return True
+
+
+def load_title_card(
+        card: Card,
+        db: Session,
+        library_name: str,
+        interface_id: int,
+        interface: Union[EmbyInterface, JellyfinInterface, PlexInterface],
+        *,
+        log: Logger = log,
+    ) -> bool:
+    """
+    Load the Title Card for the given Episode into the indicated media
+    server. This is a forced reload, and any existing Loaded assets are
+    deleted.
+
+    Args:
+        episode: Episode to load the Title Card of.
+        db: Database to look for and add Loaded records from/to.
+        media_server: Which media server to load Title Cards into.
+        interface: Interface to load Title Cards into.
+        log: Logger for all log messages.
+
+    Returns:
+        Whether the Card was loaded or not.
+    """
+
+    # Determine query for Loaded assets
+    if len(card.episode.series.libraries) == 1:
+        loaded_query = dict(card_id=card.id)
+    elif (len(card.episode.series.libraries) > 1
+        and not get_preferences().library_unique_cards):
+        loaded_query = dict(
+            episode_id=card.episode.id,
+            interface_id=interface_id,
+            library_name=library_name,
+        )
+    else:
+        loaded_query = dict(
+            episode_id=card.episode.id,
+            interface_id=interface_id,
+            library_name=library_name,
+        )
+
+    # Delete previously Loaded entries
+    db.query(Loaded).filter_by(**loaded_query).delete()
+
+    # Load Card
+    loaded_assets = interface.load_title_cards(
+        library_name,
+        card.episode.series.as_series_info,
+        [(card.episode, card)],
+        log=log,
+    )
+
+    # Card not loaded, exit
+    if not loaded_assets:
+        log.debug(f'{card} could not be loaded')
+        return False
+
+    # Card loaded, create Loaded asset and commit to database
+    db.add(Loaded(
+        card_id=card.id,
+        episode_id=card.episode.id,
+        interface_id=interface_id,
+        series_id=card.episode.series.id,
         filesize=card.filesize,
         library_name=library_name,
     ))
