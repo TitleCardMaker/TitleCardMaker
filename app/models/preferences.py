@@ -63,7 +63,7 @@ class Preferences:
         'is_docker', 'file', 'asset_directory', 'card_type_directory',
         'remote_card_types', 'local_card_types', 'invalid_connections',
         'currently_running_sync', 'current_db_schema', 'current_version',
-        'server_boot_time',
+        'server_boot_time', 'libraries',
     )
 
     __slots__ = (
@@ -126,6 +126,7 @@ class Preferences:
         'display_live_messages',
         'source_preview_page_dimensions',
         'title_card_preview_page_dimensions',
+        'libraries',
     )
 
 
@@ -171,7 +172,7 @@ class Preferences:
             self.blacklisted_blueprints: set[int] = set()
 
 
-    def __getstate__(self) -> dict:
+    def __getstate__(self) -> dict[str, Any]:
         """
         Get the state definition of this object for pickling. This
         is all attributes except `remote_card_types`.
@@ -191,7 +192,7 @@ class Preferences:
         }
 
 
-    def __setstate__(self, state: dict) -> None:
+    def __setstate__(self, state: dict[str, Any]) -> None:
         """
         Set the state of this object from the pickled representation.
 
@@ -262,6 +263,7 @@ class Preferences:
         self.use_sonarr = False
         self.use_tmdb = False
         self.use_tvdb = False
+        self.libraries: dict[int, list[str]] = {}
 
         self.use_magick_prefix = False
         self.blacklisted_blueprints: set[int] = set()

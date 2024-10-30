@@ -32,9 +32,13 @@ from app.schemas.connection import (
 )
 from modules.Debug import Logger, log
 from modules.Debug2 import SECRETS
+from modules.EmbyInterface2 import EmbyInterface
 from modules.InterfaceGroup import InterfaceGroup
+from modules.JellyfinInterface2 import JellyfinInterface
+from modules.PlexInterface2 import PlexInterface
 
 
+_MediaServerInterface = (EmbyInterface, JellyfinInterface, PlexInterface)
 _NewConnection = Union[
     NewEmbyConnection, NewJellyfinConnection, NewPlexConnection,
     NewSonarrConnection, NewTMDbConnection, NewTVDbConnection,
@@ -93,6 +97,11 @@ def initialize_connections(
                 interface_group.initialize_interface(
                     connection.id, connection.interface_kwargs, log=log,
                 )
+                interface = interface_group[connection.id]
+                if isinstance(interface, _MediaServerInterface):
+                    preferences.libraries[connection.id] = interface.get_libraries()
+                    log.trace(f'Preferences.libraries[{connection.id}] = '
+                              f'{preferences.libraries[connection.id]}')
             except Exception:
                 preferences.invalid_connections.append(connection.id)
                 log.exception(f'Error initializing {connection}')
