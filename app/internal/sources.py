@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Optional
+from re import compile as re_compile, IGNORECASE
+from typing import Literal, Optional, overload
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -267,6 +268,28 @@ def download_series_logo(
     # No logo returned
     return None
 
+
+@overload
+def download_episode_source_image(
+        db: Session,
+        episode: Episode,
+        library: Optional[Library] = None,
+        *,
+        raise_exc: Literal[True],
+        log: Logger = log,
+    ) -> str:
+    ...
+
+@overload
+def download_episode_source_image(
+        db: Session,
+        episode: Episode,
+        library: Optional[Library] = None,
+        *,
+        raise_exc: bool = False,
+        log: Logger = log,
+    ) -> Optional[str]:
+    ...
 
 def download_episode_source_image(
         db: Session,
