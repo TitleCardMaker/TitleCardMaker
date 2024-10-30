@@ -332,6 +332,13 @@
  * @property {number} pages
  */
 
+/**
+ * @typedef {Object} RemoteEpisodeData
+ * @property {number} season_number
+ * @property {number} episode_number
+ * @property {string} title
+ */
+
 // Fonts -----------------------------------------------------------------------
 
 /**
