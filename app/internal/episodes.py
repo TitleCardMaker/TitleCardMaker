@@ -191,7 +191,7 @@ def refresh_episode_data(
 
     # Get effective sync specials toggle
     global_template, series_template, _ = get_effective_templates(series)
-    sync_specials: bool = TieredSettings.resolve_singular_setting(
+    sync_specials = TieredSettings.resolve_singular_setting(
         get_preferences().sync_specials,
         getattr(global_template, 'sync_specials', None),
         getattr(series_template, 'sync_specials', None),
@@ -274,9 +274,12 @@ def refresh_episode_data(
 
     # Set Episode ID's for all new Episodes as background task or directly
     if background_tasks is None:
-        set_episode_ids(db, series, episodes, log=log)
+        set_episode_ids(db, series, new_episodes, log=log)
     else:
-        background_tasks.add_task(set_episode_ids, db, series, episodes,log=log)
+        background_tasks.add_task(
+            set_episode_ids,
+            db, series, new_episodes,log=log
+        )
 
     # Commit to database if changed
     if changed:
