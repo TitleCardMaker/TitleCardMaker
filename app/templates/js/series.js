@@ -1132,9 +1132,9 @@ function getCardData(
         }
 
         // Add item IDs
-        preview.querySelector('.image').id = `card-episode${card.episode_id}`;
-        preview.querySelector('.popup').id = `card-popup-episode${card.episode_id}`;
-        preview.querySelector('.popup').dataset.episodeId = card.episode_id;
+        preview.querySelector('.image').id = `card${card.id}`;
+        preview.querySelector('.popup').id = `card${card.id}-popup`;
+        preview.querySelector('.popup').dataset.id = card.id;
 
         // Populate popup
         // Populate header text
@@ -2130,23 +2130,20 @@ function loadCards(interfaceId, libraryName, reload=false) {
 }
 
 /**
- * Submit an API request to reload the Title Cards for the Episode of the given
- * ID.
- * @param {number} episodeId ID of the Episode to load the Title Cards of.
+ * Submit an API request to reload the Title Card with the given ID.
+ * @param {number} cardId ID of the Card to load.
  */
-function loadEpisodeCards(episodeId) {
+function loadCard(cardId) {
   $.ajax({
     type: 'PUT',
-    url: `/api/cards/episode/${episodeId}/load`,
-    /**
-     * Card reloaded. Change the loaded icon and update the tooltip text.
-     */
+    url: `/api/cards/card/${cardId}/load`,
+    /** Card reloaded. Change the loaded icon and update the tooltip text. */
     success: () => {
       showInfoToast('Loaded Title Card');
-      $(`#card-popup-episode${episodeId} .header i`)
+      $(`#card${cardId}-popup .header i`)
         .toggleClass('red times circle', false)
         .toggleClass('green check square outline', true);
-      document.querySelector(`#card-popup-episode${episodeId} .header [data-value="unloaded"]`).dataset.tooltip = 'Card is loaded';
+      document.querySelector(`#card${cardId}-popup .header [data-value="unloaded"]`).dataset.tooltip = 'Card is loaded';
     },
     error: response => showErrorToast({title: 'Error Loading Title Card', response}),
   });
@@ -2159,7 +2156,7 @@ function loadEpisodeCards(episodeId) {
 function deleteSeries() {
   $.ajax({
     type: 'DELETE',
-    url: '/api/series/series/{{series.id}}',
+    url: '/api/series/series/{{ series.id }}',
     success: () => window.location.href = '/',
     error: response => showErrorToast({title: 'Error Deleting Series', response}),
   });
