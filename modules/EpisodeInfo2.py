@@ -60,8 +60,17 @@ class EpisodeInfo(DatabaseInfoContainer):
     """
 
     __slots__ = (
-        'title', 'season_number', 'episode_number', 'absolute_number',
-        'emby_id', 'imdb_id', 'jellyfin_id', 'tmdb_id', 'tvdb_id', 'tvrage_id',
+        'title',
+        'season_number',
+        'episode_number',
+        'absolute_number',
+        'emby_id',
+        'imdb_id',
+        'jellyfin_id',
+        'plex_id',
+        'tmdb_id',
+        'tvdb_id',
+        'tvrage_id',
         'airdate',
     )
 
@@ -75,6 +84,7 @@ class EpisodeInfo(DatabaseInfoContainer):
             emby_id: Optional[str] = None,
             imdb_id: Optional[str] = None,
             jellyfin_id: Optional[str] = None,
+            plex_id: Optional[str] = None,
             tmdb_id: Optional[int] = None,
             tvdb_id: Optional[int] = None,
             tvrage_id: Optional[int] = None,
@@ -94,6 +104,7 @@ class EpisodeInfo(DatabaseInfoContainer):
         self.emby_id = InterfaceID(emby_id, type_=int, libraries=True)
         self.imdb_id: Optional[str] = None
         self.jellyfin_id = InterfaceID(jellyfin_id, type_=str, libraries=True)
+        self.plex_id = InterfaceID(plex_id, type_=int, libraries=True)
         self.tmdb_id: Optional[int] = None
         self.tvdb_id: Optional[int] = None
         self.tvrage_id: Optional[int] = None
@@ -284,7 +295,11 @@ class EpisodeInfo(DatabaseInfoContainer):
 
 
     @classmethod
-    def from_plex_episode(cls, plex_episode: PlexEpisode) -> 'EpisodeInfo':
+    def from_plex_episode(cls,
+            plex_episode: PlexEpisode,
+            interface_id: int,
+            library_name: str,
+        ) -> 'EpisodeInfo':
         """
         Create an EpisodeInfo object from a `plexapi.video.Episode`
         object.
@@ -292,14 +307,21 @@ class EpisodeInfo(DatabaseInfoContainer):
         Args:
             plex_episode: Episode to create an object from. Any
                 available GUID's are utilized.
+            interface_id: ID of the PlexInterface whose data is being
+                parsed.
+            library_name: Name of the library associated with this
+                Series.
 
         Returns:
             EpisodeInfo object encapsulating the given Episode.
         """
 
         episode_info = cls(
-            plex_episode.title, plex_episode.parentIndex, plex_episode.index,
-            airdate=plex_episode.originallyAvailableAt
+            title=plex_episode.title,
+            season_number=int(plex_episode.parentIndex),
+            episode_number=int(plex_episode.index),
+            plex_id=f'{interface_id}:{library_name}:{plex_episode.ratingKey}',
+            airdate=plex_episode.originallyAvailableAt,
         )
 
         # Add any GUIDs as database ID's

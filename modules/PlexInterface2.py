@@ -408,7 +408,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 continue
 
             # Create a new EpisodeInfo, add to list
-            episode_info = EpisodeInfo.from_plex_episode(plex_episode)
+            episode_info = EpisodeInfo.from_plex_episode(
+                plex_episode,
+                self._interface_id,
+                library_name,
+            )
             all_episodes.append((
                 episode_info,
                 WatchedStatus(
@@ -460,7 +464,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # Get data for each Plex episode
         plex_episodes = [
             (
-                EpisodeInfo.from_plex_episode(episode),
+                EpisodeInfo.from_plex_episode(
+                    episode,
+                    self._interface_id,
+                    library_name,
+                ),
                 WatchedStatus(
                     self._interface_id, library_name, episode.isWatched,
                 )
@@ -1108,7 +1116,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 return [
                     EpisodeDetails(
                         series_info,
-                        EpisodeInfo.from_plex_episode(ep),
+                        EpisodeInfo.from_plex_episode(
+                            ep,
+                            self._interface_id,
+                            entry.librarySectionTitle,
+                        ),
                         WatchedStatus(
                             self._interface_id,
                             entry.librarySectionTitle,
@@ -1126,13 +1138,18 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 return [
                     EpisodeDetails(
                         series_info,
-                        EpisodeInfo.from_plex_episode(ep),
+                        EpisodeInfo.from_plex_episode(
+                            ep,
+                            self._interface_id,
+                            entry.librarySectionTitle,
+                        ),
                         WatchedStatus(
                             self._interface_id,
-                            ep.librarySectionTitle,
+                            entry.librarySectionTitle,
                             ep.isWatched,
                         ),
-                    ) for ep in entry.episodes()
+                    )
+                    for ep in entry.episodes()
                 ]
 
             # Episode, return just that
@@ -1145,7 +1162,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 return [
                     EpisodeDetails(
                         series_info,
-                        EpisodeInfo.from_plex_episode(entry),
+                        EpisodeInfo.from_plex_episode(
+                            entry,
+                            self._interface_id,
+                            entry.librarySectionTitle,
+                        ),
                         WatchedStatus(
                             self._interface_id,
                             entry.librarySectionTitle,
