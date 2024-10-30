@@ -329,17 +329,21 @@
       </div>
       <div class="content">
         <div class="ui uninvertible vertical labeled icon fluid buttons">
-          <button class="ui uninvertible button" data-action="recreate">
-            <i class="paint brush icon"></i>
-            Recreate
-          </button>
           <button class="ui uninvertible button" data-action="delete">
             <i class="trash alternate icon"></i>
             Delete
           </button>
+          <button class="ui uninvertible button" data-action="recreate">
+            <i class="paint brush icon"></i>
+            Recreate
+          </button>
+          <button class="ui uninvertible button" data-action="reload">
+            <i class="cloud upload icon"></i>
+            Reload
+          </button>
           <button class="ui dropdown uninvertible button" data-action="manually-reload">
-            <i class="wrench icon"></i>
-            Manually Load
+            <i class="sitemap icon"></i>
+            Selective Reload
             <div class="menu">
               {% for connection in all_connections %}
                 {% if connection.interface_type == 'Emby' or connection.interface_type == 'Jellyfin' or connection.interface_type == 'Plex' %}
@@ -367,10 +371,6 @@
                 {% endif %}
               {% endfor %}
             </div>
-          </button>
-          <button class="ui uninvertible button" data-action="reload">
-            <i class="cloud upload icon"></i>
-            Reload
           </button>
         </div>
       </div>
