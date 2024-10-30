@@ -131,7 +131,7 @@ class ShowArchive:
                 f'profiles>')
 
 
-    def __getattr__(self, show_function: Callable) -> Callable:
+    def __getattr__(self, show_function: str) -> Callable:
         """
         Get an arbitrary function for this object. This returns a wrapped
         version of the given function that calls that function on all

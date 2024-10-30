@@ -445,7 +445,7 @@ class Manager:
 
         # Exit if Plex is not enabled
         if not self.preferences.use_plex:
-            log.error(f'Tautulli integration requires Plex')
+            log.error('Tautulli integration requires Plex')
             return None
 
         # Get details for each rating key from Plex
@@ -510,6 +510,10 @@ class Manager:
 
                 # If source file doesn't exist, add to report
                 if (show.card_class.USES_UNIQUE_SOURCES
+                    and (
+                        not show.style_set.watched_style_is_art
+                        or not show.style_set.unwatched_style_is_art
+                    )
                     and not episode.source.exists()):
                     show_dict[key]['source'] = episode.source.name
 
@@ -531,13 +535,14 @@ class Manager:
                     del show_dict[key]
 
             # Report missing logo if archives and summaries are enabled
-            if (show.archive and self.preferences.create_summaries
+            if (show.archive
+                and self.preferences.create_summaries
                 and not show.logo.exists()):
                 show_dict['logo'] = show.logo.name
 
             # Report missing backdrop if art style is used
-            if ((show.style_set.watched_style_is_art or
-                show.style_set.unwatched_style_is_art)
+            if ((show.style_set.watched_style_is_art
+                or show.style_set.unwatched_style_is_art)
                 and not show.backdrop.exists()):
                 show_dict['backdrop'] = show.backdrop.name
 
