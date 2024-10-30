@@ -720,3 +720,56 @@ def add_tautulli_integration(
         username=tautulli_connection.username,
         log=request.state.log,
     ).integrate(log=request.state.log)
+
+
+@connection_router.get('/{interface_id}/libraries')
+def get_interface_libraries(
+        interface_id: int,
+        preferences: Preferences = Depends(get_preferences),
+    ) -> list[str]:
+    """
+    Get the list of previously queried libraries for the given
+    Connection.
+
+    - interface_id: ID of the Connection whose libraries to return.
+    """
+
+    return preferences.libraries.get(interface_id, [])
+
+
+@connection_router.post('/{interface_id}/libraries')
+def refresh_interface_libraries(
+        interface_id: int,
+        preferences: Preferences = Depends(get_preferences),
+        emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
+        jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
+        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
+    ) -> list[str]:
+    """
+    Refresh the library list for the given Connection.
+
+    - interface_id: ID of the Connection whose librares to refresh and
+    return.
+    """
+
+    # Get associated Interface from relevant group
+    interface = None
+    if interface_id in emby_interfaces:
+        interface = emby_interfaces[interface_id]
+    elif interface_id in jellyfin_interfaces:
+        interface = jellyfin_interfaces[interface_id]
+    elif interface_id in plex_interfaces:
+        interface = plex_interfaces[interface_id]
+
+    # Raise 404 if no valid Interface was found
+    if interface is None:
+        raise HTTPException(
+            status_code=404,
+            detail='No valid media server Connection with the given ID'
+        )
+
+    # Query libraries, return result
+    preferences.libraries[interface_id] = interface.get_libraries()
+    preferences.commit()
+
+    return preferences.libraries[interface_id]

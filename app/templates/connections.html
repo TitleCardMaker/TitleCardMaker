@@ -31,6 +31,7 @@
         <div data-value="enabled" class="ui left aligned checkbox field">
           <input name="enabled" type="checkbox" checked="">
           <label>Enabled</label>
+          <p class="help">Disabled Connections cannot be interacted with by TitleCardMaker.</p>
         </div>
 
         <div class="ui two fields">
@@ -82,14 +83,24 @@
             </div>
             <p class="help">Username of the user to query Episode watched statuses from.</p>
           </div>
+
+          <div data-value="use_ssl" class="ui left aligned checkbox field">
+            <label>Use SSL</label>
+            <input name="use_ssl" type="checkbox" checked="">
+            <p class="help">Connect with HTTPS instead of HTTP.</p>
+          </div>
         </div>
 
-        <div data-value="use_ssl" class="ui left aligned checkbox field">
-          <label>Use SSL</label>
-          <input name="use_ssl" type="checkbox" checked="">
-          <p class="help">Connect with HTTPS instead of HTTP.</p>
+        <div class="ui field">
+          <label>
+            Libraries
+            <span data-tooltip="Refresh the library list" data-action="refresh-libraries">
+              <i class="small redo link icon"></i>
+            </span>
+          </label>
+          <div class="ui basic labels" data-value="libraries"></div>
+          <p class="help">Names of libraries associated with this Connection.</p>
         </div>
-        <br>
 
         <div class="ui error message"></div>
         <button class="ui primary animated button" type="submit" data-action="save">
@@ -196,6 +207,17 @@
           </p>
         </div>
 
+        <div class="ui field">
+          <label>
+            Libraries
+            <span data-tooltip="Refresh the library list" data-action="refresh-libraries">
+              <i class="small redo link icon"></i>
+            </span>
+          </label>
+          <div class="ui basic labels" data-value="libraries"></div>
+          <p class="help">Names of libraries associated with this Connection.</p>
+        </div>
+
         <div class="ui error message"></div>
         <button class="ui primary animated button" type="submit" data-action="save">
           <div class="visible content">Save Changes</div>
@@ -224,6 +246,7 @@
         <div data-value="enabled" class="ui left aligned checkbox field">
           <label>Enabled</label>
           <input name="enabled" type="checkbox" checked="">
+          <p class="help">Disabled Connections cannot be interacted with by TitleCardMaker.</p>
         </div>
 
         <div class="ui two fields">
@@ -343,6 +366,7 @@
         <div data-value="enabled" class="ui left aligned checkbox field">
           <label>Enabled</label>
           <input name="enabled" type="checkbox" checked="">
+          <p class="help">Disabled Connections cannot be interacted with by TitleCardMaker.</p>
         </div>
 
         <div class="ui two fields">
@@ -422,6 +446,7 @@
         <div data-value="enabled" class="ui left aligned checkbox field">
           <label>Enabled</label>
           <input name="enabled" type="checkbox" checked="">
+          <p class="help">Disabled Connections cannot be interacted with by TitleCardMaker.</p>
         </div>
 
         <div class="ui two fields">
@@ -500,14 +525,13 @@
             </div>
             <p class="help">Which order of episodes to utilize. Not all Series have all orderings.</p>
           </div>
-        </div>
 
-        <div data-value="include_movies" class="ui left aligned checkbox field">
-          <label>Include Movies</label>
-          <input name="include_movies" type="checkbox">
-          <p class="help">Whether to include Episodes which are marked as movies.</p>
+          <div data-value="include_movies" class="ui left aligned checkbox field">
+            <label>Include Movies</label>
+            <input name="include_movies" type="checkbox">
+            <p class="help">Whether to include Episodes which are marked as movies.</p>
+          </div>
         </div>
-        <br>
 
         <div class="ui error message"></div>
         <button class="ui primary animated button" type="submit" data-action="save">

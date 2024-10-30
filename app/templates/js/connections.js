@@ -9,6 +9,8 @@ import {
 const invalidConnectionIDs = {{ preferences.invalid_connections | safe }};
 /** @type {boolean} Whether authentication is required */
 const requireAuth = {{ preferences.require_auth | lower }};
+/** @type {Object.<number, string[]>} Mapping of Connection IDs to library names */
+const libraryMap = {{ preferences.libraries | safe }};
 
 // TVDb ordering types
 const tvdbOrderingTypes = [
@@ -360,6 +362,33 @@ function _deleteConnectionRequest(connectionId, deleteCards=false) {
 }
 
 /**
+ * 
+ * @param {number} connectionId ID of the Connection whose list to refresh.
+ */
+function _refreshLibraryList(connectionId) {
+  $.ajax({
+    type: 'POST',
+    url: `/api/connections/${connectionId}/libraries`,
+    /**
+     * Libraries queried - update labels.
+     * @param {string[]} libraries List of libraries for the Connection.
+     */
+    success: libraries => {
+      $(`#connection${connectionId} .labels[data-value="libraries"]`)
+        .empty()
+        .append(libraries.map(library => $(`<div class="ui label">${library}</div>`)));
+    },
+    error: response => {
+      showErrorToast({title: 'Error Querying Libraries', response});
+      const libraries_ = ['Testing', 'Testing again', 'pee pee'];
+      $(`#connection${connectionId} .labels[data-value="libraries"]`)
+        .empty()
+        .append(libraries_.map(library => $(`<div class="ui label">${library}</div>`)));
+    }
+  })
+}
+
+/**
  * Display a temporary modal which asks the user to confirm the Connection
  * deletion. If confirmed, then submit an API request to delete the Connection
  * with the given ID. If that is successful, then the HTML element(s) for this
@@ -479,6 +508,11 @@ function initializeEmby() {
     $(`#connection${connection.id} .checkbox[data-value="use_ssl"]`).checkbox(
       connection.use_ssl ? 'check' : 'uncheck'
     );
+    // Libraries
+    const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui label">${library}</div>`));
+    $(`#connection${connection.id} .labels[data-value="libraries"]`).append(libraries);
+    document.querySelector(`#connection${connection.id} [data-action="refresh-libraries"]`).onclick = () => _refreshLibraryList(connection.id);
+    
     // Assign save function to button
     $(`#connection${connection.id} form`).on('submit', (event) => {
       event.preventDefault();
@@ -562,6 +596,12 @@ function initializeJellyfin() {
     $(`#connection${connection.id} .checkbox[data-value="use_ssl"]`).checkbox(
       connection.use_ssl ? 'check' : 'uncheck'
     );
+
+    // Libraries
+    const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui label">${library}</div>`));
+    $(`#connection${connection.id} .labels[data-value="libraries"]`).append(libraries);
+    document.querySelector(`#connection${connection.id} [data-action="refresh-libraries"]`).onclick = () => _refreshLibraryList(connection.id);
+
     // Assign save function to button
     $(`#connection${connection.id} form`).on('submit', (event) => {
       event.preventDefault();
@@ -632,6 +672,12 @@ function initializePlex() {
         .modal({blurring: true})
         .modal('show');
     });
+
+    // Libraries
+    const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui label">${library}</div>`));
+    $(`#connection${connection.id} .labels[data-value="libraries"]`).append(libraries);
+    document.querySelector(`#connection${connection.id} [data-action="refresh-libraries"]`).onclick = () => _refreshLibraryList(connection.id);
+
     // Assign save function to button
     $(`#connection${connection.id} form`).on('submit', (event) => {
       event.preventDefault();
