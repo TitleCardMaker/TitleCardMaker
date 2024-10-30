@@ -30,7 +30,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     cards can be loaded into).
     """
 
-    INTERFACE_TYPE = 'Jellyfin'
+    INTERFACE_TYPE: str = 'Jellyfin'
 
     """Series ID's that can be set by Jellyfin"""
     SERIES_IDS = ('imdb_id', 'jellyfin_id', 'tmdb_id', 'tvdb_id')
@@ -710,7 +710,10 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     def load_title_cards(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_and_cards: list[tuple['Episode', 'Card']],
+            episode_and_cards: Union[
+                list[tuple['Episode', 'Card']],
+                list[tuple['Episode', 'Card', str]]
+            ],
             *,
             log: Logger = log,
         ) -> list[tuple['Episode', 'Card']]:
@@ -721,7 +724,8 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             library_name: Name of the library containing the series.
             series_info: SeriesInfo whose cards are being loaded.
             episode_and_cards: List of tuple of Episode and their
-                corresponding Card objects to load.
+                corresponding Card objects to load. Each tuple may
+                optionally include a UID to force load that Card into.
             log: Logger for all log messages.
 
         Returns:
@@ -736,7 +740,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
 
         # Load each episode and card
         loaded = []
-        for episode, card in episode_and_cards:
+        for episode, card, *_ in episode_and_cards:
             # Find episode, skip if not found
             episode_id = self.__get_episode_id(
                 library_name, series_id, episode.as_episode_info
@@ -752,7 +756,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             card_base64 = b64encode(image.read_bytes())
             try:
                 self.session.session.post(
-                    url=f'{self.url}/Items/{episode_id}/Images/Primary', # Change Primary to Backdrop
+                    url=f'{self.url}/Items/{episode_id}/Images/Primary',
                     headers={'Content-Type': 'image/jpeg'},
                     params=self.__params,
                     data=card_base64,

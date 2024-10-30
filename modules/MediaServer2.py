@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 from pathlib import Path
 
 from PIL import Image
@@ -106,7 +106,10 @@ class MediaServer(ABC):
     def load_title_cards(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_and_cards: list[tuple[_Episode, _Card]],
+            episode_and_cards: Union[
+                list[tuple[_Episode, _Card]],
+                list[tuple[_Episode, _Card, Any]]
+            ],
             *,
             log: Logger = log,
         ) -> list[tuple[_Episode, _Card]]:

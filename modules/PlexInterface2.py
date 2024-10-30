@@ -828,7 +828,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def load_title_cards(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_and_cards: list[tuple['Episode', 'Card']],
+            episode_and_cards: Union[
+                list[tuple['Episode', 'Card']],
+                list[tuple['Episode', 'Card', int]],
+            ],
             *,
             log: Logger = log,
         ) -> list[tuple['Episode', 'Card']]:
@@ -839,7 +842,8 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: Name of the library containing the series.
             series_info: SeriesInfo whose cards are being loaded.
             episode_and_cards: List of tuple of Episode and their
-                corresponding Card objects to load.
+                corresponding Card objects to load. Each tuple may
+                optionally include a UID to force load that Card into.
             log: Logger for all log messages.
         """
 
@@ -856,27 +860,35 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         if not (series := self.__get_series(library, series_info, log=log)):
             return []
 
-        # Generate EpisodeInfo of the given Episodes/Cards ahead of time
-        # to avoid re-constructing the EpisodeInfo object for each ep
-        infos = [
-            (episode, episode.as_episode_info, card)
-            for episode, card in episode_and_cards
-        ]
-
         # Find episodes which have a matching Card to load
         skipped: list[str] = []
-        matched_episodes: list[tuple[PlexEpisode, 'Episode', EpisodeInfo, 'Card']] = []
-        for plex_episode in series.episodes(container_size=100): # type: ignore
-            plex_episode: PlexEpisode
-            for episode, episode_info, card in infos:
-                if episode_info == plex_episode:
-                    matched_episodes.append(
-                        (plex_episode, episode, episode_info, card)
-                    )
-                    break
-            # Episode never matched
-            else:
-                skipped.append(plex_episode.seasonEpisode)
+        matched_episodes: list[tuple[PlexEpisode, 'Episode', 'Card']] = []
+
+        # A UID (RatingKey) was provided, match directly
+        if len(episode_and_cards[0]) == 3:
+            for episode, card, uid in episode_and_cards: # type: ignore
+                if (plex_ep := self.__server.fetchItem(int(uid))) is None:
+                    log.warning(f'No Episode associated with Key {int(uid)}')
+                    continue
+                matched_episodes.append((plex_ep, episode, card))
+        # No UID provided, find by iterating through all episodes of show
+        else:
+            # Generate EpisodeInfo of the given Episodes/Cards ahead of time
+            # to avoid re-constructing the EpisodeInfo object for each ep
+            infos = [
+                (episode, episode.as_episode_info, card)
+                for episode, card, *_ in episode_and_cards
+            ]
+
+            for plex_episode in series.episodes(container_size=100):
+                plex_episode = cast(PlexEpisode, plex_episode)
+                for episode, episode_info, card in infos:
+                    if episode_info == plex_episode:
+                        matched_episodes.append((plex_episode, episode, card))
+                        break
+                # Episode never matched
+                else:
+                    skipped.append(plex_episode.seasonEpisode)
 
         if not matched_episodes:
             log.trace(f'Not loading any Cards for {series_info}')
@@ -890,7 +902,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Upload card for all matched episodes
         loaded: list[tuple['Episode', 'Card']] = []
-        for plex_episode, episode, episode_info, card in matched_episodes:
+        for plex_episode, episode, card in matched_episodes:
             # Shrink image if necesssary, skipping if uncompressable
             if (image := self.compress_image(card.card_file, log=log)) is None:
                 skipped.append(plex_episode.seasonEpisode)

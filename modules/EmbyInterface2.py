@@ -697,7 +697,10 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def load_title_cards(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_and_cards: list[tuple['Episode', 'Card']],
+            episode_and_cards: Union[
+                list[tuple['Episode', 'Card']],
+                list[tuple['Episode', 'Card', str]]
+            ],
             *,
             log: Logger = log,
         ) -> list[tuple['Episode', 'Card']]:
@@ -708,7 +711,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: Name of the library containing the series.
             series_info: SeriesInfo whose cards are being loaded.
             episode_and_cards: List of tuple of Episode and their
-                corresponding Card objects to load.
+                corresponding Card objects to load. Each tuple may
+                optionally include a UID to force load that Card into.
             log: Logger for all log messages.
 
         Returns:
@@ -729,7 +733,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             emby_id = emby_info.emby_id[self._interface_id, library_name]
 
             # Iterate through all the given episodes/cards, upload to match
-            for episode, card in episode_and_cards:
+            for episode, card, *_ in episode_and_cards:
                 if episode.as_episode_info == emby_info:
                     # Shrink image if necessary, skip if cannot be compressed
                     if (image := self.compress_image(card.card_file, log=log)) is None:

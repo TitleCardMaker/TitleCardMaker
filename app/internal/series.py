@@ -1,6 +1,6 @@
 from pathlib import Path
 from time import sleep
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from fastapi import BackgroundTasks, HTTPException
 from PIL import Image, UnidentifiedImageError
@@ -201,7 +201,7 @@ def download_series_poster(
     for library in series.libraries:
         if (interface := get_interface(library['interface_id'])):
             try:
-                poster = interface.get_series_poster(
+                poster = interface.get_series_poster( # type: ignore
                     library['name'], series_info, log=log
                 )
             except Exception:
@@ -694,6 +694,7 @@ def load_title_card(
         interface_id: int,
         interface: Union[EmbyInterface, JellyfinInterface, PlexInterface],
         *,
+        uid: Optional[Union[int, str]] = None,
         log: Logger = log,
     ) -> bool:
     """
@@ -706,6 +707,8 @@ def load_title_card(
         db: Database to look for and add Loaded records from/to.
         media_server: Which media server to load Title Cards into.
         interface: Interface to load Title Cards into.
+        uid: Optional unique ID for for loading to a specific item in
+            the indicated Interface.
         log: Logger for all log messages.
 
     Returns:
@@ -733,10 +736,11 @@ def load_title_card(
     db.query(Loaded).filter_by(**loaded_query).delete()
 
     # Load Card
+    target = (card.episode, card) if uid is None else (card.episode, card, uid)
     loaded_assets = interface.load_title_cards(
         library_name,
         card.episode.series.as_series_info,
-        [(card.episode, card)],
+        [target], # type: ignore
         log=log,
     )
 

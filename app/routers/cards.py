@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional, Union
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import not_
@@ -498,12 +498,19 @@ def reload_card(
         request: Request,
         interface_id: Optional[int] = Query(default=None),
         library_name: Optional[str] = Query(default=None),
+        uid: Optional[Union[int, str]] = Query(default=None),
         db: Session = Depends(get_database),
     ) -> None:
     """
     Reload the Title Card. This is a "force" reload.
 
     - card_id: ID of the Card to load.
+    - interface_id: Optional ID of the Connection to load into.
+    - library_name: Optional name of the specific library to load Cards
+    into.
+    - uid: Optional unique ID of an episode in the associated Interface
+    and library to force load the given Card into. For PlexInterfaces,
+    this is the RatingKey, for Emby and Jellyfin this is the item ID.
     """
 
     # Interface ID and library name must be provided together or not at all
@@ -524,10 +531,11 @@ def reload_card(
             library_name,
             interface_id,
             get_interface(interface_id), # type: ignore
+            uid=uid,
             log=request.state.log,
         )
-    else:
     # Load Cards for all libraries
+    else:
         for library in card.episode.series.libraries:
             load_title_card(
                 card,

@@ -3,10 +3,10 @@
 
 {% if False %}
 import {
-  AvailableFont, AvailableTemplate, Blueprint, Episode, EpisodeOverviewPage,
-  EpisodePage, ExternalSourceImage, LogEntryPage, MediaServerLibrary,
-  RemoteBlueprint, RemoteBlueprintSet, Series, Statistic, StyleOption,
-  SourceImagePage, TitleCardPage, UpdateEpisode,
+  AnyConnection, AvailableFont, AvailableTemplate, Blueprint, Episode,
+  EpisodeOverviewPage, EpisodePage, ExternalSourceImage, LogEntryPage,
+  MediaServerLibrary, RemoteBlueprint, RemoteBlueprintSet, RemoteEpisodeData,
+  Series, Statistic, StyleOption, SourceImagePage, TitleCardPage, UpdateEpisode,
 } from './.types.js';
 {% endif %}
 
@@ -255,6 +255,11 @@ async function initializeSeriesConfig() {
   $.ajax({
     type: 'GET',
     url: '/api/available/libraries/all',
+    /**
+     * Libraries queried.
+     * @param {MediaServerLibrary[]} libraries List of all libraries which are
+     * available for Card assignment.
+     */
     success: libraries => {
       // Start library value list with those selected by the Series
       let values = series_libraries.map(library => {
@@ -286,6 +291,8 @@ async function initializeSeriesConfig() {
           };
         }),
       });
+
+      // Populate the 
     },
     error: response => showErrorToast({title: 'Error Querying Libraries', response}),
   });
@@ -1156,6 +1163,7 @@ function getCardData(
         }
         preview.querySelector('.popup [data-action="delete"]').onclick = () => deleteCard(card.id);
         preview.querySelector('.popup [data-action="reload"]').onclick = () => loadEpisodeCards(card.episode_id);
+        preview.querySelector('.popup [data-action="manually-reload"]').onclick = () => openManualCardLoadModal(card.id);
 
         // If library unique mode is enabled, add the library name to the text (if present)
         if (global_library_unique_cards) {
@@ -1216,7 +1224,7 @@ function getCardData(
 
 async function initAll() {
   // Initialize 
-  initializeSeriesConfig();
+  await initializeSeriesConfig();
   getEpisodeData();
   initStyles();
   getCardData(undefined, undefined, undefined, true);
@@ -2762,5 +2770,98 @@ function deleteBackdrop(seasonNumber) {
       $(`[data-season="${seasonNumber}"][data-type="backdrop"] .palette .color`).remove();
     },
     error: response => showErrorToast({title: 'Error Deleting File', response}),
+  });
+}
+
+/** @type {Object.<number, Object.<string, Object[]>>} Cache of previously queried Episode data */
+let connectionEpisodeData = {};
+
+/**
+ * 
+ * @param {number} cardId ID of the Card to manually load.
+ * loaded.
+ */
+function openManualCardLoadModal(cardId) {
+  // Show modal
+  $('#loadCardsModal').modal({blurring: true, closeIcon: true}).modal('show');
+
+  $('.dropdown[data-value="load-episode-library"]').dropdown({
+    onChange: function(value, text, $selectedItem) {
+      // Get parameters
+      const libraryName = value;
+      const libraryDropdown = $selectedItem.closest('.dropdown[data-value="load-episode-library"]');
+      const connectionId = libraryDropdown.data('connectionId');
+
+      // Mark dropdown as loading
+      libraryDropdown.toggleClass('blue slow elastic loading', true);
+
+      function _populateDropdown(items) {
+        // Remove loading indication
+        libraryDropdown.toggleClass('blue slow elastic loading', false);
+
+        // Add items to dropdown
+        $(`.field[data-value="episodes"][data-connection-id="${connectionId}"] div.dropdown`).dropdown({
+          values: items,
+          placeholder: items.length === 0 ? 'No Episodes found' : 'Select an Episode',
+          onChange: function(value, text, $selectedItem) {
+            // Mark dropdown as loading
+            $selectedItem.closest('div.dropdown').toggleClass('green elastic loading', true);
+
+            // Generate query parameters
+            const params = new URLSearchParams({
+              interface_id: connectionId,
+              library_name: libraryName,
+              uid: value,
+            });
+
+            // Submit API request
+            $.ajax({
+              type: 'PUT',
+              url: `/api/cards/card/${cardId}/load?${params.toString()}`,
+              success: () => {
+                showInfoToast('Card Loaded Successfully')
+              },
+              error: response => showErrorToast({title: 'Error Loading Title Card', response}),
+              complete: () => $selectedItem.closest('div.dropdown').toggleClass('green elastic loading', false),
+            });
+          },
+        });
+      }
+
+      // Use cached episode data if this connection+library has already been queried
+      if ((connectionId in connectionEpisodeData) && (libraryName in connectionEpisodeData[connectionId])) {
+        _populateDropdown(connectionEpisodeData[connectionId][libraryName]);
+      } else {
+        // Query episodes for this library and episode
+        $.ajax({
+          type: 'GET',
+          url: `/api/episodes/series/{{ series.id }}/connection/${connectionId}?library_name=${libraryName}`,
+          /**
+           * Episode data queried.
+           * @param {RemoteEpisodeData[]} episodes List of all available episode
+           * data on the specified Connection.
+           */
+          success: episodes => {
+            // Enable episodes dropdown
+            $(`.field[data-value="episodes"][data-connection-id="${connectionId}"]`).toggleClass('disabled', false);
+
+            const items = episodes.map(episode => {
+              return {
+                name: episode.title,
+                value: episode.uid,
+                description: `Season ${episode.season_number} Episode ${episode.episode_number}`,
+                descriptionVertical: true,
+                selected: false,
+              };
+            });
+
+            // Populate cache of episode data
+            connectionEpisodeData[connectionId] = connectionEpisodeData[connectionId] || {};
+            connectionEpisodeData[connectionId][libraryName] = items;
+            _populateDropdown(items);
+          },
+        });
+      }
+    },
   });
 }
