@@ -148,22 +148,21 @@ function getUpdateEpisodeObject(episodeId, excludeBlank=false) {
 }
 
 /**
- * Submit an API request to delete the Title Card(s) for the Episode with the
- * given ID.
- * @param {number} episodeId - ID of the Episode whose Cards are being deleted.
- * @param {Function} onComplete - Function to call after the Cards have been
+ * Submit an API request to delete the Title Card with the given ID.
+ * @param {number} cardId ID of the Card to delete.
+ * @param {Function} onComplete Function to call after the Cards have been
  * deleted.
  */
-function deleteEpisodeCard(episodeId, onComplete) {
+function deleteCard(cardId, onComplete) {
   $.ajax({
     type: 'DELETE',
-    url: `/api/cards/episode/${episodeId}`,
+    url: `/api/cards/card/${cardId}`,
     success: () => {
-      document.getElementById(`card-episode${episodeId}`).remove();
-      document.getElementById(`card-popup-episode${episodeId}`).remove();
+      document.getElementById(`card${cardId}`).remove();
+      document.getElementById(`card${cardId}-popup`).remove();
       showInfoToast('Deleted Title Card');
     },
-    error: response => showErrorToast({title: 'Error Creating Title Card(s)', response}),
+    error: response => showErrorToast({title: 'Error Deleting Title Card', response}),
     complete: onComplete,
   });
 }
@@ -1155,7 +1154,7 @@ function getCardData(
             () => createEpisodeCard(card.episode_id),
           );
         }
-        preview.querySelector('.popup [data-action="delete"]').onclick = () => deleteEpisodeCard(card.episode_id);
+        preview.querySelector('.popup [data-action="delete"]').onclick = () => deleteCard(card.id);
         preview.querySelector('.popup [data-action="reload"]').onclick = () => loadEpisodeCards(card.episode_id);
 
         // If library unique mode is enabled, add the library name to the text (if present)
