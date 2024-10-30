@@ -884,6 +884,9 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Prepare batch edits on all these episodes
         library.batchMultiEdits([ep[0] for ep in matched_episodes])
+        if self.integrate_with_kometa:
+            library.removeLabel(['Overlay'])
+            log.trace('Removed "Overlay" label')
 
         # Upload card for all matched episodes
         loaded: list[tuple['Episode', 'Card']] = []
@@ -901,12 +904,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
                 # Upload card
                 self.__retry_upload(plex_episode, image.resolve(), log=log)
-
-                # If integrating with Kometa, remove label
-                if (self.integrate_with_kometa and
-                    any(lbl.tag == 'Overlay' for lbl in plex_episode.labels)):
-                    plex_episode.removeLabel(['Overlay'])
-                    log.trace(f'Removed "Overlay" label from {plex_episode}')
                 log.debug(f'{series_info} {plex_episode.seasonEpisode} loaded '
                           f'Card {image.name} into "{library_name}"')
             except Exception:
