@@ -1,13 +1,13 @@
 from logging import Logger
 from typing import Literal
 
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Query, Request
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
-from app.database.query import get_all_templates, get_episode, get_series
+from app.database.query import get_all_templates, get_connection, get_episode, get_series
 from app.database.session import Page
-from app.dependencies import get_database
+from app.dependencies import *
 from app.internal.auth import get_current_user
 from app.internal.cards import delete_cards, refresh_remote_card_types
 from app.internal.episodes import (
@@ -20,7 +20,7 @@ from app.models.episode import Episode as EpisodeModel
 from app.models.loaded import Loaded
 from app.models.series import Series
 from app.schemas.episode import (
-    BatchUpdateEpisode, Episode, EpisodeOverview, NewEpisode, UpdateEpisode
+    BatchUpdateEpisode, Episode, EpisodeData, EpisodeOverview, NewEpisode, UpdateEpisode
 )
 
 
@@ -311,3 +311,53 @@ def batch_delete_episodes(
             )
         db.query(EpisodeModel).filter_by(series_id=series.id).delete()
         db.commit()
+
+
+@episodes_router.get('/series/{series_id}/connection/{interface_id}', tags=['Connections'])
+def get_all_episodes_on_connection(
+        request: Request,
+        series_id: int,
+        interface_id: int,
+        library_name: str = Query(...),
+        db: Session = Depends(get_database),
+        emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
+        jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
+        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
+    ) -> list[EpisodeData]:
+    """"""
+
+    # Get associated Series and Connection
+    series = get_series(db, series_id, raise_exc=True)
+    connection = get_connection(db, interface_id, raise_exc=True)
+
+    # Verify interface ID was of a valid type
+    if connection.interface_type not in ('Emby', 'Jellyfin', 'Plex'):
+        raise HTTPException(
+            status_code=422,
+            detail='Interface ID must correspond to a media server'
+        )
+
+    # Get associated Interface from group
+    interface = None
+    if connection.interface_type == 'Emby':
+        interface = emby_interfaces[interface_id]
+    elif connection.interface_type == 'Jellyfin':
+        interface = jellyfin_interfaces[interface_id]
+    elif connection.interface_type == 'Plex':
+        interface = plex_interfaces[interface_id]
+
+    # Verify interface is available and valid
+    if not interface or not interface.active:
+        raise HTTPException(
+            status_code=422,
+            detail='Interface ID or Connection is invalid'
+        )
+
+    return [
+        episode_info
+        for episode_info, _ in interface.get_all_episodes(
+            library_name,
+            series.as_series_info,
+            log=request.state.log,
+        )
+    ]

@@ -163,6 +163,11 @@ class EpisodeOverview(Base):
     season_number: int
     episode_number: int
 
+class EpisodeData(Base):
+    season_number: int
+    episode_number: int
+    title: str
+
 class Episode(Base):
     id: int
     series_id: int
