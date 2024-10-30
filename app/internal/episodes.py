@@ -73,7 +73,7 @@ def set_episode_ids(
     # Update database if new ID's are available
     changed = False
     for episode, episode_info in zip(episodes, episode_infos):
-        changed |= episode.update_from_info(episode_info, log=log)
+        changed |= episode.update_ids_from_info(episode_info, log=log)
 
     # Write any changes to the DB
     if changed:
@@ -200,11 +200,11 @@ def refresh_episode_data(
 
     # Filter Episodezs
     new_episodes: list[Episode] = []
-    changed, episodes = False, []
+    changed = False
     for episode_info, watched in all_episodes:
         # Skip specials if indicated
         if not sync_specials and episode_info.season_number == 0:
-            log.debug(f'{series} Skipping {episode_info} - not syncing specials')
+            log.trace(f'{series} Skipping {episode_info} - specials disabled')
             continue
 
         # Check if this Episode exists in the database already
@@ -223,28 +223,13 @@ def refresh_episode_data(
                 watched_statuses=watched.as_db_entry,
                 airdate=episode_info.airdate,
             )
-            new_episodes.append(episode)
             db.add(episode)
             changed = True
-            episodes.append(episode)
-        # Episode exists, check title matches and update watch status
+            new_episodes.append(episode)
+        # Episode exists, update metadata and watched statuses
         else:
-            # If title matching, update if title does not match
-            do_title_match = (
-                existing.match_title
-                or (existing.match_title is None and series.match_titles)
-            )
-            if (do_title_match
-                and existing.title != episode_info.title):
-                existing.title = episode_info.title
-                log.debug(f'{existing} Updating title')
-                changed = True
-                episodes.append(existing)
-
-            # Update watched status
-            if existing.add_watched_status(watched):
-                log.debug(f'{existing} Updating watched status')
-                changed = True
+            changed |= existing.update_metadata_from_info(episode_info, log=log)
+            changed |= existing.add_watched_status(watched, log=log)
 
     # Get existing Episodes
     if get_preferences().delete_missing_episodes:

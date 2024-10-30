@@ -16,6 +16,7 @@ from app.schemas.preferences import Style
 from modules.Debug import Logger, log
 from modules.EpisodeDataSource2 import WatchedStatus
 from modules.EpisodeInfo2 import EpisodeInfo
+from modules.TieredSettings import TieredSettings
 
 if TYPE_CHECKING:
     from app.models.card import Card
@@ -305,7 +306,11 @@ class Episode(Base):
         )
 
 
-    def update_from_info(self, other: EpisodeInfo, log: Logger = log) -> bool:
+    def update_ids_from_info(self,
+            other: EpisodeInfo,
+            *,
+            log: Logger = log,
+        ) -> bool:
         """
         Update this Episodes' database IDs from the given EpisodeInfo.
 
@@ -333,6 +338,59 @@ class Episode(Base):
                 log.debug(f'{self}.{id_type} | {getattr(self, id_type)} -> {id_}')
                 setattr(self, id_type, id_)
                 changed = True
+
+        return changed
+
+
+    def update_metadata_from_info(self,
+            episode_info: EpisodeInfo,
+            *,
+            log: Logger = log,
+        ) -> bool:
+        """
+        Update the inherant metadata for this Episode from the given
+        EpisodeInfo. This includes the season/episode/absolute numbers
+        and titles.
+
+        Args:
+            log: Logger for all log messages.
+
+        Returns:
+            Whether this Episode was modified at all.
+        """
+
+        # Whether any changes have been made
+        changed = False
+
+        # Update indices
+        if self.season_number != episode_info.season_number:
+            log.debug(f'{self} Updating season number '
+                      f'({self.season_number} -> {episode_info.season_number})')
+            self.season_number = episode_info.season_number
+            changed = True
+        if self.episode_number != episode_info.episode_number:
+            log.debug(f'{self} Updating episode number ({self.episode_number} '
+                      f'-> {episode_info.episode_number})')
+            self.episode_number = episode_info.episode_number
+            changed = True
+        if (episode_info.absolute_number is not None
+            and self.absolute_number != episode_info.absolute_number):
+            log.debug(f'{self} Updating absolute number ({self.absolute_number}'
+                      f' -> {episode_info.absolute_number})')
+            self.absolute_number = episode_info.absolute_number
+            changed = True
+
+        # Update title
+        do_title_match = TieredSettings.resolve_singular_setting(
+            self.series.match_titles,
+            self.match_title,
+        )
+
+        if (do_title_match
+            and self.title != episode_info.title):
+            self.title = episode_info.title
+            log.debug(f'{self} Updating title')
+            changed = True
 
         return changed
 
@@ -436,29 +494,40 @@ class Episode(Base):
         return self.watched_statuses.get(f'{interface_id}:{library_name}')
 
 
-    def add_watched_status(self, status: WatchedStatus, /) -> bool:
+    def add_watched_status(self,
+            status: WatchedStatus,
+            /,
+            *,
+            log: Logger = log,
+        ) -> bool:
         """
         Add the given WatchedStatus to this Episode's watched statuses.
 
         Args:
             status: The WatchedStatus to update this object with.
+            log: Logger for all log messages.
 
         Returns:
             Whether this Episode's watched status was modified.
         """
 
         # No watched status, skip
-        if not status.has_status:
+        if status.status is None:
             return False
 
         # Watched status defined, update existing mapping
         if (key := status.db_key) in self.watched_statuses:
             current = self.watched_statuses.get(key)
             self.watched_statuses[key] = status.status
+            if current != status.status:
+                log.trace(f'{self} Updating watched status '
+                          f'({current} -> {status.status})')
+
             return current != status.status
 
         # Interface has no mappings, add
         self.watched_statuses[key] = status.status
+        log.trace(f'{self} Adding watched status')
         return True
 
 
