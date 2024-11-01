@@ -44,7 +44,10 @@ from app.internal.series import (
 from app.internal.sources import download_series_logo
 from app import models
 from app.models.episode import Episode
+from app.models.font import Font as FontModel
 from app.models.preferences import Preferences as PrefencesModel
+from app.models.series import Series as SeriesModel
+from app.models.sync import Sync as SyncModel
 from app.schemas.font import NamedFont
 from app.schemas.imports import (
     ImportCardDirectory,
@@ -117,7 +120,7 @@ def import_connection_yaml(
 
     # Parse raw YAML into dictionary
     if not (yaml_dict := parse_raw_yaml(import_yaml.yaml)):
-        return []
+        return None
 
     try:
         if connection in ('all', 'emby'):
@@ -172,7 +175,7 @@ def import_sync_yaml(
     for new_sync in new_syncs:
         new_sync_dict = new_sync.dict()
         templates = get_all_templates(db, new_sync_dict)
-        sync = models.sync.Sync(**new_sync_dict)
+        sync = SyncModel(**new_sync_dict)
         db.add(sync)
         db.commit()
         log.info(f'{sync} imported to Database')
@@ -220,7 +223,7 @@ def import_fonts_yaml(
     # Add each defined Font to the database
     all_fonts = []
     for new_font, font_file in new_fonts:
-        font = models.font.Font(**new_font.dict())
+        font = FontModel(**new_font.dict())
         db.add(font)
         db.commit()
         log.info(f'{font} imported to Database')
@@ -321,7 +324,7 @@ def import_series_yaml(
         # Add to batabase
         new_series_dict = series.dict()
         templates = get_all_templates(db, new_series_dict)
-        series = models.series.Series(**new_series_dict)
+        series = SeriesModel(**new_series_dict)
         db.add(series)
         db.commit()
         log.info(f'{series} imported to Database')
@@ -376,11 +379,16 @@ async def import_card_files_for_series(
     card_files = [
         (card.filename, await card.read())
         for card in cards
+        if card.filename
     ]
 
     import_card_content(
-        db, series, card_files, series.get_library(library_name),
-        force_reload=force_reload, as_textless=textless,
+        db,
+        series,
+        card_files,
+        None if library_name is None else series.get_library(library_name),
+        force_reload=force_reload,
+        as_textless=textless,
         log=request.state.log
     )
 
