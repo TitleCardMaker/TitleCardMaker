@@ -1,4 +1,6 @@
+from os import getenv
 from pathlib import Path
+from re import IGNORECASE, compile as re_compile
 from typing import Callable, Iterable
 
 from tqdm import tqdm
@@ -166,6 +168,11 @@ class Manager:
         show and archives lists.
         """
 
+        # Look for series filter
+        name_filter = None
+        if (raw_filter := getenv('TCM_V1_SERIES_FILTER')):
+            name_filter = re_compile(raw_filter, IGNORECASE)
+
         # Go through each Series YAML file
         for show in self.preferences.iterate_series_files():
             # Skip shows whose YAML was invalid
@@ -173,6 +180,9 @@ class Manager:
                 log.warning(f'Skipping series {show}')
                 continue
 
+            # If filter was specified, apply
+            if name_filter and not name_filter.match(show.series_info.name):
+                continue
             self.shows.append(show)
 
             # If archives are disabled globally, or for this show - skip
@@ -402,11 +412,20 @@ class Manager:
         # Sync YAML files
         self.sync_series_files()
 
+        # Look for series filter
+        name_filter = None
+        if (raw_filter := getenv('TCM_V1_SERIES_FILTER')):
+            name_filter = re_compile(raw_filter, IGNORECASE)
+
         # Go through each Series YAML file, creating Show/ShowArchive objects
         for show in self.preferences.iterate_series_files():
             # Skip shows whose YAML was invalid
             if not show.valid:
                 log.warning(f'Skipping series {show}')
+                continue
+
+            # If filter was specified, apply
+            if name_filter and not name_filter.match(show.series_info.name):
                 continue
 
             # Create ShowArchive object if archive enabled globally + show
