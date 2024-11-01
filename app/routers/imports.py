@@ -1,5 +1,5 @@
 from pathlib import Path
-from shutil import copyfile, move as move_file
+from shutil import copyfile
 from typing import Literal, Optional
 
 from fastapi import (
@@ -44,6 +44,7 @@ from app.internal.series import (
 from app.internal.sources import download_series_logo
 from app import models
 from app.models.episode import Episode
+from app.models.preferences import Preferences as PrefencesModel
 from app.schemas.font import NamedFont
 from app.schemas.imports import (
     ImportCardDirectory,
@@ -69,7 +70,7 @@ import_router = APIRouter(
 def import_global_options_yaml(
         request: Request,
         import_yaml: ImportYaml = Body(...),
-        preferences: Preferences = Depends(get_preferences),
+        preferences: PrefencesModel = Depends(get_preferences),
     ) -> Preferences:
     """
     Import the global options from the preferences defined in the given
@@ -189,7 +190,7 @@ def import_fonts_yaml(
         request: Request,
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences),
+        preferences: PrefencesModel = Depends(get_preferences),
     ) -> list[NamedFont]:
     """
     Import all Fonts defined in the given YAML. This does NOT import any
@@ -246,7 +247,7 @@ def import_template_yaml(
         request: Request,
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences)
+        preferences: PrefencesModel = Depends(get_preferences)
     ) -> list[Template]:
     """
     Import all Templates defined in the given YAML.
@@ -289,7 +290,7 @@ def import_series_yaml(
         request: Request,
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences),
+        preferences: PrefencesModel = Depends(get_preferences),
     ) -> list[Series]:
     """
     Import all Series defined in the given YAML.
@@ -330,7 +331,6 @@ def import_series_yaml(
         db.commit()
 
         # Add background tasks for setting ID's, downloading poster and logo
-        # Add background tasks to set ID's, download poster and logo
         background_tasks.add_task(
             set_series_database_ids,
             series, db, log=log,

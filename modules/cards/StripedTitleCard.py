@@ -3,10 +3,15 @@ from math import tan, pi as PI
 from pathlib import Path
 from random import choice as random_choice, randint
 from re import IGNORECASE, compile as re_compile
-from typing import TYPE_CHECKING, Iterable, Literal, Optional, Sequence
+from typing import TYPE_CHECKING, Literal, Optional, Sequence
 
 from modules.BaseCardType import (
-    BaseCardType, CardTypeDescription, Coordinate, ImageMagickCommands, Extra, TextCase,
+    BaseCardType,
+    CardTypeDescription,
+    Coordinate,
+    Extra,
+    ImageMagickCommands,
+    TextCase,
 )
 from modules.Debug import log # noqa: F401
 from modules.Title import SplitCharacteristics

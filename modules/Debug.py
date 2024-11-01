@@ -3,7 +3,7 @@ from os import environ, getenv
 from pathlib import Path
 from random import choices as random_choices
 from string import hexdigits
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from loguru._logger import Logger
 from pytz import timezone, UnknownTimeZoneError
@@ -17,13 +17,19 @@ class InvalidFormatString(InvalidCardSettings): ...
 class MissingSourceImage(InvalidCardSettings): ...
 # pylint: enable=missing-class-docstring,multiple-statements
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from loguru import Logger
 
 __all__ = (
-    'log', 'Logger', 'generate_context_id', 'contextualize', 'DATETIME_FORMAT',
-    'IS_DOCKER', 'TQDM_KWARGS', 'InvalidCardSettings', 'InvalidFormatString',
+    'log',
+    'Logger',
+    'generate_context_id',
+    'contextualize',
+    'DATETIME_FORMAT',
+    'IS_DOCKER',
+    'TQDM_KWARGS',
+    'InvalidCardSettings', 
+    'InvalidFormatString',
     'MissingSourceImage',
 )
 

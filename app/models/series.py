@@ -9,7 +9,6 @@ from typing import (
     TypedDict,
     Union,
     TYPE_CHECKING,
-    overload
 )
 
 from sqlalchemy import ColumnElement, ForeignKey, JSON, func
@@ -108,21 +107,21 @@ class Series(Base):
     # Series config arguments
     directory: Mapped[Optional[str]]
     libraries: Mapped[list[Library]] = mapped_column(
-        MutableList.as_mutable(JSON),
+        MutableList.as_mutable(JSON), # type: ignore
         default=[]
     )
     card_filename_format: Mapped[Optional[str]]
     sync_specials: Mapped[Optional[bool]]
     skip_localized_images: Mapped[Optional[bool]]
     translations: Mapped[Optional[list[dict[str, str]]]] = mapped_column(
-        MutableList.as_mutable(JSON),
+        MutableList.as_mutable(JSON), # type: ignore
         default=None
     )
     match_titles: Mapped[bool] = mapped_column(default=True)
     auto_split_title: Mapped[bool] = mapped_column(default=True)
     use_per_season_assets: Mapped[bool] = mapped_column(default=False)
     image_source_priority: Mapped[Optional[list[int]]] = mapped_column(
-        MutableList.as_mutable(JSON),
+        MutableList.as_mutable(JSON), # type: ignore
         default=None,
     )
 
@@ -149,7 +148,7 @@ class Series(Base):
     card_type: Mapped[Optional[str]]
     hide_season_text: Mapped[Optional[bool]]
     season_titles: Mapped[Optional[dict[str, str]]] = mapped_column(
-        MutableDict.as_mutable(JSON),
+        MutableDict.as_mutable(JSON), # type: ignore
         default=None
     )
     hide_episode_text: Mapped[Optional[bool]]
@@ -157,7 +156,7 @@ class Series(Base):
     unwatched_style: Mapped[Optional[str]]
     watched_style: Mapped[Optional[str]]
     extras: Mapped[Optional[dict[str, str]]] = mapped_column(
-        MutableDict.as_mutable(JSON),
+        MutableDict.as_mutable(JSON), # type: ignore
         default=None
     )
 

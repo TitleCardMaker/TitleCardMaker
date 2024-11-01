@@ -362,7 +362,8 @@ function _deleteConnectionRequest(connectionId, deleteCards=false) {
 }
 
 /**
- * 
+ * Submit an API request to query the latest libraries from the Connection with
+ * the given ID.
  * @param {number} connectionId ID of the Connection whose list to refresh.
  */
 function _refreshLibraryList(connectionId) {
@@ -378,13 +379,8 @@ function _refreshLibraryList(connectionId) {
         .empty()
         .append(libraries.map(library => $(`<div class="ui label">${library}</div>`)));
     },
-    error: response => {
-      showErrorToast({title: 'Error Querying Libraries', response});
-      const libraries_ = ['Testing', 'Testing again', 'pee pee'];
-      $(`#connection${connectionId} .labels[data-value="libraries"]`)
-        .empty()
-        .append(libraries_.map(library => $(`<div class="ui label">${library}</div>`)));
-    }
+    /** Error querying libraries, show toast  */
+    error: response => showErrorToast({title: 'Error Querying Libraries', response}),
   })
 }
 
@@ -1019,8 +1015,11 @@ function addConnection(connectionType) {
       url: `/api/connection/${connectionType}/new`,
       data: JSON.stringify({...Object.fromEntries(form.entries())}),
       contentType: 'application/json',
+      /**
+       * Connection created, display a toast and reload the page.
+       * @param {AnyConnection} newConnection Newly created connection.
+       */
       success: newConnection => {
-        // Show toast, reload page
         showInfoToast({title:`Created Connection "${newConnection.name}"`, message: 'Reloading page..'});
         setTimeout(() => window.location.reload(), 2000);
       },

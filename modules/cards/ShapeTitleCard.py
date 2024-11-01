@@ -2,10 +2,21 @@ from math import asin, cos, tan, pi as PI
 from pathlib import Path
 from random import choice as random_choice
 from re import match as re_match
-from typing import TYPE_CHECKING, Literal, Optional, Union, get_args as get_type_args
+from typing import (
+    TYPE_CHECKING,
+    Literal,
+    Optional,
+    Union,
+    get_args as get_type_args
+)
 
 from modules.BaseCardType import (
-    BaseCardType, Coordinate, ImageMagickCommands, Extra, CardTypeDescription, TextCase
+    BaseCardType,
+    Coordinate,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
+    TextCase
 )
 from modules.Debug import log # noqa: F401
 from modules.Title import SplitCharacteristics
@@ -195,7 +206,8 @@ class ShapeTitleCard(BaseCardType):
                 ),
                 default='False',
             ),
-        ], description=[
+        ],
+        description=[
             'A title card featuring a customizable shape which surrounds the '
             'text.', 'The shape itself, along with the text are completely '
             'customizable in color, size, and position.'
@@ -1286,7 +1298,7 @@ class ShapeTitleCard(BaseCardType):
         object's defined title card.
         """
 
-        command = ' '.join([
+        self.image_magick.run([
             f'convert "{self.source_file.resolve()}"',
             # Resize and apply styles to source image
             *self.resize_and_style,
@@ -1302,5 +1314,3 @@ class ShapeTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
-
-        self.image_magick.run(command)

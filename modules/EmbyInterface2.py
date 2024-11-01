@@ -582,12 +582,10 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 # Process each returned Series
                 for series in response['Items']:
                     try:                     
-                        if (premiere_date := series.get('PremiereDate')) is None:
+                        if (premiere := series.get('PremiereDate')) is None:
                             log.error(f'Series {series["Name"]} has no premiere date')
                             continue
-                        year = datetime.strptime(
-                            premiere_date, self.AIRDATE_FORMAT
-                        ).year
+                        datetime.strptime(premiere, self.AIRDATE_FORMAT).year
 
                         all_series.append((
                             SeriesInfo.from_emby_info(

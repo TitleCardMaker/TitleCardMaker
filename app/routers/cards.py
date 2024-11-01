@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Optional, Union
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import not_
@@ -398,7 +398,7 @@ def load_series_title_cards_into_library(
     interface = get_interface(interface_id, raise_exc=True)
 
     # Verify the interface ID was a valid type
-    if not interface.INTERFACE_TYPE in ('Emby', 'Jellyfin', 'Plex'):
+    if interface.INTERFACE_TYPE not in ('Emby', 'Jellyfin', 'Plex'):
         raise HTTPException(
             status_code=400,
             detail='Cannot load Cards into a non-media-server Connection'
@@ -446,8 +446,7 @@ def load_series_title_cards_(
     # Load Title Cards into only the specified library
     if library_name and interface_id:
         interface = get_interface(interface_id, raise_exc=True)
-
-        if not interface.INTERFACE_TYPE in ('Emby', 'Jellyfin', 'Plex'):
+        if interface.INTERFACE_TYPE not in ('Emby', 'Jellyfin', 'Plex'):
             raise HTTPException(
                 status_code=400,
                 detail='Cannot load Cards into a non-media-server Connection'

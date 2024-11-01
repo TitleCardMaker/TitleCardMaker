@@ -1,6 +1,6 @@
 from pathlib import Path
 from time import sleep
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 from fastapi import BackgroundTasks, HTTPException
 from PIL import Image, UnidentifiedImageError

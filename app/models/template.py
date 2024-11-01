@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from app.models.connection import Connection
     from app.models.episode import Episode
     from app.models.font import Font
-    from app.models.preferences import Preferences
     from app.models.series import Series
     from app.models.sync import Sync
     from app.schemas.blueprint import BlueprintTemplate
@@ -173,7 +172,7 @@ class Template(Base):
 
     name: Mapped[str]
     filters: Mapped[list[Filter]] = mapped_column(
-        MutableList.as_mutable(JSON),
+        MutableList.as_mutable(JSON), # type: ignore
         default=[],
     )
 
@@ -181,18 +180,18 @@ class Template(Base):
     sync_specials: Mapped[Optional[bool]]
     skip_localized_images: Mapped[Optional[bool]]
     translations: Mapped[list[dict]] = mapped_column(
-        MutableList.as_mutable(JSON),
+        MutableList.as_mutable(JSON), # type: ignore
         default=[],
     )
     image_source_priority: Mapped[list[int]] = mapped_column(
-        MutableList.as_mutable(JSON),
+        MutableList.as_mutable(JSON), # type: ignore
         default=[],
     )
 
     card_type: Mapped[Optional[str]]
     hide_season_text: Mapped[Optional[bool]]
     season_titles: Mapped[dict[str, str]] = mapped_column(
-        MutableDict.as_mutable(JSON),
+        MutableDict.as_mutable(JSON), # type: ignore
         default={},
     )
     hide_episode_text: Mapped[Optional[bool]]
@@ -201,7 +200,7 @@ class Template(Base):
     watched_style: Mapped[Optional[str]]
 
     extras: Mapped[dict[str, str]] = mapped_column(
-        MutableDict.as_mutable(JSON),
+        MutableDict.as_mutable(JSON), # type: ignore
         default={},
     )
 

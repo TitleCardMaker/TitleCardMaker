@@ -1,4 +1,3 @@
-from logging import Logger
 from typing import Literal, Optional, TypedDict, Union, TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, JSON, String
@@ -7,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
 
 from app.database.session import Base
 from app.models.template import SyncTemplates, Template
-from modules.Debug import log
+from modules.Debug import Logger, log
 
 if TYPE_CHECKING:
     from app.models.connection import Connection

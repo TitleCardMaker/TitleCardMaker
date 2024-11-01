@@ -291,8 +291,6 @@ async function initializeSeriesConfig() {
           };
         }),
       });
-
-      // Populate the 
     },
     error: response => showErrorToast({title: 'Error Querying Libraries', response}),
   });

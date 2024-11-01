@@ -254,10 +254,10 @@ class Show(YamlReader):
         """
 
         if (value := self.get('library', type_=dict)) is not None:
-            self.library_name: str = value['name']
-            self.library: str = value['path']
+            self.library_name = value['name']
+            self.library = value['path']
             self.media_directory = self.library/self.series_info.full_clean_name
-            self.media_server: str = value['media_server']
+            self.media_server = value['media_server']
 
         if (value := self.get('media_directory', type_=str)) is not None:
             self.media_directory = CleanPath(value).sanitize()

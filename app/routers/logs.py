@@ -22,7 +22,7 @@ from app.internal.logs import RawLogData, read_log_files
 from app.models.preferences import Preferences
 from app.schemas.logs import LogEntry, LogInternalServerError, LogLevel
 
-from modules.Debug import log, DATETIME_FORMAT, LOG_FILE
+from modules.Debug import log, LOG_FILE
 from modules.TemporaryZip import TemporaryZip # noqa: F401
 
 
@@ -162,13 +162,15 @@ def get_internal_server_errors(
     return sorted(
         [
             LogInternalServerError(
-                context_id=log['context_id'],
-                time=log['time'],
-                file=log['file'].name,
+                context_id=message['context_id'],
+                time=message['time'],
+                file=message['file'].name,
             )
-            for log in read_log_files(after=after, before=before, shallow=shallow)
-            if log['message'].startswith('Internal Server Error')
+            for message in read_log_files(
+                after=after, before=before, shallow=shallow
+            )
+            if message['message'].startswith('Internal Server Error')
         ],
-        key=lambda log: log.time,
+        key=lambda message: message.time,
         reverse=True,
     )

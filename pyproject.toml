@@ -107,7 +107,6 @@ exclude = [
     "modules/global_objects.py",
 ]
 
-# Same as Black.
 line-length = 88
 indent-width = 4
 
@@ -123,8 +122,8 @@ ignore = ['F541', 'F403', 'F405']
 fixable = ["ALL"]
 unfixable = []
 
-# Allow unused variables when underscore-prefixed.
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+# Allow unused variables when underscore-prefixed, or log variable
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?)|log)$"
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
