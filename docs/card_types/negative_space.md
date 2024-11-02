@@ -110,7 +110,7 @@ down, and negative values shift it up.
 ## Title Text Horizontal Shift
 
 The horizontal position of the title text can be adjusted with the
-_Title Text Horizontal Shift_ extra. The
+_Title Text Horizontal Shift_ extra.
 
 ??? example "Examples"
 

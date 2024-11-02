@@ -53,7 +53,7 @@ from Step 2.
     !!! example "Example"
 
         For my server, this looks like
-        `http://192.168.0.29:8000/api/webhooks/plex?interface_id=2`
+        `http://192.168.0.29:4242/api/webhooks/plex?interface_id=2`
 
 7. Click <span class="example md-button">Save Changes</span>.
 
@@ -82,7 +82,16 @@ only be able to _actually_ trigger on `library.new`, `library.on.deck`,
     !!! example "Example"
 
         The example above used the following URL:
-        `http://192.168.0.29:8000/api/webhooks/plex?interface_id=2&trigger_on=library.new,media.scrobble,media.rate`
+        `http://192.168.0.29:4242/api/webhooks/plex?interface_id=2&trigger_on=library.new,media.scrobble,media.rate`
+
+2. You may also adjust the default _maximum_ time which TCM will allow any
+individual Webhook event to take. This can be done with the `timeout` parameter,
+in the same manner as above. The default is 300 (seconds), and this must be a
+value between 5 and 600 (in seconds).
+
+    !!! example "Example"
+
+        `http://192.168.0.29:4242/api/webhooks/plex?interface_id=2&timeout=60`
 
 2. Click <span class="example md-button">Save Changes</span>.
 
