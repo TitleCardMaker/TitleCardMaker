@@ -367,14 +367,19 @@ function _deleteConnectionRequest(connectionId, deleteCards=false) {
  * @param {number} connectionId ID of the Connection whose list to refresh.
  */
 function _refreshLibraryList(connectionId) {
+  // Clear existing list
+  $(`#connection${connectionId} .labels[data-value="libraries"]`).empty()
+
+  // Query for new list
   $.ajax({
     type: 'POST',
-    url: `/api/connections/${connectionId}/libraries`,
+    url: `/api/connection/${connectionId}/libraries`,
     /**
      * Libraries queried - update labels.
      * @param {string[]} libraries List of libraries for the Connection.
      */
     success: libraries => {
+      showInfoToast('Libraries Updated');
       $(`#connection${connectionId} .labels[data-value="libraries"]`)
         .empty()
         .append(libraries.map(library => $(`<div class="ui label">${library}</div>`)));
