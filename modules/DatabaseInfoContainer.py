@@ -413,8 +413,9 @@ class DatabaseInfoContainer(ABC):
 
         # Verify class comparison
         if not isinstance(other, self.__class__):
-            raise TypeError(f'Can only compare like '
-                            f'{self.__class__.__name__} objects')
+            raise TypeError(
+                f'Can only compare like {self.__class__.__name__} objects'
+            )
 
         return any(
             getattr(self, attr, None) is not None
