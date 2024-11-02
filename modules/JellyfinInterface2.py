@@ -740,13 +740,17 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
 
         # Load each episode and card
         loaded = []
-        for episode, card, *_ in episode_and_cards:
+        for episode, card, *uid in episode_and_cards:
+            # UID provided, match directly
+            if uid:
+                episode_id = uid[0]
             # Find episode, skip if not found
-            episode_id = self.__get_episode_id(
-                library_name, series_id, episode.as_episode_info
-            )
-            if episode_id is None:
-                continue
+            else:
+                episode_id = self.__get_episode_id(
+                    library_name, series_id, episode.as_episode_info
+                )
+                if episode_id is None:
+                    continue
 
             # Shrink image if necessary, skip if cannot be compressed
             if (image := self.compress_image(card.card_file, log=log)) is None:
