@@ -50,10 +50,160 @@
           "v2.0-alpha.11.0",
           "v2.0-alpha.12.0",
           "v2.0-alpha.12.1",
+          "v2.0-alpha.13.0",
         ] %}
         {% for version in versions[::-1] %}
           <a class="ui label" href="#{{version}}">{{version}}</a>
         {% endfor %}
+      </div>
+
+      <h2 id="v2.0-alpha.13.0" class="ui top attached header">
+        v2.0-alpha.13.0
+        <div class="sub header">Released November 01, 2024</div>
+      </h2>
+      <div data-version="v2.0-alpha.13.0" class="ui bottom attached segment">
+        <h3>Major Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Create new Negative Space card type
+            <div class="list">
+              <div class="item">All documentation is available <a href="https://titlecardmaker.com/card_types/negative_space/" target="_blank">here</a>
+            <div class="list">
+              <img width="50%" src="https://titlecardmaker.com/card_types/assets/negative_space.webp">
+            </div>
+          </div>
+            </div>
+          </div>
+          <div class="item">Add toggle for using season-specific assets (logos and backdrops) for Series
+            <div class="list">
+              <div class="item">Once enabled, TCM will allow directly setting logos and backdrops for each season within the UI</div>
+              <div class="item">Requires SQL schema <b>a1520b6160c4</b></div>
+            </div>
+          </div>
+          <div class="item">Add per-Series and per-Template level Image Source Priority customization
+            <div class="list">
+              <div class="item">Requires SQL schema <b>a1520b6160c4</b></div>
+            </div>
+          </div>
+          <div class="item">Display the Series name in Blueprints which are a part of a Set while on the Series page</div>
+          <div class="item">Add the ability to "intercept" Plex API logging and route all messages to the TCM logging mechanism by setting the environment variable <b>TCM_PLEX_LOGGING</b> to <b>TRUE</b></div>
+          <div class="item">Remove all references to the "blacklist" from TMDb</div>
+          <div class="item">Add the ability to delete Source Images from the UI</div>
+          <div class="item">Add pop-up image interactions to Title Cards and Source Images within the UI
+            <div class="list">
+              <div class="item">Previously, clicking a Source Image would launch the browser; now a popup is shown
+            <div class="list">
+              <img width="20%" src="https://github.com/user-attachments/assets/97b87048-83a3-442e-b5e9-ce6174def99b">
+            </div>
+          </div>
+              <div class="item">Previously, clicking or right-clicking a Title Card would create the Card (if globally enabled); now a popup is shown
+            <div class="list">
+              <img width="20%" src="https://github.com/user-attachments/assets/7f3030a8-3748-459a-a5e1-0e0445edb84e">
+            </div>
+          </div>
+              <div class="item">Add the ability to selectively load any Title Card into any Connection/library/episode</div>
+              <div class="item">Remove the checkmark over Title Cards which indicated whether a Title Card is loaded or not - this is now shown in the popup</div>
+            </div>
+          </div>
+          <div class="item">Minor improvements to the Plex Webhook
+            <div class="list">
+              <div class="item">Run in a separate asynchronous thread so that the UI does not lock up while processing</div>
+              <div class="item">Add <b>timeout</b> query parameter to stop the webhook takes longer than the specified number of seconds (defaults to 120)</div>
+            </div>
+          </div>
+        </div>
+        <h3>Major Fixes </h3>
+        <div class="ui ordered list">
+          <div class="item">Properly implement restoring from backups via the UI / API</div>
+          <div class="item">Only reload Cards if a Card config actually changed when triggered via a Plex Webhook</div>
+          <div class="item">Correct SQL model reference used to import a Series and Blueprint</div>
+          <div class="item">Handle bad remote card type JSON loading while launching the UI - remote card types will now just be skipped, not result in the UI failing to load</div>
+          <div class="item">Fix setting the global card extension to <b>.jxl</b> via the UI</div>
+          <div class="item">Correctly apply minimum Source Image resolution settings for TVDB Connections</div>
+          <div class="item">Pin the <b>cryptography</b> package version to <b>42.0.8</b> for ARMv7 Docker images</div>
+          <div class="item">Fix resetting Episode extras via the UI</div>
+          <div class="item">Properly handle deleting old database ID's which did not exist in the <b>SetSeriesIDs</b> task</div>
+          <div class="item">Properly download logos from TVDb (was downloading posters)</div>
+          <div class="item">Handle changing season/episode/absolute numbers when refreshing episode data </div>
+          <div class="item">Properly batch label removal when loading Cards into Plex</div>
+        </div>
+        <h3>Minor Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Add an icon to directly perform a system backup via the System page</div>
+          <div class="item">Fix and improve various E2E tests</div>
+          <div class="item">Change the log level of various messages to be less annoying</div>
+          <div class="item">Remove the ability to display Source Image information in non-tabular form</div>
+          <div class="item">Move the edit poster dialog into a popup menu rather than a modal</div>
+          <div class="item">Move the home page table/poster toggle button to the right side of the menu bar</div>
+          <div class="item">Move all Series "delete" functionalities (delete Title Cards, Series, etc.) to a separate submenu</div>
+          <div class="item">Update all package dependency versions</div>
+          <div class="item">Add the ability to adjust the minimum log message level of the live log messages with the <b>TCM_LOG_WEBSOCKET</b> environment variable</div>
+          <div class="item">Remove the "search" Source Image interaction/column from the UI - this was confusing for most users, and rarely useful</div>
+          <div class="item">No longer auto refresh Card previews on the Series page</div>
+          <div class="item">Add ability to delete Source Images from the UI</div>
+          <div class="item">Only set Episode IDs for <i>new</i> Episodes when refreshing episode data</div>
+          <div class="item">Display a Connection's available libraries within the UI on the Connections page</div>
+        </div>
+        <h3>Minor Fixes</h3>
+        <div class="ui ordered list">
+          <div class="item">Properly display the "browse" asset buttons within the UI if TMDb is disabled</div>
+          <div class="item">Improve handling of bad image content in logo and backdrop upload endpoints</div>
+          <div class="item">Reject series without premiere years in Jellyfin when querying Series IDs</div>
+          <div class="item">Handle all generic exceptions when parsing Plex webhooks - most commonly <b>ClientDisconnent</b> errors</div>
+          <div class="item">Improve parsing of log messages without valid datetimes</div>
+          <div class="item">Modify the series poster modal to a less intrusive inline popup</div>
+          <div class="item">Correct handling of logging bad poster URL uploads in Plex</div>
+          <div class="item">Raise 422 if the specified Connection in a <b>/api/proxy</b> API call does not have a defined URL</div>
+          <div class="item">Display generic "Some time ago" text if the time difference cannot be determined for log messages on the Series page</div>
+          <div class="item">Correctly display a success message when a Title Card is deleted in the UI</div>
+          <div class="item">Display the Browse Source Image button(s) even if TMDb is disabled</div>
+          <div class="item">Explicitly reload Plex episodes after removing any Kometa labels when loading Cards</div>
+          <div class="item">Do not raise an exception if a specified interface does not exist when downloading logos for a Series</div>
+          <div class="item">Do not reset currently running Tasks when initializing the Scheduler</div>
+          <div class="item">Properly show an error toast when TMDb returns no posters when querying via the UI</div>
+          <div class="item">Add scrolling for x-overflow on the Logs page</div>
+          <div class="item"><div class="ui mini circular green label">v1</div> Do not include unique source images in the missing file report if both styles are art</div>
+        </div>
+        <h3>Title Card Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Cutout
+            <div class="list">
+              <div class="item">Add extra to shift the vertical position of the cutout text</div>
+            </div>
+          </div>
+        </div>
+        <h3>Documentation Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Improve the "how to update" docs to reference <b>docker pull</b> command for non-compose Docker setups</div>
+          <div class="item">Improve documentation for <a href="https://titlecardmaker.com/user_guide/#environment-variables" target="_blank">environment variables</a></div>
+          <div class="item">Write documentation on the "live log messages" and "interactive title card" global settings <a href="https://titlecardmaker.com/user_guide/settings/" target="_blank">here</a></div>
+        </div>
+        <h3>API Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Fix <b>/api/connections/tautulli/check</b> endpoint</div>
+          <div class="item">Sleep for only 15 seconds between polling for Episodes in the Sonarr webhook endpoint</div>
+          <div class="item">Change the default page size of all paginated endpoints to 50 (from 100)</div>
+          <div class="item">Fix return model for <b>POST</b> <b>/api/sources/episode/{episode_id}</b> if any image source returns a null image</div>
+          <div class="item">Add <b>season_number</b> query parameter to various API endpoints
+            <div class="list">
+              <div class="item"><b>PUT</b> <b>/api/sources/series/{series_id}/logo/upload</b></div>
+              <div class="item"><b>PUT</b> <b>/api/sources/series/{series_id}/backdrop/upload</b></div>
+            </div>
+          </div>
+          <div class="item">Raise <b>422</b> if the <b>interface_id</b> query parameter passed in <b>DELETE</b> <b>/api/series/series/{series_id}/plex-labels/library</b> endpoint does not correspond to a valid Plex Connection</div>
+          <div class="item">Create new API endpoint to delete a Series (or season) logo or backdrop - <b>DELETE</b> <b>/api/sources/series/{series_id}/logo</b> and <b>DELETE</b> <b>/api/sources/series/{series_id}/backdrop</b></div>
+          <div class="item">Change <b>PUT</b> <b>/api/series/series/{series_id}/poster</b> Form argument names from <b>poster_url</b> and <b>poster_file</b> to <b>url</b> and <b>file</b></div>
+          <div class="item">Rewrite the Card loading API endpoints
+            <div class="list">
+              <div class="item">Deprecate <b>PUT</b> <b>/api/cards/series/{series_id}/load/all</b></div>
+              <div class="item">Deprecate <b>PUT</b> <b>/api/cards/series/{series_id}/load/library</b></div>
+              <div class="item">Create new <b>PUT</b> <b>/api/cards/series/{series_id}/load</b> endpoint which optionally takes <b>interface_id</b> and <b>library_name</b> query parameters</div>
+            </div>
+          </div>
+          <div class="item">Create new <b>PUT</b> <b>/api/cards/episode/{episode_id}/load</b> endpoint to load the Title Cards for a single Episode</div>
+          <div class="item">Add <b>timeout</b> query parameter to <b>POST</b> <b>/api/webhooks/plex</b></div>
+          <div class="item">Create <b>PUT</b> <b>/api/cards/card/{card_id}/load</b> endpoint to reload a Card</div>
+          <div class="item">Create <b>GET</b> <b>/api/episodes/series/{series_id}/connection/{interface_id}/</b> endpoint to query remote episode data on a given Connection</div>
+        </div>
       </div>
 
       <h2 id="v2.0-alpha.12.1" class="ui top attached header">
