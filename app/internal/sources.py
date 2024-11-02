@@ -1,5 +1,4 @@
 from pathlib import Path
-from re import compile as re_compile, IGNORECASE
 from typing import Literal, Optional, overload
 
 from fastapi import HTTPException

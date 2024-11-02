@@ -31,7 +31,6 @@ from app.internal.sources import (
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
 from app.models.loaded import Loaded as LoadedModel
-from app.models.preferences import Preferences
 from app.schemas.card import SourceImage, ExternalSourceImage
 from modules.Debug import Logger
 from modules.InterfaceGroup import InterfaceGroup
