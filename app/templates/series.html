@@ -344,33 +344,6 @@
           <button class="ui dropdown uninvertible button" data-action="manually-reload">
             <i class="sitemap icon"></i>
             Selective Reload
-            <div class="menu">
-              {% for connection in all_connections %}
-                {% if connection.interface_type == 'Emby' or connection.interface_type == 'Jellyfin' or connection.interface_type == 'Plex' %}
-                  {% if connection.enabled %}
-                  <div class="connection item" data-connection-id="{{ connection.id }}">
-                  {% else %}
-                  <div class="disabled connection item" data-connection-id="{{ connection.id }}">
-                  {% endif %}
-                    <i class="dropdown icon"></i>
-                    <span class="text">{{ connection.name }}</span>
-                    <div class="menu">
-                      {% for library in preferences.libraries[connection.id] %}
-                      <div class="item">
-                        <i class="dropdown icon"></i>
-                        <span class="text" onmouseover="queryLibraryEpisodes(event);" onmouseout="stopQuery(event);">{{ library }}</span>
-                        <div class="menu">
-                          <div class="item">
-                            <div class="ui active centered inline small elastic indeterminate text loader">Loading</div>
-                          </div>
-                        </div>
-                      </div>
-                      {% endfor %}
-                    </div>
-                  </div>
-                {% endif %}
-              {% endfor %}
-            </div>
           </button>
         </div>
       </div>
@@ -1789,7 +1762,7 @@
               <div class="ui two {{ status }} fields">
                 <div class="four wide field" data-value="library">
                   <label>Library</label>
-                  <div class="ui selection dropdown" data-value="load-episode-library" data-connection-id="{{ connection.id }}">
+                  <div class="ui selection clearable dropdown" data-value="load-episode-library" data-connection-id="{{ connection.id }}">
                     <input class="noselection" type="hidden" name="library" value="">
                     <div class="default text">Select a Library</div>
                     <i class="dropdown icon"></i>

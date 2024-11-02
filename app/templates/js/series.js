@@ -2783,8 +2783,14 @@ function openManualCardLoadModal(cardId) {
   // Show modal
   $('#loadCardsModal').modal({blurring: true, closeIcon: true}).modal('show');
 
+  // Add card ID to data of the modal so it can be grabbed by the onchange event
+  document.getElementById('loadCardsModal').dataset.cardId = cardId;
+
   $('.dropdown[data-value="load-episode-library"]').dropdown({
     onChange: function(value, text, $selectedItem) {
+      // Do not run when dropdown is cleared
+      if (!$selectedItem) { return; }
+
       // Get parameters
       const libraryName = value;
       const libraryDropdown = $selectedItem.closest('.dropdown[data-value="load-episode-library"]');
@@ -2798,32 +2804,32 @@ function openManualCardLoadModal(cardId) {
         libraryDropdown.toggleClass('blue slow elastic loading', false);
 
         // Add items to dropdown
-        $(`.field[data-value="episodes"][data-connection-id="${connectionId}"] div.dropdown`).dropdown({
-          values: items,
-          placeholder: items.length === 0 ? 'No Episodes found' : 'Select an Episode',
-          onChange: function(value, text, $selectedItem) {
-            // Mark dropdown as loading
-            $selectedItem.closest('div.dropdown').toggleClass('green elastic loading', true);
+        $(`.field[data-value="episodes"][data-connection-id="${connectionId}"] div.dropdown`)
+          .dropdown({
+            values: items,
+            placeholder: items.length === 0 ? 'No Episodes found' : 'Select an Episode',
+            onChange: function(value, text, $selectedItem) {
+              // Mark dropdown as loading
+              $selectedItem.closest('div.dropdown').toggleClass('green elastic loading', true);
 
-            // Generate query parameters
-            const params = new URLSearchParams({
-              interface_id: connectionId,
-              library_name: libraryName,
-              uid: value,
-            });
-
-            // Submit API request
-            $.ajax({
-              type: 'PUT',
-              url: `/api/cards/card/${cardId}/load?${params.toString()}`,
-              success: () => {
-                showInfoToast('Card Loaded Successfully')
-              },
-              error: response => showErrorToast({title: 'Error Loading Title Card', response}),
-              complete: () => $selectedItem.closest('div.dropdown').toggleClass('green elastic loading', false),
-            });
-          },
-        });
+              // Generate query parameters
+              const params = new URLSearchParams({
+                interface_id: connectionId,
+                library_name: libraryName,
+                uid: value,
+              });
+              
+              // Submit API request
+              const cardID = document.getElementById('loadCardsModal').dataset.cardId;
+              $.ajax({
+                type: 'PUT',
+                url: `/api/cards/card/${cardID}/load?${params.toString()}`,
+                success: () => showInfoToast('Card Loaded Successfully'),
+                error: response => showErrorToast({title: 'Error Loading Title Card', response}),
+                complete: () => $selectedItem.closest('div.dropdown').toggleClass('green elastic loading', false),
+              });
+            },
+          });
       }
 
       // Use cached episode data if this connection+library has already been queried
