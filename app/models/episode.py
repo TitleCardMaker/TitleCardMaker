@@ -445,7 +445,12 @@ class Episode(Base):
         # No manually specified source, use default based on style
         if (source_name := self.source_file) is None:
             if 'art' in style:
-                source_name = 'backdrop.jpg'
+                return self.series.get_backdrop_file(
+                    self.season_number
+                    if self.series.use_per_season_assets
+                    else None,
+                    fallback=True,
+                ).resolve()
             else:
                 source_name = f's{self.season_number}e{self.episode_number}.jpg'
 

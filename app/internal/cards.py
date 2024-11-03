@@ -656,13 +656,18 @@ def resolve_card_settings(
             card_settings['watched_style' if watched else 'unwatched_style'],
         )
     else:
-        card_settings['source_file'] = CleanPath(preferences.source_directory \
-            / series.path_safe_name \
-            / FormatString.new(
-                card_settings['source_file'], data=card_settings,
-                name='source file format', series=series, episode=episode,
-                log=log,
-            )).sanitize()
+        card_settings['source_file'] = CleanPath(
+            preferences.source_directory \
+                / series.path_safe_name \
+                / FormatString.new(
+                    card_settings['source_file'],
+                    data=card_settings,
+                    name='source file format',
+                    series=series,
+                    episode=episode,
+                    log=log,
+                )
+            ).sanitize()
 
     # Exit if the source file does not exist
     if (CardClass.USES_SOURCE_IMAGES

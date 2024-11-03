@@ -747,9 +747,9 @@ class Series(Base):
             return source_dir / 'backdrop.jpg'
 
         # Look for the season-specific poster
-        if ((logo := source_dir / f'backdrop_season{season_number}.jpg').exists()
+        if ((file := source_dir / f'backdrop_season{season_number}.jpg').exists()
             or not fallback):
-            return logo
+            return file
 
         return source_dir / 'backdrop.jpg'
 
