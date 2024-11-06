@@ -107,7 +107,7 @@
           <div class="item">Minor improvements to the Plex Webhook
             <div class="list">
               <div class="item">Run in a separate asynchronous thread so that the UI does not lock up while processing</div>
-              <div class="item">Add <b>timeout</b> query parameter to stop the webhook takes longer than the specified number of seconds (defaults to 120)</div>
+              <div class="item">Add <b>timeout</b> query parameter to stop the webhook if it takes longer than the specified number of seconds (defaults to 120)</div>
             </div>
           </div>
         </div>
@@ -145,18 +145,15 @@
         </div>
         <h3>Minor Fixes</h3>
         <div class="ui ordered list">
-          <div class="item">Properly display the "browse" asset buttons within the UI if TMDb is disabled</div>
+          <div class="item">Properly display the browse asset button(s) within the UI if TMDb is disabled</div>
           <div class="item">Improve handling of bad image content in logo and backdrop upload endpoints</div>
           <div class="item">Reject series without premiere years in Jellyfin when querying Series IDs</div>
           <div class="item">Handle all generic exceptions when parsing Plex webhooks - most commonly <b>ClientDisconnent</b> errors</div>
           <div class="item">Improve parsing of log messages without valid datetimes</div>
-          <div class="item">Modify the series poster modal to a less intrusive inline popup</div>
           <div class="item">Correct handling of logging bad poster URL uploads in Plex</div>
           <div class="item">Raise 422 if the specified Connection in a <b>/api/proxy</b> API call does not have a defined URL</div>
           <div class="item">Display generic "Some time ago" text if the time difference cannot be determined for log messages on the Series page</div>
           <div class="item">Correctly display a success message when a Title Card is deleted in the UI</div>
-          <div class="item">Display the Browse Source Image button(s) even if TMDb is disabled</div>
-          <div class="item">Explicitly reload Plex episodes after removing any Kometa labels when loading Cards</div>
           <div class="item">Do not raise an exception if a specified interface does not exist when downloading logos for a Series</div>
           <div class="item">Do not reset currently running Tasks when initializing the Scheduler</div>
           <div class="item">Properly show an error toast when TMDb returns no posters when querying via the UI</div>

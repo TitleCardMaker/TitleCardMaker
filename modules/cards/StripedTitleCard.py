@@ -302,6 +302,16 @@ class StripedTitleCard(BaseCardType):
                 default=1.0,
             ),
             Extra(
+                name='Episode Text Vertical Shift',
+                identifier='episode_text_vertical_shift',
+                description='How many pixels to offset the episode text by',
+                tooltip=(
+                    'Number between <v>-1800</v> and <v>1800</v>. Default is '
+                    '<v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
+            Extra(
                 name='Stripe Inset',
                 identifier='inset',
                 description='How far to inset the start and end of the stripes',
@@ -414,7 +424,7 @@ class StripedTitleCard(BaseCardType):
         'font_kerning', 'font_size', 'font_vertical_shift', 'angle',
         'episode_text_color', 'episode_text_font_size', 'inset',
         'inter_shape_spacing', 'overlay_color', 'polygon_distribution',
-        'separator', 'text_position',
+        'separator', 'text_position', 'episode_text_vertical_shift',
     )
 
 
@@ -438,6 +448,7 @@ class StripedTitleCard(BaseCardType):
             angle: float = DEFAULT_ANGLE,
             episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
+            episode_text_vertical_shift: int = 0,
             inset: int = DEFAULT_INSET,
             inter_stripe_spacing: int = DEFAULT_INTER_STRIPE_SPACING,
             overlay_color: str = DEFAULT_OVERLAY_COLOR,
@@ -475,6 +486,7 @@ class StripedTitleCard(BaseCardType):
         self.angle = angle
         self.episode_text_color = episode_text_color
         self.episode_text_font_size = episode_text_font_size
+        self.episode_text_vertical_shift = episode_text_vertical_shift
         self.inset = inset
         self.inter_shape_spacing = inter_stripe_spacing
         self.overlay_color = overlay_color
@@ -541,7 +553,12 @@ class StripedTitleCard(BaseCardType):
             line_count=len(self.title_text.splitlines()),
         )
 
-        x, y = 55, 50 + self.font_interline_spacing + height - 25
+        x = 55
+        y = 50 \
+            + self.font_interline_spacing \
+            + height \
+            - 25 \
+            + self.episode_text_vertical_shift
 
         return [
             f'-font "{self.EPISODE_TEXT_FONT}"',

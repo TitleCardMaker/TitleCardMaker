@@ -845,6 +845,7 @@ class StripedCardType(BaseCardTypeAllText):
     angle: confloat(le=135, ge=45) = StripedTitleCard.DEFAULT_ANGLE
     episode_text_color: str = StripedTitleCard.EPISODE_TEXT_COLOR
     episode_text_font_size: PositiveFloat = 1.0
+    episode_text_vertical_shift: conint(ge=-1800, le=1800) = 0
     inset: conint(ge=0, le=1600) = StripedTitleCard.DEFAULT_INSET
     inter_stripe_spacing: conint(ge=0, le=800) = StripedTitleCard.DEFAULT_INTER_STRIPE_SPACING
     overlay_color: str = StripedTitleCard.DEFAULT_OVERLAY_COLOR
