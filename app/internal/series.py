@@ -448,6 +448,7 @@ def load_series_title_cards(
         interface: Union[EmbyInterface, JellyfinInterface, PlexInterface],
         force_reload: bool = False,
         *,
+        episode_list: Optional[list[Episode]] = None,
         log: Logger = log,
     ) -> None:
     """
@@ -465,12 +466,14 @@ def load_series_title_cards(
             Title Cards into.
         force_reload: Whether to reload Title Cards even if no changes
             are detected.
+        episode_list: Subset of Episodes to load the Title Cards of. If
+            omitted, all Episodes are loaded.
         log: Logger for all log messages.
     """
 
     # Get list of Episodes to reload
     changed, episodes_to_load = False, []
-    for episode in series.episodes:
+    for episode in (episode_list or series.episodes):
         # Determine queries based on library mode
         if len(series.libraries) == 1:
             card_query = dict(episode_id=episode.id)
@@ -557,6 +560,7 @@ def load_all_series_title_cards(
         db: Session,
         force_reload: bool = False,
         *,
+        episode_list: Optional[list[Episode]] = None,
         raise_exc: bool = True,
         log: Logger = log,
     ) -> None:
@@ -570,6 +574,8 @@ def load_all_series_title_cards(
         db: Database to look for and add Loaded records from/to.
         force_reload: Whether to reload Cards even if no changes are
             detected.
+        episode_list: Subset of Episodes to load the Title Cards of. If
+            omitted, all Episodes are loaded.
         raise_exc: Whether to raise an HTTPException if a Connection
             associated with a library is invalid.
         log: Logger for all log messages.
@@ -581,15 +587,13 @@ def load_all_series_title_cards(
         if (interface := get_interface(interface_id)):
             load_series_title_cards(
                 series, library['name'], interface_id, db, interface,
-                force_reload=force_reload, log=log,
+                force_reload=force_reload, episode_list=episode_list, log=log,
             )
         elif raise_exc:
             raise HTTPException(
                 status_code=409,
                 detail=f'Unable to communicate with Connection {interface_id}',
             )
-        else:
-            continue
 
 
 def load_episode_title_card(

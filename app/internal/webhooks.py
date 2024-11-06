@@ -5,7 +5,7 @@ from app.database.query import get_connection, get_interface
 from app.dependencies import PlexInterface
 from app.internal.cards import create_episode_cards
 from app.internal.episodes import refresh_episode_data
-from app.internal.series import load_episode_title_card
+from app.internal.series import load_all_series_title_cards, load_episode_title_card, load_series_title_cards
 from app.internal.snapshot import take_snapshot
 from app.internal.sources import download_episode_source_images
 from app.internal.translate import translate_episode
@@ -50,10 +50,11 @@ def process_rating_key(
             status_code=404,
             detail=f'Rating key {key} does not correspond to any content'
         )
-    log.debug(f'Identified {len(details)} entries from RatingKey {key}')
+    log.debug(f'Identified {len(details)} entries from Rating Key {key}')
 
     # Process each set of details
     episodes_to_load: list[Episode] = []
+    new_episodes: list[Episode] = []
     for series_info, episode_info, watched_status in details:
         # Find all matching Episodes
         episodes = db.query(Episode)\
@@ -71,14 +72,14 @@ def process_rating_key(
                 continue
 
             # Series found, refresh data and look for Episode again
-            refresh_episode_data(db, series, log=log)
+            new_episodes = refresh_episode_data(db, series, log=log)
             episodes = db.query(Episode)\
                 .filter(episode_info.filter_conditions(Episode))\
                 .all()
             if not episodes:
                 log.info(f'Cannot find Episode for {series_info} {episode_info}')
                 continue
-        elif new_only:
+        elif new_only and all(ep not in new_episodes for ep in episodes):
             continue
 
         # Get first Episode that matches this Series
@@ -119,24 +120,32 @@ def process_rating_key(
         if ((new_cards or not integrate_with_kometa)
             and episode not in episodes_to_load):
             episodes_to_load.append(episode)
+            db.refresh(episode)
 
-    # Load all Episodes that require reloading
-    for episode in episodes_to_load:
-        # Refresh this Episode so that relational Card objects are
-        # updated, preventing stale (deleted) Cards from being used in
-        # the Loaded asset evaluation. Not sure why this is required
-        # because SQLAlchemy should update child objects when the DELETE
-        # is committed; but this does not happen.
-        db.refresh(episode)
+    # Load all Episodes of the same Series together
+    for series in set(episode.series for episode in episodes_to_load):
+        sub_episodes = [ep for ep in episodes_to_load if ep.series == series]
+        load_all_series_title_cards(
+            series, db, episode_list=sub_episodes, raise_exc=False, log=log,
+        )
 
-        # Reload into all associated libraries
-        for library in episode.series.libraries:
-            load_episode_title_card(
-                episode, db, library['name'], library['interface_id'],
-                get_interface(library['interface_id']),
-                attempts=5 if library['interface'] == 'Plex' else 1,
-                log=log,
-            )
+    # # Load all Episodes that require reloading
+    # for episode in episodes_to_load:
+    #     # Refresh this Episode so that relational Card objects are
+    #     # updated, preventing stale (deleted) Cards from being used in
+    #     # the Loaded asset evaluation. Not sure why this is required
+    #     # because SQLAlchemy should update child objects when the DELETE
+    #     # is committed; but this does not happen.
+    #     db.refresh(episode)
+
+    #     # Reload into all associated libraries
+    #     for library in episode.series.libraries:
+    #         load_episode_title_card(
+    #             episode, db, library['name'], library['interface_id'],
+    #             get_interface(library['interface_id']),
+    #             attempts=5 if library['interface'] == 'Plex' else 1,
+    #             log=log,
+    #         )
 
     if snapshot:
         take_snapshot(db, log=log)
