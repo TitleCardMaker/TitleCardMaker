@@ -160,6 +160,7 @@ def refresh_episode_data(
         series: Series,
         background_tasks: Optional[BackgroundTasks] = None,
         *,
+        refresh_all_ids: bool = False,
         log: Logger = log,
     ) -> list[Episode]:
     """
@@ -174,6 +175,8 @@ def refresh_episode_data(
         background_tasks: Optional BackgroundTasks queue to add the
             Episode ID assignment task to, if provided. If omitted then
             the assignment is done in a blocking manner.
+        refresh_all_ids: Whether to refresh all Episode ID's, not just
+            those of new Episodes, after querying data.
         log: Logger for all log messages.
 
     Returns:
@@ -257,13 +260,14 @@ def refresh_episode_data(
     elif len(new_episodes) == 1:
         log.info(f'{series} new Episode "{new_episodes[0].title}"')
 
-    # Set Episode ID's for all new Episodes as background task or directly
+    # Set Episode ID's for all/new Episodes
+    id_episodes = series.episodes if refresh_all_ids else new_episodes
     if background_tasks is None:
-        set_episode_ids(db, series, new_episodes, log=log)
+        set_episode_ids(db, series, id_episodes, log=log)
     else:
         background_tasks.add_task(
             set_episode_ids,
-            db, series, new_episodes,log=log
+            db, series, id_episodes,log=log
         )
 
     # Commit to database if changed

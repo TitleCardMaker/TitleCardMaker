@@ -1,11 +1,24 @@
 from logging import Logger
 from typing import Literal
 
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Query, Request
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    HTTPException,
+    Query,
+    Request
+)
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
-from app.database.query import get_all_templates, get_connection, get_episode, get_series
+from app.database.query import (
+    get_all_templates,
+    get_connection,
+    get_episode,
+    get_series
+)
 from app.database.session import Page
 from app.dependencies import *
 from app.internal.auth import get_current_user
@@ -20,7 +33,12 @@ from app.models.episode import Episode as EpisodeModel
 from app.models.loaded import Loaded
 from app.models.series import Series
 from app.schemas.episode import (
-    BatchUpdateEpisode, Episode, EpisodeData, EpisodeOverview, NewEpisode, UpdateEpisode
+    BatchUpdateEpisode,
+    Episode,
+    EpisodeData,
+    EpisodeOverview,
+    NewEpisode,
+    UpdateEpisode
 )
 
 
@@ -31,7 +49,7 @@ episodes_router = APIRouter(
 )
 
 
-@episodes_router.post('/new', status_code=201)
+@episodes_router.post('/new')
 def add_new_episode(
         request: Request,
         new_episode: NewEpisode = Body(...),
@@ -83,7 +101,7 @@ def get_episode_by_id(
     return get_episode(db, episode_id, raise_exc=True)
 
 
-@episodes_router.delete('/episode/{episode_id}', status_code=204)
+@episodes_router.delete('/episode/{episode_id}')
 def delete_episode(
         request: Request,
         episode_id: int,
@@ -142,12 +160,13 @@ def delete_all_series_episodes(
     return deleted
 
 
-@episodes_router.post('/series/{series_id}/refresh', status_code=201)
+@episodes_router.post('/series/{series_id}/refresh')
 def refresh_episode_data_(
         background_tasks: BackgroundTasks,
         request: Request,
         series_id: int,
         db: Session = Depends(get_database),
+        refresh_all_ids: bool = Query(default=True),
     ) -> None:
     """
     Refresh the episode data associated with the given series. This
@@ -155,13 +174,18 @@ def refresh_episode_data_(
     returns all the series episodes.
 
     - series_id: Series whose episode data to refresh.
+    - refresh_all_ids: Whether to refresh the Episode ID's of ALL
+    episodes after querying data or just NEW Episodes.
     """
 
     # Query for this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
     # Refresh episode data, use BackgroundTasks for ID assignment
-    refresh_episode_data(db, series, background_tasks, log=request.state.log)
+    refresh_episode_data(
+        db, series, background_tasks, refresh_all_ids=refresh_all_ids,
+        log=request.state.log
+    )
 
 
 @episodes_router.patch('/batch')
