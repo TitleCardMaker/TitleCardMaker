@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 
 class CleanPath(type(Path())):
@@ -28,7 +28,7 @@ class CleanPath(type(Path())):
     }
 
 
-    def __new__(cls, *pathsegments: str):
+    def __new__(cls, *pathsegments: Union[str, Path, 'CleanPath']):
         return super().__new__(cls, *pathsegments)
 
 
