@@ -72,7 +72,7 @@ let getStatisticsId;
 function getStatistics() {
   $.ajax({
     type: 'GET',
-    url: '/api/statistics/series/{{series.id}}',
+    url: '/api/statistics/series/{{ series.id }}',
     /**
      * Statistics queried. Update progress bar and count stats text.
      * @param {Statistic[]} statistics 

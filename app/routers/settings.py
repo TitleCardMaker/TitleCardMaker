@@ -8,7 +8,10 @@ from app.dependencies import get_database, get_preferences
 from app.internal.auth import get_current_user
 from app.internal.backup import list_available_backups
 from app.internal.cards import refresh_remote_card_types
-from app.internal.settings import get_episode_data_sources
+from app.internal.settings import (
+    apply_card_type_blur_profiles,
+    get_episode_data_sources
+)
 from app.models.connection import Connection
 from app.models.preferences import Preferences as PreferencesModel
 from app.schemas.base import UNSPECIFIED
@@ -19,6 +22,7 @@ from app.schemas.preferences import (
     SystemBackup,
     UpdatePreferences,
 )
+from modules.Debug import Logger
 
 
 # Create sub router for all /settings API requests
@@ -60,6 +64,9 @@ def update_global_settings(
     - update_preferences: UpdatePreferences containing fields to update.
     """
 
+    # Get contextual logger
+    log: Logger = request.state.log
+
     # Verify any specified Fonts/Templates exist
     if (hasattr(update_preferences, 'default_fonts')
         and update_preferences.default_fonts != UNSPECIFIED):
@@ -70,9 +77,12 @@ def update_global_settings(
         for template_id in update_preferences.default_templates:
             get_template(db, template_id, raise_exc=True)
 
-    preferences.update_values(**update_preferences.dict(), log=request.state.log)
-    refresh_remote_card_types(db, log=request.state.log)
-    preferences.determine_imagemagick_prefix(log=request.state.log)
+    preferences.update_values(**update_preferences.dict(), log=log)
+    refresh_remote_card_types(db, log=log)
+    preferences.determine_imagemagick_prefix(log=log)
+
+    # Update card type object blur profiles
+    apply_card_type_blur_profiles()
 
     return preferences # type: ignore
 

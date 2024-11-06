@@ -221,7 +221,7 @@ def run_sync(
 
     # Nothing added, log
     if not added:
-        log.info(f'{sync} No new Series synced')
+        log.info(f'{sync} no new Series synced')
 
     # Clear the Sync ID of all Series which were not in the latest sync
     if preferences.delete_unsynced_series:

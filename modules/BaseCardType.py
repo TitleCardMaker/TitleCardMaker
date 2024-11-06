@@ -421,12 +421,24 @@ class BaseCardType(ImageMaker):
                 f'{cls.__name__}.FONT_REPLACEMENTS must be a dictionary'
             )
 
-        if not all(isinstance(k, str) and isinstance(v, str)
-                   for k, v in cls.FONT_REPLACEMENTS.items()):
+        # Validate font replacements
+        if any(
+                not isinstance(k, str) or not isinstance(v, str)
+                for k, v in cls.FONT_REPLACEMENTS.items()
+            ):
             raise TypeError(
                 f'All keys and values of {cls.__name__}.FONT_REPLACEMENTS must '
                 f'strings'
             )
+
+        # Register card type descriptions and blur profiles into global lists
+        from modules.cards.available import (
+            CARD_CLASSES, DEFAULT_BLUR_PROFILES, LocalCards
+        )
+        DEFAULT_BLUR_PROFILES[cls.API_DETAILS.identifier] = cls.BLUR_PROFILE
+        CARD_CLASSES[cls.API_DETAILS.identifier] = cls
+        if cls.API_DETAILS.source == 'builtin':
+            LocalCards.append(cls.API_DETAILS)
 
 
     def __repr__(self) -> str:

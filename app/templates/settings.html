@@ -31,6 +31,13 @@
       </div>
     </div>
   </template>
+
+  <template id="blur-profile-template">
+    <div class="ui field">
+      <label>{card type}</label>
+      <input type="text" name="blur_profile" placeholder="Card Default"/>
+    </div>
+  </template>
 </head>
 
 <body onload="initAll();">
@@ -281,7 +288,7 @@
               </div>
 
               <div class="ui visible info message">
-                The following Card extras and Fonts will be automatically applied to all Cards of that type.
+                The following settings will be automatically applied to all Cards of that type.
               </div>
               <!-- Global extras -->
               <div class="ui styled fluid accordion">
@@ -303,6 +310,20 @@
                 </div>
                 <div class="content">
                   <section aria-label="default_fonts"></section>
+                </div>
+              </div>
+              <!-- Blur profiles -->
+              <div class="ui styled fluid accordion">
+                <div class="title">
+                  <i class="dropdown icon"></i>
+                  Global Blur Profiles
+                </div>
+                <div class="content">
+                  <div class="ui floating info message">
+                    <i class="exclamation triangle icon"></i>
+                    Read more about this setting <a href="https://legacy.imagemagick.org/Usage/blur/#blur_args" target="_blank">here</a>.
+                  </div>
+                  <section aria-label="blur_profiles"></section>
                 </div>
               </div>
 

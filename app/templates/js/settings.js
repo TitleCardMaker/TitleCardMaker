@@ -9,6 +9,10 @@ import {
 const globalFonts = {{ preferences.default_fonts | tojson }};
 /** @type {number[]} */
 const defaultTemplates = {{ preferences.default_templates | tojson }};
+/** @type {Object.<string, ?string>} */
+const defaultBlurProfiles = {{ preferences.default_blur_profiles | tojson }};
+/** @type {Object.<string, ?string>} */
+const globalBlurProfiles = {{ DEFAULT_BLUR_PROFILES | tojson }};
 
 // Get all Connection data
 let allConnections;
@@ -122,7 +126,7 @@ async function initCardTypeDropdowns() {
 }
 
 /**
- * 
+ * Initialize the global font dropdowns.
  * @param {CardTypeDescription[]} allCardTypes List of card type identifiers 
  */
 function initializeGlobalFonts(allCardTypes) {
@@ -171,6 +175,40 @@ function initializeGlobalFonts(allCardTypes) {
       $('.dropdown[data-value="font_id"]').dropdown();
       refreshTheme();
     },
+  });
+}
+
+/**
+ * Initialize the default blur profile settings.
+ * @param {CardTypeDescription[]} allCardTypes List of card type identifiers 
+ */
+function initializeBlurProfiles(allCardTypes) {
+  // Add each card type field to the page
+  const section = document.querySelector('[aria-label="blur_profiles"]');
+  const template = document.getElementById('blur-profile-template').content;
+
+  allCardTypes.forEach((cardType, index) => {
+    // Only display builtin cards
+    if (cardType.source !== "builtin") { return; }
+    const newField = template.cloneNode(true);
+
+    newField.querySelector('label').innerText = cardType.name;
+    newField.querySelector('.field').dataset.cardType = cardType.identifier;
+    newField.querySelector('input').placeholder = globalBlurProfiles[cardType.identifier] || 'Card Default';
+
+    // If this card type has a blur profile then add text to input
+    if (defaultBlurProfiles[cardType.identifier]) {
+      const blurProfile = defaultBlurProfiles[cardType.identifier];
+      newField.querySelector('input').innerText = blurProfile;
+    }
+
+    // Add in groups of 4 per-row
+    if (index % 4 === 0) {
+      const newFields = document.createElement('div');
+      newFields.className = 'ui equal width fields';
+      section.appendChild(newFields);
+    }
+    section.lastChild.appendChild(newField);
   });
 }
 
@@ -228,6 +266,14 @@ function updateGlobalSettings() {
     if (fontId !== '') { defaultFonts[cardType] = Number(fontId); }
   });
 
+  // Parse blur profiles
+  const blurProfiles = {};
+  $('section[aria-label="blur_profiles"] .field').each(function() {
+    const cardType = $(this).attr('data-card-type');
+    const blurProfile = $(this).find('input[name="blur_profile"]').val();
+    if (blurProfile !== '') { blurProfiles[cardType] = blurProfile; }
+  });
+
   const parseListString = (val) => val === '' ? [] : val.split(',');
 
   // Parse all settings data into one update object
@@ -248,6 +294,7 @@ function updateGlobalSettings() {
     default_templates: parseListString($('input[name="default_templates"]').val()),
     global_extras: extras,
     default_fonts: defaultFonts,
+    default_blur_profiles: blurProfiles,
     // ImageMagick
     card_width: $('input[name="card_width"]').val(),
     card_height: $('input[name="card_height"]').val(),
@@ -421,5 +468,6 @@ async function initAll() {
     allCards = await initCardTypeDropdowns();
     updatePreviewTitleCard(allCards, '{{preferences.default_card_type}}');
     initializeGlobalFonts(allCards);
+    initializeBlurProfiles(allCards);
   })()
 }

@@ -1,4 +1,3 @@
-from logging import Logger
 from string import printable, punctuation, whitespace
 from typing import Literal
 
@@ -26,6 +25,7 @@ from app.schemas.font import (
     NewNamedFont,
     UpdateNamedFont
 )
+from modules.Debug import Logger
 from modules.FontValidator2 import FontValidator
 
 
@@ -272,7 +272,7 @@ def get_suggested_font_replacements(
     font = get_font(db, font_id, raise_exc=True)
 
     # Font has no custom file, make no suggestions
-    if font.file_name is None:
+    if font.file_name is None or font.file is None:
         return FontAnalysis()
 
     # Get any titles associated with this Font - look at Episodes using this

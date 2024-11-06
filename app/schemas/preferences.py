@@ -26,10 +26,19 @@ from modules.TMDbInterface2 import TMDbInterface
 
 
 """
-Match local identifiers (A-Z and any character), remote card types (a-z/.*, no
-space), and local card types (any character(s).py).
+Match local identifiers (A-Z and any character), remote card types
+(a-z/.*, no space), and local card types (any character(s).py).
 """
 CardTypeIdentifier = constr(regex=r'^([a-zA-Z].*|[a-zA-Z].*\/[a-zA-Z].*|.+\.py)$')
+
+"""
+Blur profiles must be formatted as {radius}x{sigma}
+"""
+BlurProfile = constr(
+    strip_whitespace=True,
+    to_lower=True,
+    regex=r'^\d+x\d+$'
+)
 
 """
 Page dimension string for specifying {rows}x{columns}.
@@ -45,8 +54,14 @@ CardExtension = Literal[
 ]
 
 Style = Literal[
-    'art', 'art blur', 'art grayscale', 'art blur grayscale', 'unique',
-    'blur unique', 'grayscale unique', 'blur grayscale unique',
+    'art',
+    'art blur',
+    'art grayscale',
+    'art blur grayscale',
+    'unique',
+    'blur unique',
+    'grayscale unique',
+    'blur grayscale unique',
 ]
 
 LanguageCode = Literal[TMDbInterface.LANGUAGE_CODES]
@@ -111,6 +126,7 @@ class UpdatePreferences(UpdateBase):
     default_unwatched_style: Style = UNSPECIFIED
     default_templates: list[int] = UNSPECIFIED
     default_fonts: dict[str, int] = UNSPECIFIED
+    default_blur_profiles: dict[str, BlurProfile] = UNSPECIFIED
     global_extras: dict[str, dict[str, str]] = UNSPECIFIED
     home_page_size: PositiveInt = UNSPECIFIED
     episode_data_page_size: PositiveInt = UNSPECIFIED
@@ -201,6 +217,7 @@ class Preferences(Base):
     default_unwatched_style: Style
     default_templates: list[int]
     default_fonts: dict[str, int]
+    default_blur_profiles: dict[str, BlurProfile]
     global_extras: dict[str, dict[str, str]]
     home_page_size: PositiveInt
     episode_data_page_size: PositiveInt
