@@ -192,7 +192,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
             # Apply filters/exclusions
             if ((monitored_only and not show['monitored'])
                 or (downloaded_only
-                    and show.get('statistics', {}).get('sizeOnDisk') == 0)
+                    and show.get('statistics', {}).get('sizeOnDisk', 0) == 0)
                 or (excluded_tags
                     and any(tag in excluded_tag_ids for tag in show['tags']))
                 or (required_tags
@@ -243,13 +243,13 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
             return None
 
         # Search for Series
-        search_results: list[dict] = self.get(
+        search_results: list[dict] = self.get( # type: ignore
             url=f'{self.url}series/lookup',
             params={'term': series_info.name} | self.__standard_params,
         )
 
         # No results, nothing to set
-        if len(search_results) == 0:
+        if not search_results:
             return None
 
         # Find matching Series
@@ -271,8 +271,6 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
                 reference_series_info.set_sonarr_id(sonarr_id, self.interface_id)
 
             if series_info == reference_series_info:
-                if not reference_series_info.has_id('sonarr', self.interface_id):
-                    log.debug(f'Found {series_info} via Sonarr, but not in server')
                 series_info.copy_ids(reference_series_info, log=log)
                 break
 

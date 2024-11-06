@@ -64,7 +64,7 @@ def get_latest_version(
 
 def get_local_cards(preferences: Preferences) -> list[LocalCardType]:
     """
-    Get the list of availably locally specified card types.
+    Get the list of available locally specified card types.
 
     Args:
         preferences: Global preferences.
