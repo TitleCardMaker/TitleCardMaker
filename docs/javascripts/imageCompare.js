@@ -18,11 +18,11 @@ document$.subscribe(function() {
     new ImageCompare(
       element,
       {
-        startingPoint: element.dataset?.startingPoint,
-        verticalMode: element.dataset?.verticalMode === "true",
+        startingPoint: element.dataset?.startingPoint || 50,
+        verticalMode: element.dataset?.verticalMode === "true" || false,
         labelOptions: {
-          before: element.dataset?.leftLabel,
-          after: element.dataset?.rightLabel,
+          before: element.dataset?.leftLabel || 'before',
+          after: element.dataset?.rightLabel || 'after',
           ...labelOptions,
         },
         ...options,

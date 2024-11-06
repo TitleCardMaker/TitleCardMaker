@@ -9,10 +9,6 @@ tags:
 
 # Creating Title Cards
 
-!!! warning "Under Construction"
-
-    This documentation is actively being developed.
-
 There has been a lot of preamble, but the core of TitleCardMaker is making
 Title Cards. We'll be creating Title Cards in order to showcase the effects of
 our Template, as well as show how these Cards can be further customized.
@@ -112,8 +108,8 @@ deleted.
 
     With that finished, you have successfully grabbed Episode data, downloaded
     Source Images (manually _and_ automatically), created Title Cards, seen how
-    Template Filters apply, as well as observed the effects of overriding card
-    creation on an Episode-level.
+    Templates work, as well as observed the effects of overriding card creation
+    on an Episode-level.
 
     These are all the major components of TCM, and mark the end of the tutorial.
     If you have any other questions, you can browse this documentation or reach

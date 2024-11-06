@@ -179,7 +179,7 @@ nav:
     #   - Synology DSM: getting_started/docker/synology.md
     #   - UnRAID: getting_started/docker/unraid.md
     # - Installation - Local: getting_started/local.md
-    - Importing YAML Settings: getting_started/import_settings.md
+    # - Importing YAML Settings: getting_started/import_settings.md
     - Configuring Connections:
       - getting_started/connections/index.md
       - Emby: getting_started/connections/emby.md
