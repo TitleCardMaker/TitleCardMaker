@@ -765,3 +765,69 @@ def delete_series_backdrop(
 
     file.unlink(missing_ok=True)
     request.state.log.debug(f'Deleted file ({file.resolve()})')
+
+
+@source_router.put('/episode/{episode_id}/mask')
+async def upload_episode_mask_image(
+        request: Request,
+        episode_id: int,
+        file: UploadFile,
+        db: Session = Depends(get_database),
+    ) -> None:
+    """
+    
+    """
+
+    # Get contextual logger
+    log: Logger = request.state.log
+
+    # Get Episode with this ID, raise 404 if DNE
+    episode = get_episode(db, episode_id, raise_exc=True)
+
+    # Send error if no image content was provided
+    if not (uploaded_file := await file.read()):
+        raise HTTPException(
+            status_code=422,
+            detail='URL or file are required',
+        )
+
+    # If file already exists, warn about overwriting
+    if (mask_file := episode.get_mask_file()).exists():
+        log.info(f'{episode} mask image "{mask_file}" exists - replacing')
+
+    # Write content directly
+    mask_file.write_bytes(uploaded_file)
+    log.debug(f'Wrote {len(uploaded_file)} bytes to {mask_file}')
+
+    # Delete associated Card and Loaded entry to initiate future reload
+    delete_cards(
+        db,
+        db.query(CardModel).filter_by(episode_id=episode_id),
+        db.query(LoadedModel).filter_by(episode_id=episode_id),
+        log=log,
+    )
+
+
+@source_router.delete('/episode/{episode_id}/mask')
+def delete_episode_mask_image(
+        request: Request,
+        episode_id: int,
+        db: Session = Depends(get_database),
+    ) -> None:
+    """
+    Delete the mask image for the given Episode.
+
+    - episode_id: ID of the Episode whose mask file to delete.
+    """
+
+    # Get Episode with this ID, raise 404 if DNE
+    episode = get_episode(db, episode_id, raise_exc=True)
+
+    if not (mask_file := episode.get_mask_file()).exists():
+        raise HTTPException(
+            status_code=404,
+            detail='Episode does not have a mask image',
+        )
+
+    mask_file.unlink(missing_ok=True)
+    request.state.log.debug(f'Deleting {episode} "{mask_file}"')

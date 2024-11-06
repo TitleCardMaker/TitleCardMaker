@@ -461,6 +461,24 @@ class Episode(Base):
         ).resolve()
 
 
+    def get_mask_file(self) -> Path:
+        """
+        Get the mask image associated with this Episode.
+
+        Returns:
+            Path to the mask file for this Episode.
+        """
+
+        source_name = (
+            self.source_file
+            or f's{self.season_number}e{self.episode_number}-mask.png'
+        )
+
+        return get_preferences().source_directory \
+            / self.series.path_safe_name \
+            / source_name
+
+
     @property
     def watched_statuses_flat(self) -> dict[str, bool]:
         """
@@ -525,14 +543,14 @@ class Episode(Base):
             current = self.watched_statuses.get(key)
             self.watched_statuses[key] = status.status
             if current != status.status:
-                log.trace(f'{self} Updating watched status '
+                log.trace(f'{self} updating watched status '
                           f'({current} -> {status.status})')
 
             return current != status.status
 
         # Interface has no mappings, add
         self.watched_statuses[key] = status.status
-        log.trace(f'{self} Adding watched status')
+        log.trace(f'{self} adding watched status')
         return True
 
 
