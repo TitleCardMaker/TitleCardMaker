@@ -3,6 +3,7 @@ from re import match, IGNORECASE
 from shutil import move as move_file
 from typing import Any, Callable, Optional, TypeVar, Union
 
+from aiohttp import ClientSession
 from fastapi import HTTPException
 from ruamel.yaml import YAML
 from sqlalchemy.orm import Session
@@ -58,6 +59,7 @@ from modules.EpisodeMap import EpisodeMap
 from modules.PreferenceParser import PreferenceParser
 from modules.SeriesInfo2 import SeriesInfo
 from modules.TieredSettings import TieredSettings
+from modules.WebInterface import WebInterface
 
 
 # pylint: disable=missing-function-docstring
@@ -1640,3 +1642,38 @@ def import_card_files(
             db, title_card, CardTypeModel, card_settings['card_file'], library,
         )
         log.debug(f'{episode} Imported {episode.index_str}')
+
+
+async def download_image(
+        session: ClientSession,
+        url: str,
+        episode: Episode,
+        temp_images: list[Path],
+    ) -> Optional[tuple[Path, Episode]]:
+    """
+    Asyncronously download the given URL with the given session.
+
+    Args:
+        session: Async session to download the URL with.
+        url: URL of the image being downloaded.
+        episode: Episode associated with the URL being downloaded.
+        temp_images: List of temporary image files to be cleaned up.
+            This is added to.
+
+    Returns:
+        Tuple of the downloaded image path and the associated Episode.
+        None if the download failed for any reason. `temp_images` is
+        also appended to.
+    """
+
+    async with session.get(url) as response:
+        log.trace(f'Downloading "{url}"..')
+        content = await response.read()
+        filename = WebInterface.get_random_filename(
+            WebInterface._TEMP_DIR / f'temp_{url[-5:]}', 'jpg'
+        )
+        temp_images.append(filename)
+        if WebInterface.download_image(content, filename, log=log):
+            return filename, episode
+
+        return None
