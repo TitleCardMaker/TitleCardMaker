@@ -360,7 +360,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         # Search by IMDb ID if present
         if episode_info.has_id('imdb_id'):
             url =f'{self.__ROOT_API_URL}/search/remoteid/{episode_info.imdb_id}'
-            if isinstance((resp := self.get(url)), dict):
+            if isinstance((resp := self.get(url)), dict) and resp.get('data'):
                 for result in resp.get('data', []):
                     if (id_ := result.get('series', {}).get('id')):
                         return int(id_)
