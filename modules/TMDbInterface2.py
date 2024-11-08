@@ -963,6 +963,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             )
         # Some error occurred, raise if indicated, otherwise return None
         except HTTPException as exc:
+            log.exception('Error occured while querying Source Images')
             if raise_exc:
                 raise exc
             return None
