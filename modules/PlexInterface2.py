@@ -861,7 +861,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             return []
 
         # Find episodes which have a matching Card to load
-        skipped: list[str] = []
         matched_episodes: list[tuple[PlexEpisode, 'Episode', 'Card']] = []
 
         # A UID (RatingKey) was provided, match directly
@@ -886,9 +885,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                     if episode_info == plex_episode:
                         matched_episodes.append((plex_episode, episode, card))
                         break
-                # Episode never matched
-                else:
-                    skipped.append(plex_episode.seasonEpisode)
 
         if not matched_episodes:
             log.trace(f'Not loading any Cards for {series_info}')
@@ -905,7 +901,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         for plex_episode, episode, card in matched_episodes:
             # Shrink image if necesssary, skipping if uncompressable
             if (image := self.compress_image(card.card_file, log=log)) is None:
-                skipped.append(plex_episode.seasonEpisode)
                 continue
 
             # Upload card
@@ -928,9 +923,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # Save batch edits
         library.saveMultiEdits()
 
-        if skipped:
-            log.trace(f'Not loading Card into {", ".join(skipped)} for '
-                      f'{series_info}')
         return loaded
 
 
