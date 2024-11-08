@@ -390,7 +390,7 @@ class BaseCardType(ImageMaker):
             )
 
         try:
-            SplitCharacteristics(**cls.TITLE_CHARACTERISTICS) # type: ignore
+            SplitCharacteristics(cls.TITLE_CHARACTERISTICS) # type: ignore
         except Exception:
             raise TypeError(
                 f'{cls.__name__}.TITLE_CHARACTERISTICS must be a '
