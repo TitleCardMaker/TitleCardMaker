@@ -790,10 +790,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         else:
             entry.uploadPoster(**kwargs)
 
-        try:
-            entry.addLabel(['TCM'])
-        except (PlexApiException, ReadTimeout):
-            log.exception(f'Unable to add "TCM" label to {entry}')
+        # try:
+        #     entry.addLabel(['TCM'])
+        # except (PlexApiException, ReadTimeout):
+        #     log.exception(f'Unable to add "TCM" label to {entry}')
 
 
     def __add_exif_tag(self, image: Path, *, log: Logger = log) -> None:
@@ -895,6 +895,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         if self.integrate_with_kometa:
             library.removeLabel(['Overlay'])
             log.trace('Removed "Overlay" label')
+        library.addLabel(['TCM'])
 
         # Upload card for all matched episodes
         loaded: list[tuple['Episode', 'Card']] = []
@@ -1218,12 +1219,13 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # Get all Episodes for batch edits
         episodes: list[PlexEpisode] = series.episodes(container_size=500) # type: ignore
         library.batchMultiEdits(episodes)
+        library.removeLabel(labels)
 
         # Remove all indicated labels
-        for episode in episodes:
-            log.debug(f'Removed {labels} from {episode.labels} of '
-                      f'{episode}')
-            episode.removeLabel(labels)
+        # for episode in episodes:
+        #     log.debug(f'Removed {labels} from {episode.labels} of '
+        #               f'{episode}')
+        #     episode.removeLabel(labels)
 
         # Finalize batch edits
         library.saveMultiEdits()
