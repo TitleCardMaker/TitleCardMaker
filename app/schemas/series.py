@@ -68,6 +68,15 @@ class BaseConfig(Base):
     hide_season_text: Optional[bool] = None
     hide_episode_text: Optional[bool] = None
     episode_text_format: Optional[str] = None
+    image_source_priority: Optional[list[int]] = None
+
+    @validator('image_source_priority', pre=False)
+    def validate_unique_isp_id(cls, val: Optional[list[int]]) -> Optional[list[int]]:
+        if val is None:
+            return val
+        if len(val) != len(set(val)):
+            raise ValueError('IDs must be unique')
+        return val
 
 class BaseTemplate(BaseConfig):
     name: constr(min_length=1)
@@ -84,7 +93,6 @@ class BaseSeries(BaseConfig):
     use_per_season_assets: bool = False
     translations: Optional[list[Translation]] = None
     libraries: list[MediaServerLibrary] = []
-    image_source_priority: Optional[list[int]] = None
 
     font_color: Optional[str] = None
     font_title_case: Optional[TitleCase] = None
@@ -166,7 +174,7 @@ class BaseUpdate(UpdateBase):
 Creation classes
 """
 class NewTemplate(BaseTemplate):
-    name: str = Field(..., min_length=1, title='Template name')
+    name: str = Field(..., min_length=1)
     season_title_ranges: list[SeasonTitleRange] = []
     season_title_values: list[str] = []
     extra_keys: list[str] = []
