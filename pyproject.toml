@@ -49,6 +49,7 @@ dependencies = [
     "starlette==0.38.4",
     "urllib3==2.2.3",
     "six==1.16.0",
+    "aiohttp==3.10.10",
 ]
 
 [build-system]
