@@ -1,11 +1,11 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.database.query import get_connection, get_interface
+from app.database.query import get_connection
 from app.dependencies import PlexInterface
 from app.internal.cards import create_episode_cards
 from app.internal.episodes import refresh_episode_data
-from app.internal.series import load_all_series_title_cards, load_episode_title_card, load_series_title_cards
+from app.internal.series import load_all_series_title_cards
 from app.internal.snapshot import take_snapshot
 from app.internal.sources import download_episode_source_images
 from app.internal.translate import translate_episode
@@ -126,26 +126,8 @@ def process_rating_key(
     for series in set(episode.series for episode in episodes_to_load):
         sub_episodes = [ep for ep in episodes_to_load if ep.series == series]
         load_all_series_title_cards(
-            series, db, episode_list=sub_episodes, raise_exc=False, log=log,
+            series, db, episodes=sub_episodes, raise_exc=False, log=log,
         )
-
-    # # Load all Episodes that require reloading
-    # for episode in episodes_to_load:
-    #     # Refresh this Episode so that relational Card objects are
-    #     # updated, preventing stale (deleted) Cards from being used in
-    #     # the Loaded asset evaluation. Not sure why this is required
-    #     # because SQLAlchemy should update child objects when the DELETE
-    #     # is committed; but this does not happen.
-    #     db.refresh(episode)
-
-    #     # Reload into all associated libraries
-    #     for library in episode.series.libraries:
-    #         load_episode_title_card(
-    #             episode, db, library['name'], library['interface_id'],
-    #             get_interface(library['interface_id']),
-    #             attempts=5 if library['interface'] == 'Plex' else 1,
-    #             log=log,
-    #         )
 
     if snapshot:
         take_snapshot(db, log=log)

@@ -775,7 +775,10 @@ async def upload_episode_mask_image(
         db: Session = Depends(get_database),
     ) -> None:
     """
-    
+    Upload the mask image to the given Episode.
+
+    - episode_id: ID of the Episode whose file is provided.
+    - file: Mask file.
     """
 
     # Get contextual logger

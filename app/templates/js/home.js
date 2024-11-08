@@ -279,9 +279,6 @@ function _populateSeriesCard(series, template) {
   if (stylize_unmonitored_posters && !series.monitored) {
     img.classList.add('unmonitored'); 
   }
-  // if (stylize_unmonitored_posters) {
-  //   clone.querySelector('.image').classList.add(series.monitored ? 'monitored' : 'unmonitored');
-  // }
 
   // Link name and poster to the Series page
   const as = clone.querySelectorAll('a');

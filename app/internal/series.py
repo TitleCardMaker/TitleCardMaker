@@ -285,7 +285,7 @@ def process_series(
     """
 
     # Begin processing the Series
-    # Refresh episode data, use BackgroundTasks for ID assignment
+    # Refresh episode data
     if series.monitored:
         log.debug(f'{series} Started refreshing Episode data')
         refresh_episode_data(db, series, log=log)
@@ -448,7 +448,7 @@ def load_series_title_cards(
         interface: Union[EmbyInterface, JellyfinInterface, PlexInterface],
         force_reload: bool = False,
         *,
-        episode_list: Optional[list[Episode]] = None,
+        episodes: Optional[list[Episode]] = None,
         log: Logger = log,
     ) -> None:
     """
@@ -466,14 +466,14 @@ def load_series_title_cards(
             Title Cards into.
         force_reload: Whether to reload Title Cards even if no changes
             are detected.
-        episode_list: Subset of Episodes to load the Title Cards of. If
+        episodes: Subset of Episodes to load the Title Cards of. If
             omitted, all Episodes are loaded.
         log: Logger for all log messages.
     """
 
     # Get list of Episodes to reload
     changed, episodes_to_load = False, []
-    for episode in (episode_list or series.episodes):
+    for episode in (episodes or series.episodes):
         # Determine queries based on library mode
         if len(series.libraries) == 1:
             card_query = dict(episode_id=episode.id)
@@ -560,7 +560,7 @@ def load_all_series_title_cards(
         db: Session,
         force_reload: bool = False,
         *,
-        episode_list: Optional[list[Episode]] = None,
+        episodes: Optional[list[Episode]] = None,
         raise_exc: bool = True,
         log: Logger = log,
     ) -> None:
@@ -574,7 +574,7 @@ def load_all_series_title_cards(
         db: Database to look for and add Loaded records from/to.
         force_reload: Whether to reload Cards even if no changes are
             detected.
-        episode_list: Subset of Episodes to load the Title Cards of. If
+        episodes: Subset of Episodes to load the Title Cards of. If
             omitted, all Episodes are loaded.
         raise_exc: Whether to raise an HTTPException if a Connection
             associated with a library is invalid.
@@ -587,7 +587,7 @@ def load_all_series_title_cards(
         if (interface := get_interface(interface_id)):
             load_series_title_cards(
                 series, library['name'], interface_id, db, interface,
-                force_reload=force_reload, episode_list=episode_list, log=log,
+                force_reload=force_reload, episodes=episodes, log=log,
             )
         elif raise_exc:
             raise HTTPException(
