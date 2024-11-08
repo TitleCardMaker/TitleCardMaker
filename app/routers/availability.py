@@ -343,7 +343,13 @@ def get_available_series(
     ) -> list[AvailableSeries]:
     """Get all the available Series base data."""
 
-    return db.query(Series)\
+    return db.query( # type: ignore
+            Series.id,
+            Series.name,
+            Series.year,
+            Series.directory,
+            Series.sort_name,
+        )\
         .order_by(Series.sort_name)\
         .order_by(Series.year)\
         .all()

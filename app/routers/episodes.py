@@ -299,7 +299,13 @@ def get_series_episode_overview_data(
     """
 
     # Query for Episodes of this Series
-    query = db.query(EpisodeModel).filter_by(series_id=series_id)
+    query = db.query(
+        EpisodeModel.id,
+        EpisodeModel.series_id,
+        EpisodeModel.season_number,
+        EpisodeModel.episode_number,
+        EpisodeModel.absolute_number,
+    ).filter_by(series_id=series_id)
 
     # Order by indicated attribute
     if order_by == 'index':
