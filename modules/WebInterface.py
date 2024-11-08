@@ -264,19 +264,19 @@ class WebInterface:
         # Attempt download
         url = image
         try:
-            # Download from URL
-            if not (content := get(url, timeout=30).content):
-                raise ValueError(f'URL {url} returned no content')
-            if any(bc in content for bc in WebInterface.BAD_CONTENT):
-                raise ValueError(f'URL {url} returned malformed content')
-
-            # Write content to file, return success
-            destination.write_bytes(content)
-            log.trace(f'Downloaded {len(content):,} bytes from {url}')
-            return True
-        except Exception: # pylint: disable=broad-except
+            content = get(url, timeout=30).content
+        except Exception:
             log.exception('Cannot download image, returned error')
             return False
+
+        # Validate content
+        if not WebInterface.verify_image_content(url, content):
+            return False
+
+        # Write content to file
+        destination.write_bytes(content)
+        log.trace(f'Downloaded {len(content):,} bytes from {url}')
+        return True
 
 
     @staticmethod
@@ -297,16 +297,43 @@ class WebInterface:
             not be downloaded.
         """
 
+        # Download content
         url = image
         try:
-            # Download and verify content is valid
-            if not (content := get(url, timeout=30).content):
-                raise ValueError(f'URL {url} returned no content')
-            if any(bc in content for bc in WebInterface.BAD_CONTENT):
-                raise ValueError(f'URL {url} returned malformed content')
+            content = get(url, timeout=30).content
         except Exception: # pylint: disable=broad-except
             log.exception('Cannot download image, returned error')
             return None
 
+        # Validate content
+        if not WebInterface.verify_image_content(url, content):
+            return None
+
         log.trace(f'Downloaded {len(content):,} bytes from {url}')
         return content
+
+
+    @staticmethod
+    def verify_image_content(url: str, content: bytes) -> bool:
+        """
+        Validate the content of the image which comes from the provided
+        URL.
+
+        Args:
+            url: URL which corresponds to the given content.
+            content: Raw content beng validated.
+
+        Returns:
+            True if the content is valid, False otherwise.
+        """
+
+        try:
+            if not content:
+                raise ValueError(f'URL {url} returned no content')
+            if any(bc in content for bc in WebInterface.BAD_CONTENT):
+                raise ValueError(f'URL {url} returned malformed content')
+        except ValueError:
+            log.exception('Cannot download image, returned error')
+            return False
+
+        return True
