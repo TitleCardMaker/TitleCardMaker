@@ -331,18 +331,23 @@ def download_episode_source_image(
     )
 
     # Resolve ISP setting
+    global_isp = get_preferences().image_source_priority
     image_source_priority = TieredSettings.resolve_singular_setting(
-        get_preferences().image_source_priority,
+        global_isp,
         getattr(global_template, 'image_source_priority', None),
         getattr(series_template, 'image_source_priority', None),
         series.image_source_priority,
         getattr(episode_template, 'image_source_priority', None),
-    )
+    ) or global_isp
+
+    if image_source_priority != global_isp:
+        log.trace(f'Effective Image Source Priorty: {image_source_priority}')
 
     # Go through all image sources
     for interface_id in image_source_priority:
         # Skip if this interface cannot be communicated with
         if not (interface := get_interface(interface_id, raise_exc=raise_exc)):
+            log.trace(f'Skipping Interface[{interface_id}] - cannot communicate')
             continue
         connection = get_connection(db, interface_id, raise_exc=raise_exc)
         if connection is None:
@@ -350,7 +355,7 @@ def download_episode_source_image(
 
         # Art can only be sourced from TMDb and TVDb; skip servers
         if ('art' in style and interface.INTERFACE_TYPE not in ('TMDb', 'TVDb')):
-            log.debug(f'Cannot source Art images from '
+            log.trace(f'Cannot source Art images from '
                       f'{interface.INTERFACE_TYPE} - skipping')
             continue
 
@@ -406,7 +411,7 @@ def download_episode_source_image(
                     log=log,
                 )
 
-        # If no source image was returned, increment attempts counter
+        # No source image was returned
         if source_image is None:
             log.trace(f'{episode} cannot download Source Image from '
                       f'Connection[{interface_id}] {interface.INTERFACE_TYPE}')
