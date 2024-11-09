@@ -1,4 +1,5 @@
-"""Modify Episode table
+"""
+Modify Episode table
 - Remove image_source_attempts column
 
 Revision ID: 0a5f4764cd10

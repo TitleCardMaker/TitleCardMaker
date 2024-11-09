@@ -1,4 +1,5 @@
-"""Initialize database
+"""
+Initialize database
 
 Revision ID: 693dd5aa47cd
 Revises: 

@@ -1,4 +1,5 @@
-"""Add model_json Card sa.Column
+"""
+Add model_json Card sa.Column
 Modify Card table:
 - Create new `model_json` Column
 - Remove the hide_season_text, font_file, season_number, font_kerning, blur,

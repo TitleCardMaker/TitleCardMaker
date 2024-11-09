@@ -1,4 +1,5 @@
-"""Add Series level title split toggle
+"""
+Add Series level title split toggle
 Modify Series table:
 - Add Series.auto_split_title which defaults to True
 

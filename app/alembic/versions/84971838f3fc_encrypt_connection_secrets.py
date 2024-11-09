@@ -27,9 +27,9 @@ Base = declarative_base()
 class Connection(Base):
     __tablename__ = 'connection'
 
-    id = sa.Column(sa.Integer, primary_key=True, index=True)
-    api_key = sa.Column(sa.String, nullable=False)
-    url = sa.Column(sa.String, nullable=True)
+    id: int = sa.Column(sa.Integer, primary_key=True, index=True)
+    api_key: str = sa.Column(sa.String, nullable=False)
+    url: str = sa.Column(sa.String, nullable=True)
 
 
 def upgrade() -> None:

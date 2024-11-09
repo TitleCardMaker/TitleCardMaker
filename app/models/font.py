@@ -2,8 +2,7 @@ from pathlib import Path
 from re import sub as re_sub, IGNORECASE
 from typing import Any, Iterable, Optional, TYPE_CHECKING
 
-from sqlalchemy import JSON, String, func
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import JSON, String, event
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,15 +14,10 @@ from app.schemas.font import TitleCase
 from modules.Debug import log # noqa: F401
 
 if TYPE_CHECKING:
+    from sqlalchemy.event import Events
     from app.models.episode import Episode
     from app.models.series import Series
     from app.models.template import Template
-
-
-def regex_replace(pattern, replacement, string):
-    """Perform a Regex replacement with the given arguments"""
-
-    return re_sub(pattern, replacement, string, IGNORECASE)
 
 
 class Font(Base):
@@ -35,24 +29,24 @@ class Font(Base):
 
     __tablename__ = 'font'
 
-    # Referencial arguments
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     episodes: Mapped[list['Episode']] = relationship(back_populates='font')
     series: Mapped[list['Series']] = relationship(back_populates='font')
     templates: Mapped[list['Template']] = relationship(back_populates='font')
 
     name: Mapped[str]
+    sort_name: Mapped[str]
     color: Mapped[Optional[str]]
     file_name: Mapped[Optional[str]]
     interline_spacing: Mapped[int] = mapped_column(default=0)
     interword_spacing: Mapped[int] = mapped_column(default=0)
     kerning: Mapped[float] = mapped_column(default=1.0)
     replacements_in: Mapped[list[str]] = mapped_column(
-        MutableList.as_mutable(JSON),
+        MutableList.as_mutable(JSON), # type: ignore
         default=[],
     )
     replacements_out: Mapped[list[str]] = mapped_column(
-        MutableList.as_mutable(JSON),
+        MutableList.as_mutable(JSON), # type: ignore
         default=[],
     )
     size: Mapped[float] = mapped_column(default=1.0)
@@ -83,22 +77,6 @@ class Font(Base):
         return file
 
 
-    @hybrid_property
-    def sort_name(self) -> str:
-        """
-        The sort-friendly name of this Font. This is lowercase with any
-        prefix a/an/the removed.
-        """
-
-        return regex_replace(r'^(a|an|the)(\s)', '', self.name.lower())
-
-    @sort_name.expression
-    def sort_name(cls: 'Font'): # pylint: disable=no-self-argument
-        """Class-expression of `sort_name` property."""
-
-        return func.regex_replace(r'^(a|an|the)(\s)', '', func.lower(cls.name))
-
-
     @staticmethod
     def apply_replacements(
             text: str,
@@ -124,7 +102,7 @@ class Font(Base):
         """
 
         for repl_in, repl_out in zip(in_, out_):
-            # Skip replacements from pre if post; post if pre
+            # Skip replacements from pre if post; and from post if pre
             if ((pre and repl_in.startswith('post:'))
                 or (not pre and repl_in.startswith('pre:'))):
                 continue
@@ -213,3 +191,20 @@ class Font(Base):
             and self.vertical_shift == getattr(other, 'vertical_shift', 0)
             and self.line_split_modifier == getattr(other, 'line_split_modifier', 0)
         )
+
+
+@event.listens_for(Font.name, 'set')
+def set_font_sort_name(
+        target: Font,
+        value: str,
+        oldvalue: str,
+        initiator: 'Events',
+    ) -> None:
+    """Update the Font sort name when the name attribute is modified."""
+
+    target.sort_name = re_sub(
+        r'^(a|an|the)(\s)',
+        '',
+        value.lower(),
+        flags=IGNORECASE
+    )

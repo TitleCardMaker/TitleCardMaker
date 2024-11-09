@@ -36,6 +36,7 @@ Schema Version History (oldest to newest):
 - 84971838f3fc | Encrypt Connection URLs and API keys
 - db6a1eda7d21 | Add Sync.add_as_monitored column
 - a1520b6160c4 | Add Series per-season asset toggle and Series/Template ISP settings
+- a1520b6160c4 | Add indexing, and explicit sort, clean, and full name columns
 """
 
 # this is the Alembic Config object, which provides

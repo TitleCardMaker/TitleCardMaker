@@ -1,4 +1,5 @@
-"""Modify Font table:
+"""
+Modify Font table:
 - Remove delete_missing column
 
 Revision ID: 248e35b3e455

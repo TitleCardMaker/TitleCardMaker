@@ -1,4 +1,5 @@
-"""Add Card Source File column
+"""
+Add Card Source File column
 
 Revision ID: 32ef3d4633ce
 Revises: 48872195483e

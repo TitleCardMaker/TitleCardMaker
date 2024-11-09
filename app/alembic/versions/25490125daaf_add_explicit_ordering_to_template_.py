@@ -1,4 +1,5 @@
-"""Add explicit ordering to all many-to-many Template associations.
+"""
+Add explicit ordering to all many-to-many Template associations.
 
 Revision ID: 25490125daaf
 Revises: 4d7cb48238be

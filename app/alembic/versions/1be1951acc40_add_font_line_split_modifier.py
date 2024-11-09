@@ -1,4 +1,5 @@
-"""Add Font line split modifier
+"""
+Add Font line split modifier
 Modify Font table
 - Add Font.line_split_modifier column
 

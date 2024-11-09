@@ -1,4 +1,5 @@
-"""Modify Card table:
+"""
+Modify Card table:
 - Change nullable/server default of font_interword_spacing Column
 Modify Font table:
 - Change nullable/server default of interword_spacing Column

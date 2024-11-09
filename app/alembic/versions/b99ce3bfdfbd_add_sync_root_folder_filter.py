@@ -1,4 +1,5 @@
-"""Add Sync root folder filter
+"""
+Add Sync root folder filter
 
 Revision ID: b99ce3bfdfbd
 Revises: 32ef3d4633ce

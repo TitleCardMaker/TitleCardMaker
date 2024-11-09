@@ -69,7 +69,7 @@ class Episode(Base):
     source_file: Mapped[Optional[str]]
     card_file: Mapped[Optional[str]]
     watched_statuses: dict[str, bool] = Column(
-        MutableDict.as_mutable(JSON),
+        MutableDict.as_mutable(JSON), # type: ignore
         default={},
         nullable=False
     )

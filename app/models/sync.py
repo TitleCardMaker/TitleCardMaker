@@ -136,7 +136,7 @@ class Sync(Base):
         """
 
         if self.interface == 'Sonarr':
-            return {
+            return { # type: ignore
                 'required_tags': self.required_tags,
                 'excluded_tags': self.excluded_tags,
                 'monitored_only': self.monitored_only,

@@ -1,4 +1,5 @@
-"""Add TVDb connections
+"""
+Add TVDb connections
 
 Revision ID: 2c1f9a3de797
 Revises: 1be1951acc40

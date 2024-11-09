@@ -1,4 +1,5 @@
-"""Modify Font table:
+"""
+Modify Font table:
 - Add interword_spacing column (default 0)
 - Remove validate_characters column (unused)
 - Explicitly make some columns non-nullable

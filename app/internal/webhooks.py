@@ -68,7 +68,7 @@ def process_rating_key(
                 .filter(series_info.filter_conditions(Series))\
                 .first()
             if series is None:
-                log.info(f'Cannot find Series for {series_info}')
+                log.debug(f'Cannot find Series for {series_info}')
                 continue
 
             # Series found, refresh data and look for Episode again

@@ -1,9 +1,9 @@
-"""Add User table
+"""
+Add User table
 
 Revision ID: 65fd10d8732e
 Revises: 693dd5aa47cd
 Create Date: 2023-07-31 13:34:09.097230
-
 """
 
 from alembic import op

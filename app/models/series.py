@@ -11,9 +11,9 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from sqlalchemy import ColumnElement, ForeignKey, JSON, func
+from sqlalchemy import ColumnElement, ForeignKey, JSON, event, func
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
 from thefuzz.fuzz import partial_token_sort_ratio as partial_ratio
@@ -28,6 +28,7 @@ from modules.Debug import Logger, log
 from modules.SeriesInfo2 import SeriesInfo
 
 if TYPE_CHECKING:
+    from sqlalchemy.event import Events
     from app.models.card import Card
     from app.models.connection import Connection
     from app.models.episode import Episode
@@ -95,6 +96,9 @@ class Series(Base):
 
     # Required arguments
     name: Mapped[str]
+    clean_name: Mapped[str]
+    full_name: Mapped[str]
+    sort_name: Mapped[str]
     year: Mapped[int]
     monitored: Mapped[bool]
     poster_file: Mapped[str] = mapped_column(
@@ -229,51 +233,6 @@ class Series(Base):
         """
 
         return [template.id for template in self.templates]
-
-
-    @hybrid_property
-    def clean_name(self) -> str:
-        """The 'clean' name of this Series"""
-
-        return unidecode(self.name, errors='preserve')
-
-    @clean_name.expression
-    def clean_name(cls: 'Series') -> ColumnElement[str]:
-        """Class expression of the `clean_name` property"""
-
-        return func.unidecode(cls.name)
-
-
-    @hybrid_property
-    def full_name(self) -> str:
-        """The full name of this Series formatted as Name (Year)"""
-
-        return f'{self.name} ({self.year})'
-
-
-    @full_name.expression
-    def full_name(cls: 'Series') -> ColumnElement[str]:
-        """Class-expression of `full_name` property."""
-
-        return cls.name + ' (' + cls.year + ')' # type: ignore
-
-
-    @hybrid_property
-    def sort_name(self) -> str:
-        """
-        The sort-friendly name of this Series. This is lowercase with
-        any prefix a/an/the removed.
-        """
-
-        return regex_replace(
-            r'^(a|an|the)(\s)', '', self.name.lower(), flags=IGNORECASE
-        )
-
-    @sort_name.expression
-    def sort_name(cls: 'Series') -> ColumnElement[str]:
-        """Class-expression of `sort_name` property."""
-
-        return func.regex_replace(r'^(a|an|the)(\s)', '', func.lower(cls.name))
 
 
     @hybrid_method
@@ -909,3 +868,35 @@ class Series(Base):
         self.font_interword_spacing = from_.font_interword_spacing
         self.font_vertical_shift = from_.font_vertical_shift
         self.extras = from_.extras
+
+
+@event.listens_for(Series.name, 'set')
+def set_series_names(
+        target: Series,
+        value: str,
+        oldvalue: str,
+        initiator: 'Events',
+    ) -> None:
+    """
+    Update the Series clean, full, and sort name when the name attribute
+    is modified.
+    """
+
+    target.clean_name = unidecode(value, errors='preserve')
+    target.full_name = f'{value} ({target.year})'
+    target.sort_name = regex_replace(
+        r'^(a|an|the)(\s)', '', value.lower(), flags=IGNORECASE
+    )
+
+@event.listens_for(Series.year, 'set')
+def set_series_full_name(
+        target: Series,
+        value: int,
+        oldvalue: int,
+        initiator: 'Events',
+    ) -> None:
+    """
+    Update the Series full name when the year attribute is modified.
+    """
+
+    target.full_name = f'{target.name} ({value})'

@@ -4,9 +4,8 @@ from pathlib import Path
 from re import match as re_match, sub as re_sub, IGNORECASE
 from typing import Any, Callable, Literal, Optional, TypedDict, TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, JSON, func
+from sqlalchemy import ForeignKey, JSON, event
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,6 +15,7 @@ from modules.Debug import log
 from modules.FormatString import FormatString
 
 if TYPE_CHECKING:
+    from sqlalchemy.event import Events
     from app.models.connection import Connection
     from app.models.episode import Episode
     from app.models.font import Font
@@ -23,11 +23,6 @@ if TYPE_CHECKING:
     from app.models.sync import Sync
     from app.schemas.blueprint import BlueprintTemplate
 
-
-def regex_replace(pattern, replacement, string):
-    """Perform a Regex replacement with the given arguments"""
-
-    return re_sub(pattern, replacement, string, IGNORECASE)
 
 """Format of all refrence dates for before and after operations"""
 DATETIME_FORMAT = '%Y-%m-%d'
@@ -171,6 +166,7 @@ class Template(Base):
     )
 
     name: Mapped[str]
+    sort_name: Mapped[str]
     filters: Mapped[list[Filter]] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=[],
@@ -183,9 +179,9 @@ class Template(Base):
         MutableList.as_mutable(JSON), # type: ignore
         default=[],
     )
-    image_source_priority: Mapped[list[int]] = mapped_column(
+    image_source_priority: Mapped[Optional[list[int]]] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
-        default=[],
+        default=None,
     )
 
     card_type: Mapped[Optional[str]]
@@ -211,25 +207,25 @@ class Template(Base):
         return f'Template[{self.id}] "{self.name}"'
 
 
-    @hybrid_property
-    def sort_name(self) -> str: # type: ignore
-        """
-        The sort-friendly name of this Template.
+    # @hybrid_property
+    # def sort_name(self) -> str: # type: ignore
+    #     """
+    #     The sort-friendly name of this Template.
 
-        Returns:
-            Sortable name. This is lowercase with any prefix a/an/the
-            removed.
-        """
+    #     Returns:
+    #         Sortable name. This is lowercase with any prefix a/an/the
+    #         removed.
+    #     """
 
-        return regex_replace(r'^(a|an|the|\[\d+\])(\s)', '', self.name.lower())
+    #     return regex_replace(r'^(a|an|the|\[\d+\])(\s)', '', self.name.lower())
 
-    @sort_name.expression
-    def sort_name(cls: 'Font'): # pylint: disable=no-self-argument
-        """Class-expression of `sort_name` property."""
+    # @sort_name.expression
+    # def sort_name(cls: 'Font'): # pylint: disable=no-self-argument
+    #     """Class-expression of `sort_name` property."""
 
-        return func.regex_replace(
-            r'^(a|an|the|\[\d+\])(\s)', '', func.lower(cls.name)
-        )
+    #     return func.regex_replace(
+    #         r'^(a|an|the|\[\d+\])(\s)', '', func.lower(cls.name)
+    #     )
 
 
     @property
@@ -425,3 +421,22 @@ class Template(Base):
             and ex_values == getattr(other, 'extra_values', None)
             and self.skip_localized_images == getattr(other, 'skip_localized_images', None)
         )
+
+
+@event.listens_for(Template.name, 'set')
+def set_template_sort_name(
+        target: Template,
+        value: str,
+        oldvalue: str,
+        initiator: 'Events',
+    ) -> None:
+    """
+    Update the Template sort name when the name attribute is modified.
+    """
+
+    target.sort_name = re_sub(
+        r'^(a|an|the|\[\d+\])(\s)',
+        '',
+        target.name.lower(),
+        IGNORECASE
+    )

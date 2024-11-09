@@ -1,4 +1,5 @@
-"""Separate Font replacements; migrate cardinal and ordinal formatting
+"""
+Separate Font replacements; migrate cardinal and ordinal formatting
 Modify Font table
 - Remove replacements column
 - Create new replacements_in and replacements_out columns
