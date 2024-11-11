@@ -50,7 +50,7 @@ class TVDbSearchResult(TypedDict):
     status: Literal['Continuing', 'Ended', 'Released', 'Upcoming']
     type: Literal['series']
     tvdb_id: str
-    year: str
+    year: int
     slug: str
     overviews: dict[str, str]
     translations: dict[str, str]
@@ -131,15 +131,20 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     """TVDb ID mappings for each type of artwork"""
     ARTWORK_TYPES: dict[ArtType, int] = {
-        'banner': 1, 'poster': 2, 'background': 3, 'icon': 5, 'season': 7,
-        'clearart': 22, 'logo': 23
+        'banner': 1,
+        'poster': 2,
+        'background': 3,
+        'icon': 5,
+        'season': 7,
+        'clearart': 22,
+        'logo': 23
     }
 
     """How episode airdates are written as strings"""
     EPISODE_AIRDATE_FORMAT = '%Y-%m-%d'
 
     """Series ID's that can be set by TMDb"""
-    SERIES_IDS: tuple[str] = ('imdb_id', 'tmdb_id', 'tvdb_id')
+    SERIES_IDS = ('imdb_id', 'tmdb_id', 'tvdb_id')
 
     """Root URL of all API requests"""
     __ROOT_API_URL = 'https://api4.thetvdb.com/v4'
@@ -587,22 +592,36 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             log.error(f'Cannot source episodes from TVDb for {series_info}')
             return []
 
+        def _get_airdate(episode: TVDbEpisode) -> Optional[datetime]:
+            """
+            Get the airdate from the given episode data (if available).
+            """
+
+            if (aired := episode.get('aired')):
+                try:
+                    return datetime.strptime(aired, self.EPISODE_AIRDATE_FORMAT)
+                except ValueError:
+                    pass
+            return None
+
         return [
             (
                 EpisodeInfo(
                     title=episode['name'],
                     season_number=episode['seasonNumber'],
                     episode_number=episode['number'],
-                    absolute_number=episode['number'] if self._order_type == 'absolute' else None,
-                    tvdb_id=episode['id'],
-                    airdate=datetime.strptime(
-                        episode['aired'], self.EPISODE_AIRDATE_FORMAT
+                    absolute_number=(
+                        episode['number']
+                        if self._order_type == 'absolute'
+                        else None
                     ),
+                    tvdb_id=episode['id'],
+                    airdate=_get_airdate(episode),
                 ),
                 WatchedStatus(self._interface_id)
             )
             for episode in self.__get_all_episodes(tvdb_id)
-            if not episode['isMovie'] or self._include_movies
+            if self._include_movies or not episode['isMovie']
         ]
 
 
