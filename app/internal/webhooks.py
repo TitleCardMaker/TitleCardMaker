@@ -11,7 +11,7 @@ from app.internal.sources import download_episode_source_images
 from app.internal.translate import translate_episode
 from app.models.episode import Episode
 from app.models.series import Series
-from modules.Debug import Logger, log
+from modules.Debug import InvalidCardSettings, Logger, log
 
 
 def process_rating_key(
@@ -98,12 +98,13 @@ def process_rating_key(
         episode.add_watched_status(watched_status)
 
         # Look for source, add translation, create card if source exists
-        images = download_episode_source_images(db, episode, log=log)
+        download_episode_source_images(db, episode, log=log)
         translate_episode(db, episode, log=log)
-        if not any(images):
-            log.info(f'{episode} has no source image - skipping')
+        try:
+            new_cards = create_episode_cards(db, episode, log=log)
+        except (HTTPException, InvalidCardSettings):
+            log.exception(f'Unable to create Title Card for {episode} - skipping')
             continue
-        new_cards = create_episode_cards(db, episode, log=log)
 
         # Determine whether the Episode has any Kometa integration
         # associated with it
