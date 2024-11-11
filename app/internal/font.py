@@ -49,13 +49,17 @@ def get_available_fonts(db: Session) -> list[AvailableFont]:
         db: SQL database to query for the given object.
 
     Returns:
-        List of dictionaries with the keys `id` and `name` for all
-        defined Fonts.
+        List of AvailableFont objects for all defined Fonts.
     """
 
     return [
-        {'id': font.id, 'name': font.name}
-        for font in db.query(Font).order_by(Font.name).all()
+        AvailableFont(id=font.id, name=font.name)
+        for font in
+        db.query(
+            Font.id,
+            Font.name,
+            Font.sort_name,
+        ).order_by(Font.sort_name).all()
     ]
 
 

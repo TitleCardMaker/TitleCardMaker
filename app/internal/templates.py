@@ -152,11 +152,15 @@ def get_available_templates(db: Session) -> list[AvailableTemplate]:
         db: SQL database to query for the given object.
 
     Returns:
-        List of dictionaries with the keys `id` and `name` for all
-        defined Templates.
+        List of AvailableTemplate objects for all defined Templates.
     """
 
     return [
-        {'id': template.id, 'name': template.name}
-        for template in db.query(Template).order_by(Template.name).all()
+        AvailableTemplate(id=template.id, name=template.name)
+        for template in
+        db.query(
+            Template.id,
+            Template.name,
+            Template.sort_name
+        ).order_by(Template.sort_name).all()
     ]
