@@ -204,21 +204,18 @@ def intercept_plex_logs():
 if getenv('TCM_PLEX_LOGGING') == 'TRUE':
     intercept_plex_logs()
 
-# import http.client
-# def httpclient_logging_patch():
-#     """Enable HTTPConnection debug logging to the logging framework"""
+def intercept_package_logs(logger_name):
+    """Enable HTTPConnection debug logging to the logging framework"""
 
-#     def httpclient_log(*args):
-#         if len(args) == 0 or args[0] == 'header:':
-#             return
-#         if args[0] == 'send:':
-#             logger.debug(f'SEND : ' + ' '.join(args[1:]))
-#         else:
-#             logger.info(f'{args[0].upper()} : ' + ' '.join(args[1:]))
+    # Redirect standard logging messages to loguru
+    class InterceptHandler(logging.Handler):
+        def emit(self, record):
+            logger.bind(context_id=logger_name).log('TRACE', record.getMessage())
 
-#     # mask the print() built-in in the http.client module to use
-#     # logging instead
-#     http.client.print = httpclient_log
-#     # enable debugging
-#     http.client.HTTPConnection.debuglevel = 1
-# httpclient_logging_patch()
+    logging.basicConfig(handlers=[InterceptHandler()], level=0)
+    logging.getLogger(logger_name).setLevel(logging.DEBUG)
+    logger.trace(f'Intercepting "{logger_name}" requests')
+
+if packages := getenv('TCM_PACKAGE_LOGGING'):
+    for package in packages.split(','):
+        intercept_package_logs(package)
