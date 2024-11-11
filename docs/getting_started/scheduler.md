@@ -18,7 +18,7 @@ For this part of the tutorial, we'll be adjusting the interval for how often all
 Syncs are run. 
 
 1. Navigate to the Scheduler page by clicking Setings, then
-:fontawesome-solid-stopwatch `Scheduler` from the side navigation bar.
+:fontawesome-solid-stopwatch: `Scheduler` from the side navigation bar.
 
 2. Find the task description that reads "Run all defined Syncs, adding any new
 Series".
