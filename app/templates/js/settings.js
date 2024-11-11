@@ -156,11 +156,9 @@ function initializeGlobalFonts(allCardTypes) {
 
         newField.querySelector('label').innerText = cardType.name;
         newField.querySelector('.field').dataset.cardType = cardType.identifier;
-        // If this card type has a global font then mark that Font item as active
+        // If this card type has a global font then set the input value to that ID
         if (globalFonts[cardType.identifier]) {
-          const fontId = globalFonts[cardType.identifier];
-          newField.querySelector(`.dropdown[data-value="font_id"] .menu .item[data-value="${fontId}"]`).classList.add('active', 'selected');
-          newField.querySelector(`.dropdown[data-value="font_id"] .menu .item[data-value="${fontId}"]`).selected = true;
+          newField.querySelector(`.dropdown[data-value="font_id"] input`).value = globalFonts[cardType.identifier];
         }
 
         // Add in groups of 4 per-row
