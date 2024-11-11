@@ -197,9 +197,10 @@ def get_available_tmdb_translations() -> list[TranslationLanguage]:
     """Get all supported translations from TMDb."""
 
     return [
-        {'language_code': code, 'language': language}
+        TranslationLanguage(language_code=code, language=language)
         for code, language in sorted(
-            TMDbInterface.LANGUAGES.items(), key=lambda kv: kv[1]
+            TMDbInterface.LANGUAGES.items(),
+            key=lambda kv: kv[1]
         )
     ]
 
@@ -225,7 +226,8 @@ def get_emby_libraries(
             interface='Emby',
             interface_id=emby_interface._interface_id, # pylint: disable=protected-access
             name=library,
-        ) for library in emby_interface.get_libraries()
+        )
+        for library in emby_interface.get_libraries()
     ]
 
 
@@ -240,7 +242,8 @@ def get_jellyfin_libraries(
             interface='Jellyfin',
             interface_id=jellyfin_interface._interface_id, # pylint: disable=protected-access
             name=library,
-        ) for library in jellyfin_interface.get_libraries()
+        )
+        for library in jellyfin_interface.get_libraries()
     ]
 
 
@@ -255,7 +258,8 @@ def get_plex_libraries(
             interface='Plex',
             interface_id=plex_interface._interface_id, # pylint: disable=protected-access
             name=library,
-        ) for library in plex_interface.get_libraries()
+        )
+        for library in plex_interface.get_libraries()
     ]
 
 

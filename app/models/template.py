@@ -207,27 +207,6 @@ class Template(Base):
         return f'Template[{self.id}] "{self.name}"'
 
 
-    # @hybrid_property
-    # def sort_name(self) -> str: # type: ignore
-    #     """
-    #     The sort-friendly name of this Template.
-
-    #     Returns:
-    #         Sortable name. This is lowercase with any prefix a/an/the
-    #         removed.
-    #     """
-
-    #     return regex_replace(r'^(a|an|the|\[\d+\])(\s)', '', self.name.lower())
-
-    # @sort_name.expression
-    # def sort_name(cls: 'Font'): # pylint: disable=no-self-argument
-    #     """Class-expression of `sort_name` property."""
-
-    #     return func.regex_replace(
-    #         r'^(a|an|the|\[\d+\])(\s)', '', func.lower(cls.name)
-    #     )
-
-
     @property
     def card_properties(self) -> dict[str, Any]:
         """Properties to utilize and merge in Title Card creation."""
