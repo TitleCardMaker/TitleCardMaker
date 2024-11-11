@@ -834,6 +834,7 @@ def create_episode_card(
     db.delete(existing_card)
     db.commit()
     create_card(db, card, CardClass, CardTypeModel, library, log=log)
+
     return True
 
 

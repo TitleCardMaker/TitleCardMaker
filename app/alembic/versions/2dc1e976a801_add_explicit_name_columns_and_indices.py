@@ -25,10 +25,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from unidecode import unidecode
 
-def _get_sort_name(name: str) -> str:
+def _get_sort_name(name: str, pattern: str = r'^(a|an|the)(\s)') -> str:
     """Get the sort name equivalent of the given name"""
 
-    return re_sub(r'^(a|an|the)(\s)', '', name.lower(), flags=IGNORECASE)
+    return re_sub(pattern, '', name.lower(), flags=IGNORECASE)
 
 Base = declarative_base()
 
@@ -132,7 +132,7 @@ def upgrade() -> None:
         series.sort_name = _get_sort_name(series.name)
     log.trace(f'Initialized Series.clean_name, Series.full_name, Series.sort_name')
     for template in session.query(Template).all():
-        template.sort_name = _get_sort_name(template.name)
+        template.sort_name = _get_sort_name(template.name, r'^(a|an|the|\[\d+\])(\s)')
         log.trace(f'Template[{template.id}].sort_name = "{template.sort_name}"')
 
     # Commit changes
