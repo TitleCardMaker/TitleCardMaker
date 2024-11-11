@@ -1,20 +1,27 @@
 {% if False %}
 import {
-  AvailableFont, PreviewTitleCard, SeriesPage, Style, Template, TemplateFilter,
-  TemplatePage, Translation
+  AvailableFont,
+  PreviewTitleCard,
+  SeriesPage,
+  Style,
+  Template,
+  TemplateFilter,
+  TemplatePage,
+  Translation
 } from './.types.js';
 {% endif %}
 
-const allStyles = [
-  {name: 'Art', value: 'art', style_type: 'art'},
-  {name: 'Blurred Art', value: 'art blur', style_type: 'art'},
-  {name: 'Grayscale Art', value: 'art grayscale', style_type: 'art'},
-  {name: 'Blurred Grayscale Art', value: 'art blur grayscale', style_type: 'art'},
-  {name: 'Unique', value: 'unique', style_type: 'unique'},
-  {name: 'Blurred Unique', value: 'blur unique', style_type: 'unique'},
-  {name: 'Grayscale Unique', value: 'grayscale unique', style_type: 'unique'},
-  {name: 'Blurred Grayscale Unique', value: 'blur grayscale unique', style_type: 'unique'},
-];
+const artStyles = [
+  ['Art',                      'art',         ],
+  ['Blurred Art',              'art blur',    ],
+  ['Grayscale Art',            'art grayscale'],
+  ['Unique',                   'unique',      ],
+].map(style => ({name: style[0], value: style[1]}));
+const uniqueStyles = [
+  ['Blurred Unique',           'blur unique',         ],
+  ['Grayscale Unique',         'grayscale unique',    ],
+  ['Blurred Grayscale Unique', 'blur grayscale unique'],
+].map(style => ({name: style[0], value: style[1]}));
 
 /**
  * Parse some list value, converting empty lists to the fallback
@@ -230,9 +237,58 @@ function updateTemplate(templateId) {
 }
 
 /**
+ * 
+ * @param {HTMLDivElement} element Dropdown menu which the item should be added
+ * to as a child.
+ * @param {ItemArgs} args Arguments for the new item.
+ * @param {?string} args.className Class name of the new item.
+ * @param {string} args.innerText Display text of the new item.
+ * @param {?string} args.value Value of the item.
+ */
+function addDropdownItem(element, args) {
+  // Get arguments
+  const {className = 'item', innerText, value = null} = args;
+
+  // Create element
+  const newItem = document.createElement('div');
+  newItem.className = className;
+  newItem.innerText = innerText;
+  if (value !== null) { newItem.dataset.value = value; }
+
+  element.appendChild(newItem);
+}
+
+/**
  * Query all templates, adding their content to the page.
  */
 async function getAllTemplates() {
+  /** @type {AvailableFont[]} */
+  const allFonts = await fetch('/api/available/fonts').then(resp => resp.json());
+
+  // ------------------------ Add selectable items to the HTML template dropdown
+  const htmlTemplate = document.querySelector('#template').content;
+  // Fonts
+  allFonts.forEach(font => {
+    addDropdownItem(
+      htmlTemplate.querySelector('.dropdown[data-value="font_id"] .menu'),
+      {className: 'item', innerText: font.name, value: font.id},
+    );
+  });
+  // Watched Style
+  htmlTemplate.querySelectorAll('.dropdown[data-value="watched_style"] .menu, .dropdown[data-value="unwatched_style"] .menu').forEach(selector => {
+    // Add art header
+    addDropdownItem(selector, {className: 'header', innerText: 'Art Variations'});
+    artStyles.forEach(style => {
+      addDropdownItem(selector, {className: 'item', innerText: style.name, value: style.value});
+    });
+    // Add unique header
+    addDropdownItem(selector, {className: 'header', innerText: 'Unique Variations'});
+    uniqueStyles.forEach(style => {
+      addDropdownItem(selector, {className: 'item', innerText: style.name, value: style.value});
+    });
+  });
+  // ---------------------------------------------------------------------------
+
   /** @type {TemplatePage} Query all Templates */
   const allTemplates = await fetch('/api/templates/all').then(resp => resp.json());
 
@@ -241,7 +297,7 @@ async function getAllTemplates() {
         hasManyTemplates = allTemplates.items.length > 10;
   let currentHeader = '';
   allTemplates.items.forEach(templateObj => {
-    // Add letter header for this Font if necessary
+    // Add letter header for this Template if necessary
     const letter = templateObj.sort_name[0].toUpperCase();
     if (hasManyTemplates && letter !== currentHeader) {
       const header = document.createElement('h3');
@@ -263,13 +319,20 @@ async function getAllTemplates() {
     nameElem.value = templateObj.name;
     // Filters added later
     // Card type set later
-    // Font set later
+    // Font ID
     if (templateObj.font_id === null) {
       base.querySelector('a[data-value="font-link"]').remove();
     } else {
       base.querySelector('a[data-value="font-link"]').href = `/fonts#font-id${templateObj.font_id}`;
+      base.querySelector('.dropdown[data-value="font_id"] > input').value = templateObj.font_id;
     }
-    // Unwatched and Watched style set later
+    // Unwatched and Watched style
+    if (templateObj.watched_style) {
+      base.querySelector('.dropdown[data-value="watched_style"] > input').value = templateObj.watched_style;
+    }
+    if (templateObj.unwatched_style) {
+      base.querySelector('.dropdown[data-value="unwatched_style"] > input').value = templateObj.unwatched_style;
+    }
     // Hide season text set later
     // Season titles
     if (Object.entries(templateObj.season_titles).length > 0) {
@@ -331,8 +394,6 @@ async function getAllTemplates() {
   // Query all "extra" content necessary for dropdowns and such
   /** @type {TemplateFilter} */
   const allFilterOptions = await fetch('/api/available/template-filters').then(resp => resp.json());
-  /** @type {AvailableFont[]} */
-  const allFonts = await fetch('/api/available/fonts').then(resp => resp.json());
   const allEpisodeDataSources = await fetch('/api/settings/episode-data-source').then(resp => resp.json());
   /** @type {Translation[]} */
   const allTranslations = await fetch('/api/available/translations').then(resp => resp.json());
@@ -395,41 +456,6 @@ async function getAllTemplates() {
       dropdownArgs: {
         placeholder: 'Global Default',
       }
-    });
-    // Font
-    $(`#template-id${templateObj.id} .dropdown[data-value="font_id"]`).dropdown({
-      placeholder: 'Card Default',
-      values: allFonts.map(({id, name}) => {
-        return {name: name, value: id, selected: id === templateObj.font_id};
-      }),
-    });
-    // Watched style
-    $(`#template-id${templateObj.id} .dropdown[data-value="watched_style"]`).dropdown({
-      placeholder: 'Global Default',
-      values: [
-        {name: 'Art Variations', type: 'header'},
-        ...allStyles.filter(({style_type}) => style_type === 'art').map(({name, value}) => {
-          return {name: name, value: value, selected: value === templateObj.watched_style};
-        }),
-        {name: 'Unique Variations', type: 'header'},
-        ...allStyles.filter(({style_type}) => style_type === 'unique').map(({name, value}) => {
-          return {name: name, value: value, selected: value === templateObj.watched_style};
-        }),
-      ],
-    });
-    // Unwatched style
-    $(`#template-id${templateObj.id} .dropdown[data-value="unwatched_style"]`).dropdown({
-      placeholder: 'Global Default',
-      values: [
-        {name: 'Art Variations', type: 'header'},
-        ...allStyles.filter(({style_type}) => style_type === 'art').map(({name, value}) => {
-          return {name: name, value: value, selected: value === templateObj.unwatched_style};
-        }),
-        {name: 'Unique Variations', type: 'header'},
-        ...allStyles.filter(({style_type}) => style_type === 'unique').map(({name, value}) => {
-          return {name: name, value: value, selected: value === templateObj.unwatched_style};
-        }),
-      ],
     });
     // Hide season text
     initializeNullableBoolean({
@@ -538,6 +564,7 @@ async function getAllTemplates() {
   // Enable accordion/dropdown/checkbox elements
   $('.ui.accordion').accordion();
   $('.ui.checkbox').checkbox();
+  $('.ui.dropdown[data-value="font_id"], .ui.dropdown[data-value="watched_style"], .ui.dropdown[data-value="unwatched_style"]').dropdown();
   $('.field[data-value="season-titles"] label i').popup({
     popup: '#season-title-popup',
     position: 'right center',
