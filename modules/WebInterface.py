@@ -257,9 +257,11 @@ class WebInterface:
 
         # If content of image, just write directly to file
         if isinstance(image, bytes):
-            destination.write_bytes(image)
-            log.trace(f'Downloaded {len(image):,} bytes')
-            return True
+            if WebInterface.verify_image_content('content', image):
+                destination.write_bytes(image)
+                log.trace(f'Downloaded {len(image):,} bytes')
+                return True
+            return False
 
         # Attempt download
         url = image
