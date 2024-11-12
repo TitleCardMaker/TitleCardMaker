@@ -402,12 +402,29 @@ class Template(Base):
         )
 
 
-@event.listens_for(Template.name, 'set')
+# @event.listens_for(Template.name, 'set')
+# def set_template_sort_name(
+#         target: Template,
+#         value: str,
+#         oldvalue: str,
+#         initiator: 'Events',
+#     ) -> None:
+#     """
+#     Update the Template sort name when the name attribute is modified.
+#     """
+
+#     target.sort_name = re_sub(
+#         r'^(a|an|the|\[\d+\])(\s)',
+#         '',
+#         (target.name or '').lower(),
+#         IGNORECASE
+#     )
+@event.listens_for(Template, 'before_insert')
+@event.listens_for(Template, 'before_update')
 def set_template_sort_name(
+        mapper,
+        connection,
         target: Template,
-        value: str,
-        oldvalue: str,
-        initiator: 'Events',
     ) -> None:
     """
     Update the Template sort name when the name attribute is modified.
@@ -416,6 +433,6 @@ def set_template_sort_name(
     target.sort_name = re_sub(
         r'^(a|an|the|\[\d+\])(\s)',
         '',
-        target.name.lower(),
+        (target.name or '').lower(),
         IGNORECASE
     )
