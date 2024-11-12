@@ -152,11 +152,13 @@ def get_available_templates(db: Session) -> list[AvailableTemplate]:
         db: SQL database to query for the given object.
 
     Returns:
-        List of AvailableTemplate objects for all defined Templates.
+        List of dictionaries for all defined Templates.
     """
 
+    # Cannot be AvailableTemplate objects as this return is passed
+    # directly to Jinja templates
     return [
-        AvailableTemplate(id=template.id, name=template.name)
+        {'id': template.id, 'name': template.name} # type: ignore
         for template in
         db.query(
             Template.id,
