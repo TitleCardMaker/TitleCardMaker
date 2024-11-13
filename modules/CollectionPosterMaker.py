@@ -25,12 +25,13 @@ class CollectionPosterMaker(ImageMaker):
             source: Path,
             output: Path,
             title: str,
-            font: Path = FONT,
             font_color: str = FONT_COLOR,
+            font_file: Path = FONT,
             font_size: float = 1.0,
             omit_collection: bool = False,
             borderless: bool = False,
-            omit_gradient: bool = False) -> None:
+            omit_gradient: bool = False,
+        ) -> None:
         """
         Construct a new instance of a CollectionPosterMaker.
 
@@ -38,8 +39,8 @@ class CollectionPosterMaker(ImageMaker):
             source: The source image to use for the poster.
             output: The output path to write the poster to.
             title: String to use on the created poster.
-            font: Path to the font file of the poster's title.
             font_color: Font color of the poster text.
+            font_file: Path to the font file of the poster's title.
             font_size: Scalar for the font size of the poster's title.
             omit_collection: Whether to omit "COLLECTION" from the
                 poster.
@@ -54,7 +55,7 @@ class CollectionPosterMaker(ImageMaker):
         # Store the arguments
         self.source = source
         self.output = output
-        self.font = font
+        self.font = font_file
         self.font_color = font_color
         self.font_size = font_size
         self.omit_collection = omit_collection
@@ -62,7 +63,7 @@ class CollectionPosterMaker(ImageMaker):
         self.omit_gradient = omit_gradient
 
         # Uppercase title if using default font
-        if font == self.FONT:
+        if font_file == self.FONT:
             self.collection = title.upper()
         else:
             self.collection = title

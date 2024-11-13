@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from random import uniform
 from re import compile as re_compile, match as re_match
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Union
 
 from pydantic import (
     FilePath,

@@ -2,8 +2,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 from app.dependencies import get_database, get_preferences
-from app import models
+from app.models.card import Card
+from app.models.episode import Episode
+from app.models.font import Font
+from app.models.loaded import Loaded
+from app.models.series import Series
 from app.models.snapshot import Snapshot
+from app.models.sync import Sync
+from app.models.template import Template
+from app.models.user import User
 from app.schemas.statistic import NewSnapshot
 from modules.Debug import Logger, log
 
@@ -37,24 +44,24 @@ def take_snapshot(db: Session, *, log: Logger = log) -> None:
     # pylint: disable=not-callable
     try:
         cards_created = max(
-            db.query(func.max(models.card.Card.id)).scalar(),
+            db.query(func.max(Card.id)).scalar(),
             db.query(func.max(Snapshot.cards_created)).scalar()
         )
     except TypeError:
-        cards_created = db.query(func.max(models.card.Card.id)).scalar() or 0
+        cards_created = db.query(func.max(Card.id)).scalar() or 0
 
     snapshot = NewSnapshot(
         blueprints=len(get_preferences().imported_blueprints),
-        cards=db.query(models.card.Card).count(),
-        episodes=db.query(models.episode.Episode).count(),
-        fonts=db.query(models.font.Font).count(),
-        loaded=db.query(models.loaded.Loaded).count(),
-        series=db.query(models.series.Series).count(),
-        syncs=db.query(models.sync.Sync).count(),
-        templates=db.query(models.template.Template).count(),
-        users=db.query(models.user.User).count(),
-        filesize=db.query(models.card.Card)\
-            .with_entities(func.sum(models.card.Card.filesize))\
+        cards=db.query(Card.id).count(),
+        episodes=db.query(Episode.id).count(),
+        fonts=db.query(Font.id).count(),
+        loaded=db.query(Loaded.id).count(),
+        series=db.query(Series.id).count(),
+        syncs=db.query(Sync.id).count(),
+        templates=db.query(Template.id).count(),
+        users=db.query(User.id).count(),
+        filesize=db.query(Card.filesize)\
+            .with_entities(func.sum(Card.filesize))\
             .scalar() or 0,
         cards_created=cards_created,
     )

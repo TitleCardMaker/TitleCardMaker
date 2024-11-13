@@ -41,18 +41,18 @@ def get_system_statistics(
     """Get all system statistics."""
 
     # Count objects
-    card_count = db.query(Card).count()
-    episode_count = db.query(Episode).count()
-    font_count = db.query(Font).count()
-    loaded_count = db.query(Loaded).count()
-    series_count = db.query(Series).count()
-    monitored_count = db.query(Series).filter_by(monitored=True).count()
-    unmonitored_count = db.query(Series).filter_by(monitored=False).count()
-    sync_count = db.query(Sync).count()
-    template_count = db.query(Template).count()
+    card_count = db.query(Card.id).count()
+    episode_count = db.query(Episode.id).count()
+    font_count = db.query(Font.id).count()
+    loaded_count = db.query(Loaded.id).count()
+    series_count = db.query(Series.id).count()
+    monitored_count = db.query(Series.id).filter_by(monitored=True).count()
+    unmonitored_count = db.query(Series.id).filter_by(monitored=False).count()
+    sync_count = db.query(Sync.id).count()
+    template_count = db.query(Template.id).count()
 
     # Get and format total asset size | pylint: disable=not-callable
-    asset_size = db.query(Card)\
+    asset_size = db.query(Card.filesize)\
         .with_entities(func.sum(Card.filesize))\
         .scalar()
     asset_size = 0 if asset_size is None else asset_size
@@ -122,9 +122,9 @@ def get_series_statistics(
     get_series(db, series_id, raise_exc=True)
 
     # Count the Episodes, Cards, and total asset size | pylint: disable=not-callable
-    episode_count = db.query(Episode).filter_by(series_id=series_id).count()
-    card_count = db.query(Card).filter_by(series_id=series_id).count()
-    asset_size = (db.query(Card)\
+    episode_count = db.query(Episode.id).filter_by(series_id=series_id).count()
+    card_count = db.query(Card.id).filter_by(series_id=series_id).count()
+    asset_size = (db.query(Card.filesize)\
         .filter_by(series_id=series_id)\
         .with_entities(func.sum(Card.filesize))\
         .scalar()) or 0
