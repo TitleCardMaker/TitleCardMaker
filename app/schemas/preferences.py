@@ -66,6 +66,14 @@ Style = Literal[
 
 LanguageCode = Literal[TMDbInterface.LANGUAGE_CODES]
 
+SeriesOrder = Literal[
+    'alphabetical', 'reverse-alphabetical',
+    'cards', 'reverse-cards',
+    'id', 'reverse-id',
+    'sync',
+    'year', 'reverse-year'
+]
+
 """
 Creation classes
 """
