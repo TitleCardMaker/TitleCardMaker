@@ -3,7 +3,7 @@ from re import match, IGNORECASE
 from shutil import move as move_file
 from typing import Any, Callable, TypeVar, Union
 
-from aiohttp import ClientSession
+from curl_cffi.requests import AsyncSession
 from fastapi import HTTPException
 from ruamel.yaml import YAML
 from sqlalchemy.orm import Session
@@ -1655,13 +1655,15 @@ def import_card_files(
 
 
 async def download_image(
-        session: ClientSession,
+        session: AsyncSession,
         url: str,
         episode: Episode,
         temp_images: list[Path],
-    ) -> Optional[tuple[Path, Episode]]:
+        *,
+        log: Logger = log,
+    ) -> tuple[Path, Episode] | None:
     """
-    Asyncronously download the given URL with the given session.
+    Asynchronously download the given URL with the given session.
 
     Args:
         session: Async session to download the URL with.
@@ -1669,6 +1671,7 @@ async def download_image(
         episode: Episode associated with the URL being downloaded.
         temp_images: List of temporary image files to be cleaned up.
             This is added to.
+        log: Logger for all log messages.
 
     Returns:
         Tuple of the downloaded image path and the associated Episode.
@@ -1676,14 +1679,23 @@ async def download_image(
         also appended to.
     """
 
-    async with session.get(url) as response:
-        log.trace(f'Downloading "{url}"..')
-        content = await response.read()
-        filename = WebInterface.get_random_filename(
-            WebInterface._TEMP_DIR / f'temp_{url[-5:]}', 'jpg'
-        )
-        temp_images.append(filename)
-        if WebInterface.download_image(content, filename, log=log):
-            return filename, episode
+    # Download URL
+    log.trace(f'Downloading "{url}"..')
+    response = await session.get(url)
 
+    # Validate content (also done in WebInterface)
+    if not response.ok:
+        log.error(f'Failed to download "{url} ({response.status_code})')
         return None
+    if 'image' not in (type_ := response.headers.get('Content-Type', '')):
+        log.error(f'URL "{url}" returned content of type "{type_}"')
+        return None
+
+    filename = WebInterface.get_random_filename(
+        WebInterface._TEMP_DIR / f'temp_{url[-5:]}', 'jpg'
+    )
+    temp_images.append(filename)
+    if WebInterface.download_image(response.content, filename, log=log):
+        return filename, episode
+
+    return None

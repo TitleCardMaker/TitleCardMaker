@@ -2,6 +2,7 @@ from pathlib import Path
 from shutil import copyfile
 from typing import Literal
 
+from curl_cffi.requests import AsyncSession
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -459,7 +460,7 @@ async def import_mediux_yaml_for_series(
     # Parse each season
     tasks = []
     temp_images: list[Path] = []
-    async with ClientSession() as session:
+    async with AsyncSession() as session:
         for season_number, season_yaml in yaml.seasons.items():
             # Parse season posters if a library was provided and specified
             if library_names and import_season_posters:
@@ -490,6 +491,7 @@ async def import_mediux_yaml_for_series(
                         str(episode_yaml.url_poster),
                         episode,
                         temp_images,
+                        log=log,
                     )
                 )
 
