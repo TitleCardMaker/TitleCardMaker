@@ -1,6 +1,6 @@
 from functools import lru_cache
 from re import compile as re_compile, IGNORECASE
-from typing import TYPE_CHECKING, Literal, Optional, TypedDict, Union
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 from modules.Debug import log
 
@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from modules.Profile import Profile
 
 
-SplitStyle = Literal['top', 'bottom', 'even', 'forced even']
+type SplitStyle = Literal['top', 'bottom', 'even', 'forced even']
 class SplitCharacteristics(TypedDict):
     max_line_width: int
     max_line_count: int
@@ -53,9 +53,9 @@ class Title:
 
 
     def __init__(self,
-            title: Union[str, list[str]],
+            title: str | list[str],
             *,
-            original_title: Optional[str] = None
+            original_title: str | None = None
         ) -> None:
         """
         Constructs a new instance of a Title from either a full, unsplit
@@ -357,7 +357,7 @@ class Title:
         return ''.join(filter(str.isalnum, text)).lower()
 
 
-    def matches(self, *titles: Union[str, 'Title']) -> bool:
+    def matches(self, *titles: 'str | Title') -> bool:
         """
         Get whether any of the given titles match this object.
 

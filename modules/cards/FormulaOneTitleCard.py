@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType, CardTypeDescription, Extra, ImageMagickCommands, TextCase,
@@ -191,10 +191,10 @@ class FormulaOneTitleCard(BaseCardType):
             country: Country = 'Australian',
             episode_text_color: str = TITLE_COLOR,
             episode_text_font_size: float = 1.0,
-            flag: Optional[Path] = None,
+            flag: Path | None = None,
             frame_year: int = 2024,
             race: str = 'GRAND PRIX',
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

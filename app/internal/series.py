@@ -1,6 +1,5 @@
 from pathlib import Path
 from time import sleep
-from typing import Optional, Union
 
 from fastapi import BackgroundTasks, HTTPException
 from PIL import Image, UnidentifiedImageError
@@ -445,10 +444,10 @@ def load_series_title_cards(
         library_name: str,
         interface_id: int,
         db: Session,
-        interface: Union[EmbyInterface, JellyfinInterface, PlexInterface],
+        interface: EmbyInterface | JellyfinInterface | PlexInterface,
         force_reload: bool = False,
         *,
-        episodes: Optional[list[Episode]] = None,
+        episodes: list[Episode] | None = None,
         log: Logger = log,
     ) -> None:
     """
@@ -560,7 +559,7 @@ def load_all_series_title_cards(
         db: Session,
         force_reload: bool = False,
         *,
-        episodes: Optional[list[Episode]] = None,
+        episodes: list[Episode] | None = None,
         raise_exc: bool = True,
         log: Logger = log,
     ) -> None:
@@ -601,11 +600,11 @@ def load_episode_title_card(
         db: Session,
         library_name: str,
         interface_id: int,
-        interface: Union[EmbyInterface, JellyfinInterface, PlexInterface],
+        interface: EmbyInterface | JellyfinInterface | PlexInterface,
         *,
         attempts: int = 1,
         log: Logger = log,
-    ) -> Optional[bool]:
+    ) -> bool | None:
     """
     Load the Title Card for the given Episode into the indicated media
     server. This is a forced reload, and any existing Loaded assets are
@@ -696,9 +695,9 @@ def load_title_card(
         db: Session,
         library_name: str,
         interface_id: int,
-        interface: Union[EmbyInterface, JellyfinInterface, PlexInterface],
+        interface: EmbyInterface | JellyfinInterface | PlexInterface,
         *,
-        uid: Optional[Union[int, str]] = None,
+        uid: int | str | None = None,
         log: Logger = log,
     ) -> bool:
     """
@@ -768,7 +767,7 @@ def load_title_card(
 
 def add_series(
         new_series: NewSeries,
-        background_tasks: Optional[BackgroundTasks],
+        background_tasks: BackgroundTasks | None,
         db: Session,
         *,
         log: Logger = log,

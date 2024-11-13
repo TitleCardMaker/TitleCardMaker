@@ -1,7 +1,7 @@
 from pathlib import Path
 from re import match, IGNORECASE
 from shutil import move as move_file
-from typing import Any, Callable, Optional, TypeVar, Union
+from typing import Any, Callable, TypeVar, Union
 
 from aiohttp import ClientSession
 from fastapi import HTTPException
@@ -22,11 +22,13 @@ from app.internal.cards import (
     validate_card_type_model
 )
 from app.internal.connection import add_connection, update_connection
-from app import models
+from app.models.card import Card as CardModel
 from app.models.connection import Connection
 from app.models.episode import Episode
+from app.models.font import Font as FontModel
 from app.models.preferences import Preferences
 from app.models.series import Library, Series
+from app.models.template import Template as TemplateModel
 from app.schemas.base import UNSPECIFIED
 from app.schemas.card import NewTitleCard
 from app.schemas.connection import (
@@ -73,7 +75,8 @@ def Height(dims: str) -> int:
     return int(str(dims).lower().split('x')[1])
 # pylint: enable=missing-function-docstring
 
-YamlDict = dict[str, Any]
+type YamlDict = dict[str, Any]
+
 
 def parse_raw_yaml(yaml: str) -> YamlDict:
     """
@@ -102,9 +105,10 @@ def parse_raw_yaml(yaml: str) -> YamlDict:
 
 
 _AttributeType = TypeVar('_AttributeType')
-def _get(yaml_dict: YamlDict,
+def _get(
+        yaml_dict: YamlDict,
         *keys: str,
-        type_: Optional[Callable[..., _AttributeType]] = None,
+        type_: Callable[..., _AttributeType | None] = None,
         default: Any = None,
     ) -> _AttributeType:
     """
@@ -149,7 +153,7 @@ def _get(yaml_dict: YamlDict,
                 detail=f'YAML is incorrectly typed - {e}',
             ) from e
 
-    return value
+    return value # type: ignore
 
 
 def _parse_translations(
@@ -174,7 +178,7 @@ def _parse_translations(
     if (translations := yaml_dict.get('translation', None)) is None:
         return default
 
-    def _parse_single_translation(translation: YamlDict) -> dict[str, str]:
+    def _parse_single_translation(translation: YamlDict) -> Translation:
         if (not isinstance(translation, dict)
             or set(translation.keys()) > {'language', 'key'}):
             raise HTTPException(
@@ -182,10 +186,10 @@ def _parse_translations(
                 detail=f'Invalid translations - "language" and "key" are required',
             )
 
-        return {
-            'language_code': str(translation['language']),
-            'data_key': str(translation['key']),
-        }
+        return Translation(
+            language_code=str(translation['language']),
+            data_key=str(translation['key']),
+        )
 
     # List of translations
     if isinstance(translations, list):
@@ -201,13 +205,13 @@ def _parse_translations(
     # Not list or dictionary, invalid translations
     raise HTTPException(
         status_code=422,
-        detail=f'Invalid translations',
+        detail='Invalid translations',
     )
 
 
 def _parse_episode_data_source(
         yaml_dict: YamlDict
-    ) -> Optional[EpisodeDataSource]:
+    ) -> EpisodeDataSource | None:
     """
     Parse the episode data source from the given YAML.
 
@@ -238,12 +242,12 @@ def _parse_episode_data_source(
     }
 
     try:
-        return mapping[eds.lower()]
-    except KeyError as e:
+        return mapping[eds.lower()] # type: ignore
+    except KeyError as exc:
         raise HTTPException(
             status_code=422,
             detail=f'Invalid episode data source "{eds}"',
-        ) from e
+        ) from exc
 
 
 def _parse_filesize_limit(yaml_dict: YamlDict) -> str:
@@ -509,7 +513,7 @@ def parse_emby(
 
     # New Connection
     new_obj = NewEmbyConnection(
-        url=_get(emby, 'url', type_=str),
+        url=_get(emby, 'url', type_=str), # type: ignore
         api_key=_get(emby, 'api_key', type_=str),
         use_ssl=_get(emby, 'verify_ssl', type_=bool, default=True),
         filesize_limit=_parse_filesize_limit(emby),
@@ -569,7 +573,7 @@ def parse_jellyfin(
 
     # New connection
     new_obj = NewJellyfinConnection(
-        url=_get(jellyfin, 'url', type_=str),
+        url=_get(jellyfin, 'url', type_=str), # type: ignore
         api_key=_get(jellyfin, 'api_key', type_=str),
         use_ssl=_get(jellyfin, 'verify_ssl', type_=bool, default=True),
         filesize_limit=_parse_filesize_limit(jellyfin),
@@ -633,7 +637,7 @@ def parse_plex(
 
     # New connection
     new_obj = NewPlexConnection(
-        url=_get(plex, 'url', type_=str),
+        url=_get(plex, 'url', type_=str), # type: ignore
         api_key=_get(plex, 'api_key', type_=str),
         use_ssl=_get(plex, 'verify_ssl', type_=bool, default=True),
         filesize_limit=_parse_filesize_limit(plex),
@@ -697,7 +701,7 @@ def parse_sonarr(
 
         # New connection
         new_obj = NewSonarrConnection(
-            url=_get(sonarr, 'url', type_=str),
+            url=_get(sonarr, 'url', type_=str), # type: ignore
             api_key=_get(sonarr, 'api_key', type_=str),
             use_ssl=_get(sonarr, 'verify_ssl', type_=bool, default=True),
             downloaded_only=_get(sonarr, 'downloaded_only', type_=bool, default=True),
@@ -737,7 +741,7 @@ def parse_tmdb(
     # Get tmdb options
     tmdb = _get(yaml_dict, 'tmdb', default={})
 
-    def SplitList(s: str) -> str:
+    def SplitList(s: str) -> list[str]:
         return str(s).lower().replace(' ', '').split(',')
 
     # If there is an existing Connection, update instead of create
@@ -783,7 +787,7 @@ def parse_tmdb(
 def parse_syncs(
         db: Session,
         yaml_dict: YamlDict,
-    ) -> list[Union[NewEmbySync, NewJellyfinSync, NewPlexSync, NewSonarrSync]]:
+    ) -> list[NewEmbySync | NewJellyfinSync | NewPlexSync | NewSonarrSync]:
     """
     Create NewSync objects for all defined syncs in the given YAML.
 
@@ -941,7 +945,7 @@ def parse_syncs(
 
 def parse_fonts(
         yaml_dict: YamlDict
-    ) -> list[tuple[NewNamedFont, Optional[Path]]]:
+    ) -> list[tuple[NewNamedFont, Path | None]]:
     """
     Create NewNamedFont objects for any defined fonts in the given
     YAML.
@@ -1377,7 +1381,7 @@ def parse_series(
 def import_cards(
         db: Session,
         series: Series,
-        directory: Optional[Path],
+        directory: Path | None,
         image_extension: CardExtension,
         force_reload: bool,
         *,
@@ -1471,7 +1475,7 @@ def import_card_content(
         db: Session,
         series: Series,
         files: list[tuple[str, bytes]],
-        library: Optional[Library] = None,
+        library: Library | None = None,
         force_reload: bool = True,
         as_textless: bool = False,
         *,
@@ -1571,7 +1575,7 @@ def import_card_files(
         db: Session,
         series: Series,
         files: list[tuple[Episode, Path]],
-        library: Optional[Library] = None,
+        library: Library | None = None,
         force_reload: bool = True,
         as_textless: bool = False,
         *,

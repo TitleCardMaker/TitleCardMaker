@@ -1,6 +1,6 @@
 from pathlib import Path
 from shutil import copyfile
-from typing import Literal, Optional
+from typing import Literal
 
 from fastapi import (
     APIRouter,
@@ -360,7 +360,7 @@ async def import_card_files_for_series(
         cards: list[UploadFile] = [],
         force_reload: bool = Query(default=True),
         textless: bool = Query(default=True),
-        library_name: Optional[str] = Query(default=None),
+        library_name: str | None = Query(default=None),
         db: Session = Depends(get_database),
     ) -> None:
     """
@@ -486,7 +486,7 @@ async def import_mediux_yaml_for_series(
                 # Episode exists, download image
                 tasks.append(
                     download_image(
-                        session, # type: ignore
+                        session,
                         str(episode_yaml.url_poster),
                         episode,
                         temp_images,

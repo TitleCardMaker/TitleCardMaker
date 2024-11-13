@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Literal, Optional, TypedDict
+from typing import Any, Literal, TypedDict
 from urllib.parse import quote as url_quote, urlencode
 
 from fastapi import HTTPException
@@ -112,7 +112,7 @@ class TVDbEpisode(TypedDict):
     number: int
     seasonNumber: int
     lastUpdated: str
-    finaleType: Optional[Literal['series']]
+    finaleType: Literal['series'] | None
     year: str
 
 class TVDbEpisodes(TypedDict):
@@ -198,7 +198,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Authenticate with TVDb, generate session token
         self.__api_key = api_key
-        self.__token_expiration: Optional[datetime] = None
+        self.__token_expiration: datetime | None = None
         self.__initialize_token(log=log) # This will initialize the interface
 
 
@@ -283,7 +283,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         }
 
 
-    def __get_series_id(self, series_info: SeriesInfo) -> Optional[int]:
+    def __get_series_id(self, series_info: SeriesInfo) -> int | None:
         """
         Get the TVDb ID of the given series. This looks up by database
         ID, if present, otherwise series name and year.
@@ -299,7 +299,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         if series_info.tvdb_id:
             return series_info.tvdb_id
 
-        def _find(results: list[dict]) -> Optional[int]:
+        def _find(results: list[dict]) -> int | None:
             """
             Search through the given results and return the TVDb ID of
             the first series.
@@ -345,7 +345,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             episode_info: EpisodeInfo,
             *,
             log: Logger = log,
-        ) -> Optional[int]:
+        ) -> int | None:
         """
         Find the TVDb ID of the indicated episode.
 
@@ -454,7 +454,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
     def __get_best_artwork(self,
             tvdb_id: int,
             art_type: ArtType,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the URL for the "best" artwork of the specified type.
 
@@ -546,7 +546,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             f'{self.__ROOT_API_URL}/search?query={url_quote(query)}'
         ).get('data', [])
 
-        def _get_id(ids: list[TVDbRemoteID], source_name: str) -> Optional[str]:
+        def _get_id(ids: list[TVDbRemoteID], source_name: str) -> str | None:
             for id_ in ids:
                 if id_['sourceName'] == source_name:
                     return id_['id']
@@ -592,7 +592,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             log.error(f'Cannot source episodes from TVDb for {series_info}')
             return []
 
-        def _get_airdate(episode: TVDbEpisode) -> Optional[datetime]:
+        def _get_airdate(episode: TVDbEpisode) -> datetime | None:
             """
             Get the airdate from the given episode data (if available).
             """
@@ -674,7 +674,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             *,
             log: Logger = log,
-        ) -> Optional[list[str]]:
+        ) -> list[str] | None:
         """
         Get all logos for the requested series.
 
@@ -702,7 +702,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             *,
             log: Logger = log,
-        ) -> Optional[list]:
+        ) -> list | None:
         """
         Get all backdrops for the requested series.
 
@@ -732,7 +732,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             *,
             check_dimensions: bool = True,
             log: Logger = log,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the source image for the requested episode.
 
@@ -788,7 +788,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             language_code: LanguageCode = 'eng',
             *,
             log: Logger = log,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the episode title for the episode in the given language.
 
@@ -814,7 +814,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         return self.get(url).get('data', {}).get('name')
 
 
-    def get_series_logo(self, series_info: SeriesInfo) -> Optional[str]:
+    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
         """
         Get the best logo for the given series.
 
@@ -838,7 +838,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             *,
             log: Logger = log,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the best backdrop for the given series.
 
@@ -863,7 +863,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             *,
             log: Logger = log,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the best poster for the given series.
 

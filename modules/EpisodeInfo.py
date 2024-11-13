@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any
 
 from num2words import num2words
 from titlecase import titlecase
@@ -19,7 +19,7 @@ class WordSet(dict):
     def add_numeral(self,
             label: str,
             number: int,
-            lang: Optional[str] = None
+            lang: str | None = None
         ) -> None:
         """
         Add the cardinal and ordinal versions of the given number under
@@ -80,7 +80,7 @@ class WordSet(dict):
         return None
 
 
-    def has_number(self, label: str, lang: Optional[str] = None) -> bool:
+    def has_number(self, label: str, lang: str | None = None) -> bool:
         """
         Whether this object has defined translations for the given label
         and language combination.
@@ -119,18 +119,18 @@ class EpisodeInfo(DatabaseInfoContainer):
 
 
     def __init__(self,
-            title: Union[str, Title],
+            title: str | Title,
             season_number: int,
             episode_number: int,
-            abs_number: Optional[int] = None,
+            abs_number: int | None = None,
             *,
-            emby_id: Optional[int] = None,
-            imdb_id: Optional[str] = None,
-            jellyfin_id: Optional[str] = None,
-            tmdb_id: Optional[int] = None,
-            tvdb_id: Optional[int] = None,
-            tvrage_id: Optional[int] = None,
-            airdate: Optional[datetime] = None,
+            emby_id: int | None = None,
+            imdb_id: str | None = None,
+            jellyfin_id: str | None = None,
+            tmdb_id: int | None = None,
+            tvdb_id: int | None = None,
+            tvrage_id: int | None = None,
+            airdate: datetime | None = None,
             queried_emby: bool = False,
             queried_jellyfin: bool = False,
             queried_plex: bool = False,
@@ -223,7 +223,7 @@ class EpisodeInfo(DatabaseInfoContainer):
         return f'{self.season_number}-{self.episode_number+count}'
 
 
-    def __eq__(self, other_info: Union['EpisodeInfo', tuple[int, int]]) -> bool:
+    def __eq__(self, other_info: 'EpisodeInfo | tuple[int, int]') -> bool:
         """
         Returns whether the given EpisodeInfo object corresponds to the
         same entry (has the same season and episode index).
@@ -333,7 +333,7 @@ class EpisodeInfo(DatabaseInfoContainer):
 
 
     @property
-    def indices(self) -> dict[str, Optional[int]]:
+    def indices(self) -> dict[str, int] | None:
         """This object's season/episode indices (as a dictionary)"""
 
         return {

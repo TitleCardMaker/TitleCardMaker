@@ -3,7 +3,7 @@ from os import environ
 from pathlib import Path
 from shutil import copy as file_copy
 from sqlite3 import connect, OperationalError
-from typing import NamedTuple, Optional, Union
+from typing import NamedTuple
 
 from fastapi import HTTPException
 
@@ -71,7 +71,7 @@ def delete_old_backups(*, log: Logger = log) -> None:
                 log.debug(f'Deleted old backup "{backup}"')
 
 
-def delete_backup(folder_name: Union[str, Path], *, log: Logger = log) -> None:
+def delete_backup(folder_name: str | Path, *, log: Logger = log) -> None:
     """
     Delete the given backup folder.
 
@@ -94,7 +94,7 @@ def delete_backup(folder_name: Union[str, Path], *, log: Logger = log) -> None:
 
 
 def backup_data(
-        version: Union[str, Version],
+        version: str | Version,
         *,
         log: Logger = log,
     ) -> DataBackup:
@@ -136,7 +136,7 @@ def backup_data(
     return DataBackup(config=config_backup, database=database_backup)
 
 
-def restore_backup(backup: Union[DataBackup, str], /, *, log: Logger = log):
+def restore_backup(backup: DataBackup | str, /, *, log: Logger = log):
     """
     Restore the config and database from the given data backup.
 
@@ -197,7 +197,7 @@ def list_available_backups(*, log: Logger = log) -> list[SystemBackup]:
         """Parse the version number from the given file."""
         return file.name[len('config.pickle') + 1:]
 
-    def _parse_schema_version(file: Path) -> Optional[str]:
+    def _parse_schema_version(file: Path) -> str | None:
         """Parse the alembic schema version from the given file."""
         connection = connect(file)
         try:

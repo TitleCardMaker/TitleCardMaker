@@ -1,6 +1,6 @@
 from math import cos, sin, pi
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -287,7 +287,7 @@ class GraphTitleCard(BaseCardType):
             omit_gradient: bool = False,
             percentage: float = 0.75,
             text_position: TextPosition = 'lower left',
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

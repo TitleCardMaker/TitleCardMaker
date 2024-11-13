@@ -1,5 +1,5 @@
 from json import dumps
-from typing import Optional, NamedTuple
+from typing import NamedTuple
 
 from fastapi import HTTPException
 
@@ -20,7 +20,7 @@ class TautulliInterface(WebInterface, Interface):
     updating/creation.
     """
 
-    INTERFACE_TYPE = 'Tautulli'
+    INTERFACE_TYPE: str = 'Tautulli'
 
     """Default configurations for the notification agent(s)"""
     DEFAULT_AGENT_NAME = 'Update TitleCardMaker (v3)'
@@ -37,7 +37,7 @@ class TautulliInterface(WebInterface, Interface):
             use_ssl: bool = True,
             agent_name: str = DEFAULT_AGENT_NAME,
             trigger_watched: bool = True,
-            username: Optional[str] = None,
+            username: str | None = None,
             *,
             log: Logger = log,
         ) -> None:
@@ -146,7 +146,7 @@ class TautulliInterface(WebInterface, Interface):
         )
 
 
-    def __create_agent(self, *, log: Logger = log) -> Optional[int]:
+    def __create_agent(self, *, log: Logger = log) -> int | None:
         """
         Create a new Notification Agent. The created agent will be blank
         and of the Webhook type.

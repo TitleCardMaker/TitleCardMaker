@@ -3,7 +3,7 @@ from io import BytesIO
 from pathlib import Path
 from random import choices as random_choices
 from string import hexdigits
-from typing import Any, Optional, TypedDict, Union
+from typing import Any, TypedDict
 
 from PIL import Image
 from re import IGNORECASE, compile as re_compile
@@ -83,7 +83,7 @@ class WebInterface:
         # Cache maps URLS to dicts of string-params to results
         self.__cache: dict[str, dict[str, CachedResult]] = {}
         self.__max_cache_age = cache_age
-        self.__last_request: Optional[datetime] = None
+        self.__last_request: datetime | None = None
 
 
     def __repr__(self) -> str:
@@ -169,7 +169,7 @@ class WebInterface:
             params: dict = {},
             *,
             cache: bool = True,
-        ) -> Union[dict, Any]:
+        ) -> dict | Any:
         """
         Wrapper for getting the JSON return of the specified GET
         request. If the provided URL and parameters are identical to the
@@ -234,7 +234,7 @@ class WebInterface:
 
     @staticmethod
     def download_image(
-            image: Union[str, bytes],
+            image: str | bytes,
             destination: Path,
             *,
             log: Logger = log,
@@ -286,7 +286,7 @@ class WebInterface:
             image: str,
             *,
             log: Logger = log,
-        ) -> Optional[bytes]:
+        ) -> bytes | None:
         """
         Download and return the provided image URL.
 

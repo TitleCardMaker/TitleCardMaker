@@ -2,7 +2,7 @@
 # pyright: reportInvalidTypeForm=false
 from datetime import datetime
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import (
     DirectoryPath,
@@ -109,7 +109,7 @@ class UpdatePreferences(UpdateBase):
     card_height: PositiveInt = UNSPECIFIED
     card_filename_format: str = UNSPECIFIED
     card_extension: CardExtension = UNSPECIFIED
-    imagemagick_executable: Optional[FilePath] = UNSPECIFIED
+    imagemagick_executable: FilePath | None = UNSPECIFIED
     card_quality: conint(ge=1, le=100) = UNSPECIFIED
     library_unique_cards: bool = UNSPECIFIED
     image_source_priority: list[int] = UNSPECIFIED
@@ -200,10 +200,10 @@ class Preferences(Base):
     card_filename_format: str
     card_extension: str
     card_quality: int
-    imagemagick_executable: Optional[Path]
+    imagemagick_executable: Path | None
     library_unique_cards: bool
     image_source_priority: list[int]
-    episode_data_source: Optional[int]
+    episode_data_source: int | None
     specials_folder_format: str
     season_folder_format: str
     sync_specials: bool

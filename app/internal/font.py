@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -14,8 +12,8 @@ from modules.Debug import Logger, log
 
 def get_effective_fonts(
         series: Series,
-        episode: Optional[Episode] = None,
-    ) -> Union[tuple[NamedFont, None], tuple[None, NamedFont]]:
+        episode: Episode | None = None,
+    ) -> tuple[NamedFont, None] | tuple[None, NamedFont]:
     """
     Get the effective Series and Episode Fonts for the given Series and
     optional Episode. This evaluates the Episode Font overrides Series

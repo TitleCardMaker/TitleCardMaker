@@ -1,4 +1,3 @@
-from typing import Optional, Union
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import not_
@@ -415,8 +414,8 @@ def load_series_title_cards_into_library(
 def load_series_title_cards_(
         request: Request,
         series_id: int,
-        interface_id: Optional[int] = Query(default=None),
-        library_name: Optional[str] = Query(default=None),
+        interface_id: int | None = Query(default=None),
+        library_name: str | None = Query(default=None),
         reload: bool = Query(default=False),
         db: Session = Depends(get_database),
     ) -> None:
@@ -495,9 +494,9 @@ def force_reload_episode_cards(
 def reload_card(
         card_id: int,
         request: Request,
-        interface_id: Optional[int] = Query(default=None),
-        library_name: Optional[str] = Query(default=None),
-        uid: Optional[Union[int, str]] = Query(default=None),
+        interface_id: int | None = Query(default=None),
+        library_name: str | None = Query(default=None),
+        uid: int | str | None = Query(default=None),
         db: Session = Depends(get_database),
     ) -> None:
     """

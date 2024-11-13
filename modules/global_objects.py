@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from modules.FontValidator import FontValidator
@@ -40,7 +40,7 @@ def set_font_validator(to: 'FontValidator') -> None: # type: ignore
     global fv
     fv = to
 
-info_set: Optional['MediaInfoSet'] = None
+info_set: 'MediaInfoSet | None' = None
 def set_media_info_set(to: 'MediaInfoSet') -> None: # type: ignore
     """Update the global MediaInfoSet `info_set` object."""
 

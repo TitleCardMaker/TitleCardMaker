@@ -1,7 +1,7 @@
 from collections import namedtuple
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Any, Iterator, Literal, Optional, Union, overload
+from typing import Any, Iterator, Literal, overload
 
 from fastapi import HTTPException
 from num2words import CONVERTER_CLASSES as SUPPORTED_LANGUAGE_CODES
@@ -927,7 +927,7 @@ class PreferenceParser(YamlReader):
 
 
     def __validate_fonts(self,
-            font_yaml: dict[str, Union[str, float]],
+            font_yaml: dict[str, str | float],
             file: Path
         ) -> bool:
         """
@@ -1052,7 +1052,7 @@ class PreferenceParser(YamlReader):
             *,
             default_media_server: str = 'plex',
             raise_exc: bool = False
-        ) -> Optional[dict]:
+        ) -> dict | None:
         """
         Apply the indicated template, and merge the specified
         library/font to the given show YAML.
@@ -1255,10 +1255,10 @@ class PreferenceParser(YamlReader):
 
 
     @property
-    def tautulli_interface_args(self) -> dict[str, Union[str, int]]:
+    def tautulli_interface_args(self) -> dict[str, str | int]:
         """Arguments for initializing a TautulliInterface"""
 
-        return {
+        return {# type: ignore
             'url': self.tautulli_url,
             'api_key': self.tautulli_api_key,
             'verify_ssl': self.tautulli_verify_ssl,
@@ -1269,10 +1269,10 @@ class PreferenceParser(YamlReader):
         }
 
     @property
-    def emby_interface_kwargs(self) -> dict[str, Union[str, bool, int]]:
+    def emby_interface_kwargs(self) -> dict[str, str | bool | int]:
         """Arguments for initializing a EmbyInterface"""
 
-        return {
+        return {# type: ignore
             'url': self.emby_url,
             'api_key': self.emby_api_key,
             'username': self.emby_username,
@@ -1281,10 +1281,10 @@ class PreferenceParser(YamlReader):
         }
 
     @property
-    def jellyfin_interface_kwargs(self) -> dict[str, Union[str, bool, int]]:
+    def jellyfin_interface_kwargs(self) -> dict[str, str | bool | int]:
         """Arguments for initializing a JellyfinInterface"""
 
-        return {
+        return {# type: ignore
             'url': self.jellyfin_url,
             'api_key': self.jellyfin_api_key,
             'username': self.jellyfin_username,
@@ -1293,10 +1293,10 @@ class PreferenceParser(YamlReader):
         }
 
     @property
-    def plex_interface_kwargs(self) -> dict[str, Union[str, bool, int]]:
+    def plex_interface_kwargs(self) -> dict[str, str | bool | int]:
         """Arguments for initializing a PlexInterface"""
 
-        return {
+        return { # type: ignore
             'url': self.plex_url,
             'x_plex_token': self.plex_token,
             'verify_ssl': self.plex_verify_ssl,
@@ -1314,7 +1314,7 @@ class PreferenceParser(YamlReader):
         }
 
 
-    def parse_image_source_priority(self, value: str) -> Optional[list[str]]:
+    def parse_image_source_priority(self, value: str) -> list[str] | None:
         """
         Parse the given image source priority value into a list of
         sources.
@@ -1401,7 +1401,7 @@ class PreferenceParser(YamlReader):
     @overload
     def filesize_as_bytes(self, filesize: Literal[None]) -> None: ...
 
-    def filesize_as_bytes(self, filesize: Optional[str]) -> Optional[int]:
+    def filesize_as_bytes(self, filesize: str | None) -> int | None:
         """
         Convert the given filesize string to its integer byte equivalent.
 

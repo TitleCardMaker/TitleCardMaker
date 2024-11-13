@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Union
+from typing import Any
 from modules.DatabaseInfoContainer import InterfaceID
 
 from modules.Debug import Logger, log
@@ -20,18 +20,18 @@ class SearchResult:
 
     def __init__(self,
             name: str,
-            year: Optional[int] = None,
-            poster: Optional[str] = None,
-            overview: Union[str, list[str]] = ['No overview available'],
-            ongoing: Optional[bool] = None,
+            year: int | None = None,
+            poster: str | None = None,
+            overview: str | list[str] = ['No overview available'],
+            ongoing: bool | None = None,
             *,
-            emby_id: Optional[int] = None,
-            imdb_id: Optional[str] = None,
-            jellyfin_id: Optional[str] = None,
-            sonarr_id: Optional[str]  =None,
-            tmdb_id: Optional[int] = None,
-            tvdb_id: Optional[int] = None,
-            tvrage_id: Optional[int] = None,
+            emby_id: int | None = None,
+            imdb_id: str | None = None,
+            jellyfin_id: str | None = None,
+            sonarr_id: str | None  =None,
+            tmdb_id: int | None = None,
+            tvdb_id: int | None = None,
+            tvrage_id: int | None = None,
             added: bool = False,
         ) -> None:
         """
@@ -96,8 +96,8 @@ class WatchedStatus:
 
     def __init__(self,
             interface_id: int,
-            library_name: Optional[str] = None,
-            watched: Optional[bool] = None,
+            library_name: str | None = None,
+            watched: bool | None = None,
         ) -> None:
         """
         Initialize this WatchedStatus for the given library details.
@@ -175,7 +175,7 @@ class EpisodeDataSource(ABC):
 
     @abstractmethod
     def set_episode_ids(self,
-            library_name: Optional[str],
+            library_name: str | None,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
             *,

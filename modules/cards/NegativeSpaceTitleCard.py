@@ -1,6 +1,6 @@
 from pathlib import Path
 from random import random
-from typing import Literal, Optional, TYPE_CHECKING, Union
+from typing import Literal, Optional, TYPE_CHECKING
 
 from modules.BaseCardType import (
     BaseCardType, CardTypeDescription, Extra, ImageMagickCommands,
@@ -161,9 +161,9 @@ class NegativeSpaceTitleCard(BaseCardType):
             episode_text_font_size: float = 1.0,
             episode_text_horizontal_offset: int = 0,
             episode_text_vertical_offset: int = 0,
-            text_side: Union[TextSide, Literal['random']] = DEFAULT_TEXT_SIDE,
+            text_side: TextSide | Literal['random'] = DEFAULT_TEXT_SIDE,
             title_text_horizontal_offset: int = 0,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

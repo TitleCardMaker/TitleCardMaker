@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from json import loads
-from typing import Optional
 
 from fastapi import HTTPException
 from requests import JSONDecodeError, get
@@ -22,7 +21,7 @@ def get_latest_version(
         raise_exc: bool = True,
         *,
         log: Logger = log,
-    ) -> Optional[Version]:
+    ) -> Version | None:
     """
     Get the latest version of TitleCardMaker available.
 
@@ -115,7 +114,7 @@ def get_remote_card_hash(
         identifier: str,
         *,
         log: Logger = log,
-    ) -> Optional[str]:    
+    ) -> str | None:    
     """
     Get the MD5 hash of the Card with the given identifier.
 

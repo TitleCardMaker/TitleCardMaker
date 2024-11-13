@@ -1,6 +1,5 @@
 from datetime import datetime
 from re import compile as re_compile, match, sub as re_sub, IGNORECASE
-from typing import Optional, Union
 
 from plexapi.video import Show as PlexShow
 
@@ -29,15 +28,15 @@ class SeriesInfo(DatabaseInfoContainer):
 
     def __init__(self,
             name: str,
-            year: Optional[int] = None,
+            year: int | None = None,
             *,
-            emby_id: Optional[int] = None,
-            imdb_id: Optional[str] = None,
-            jellyfin_id: Optional[str] = None,
-            sonarr_id: Optional[str]  =None,
-            tmdb_id: Optional[int] = None,
-            tvdb_id: Optional[int] = None,
-            tvrage_id: Optional[int] = None,
+            emby_id: int | None = None,
+            imdb_id: str | None = None,
+            jellyfin_id: str | None = None,
+            sonarr_id: str | None  =None,
+            tmdb_id: int | None = None,
+            tvdb_id: int | None = None,
+            tvrage_id: int | None = None,
             match_titles: bool = True,
         ) -> None:
         """
@@ -172,7 +171,7 @@ class SeriesInfo(DatabaseInfoContainer):
 
 
     @property
-    def characteristics(self) -> dict[str, Union[str, int]]:
+    def characteristics(self) -> dict[str, str | int]:
         """Characteristics of this info to be used in Card creation."""
 
         return {
@@ -182,7 +181,7 @@ class SeriesInfo(DatabaseInfoContainer):
 
 
     @property
-    def ids(self) -> dict[str, Union[str, int]]:
+    def ids(self) -> dict[str, str | int]:
         """Dictionary of ID's for this object."""
 
         return {

@@ -151,7 +151,7 @@ class BannerTitleCard(BaseCardType):
             episode_text_font_size: float = 1.0,
             hide_banner: bool = False,
             x_offset: int = X_OFFSET,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

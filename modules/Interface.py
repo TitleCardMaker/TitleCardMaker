@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Literal
 
 
-InterfaceType = Literal[
+type InterfaceType = Literal[
     'Emby', 'Jellyfin', 'Plex', 'Sonarr', 'Tautulli', 'TMDb', 'TVDb'
 ]
 

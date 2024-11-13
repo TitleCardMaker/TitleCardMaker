@@ -7,7 +7,6 @@ from typing import (
     Literal,
     Optional,
     TypedDict,
-    Union,
     TYPE_CHECKING,
 )
 
@@ -764,7 +763,7 @@ class Series(Base):
 
 
     def get_libraries(self,
-            interface: Union[int, Literal['Emby', 'Jellyfin', 'Plex']],
+            interface: int | Literal['Emby', 'Jellyfin', 'Plex'],
         ) -> Iterator[tuple[int, str]]:
         """
         Iterate over this Series' libraries of the given server type or

@@ -1,4 +1,4 @@
-from typing import Optional, TypeVar
+from typing import TypeVar
 
 
 _Setting = TypeVar('_Setting')
@@ -97,7 +97,7 @@ class TieredSettings:
 
 
     @staticmethod
-    def resolve_singular_setting(*values: Optional[_Setting]) -> _Setting:
+    def resolve_singular_setting(*values: _Setting | None) -> _Setting:
         """
         Get the highest priority (non-None) value of the given values.
 

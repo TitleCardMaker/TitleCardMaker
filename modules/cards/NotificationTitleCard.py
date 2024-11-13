@@ -1,9 +1,14 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
-    BaseCardType, CardTypeDescription, Coordinate, Extra, ImageMagickCommands,
-    Rectangle, TextCase,
+    BaseCardType,
+    CardTypeDescription,
+    Coordinate,
+    Extra,
+    ImageMagickCommands,
+    Rectangle,
+    TextCase,
 )
 from modules.Debug import log # noqa: F401
 from modules.Title import SplitCharacteristics
@@ -12,7 +17,7 @@ if TYPE_CHECKING:
     from app.models.preferences import Preferences
     from modules.Font import Font
 
-Position = Literal['left', 'right']
+type Position = Literal['left', 'right']
 
 
 class NotificationTitleCard(BaseCardType):
@@ -190,7 +195,7 @@ class NotificationTitleCard(BaseCardType):
             glass_color: str = GLASS_COLOR,
             position: Position = 'right',
             separator: str = '/',
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

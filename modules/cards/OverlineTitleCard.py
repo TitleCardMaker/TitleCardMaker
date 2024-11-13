@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType, CardTypeDescription, Coordinate, Extra, ImageMagickCommands,
@@ -175,7 +175,7 @@ class OverlineTitleCard(BaseCardType):
             line_width: int = LINE_THICKNESS,
             omit_gradient: bool = False,
             separator: str = '-',
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

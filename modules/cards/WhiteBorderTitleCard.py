@@ -1,8 +1,12 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
-    BaseCardType, ImageMagickCommands, Extra, CardTypeDescription, TextCase
+    BaseCardType,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
+    TextCase
 )
 from modules.Title import SplitCharacteristics
 
@@ -134,7 +138,7 @@ class WhiteBorderTitleCard(BaseCardType):
             omit_gradient: bool = False,
             separator: str = '•',
             stroke_color: str = STROKE_COLOR,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

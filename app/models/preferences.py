@@ -2,7 +2,7 @@ from datetime import datetime
 from os import environ
 from pathlib import Path
 from pickle import dump, load
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, Literal
 
 from app.schemas.base import UNSPECIFIED
 from modules.BaseCardType import BaseCardType
@@ -230,12 +230,12 @@ class Preferences:
 
         self.card_quality = ImageMagickInterface.DEFAULT_CARD_QUALITY
         if (_path := environ.get('TCM_IM_PATH', None)):
-            self.imagemagick_executable: Optional[Path] = Path(_path)
+            self.imagemagick_executable: Path | None = Path(_path)
         else:
-            self.imagemagick_executable: Optional[Path] = None
+            self.imagemagick_executable: Path | None = None
 
         self.image_source_priority: list[int] = []
-        self.episode_data_source: Optional[int] = None
+        self.episode_data_source: int | None = None
 
         self.specials_folder_format = 'Specials'
         self.season_folder_format = 'Season {season_number}'
@@ -257,7 +257,7 @@ class Preferences:
         self.default_blur_profiles: dict[str, str] = {}
         self.global_extras: dict[str, dict[str, str]] = {}
 
-        self.currently_running_sync: Optional[int] = None
+        self.currently_running_sync: int | None = None
         self.invalid_connections: list[int] = []
         self.use_emby = False
         self.use_jellyfin = False
@@ -306,7 +306,7 @@ class Preferences:
         self.determine_imagemagick_prefix(log=log)
 
 
-    def read_file(self) -> Optional[object]:
+    def read_file(self) -> object | None:
         """
         Read this object's file, returning the loaded object.
 
@@ -342,8 +342,8 @@ class Preferences:
 
         # Set attributes not parsed from the object
         self.current_version = Version(self.VERSION_FILE.read_text().strip())
-        self.available_version: Optional[Version] = None
-        self.current_db_schema: Optional[str] = None
+        self.available_version: Version | None = None
+        self.current_db_schema: str | None = None
 
         # Write object to file
         self.commit()
@@ -491,9 +491,9 @@ class Preferences:
 
     @staticmethod
     def get_filesize(
-            value: Optional[int],
-            unit: Optional[str]
-        ) -> Optional[int]:
+            value: int | None,
+            unit: str | None
+        ) -> int | None:
         """
         Get the filesize for the given value and unit.
 
@@ -520,7 +520,7 @@ class Preferences:
 
 
     @staticmethod
-    def format_filesize(value: Optional[int]) -> tuple[str, str]:
+    def format_filesize(value: int | None) -> tuple[str, str]:
         """
         Format the given filesize limit into a tuple of filesize value
         and units. Formatted as the highest >1 unit value.
@@ -602,7 +602,7 @@ class Preferences:
             identifier: str,
             *,
             log: Logger = log,
-        ) -> Optional[type[BaseCardType]]:
+        ) -> type[BaseCardType] | None:
         """
         Get the CardType class for the given card type identifier.
 

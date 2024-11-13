@@ -5,7 +5,6 @@ from logging import getLogger, ERROR
 from os import environ
 from pathlib import Path
 from secrets import token_hex
-from typing import Optional
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -102,7 +101,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def get_user(db: Session, username: str) -> Optional[User]:
+def get_user(db: Session, username: str) -> User | None:
     """
     Query the database for the `User` with the given username.
 
@@ -123,7 +122,7 @@ def get_current_user(
         db: Session = Depends(get_database),
         preferences: Preferences = Depends(get_preferences),
         token: str = Depends(oath2_scheme),
-    ) -> Optional[User]:
+    ) -> User | None:
     """
     Dependency to get the User whose username matches the given token.
     If Authorization is globally disabled, then no validation is
@@ -157,8 +156,8 @@ def get_current_user(
     # Decode JWT, get encoded username
     try:
         payload = jwt.decode(token, get_secret_key(), algorithms=[ALGORITHM])
-        username: Optional[str] = payload.get('sub')
-        uid: Optional[str] = payload.get('uid')
+        username: str | None = payload.get('sub')
+        uid: str | None = payload.get('uid')
     except JWTError as exc:
         raise credential_exception from exc
 
@@ -186,7 +185,7 @@ def authenticate_user(
         db: Session,
         username: str,
         password: str,
-    ) -> Optional[User]:
+    ) -> User | None:
     """
     Authenticate the given credentials, returning the associated User.
 
@@ -212,7 +211,7 @@ def authenticate_user(
 
 def create_access_token(
         data: dict,
-        expires_delta: Optional[timedelta] = None,
+        expires_delta: timedelta | None = None,
     ) -> str:
     """
     Create an encoded JWT with the given data.

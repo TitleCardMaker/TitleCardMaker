@@ -1,7 +1,7 @@
 from hashlib import md5
 from importlib.util import spec_from_file_location, module_from_spec
 import sys
-from typing import Literal, Optional, Union
+from typing import Literal
 
 from pathlib import Path
 from requests import get
@@ -36,8 +36,8 @@ class RemoteCardType:
 
     def __init__(self,
             /,
-            identifier: Union[str, Path],
-            file_hash: Optional[str] = None,
+            identifier: str | Path,
+            file_hash: str | None = None,
             *,
             log: Logger = log,
         ) -> None:
@@ -59,7 +59,7 @@ class RemoteCardType:
         """
 
         # Get database of loaded assets/cards
-        self.card_class: Optional[type[BaseCardType]] = None
+        self.card_class: type[BaseCardType] | None = None
         self.source: Literal['local', 'remote'] = 'remote'
         self.valid = True
 
@@ -144,7 +144,7 @@ class RemoteCardType:
 
 
     def __validate_ui_requirements(self,
-            identifier: Union[str, Path],
+            identifier: str | Path,
             /,
         ) -> None:
         """

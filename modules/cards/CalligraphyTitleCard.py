@@ -179,7 +179,7 @@ class CalligraphyTitleCard(BaseCardType):
             font_kerning: float = 1.0,
             font_size: float = 1.0,
             font_vertical_shift: int = 0,
-            logo_file: Optional[Path] = None,
+            logo_file: Path | None = None,
             watched: bool = True,
             blur: bool = False,
             grayscale: bool = False,
@@ -192,7 +192,7 @@ class CalligraphyTitleCard(BaseCardType):
             randomize_texture: bool = True,
             separator: str = '-',
             shadow_color: str = 'black',
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

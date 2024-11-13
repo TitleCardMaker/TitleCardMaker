@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from modules.Font import Font
 
 
-SeriesExtra = Optional
 TextGravity = Literal['center', 'east', 'west']
 TitleTextPosition = Literal['left', 'right']
 TextPosition = Literal[
@@ -153,10 +152,10 @@ class DividerTitleCard(BaseCardType):
             grayscale: bool = False,
             stroke_color: str = 'black',
             divider_color: str = TITLE_COLOR,
-            text_gravity: Optional[TextGravity] = None,
+            text_gravity: TextGravity | None = None,
             title_text_position: TitleTextPosition = 'left',
             text_position: TextPosition = 'lower right',
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""
@@ -240,7 +239,7 @@ class DividerTitleCard(BaseCardType):
 
 
     @property
-    def divider_height(self) -> Union[int, float]:
+    def divider_height(self) -> int | float:
         """
         The height of the divider between the index and title text. This
         is calculated based on the maximum of the height of the index
@@ -283,7 +282,7 @@ class DividerTitleCard(BaseCardType):
 
 
     def divider_command(self,
-            divider_height: Union[int, float],
+            divider_height: int | float,
             color: str,
         ) -> ImageMagickCommands:
         """
@@ -312,7 +311,7 @@ class DividerTitleCard(BaseCardType):
 
 
     def text_command(self,
-            divider_height: Union[int, float],
+            divider_height: int | float,
             is_stroke_text: bool,
         ) -> ImageMagickCommands:
         """

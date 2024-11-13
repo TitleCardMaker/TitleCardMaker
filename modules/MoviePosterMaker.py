@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 from modules.Debug import log
 from modules.ImageMaker import ImageMaker
@@ -28,7 +27,7 @@ class MoviePosterMaker(ImageMaker):
             subtitle: str = '',
             top_subtitle: str = '',
             movie_index: str = '',
-            logo: Optional[Path] = None,
+            logo: Path | None = None,
             font_file: Path = FONT,
             font_color: str = FONT_COLOR,
             font_size: float = 1.0,

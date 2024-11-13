@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import BaseCardType, CardTypeDescription, TextCase
 from modules.Debug import log # noqa: F401
@@ -70,7 +70,7 @@ class TextlessTitleCard(BaseCardType):
             card_file: Path,
             blur: bool = False,
             grayscale: bool = False,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this card."""

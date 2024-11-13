@@ -1,6 +1,6 @@
 from base64 import b64encode
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional, Union, overload
+from typing import TYPE_CHECKING, Literal, Union, overload
 
 from fastapi import HTTPException
 
@@ -42,9 +42,9 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     def __init__(self,
             url: str,
             api_key: str,
-            username: Optional[str] = None,
+            username: str | None = None,
             use_ssl: bool = True,
-            filesize_limit: Optional[int] = None,
+            filesize_limit: int | None = None,
             *,
             interface_id: int = 0,
             log: Logger = log,
@@ -105,7 +105,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
         self.activate()
 
 
-    def _get_user_id(self, username: str) -> Optional[str]:
+    def _get_user_id(self, username: str) -> str | None:
         """
         Get the User ID associated with the given username.
 
@@ -161,7 +161,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             *,
             raw_obj: Literal[False] = False,
             log: Logger = log,
-        ) -> Optional[str]:
+        ) -> str | None:
         ...
     @overload
     def __get_series_id(self,
@@ -170,7 +170,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             *,
             raw_obj: Literal[True],
             log: Logger = log,
-        ) -> Optional[SeriesInfo]:
+        ) -> SeriesInfo | None:
         ...
 
     def __get_series_id(self,
@@ -179,7 +179,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             *,
             raw_obj: bool = False,
             log: Logger = log,
-        ) -> Optional[Union[str, SeriesInfo]]:
+        ) -> str | SeriesInfo | None:
         """
         Get the Jellyfin ID (or entire SeriesInfo) for the given series.
 
@@ -231,7 +231,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             'parentId': library_id,
         } | self.__params
 
-        def _query_series(year: int) -> Optional[str]:
+        def _query_series(year: int) -> str | None:
             """Look up the series in the specified year"""
 
             response: dict = self.session.get(
@@ -278,7 +278,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     def __get_season_id(self,
             series_id: str,
             season_number: int,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the Jellyfin ID of the given season.
 
@@ -311,7 +311,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             library_name: str,
             series_jellyfin_id: str,
             episode_info: EpisodeInfo,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the Jellyfin ID for the given episode.
 
@@ -350,24 +350,22 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     def __find_ids(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_info: Literal[None],
-        ) -> Union[tuple[Literal[None], Literal[None]],
-                   tuple[str, Literal[None]]]:
+            episode_info: None,
+        ) -> tuple[None, None] | tuple[str, None]:
         ...
     @overload
     def __find_ids(self,
             library_name: str,
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
-        ) -> Union[tuple[Literal[None], Literal[None]],
-                   tuple[str, str]]:
+        ) -> tuple[None, None] | tuple[str, str]:
         ...
 
     def __find_ids(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_info: Optional[EpisodeInfo],
-        ) -> tuple[Optional[str], Optional[str]]:
+            episode_info: EpisodeInfo | None,
+        ) -> tuple[str | None, str] | None:
         """
         Get the Jellyfin ID's for the given series and episode.
 
@@ -781,7 +779,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     def load_season_posters(self,
             library_name: str,
             series_info: SeriesInfo,
-            posters: dict[int, Union[str, Path]],
+            posters: dict[int, str | Path],
             *,
             log: Logger = log,
         ) -> None:
@@ -841,7 +839,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     def load_series_poster(self,
             library_name: str,
             series_info: SeriesInfo,
-            image: Union[str, Path],
+            image: str | Path,
             *,
             log: Logger = log
         ) -> None:
@@ -893,7 +891,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     def load_series_background(self,
             library_name: str,
             series_info: SeriesInfo,
-            image: Union[str, Path],
+            image: str | Path,
             *,
             log: Logger = log
         ) -> None:
@@ -948,7 +946,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             episode_info: EpisodeInfo,
             *,
             log: Logger = log,
-        ) -> Optional[bytes]:
+        ) -> bytes | None:
         """
         Get the source image for the given episode within Jellyfin.
 

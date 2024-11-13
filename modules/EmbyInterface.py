@@ -1,7 +1,7 @@
 from base64 import b64encode
 from datetime import datetime
 from sys import exit as sys_exit
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from modules import global_objects
 from modules.Debug import log
@@ -47,7 +47,7 @@ class EmbyInterface(EpisodeDataSource, MediaServer, SyncInterface):
             api_key: str,
             username: str,
             verify_ssl: bool = True,
-            filesize_limit: Optional[int] = None,
+            filesize_limit: int | None = None,
         ) -> None:
         """
         Construct a new instance of an interface to an Emby server.
@@ -99,7 +99,7 @@ class EmbyInterface(EpisodeDataSource, MediaServer, SyncInterface):
         self.libraries = self._map_libraries()
 
 
-    def _get_user_id(self, username: str) -> Optional[str]:
+    def _get_user_id(self, username: str) -> str | None:
         """
         Get the User ID associated with the given username.
 
@@ -249,7 +249,7 @@ class EmbyInterface(EpisodeDataSource, MediaServer, SyncInterface):
 
 
     def set_episode_ids(self,
-            library_name: Optional[str],
+            library_name: str | None,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
             *,
@@ -370,7 +370,7 @@ class EmbyInterface(EpisodeDataSource, MediaServer, SyncInterface):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_infos: Optional[list[EpisodeInfo]] = None,
+            episode_infos: list[EpisodeInfo] | None = None,
         ) -> list[EpisodeInfo]:
         """
         Gets all episode info for the given series. Only episodes that

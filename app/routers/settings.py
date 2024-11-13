@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, Body, Depends, Request
 from sqlalchemy.orm import Session
 
@@ -143,7 +141,7 @@ def get_available_system_backups(request: Request) -> list[SystemBackup]:
 
 
 @settings_router.get('/background-tasks')
-def get_pending_background_tasks() -> list[tuple[str, Optional[str]]]:
+def get_pending_background_tasks() -> list[tuple[str, str | None]]:
     from modules.BackgroundTasks import task_queue
 
     return [

@@ -3,7 +3,7 @@ from os import environ, getenv
 from pathlib import Path
 from random import choices as random_choices
 from string import hexdigits
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from loguru._logger import Logger
 from pytz import timezone, UnknownTimeZoneError
@@ -59,7 +59,7 @@ def generate_context_id() -> str:
 
 def contextualize(
         logger: Logger = log,
-        context_id: Optional[str] = None
+        context_id: str | None = None
     ) -> Logger:
     """
     Create a contextualized Logger.

@@ -1,6 +1,6 @@
 from datetime import datetime
 from re import match, compile as re_compile
-from typing import TYPE_CHECKING, Optional, TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 from plexapi.video import Show as PlexShow
 from sqlalchemy import ColumnElement, and_, func, or_
@@ -21,12 +21,12 @@ class SeriesCharacteristics(TypedDict):
 
 class SeriesIDs(TypedDict):
     emby_id: str
-    imdb_id: Optional[str]
+    imdb_id: str | None
     jellyfin_id: str
     sonarr_id: str
-    tmdb_id: Optional[int]
-    tvdb_id: Optional[int]
-    tvrage_id: Optional[int]
+    tmdb_id: int | None
+    tvdb_id: int | None
+    tvrage_id: int | None
 # pylint: enable=missing-class-docstring
 
 class SeriesInfo(DatabaseInfoContainer):
@@ -59,16 +59,16 @@ class SeriesInfo(DatabaseInfoContainer):
 
     def __init__(self,
             name: str,
-            year: Optional[int] = None,
+            year: int | None = None,
             *,
-            emby_id: Optional[str] = None,
-            imdb_id: Optional[str] = None,
-            jellyfin_id: Optional[str] = None,
-            sonarr_id: Optional[str]  =None,
-            tmdb_id: Optional[int] = None,
-            tvdb_id: Optional[int] = None,
-            tvrage_id: Optional[int] = None,
-            match_titles: Optional[bool] = True,
+            emby_id: str | None = None,
+            imdb_id: str | None = None,
+            jellyfin_id: str | None = None,
+            sonarr_id: str | None  =None,
+            tmdb_id: int | None = None,
+            tvdb_id: int | None = None,
+            tvrage_id: int | None = None,
+            match_titles: bool | None = True,
         ) -> None:
         """
         Create a SeriesInfo object that defines a series described by
@@ -98,12 +98,12 @@ class SeriesInfo(DatabaseInfoContainer):
         self.name = name
         self.year = year
         self.emby_id = InterfaceID(emby_id, type_=str, libraries=True)
-        self.imdb_id: Optional[str] = None
+        self.imdb_id: str | None = None
         self.jellyfin_id = InterfaceID(jellyfin_id, type_=str, libraries=True)
         self.sonarr_id = InterfaceID(sonarr_id, type_=int, libraries=False)
-        self.tmdb_id: Optional[int] = None
-        self.tvdb_id: Optional[int] = None
-        self.tvrage_id: Optional[int] = None
+        self.tmdb_id: int | None = None
+        self.tvdb_id: int | None = None
+        self.tvrage_id: int | None = None
         self.match_titles = match_titles
 
         self.set_imdb_id(imdb_id)
@@ -301,7 +301,7 @@ class SeriesInfo(DatabaseInfoContainer):
 
 
     @property
-    def emby_provider_id_string(self) -> Optional[str]:
+    def emby_provider_id_string(self) -> str | None:
         """
         The Emby provider ID string of this series.
 
@@ -350,7 +350,7 @@ class SeriesInfo(DatabaseInfoContainer):
 
 
     def set_emby_id(self,
-            emby_id: Optional[int],
+            emby_id: int | None,
             interface_id: int,
             library_name: str,
         ) -> None:
@@ -362,14 +362,14 @@ class SeriesInfo(DatabaseInfoContainer):
         )
 
 
-    def set_imdb_id(self, imdb_id: Optional[str]) -> None:
+    def set_imdb_id(self, imdb_id: str | None) -> None:
         """Set this object's IMDb ID - see `_update_attribute()`."""
 
         self._update_attribute('imdb_id', imdb_id, type_=str)
 
 
     def set_jellyfin_id(self,
-            jellyfin_id: Optional[str],
+            jellyfin_id: str | None,
             interface_id: int,
             library_name: str,
         ) -> None:
@@ -382,7 +382,7 @@ class SeriesInfo(DatabaseInfoContainer):
 
 
     def set_sonarr_id(self,
-            sonarr_id: Optional[int],
+            sonarr_id: int | None,
             interface_id: int,
         ) -> None:
         """Set this object's Sonarr ID - see `_update_attribute()`."""
@@ -392,19 +392,19 @@ class SeriesInfo(DatabaseInfoContainer):
         )
 
 
-    def set_tmdb_id(self, tmdb_id: Optional[int]) -> None:
+    def set_tmdb_id(self, tmdb_id: int | None) -> None:
         """Set this object's TMDb ID - see `_update_attribute()`."""
 
         self._update_attribute('tmdb_id', tmdb_id, type_=int)
 
 
-    def set_tvdb_id(self, tvdb_id: Optional[int]) -> None:
+    def set_tvdb_id(self, tvdb_id: int | None) -> None:
         """Set this object's TVDb ID - see `_update_attribute()`."""
 
         self._update_attribute('tvdb_id', tvdb_id, type_=int)
 
 
-    def set_tvrage_id(self, tvrage_id: Optional[int]) -> None:
+    def set_tvrage_id(self, tvrage_id: int | None) -> None:
         """Set this object's TVRage ID - see `_update_attribute()`."""
 
         self._update_attribute('tvrage_id', tvrage_id, type_=int)

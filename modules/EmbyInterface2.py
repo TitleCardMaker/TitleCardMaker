@@ -1,7 +1,7 @@
 from base64 import b64encode
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator, Literal, Optional, Union, overload
+from typing import TYPE_CHECKING, Iterator, Literal, Union, overload
 
 from fastapi import HTTPException
 
@@ -54,7 +54,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             api_key: str,
             username: str,
             use_ssl: bool = True,
-            filesize_limit: Optional[int] = None,
+            filesize_limit: int | None = None,
             *,
             interface_id: int = 0,
             log: Logger = log,
@@ -119,7 +119,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         self.activate()
 
 
-    def _get_user_id(self, username: str) -> Optional[str]:
+    def _get_user_id(self, username: str) -> str | None:
         """
         Get the User ID associated with the given username.
 
@@ -175,7 +175,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             *,
             raw_obj: Literal[False] = False,
             log: Logger = log
-        ) -> Optional[str]: ...
+        ) -> str | None: ...
     @overload
     def __get_series_id(self,
             library_name: str,
@@ -183,7 +183,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             *,
             raw_obj: Literal[True] = True,
             log: Logger = log
-        ) -> Optional[SeriesInfo]: ...
+        ) -> SeriesInfo | None: ...
 
     def __get_series_id(self,
             library_name: str,
@@ -191,7 +191,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             *,
             raw_obj: bool = False,
             log: Logger = log,
-        ) -> Optional[Union[str, SeriesInfo]]:
+        ) -> str | SeriesInfo | None:
         """
         Get the Jellyfin ID for the given series.
 
@@ -274,7 +274,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def __get_season_id(self,
             series_id: str,
             season_number: int,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the Emby ID of the given season.
 
@@ -799,7 +799,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def load_season_posters(self,
             library_name: str,
             series_info: SeriesInfo,
-            posters: dict[int, Union[str, Path]],
+            posters: dict[int, str | Path],
             *,
             log: Logger = log,
         ) -> None:
@@ -859,7 +859,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def load_series_poster(self,
             library_name: str,
             series_info: SeriesInfo,
-            image: Union[str, Path],
+            image: str | Path,
             *,
             log: Logger = log
         ) -> None:
@@ -911,7 +911,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def load_series_background(self,
             library_name: str,
             series_info: SeriesInfo,
-            image: Union[str, Path],
+            image: str | Path,
             *,
             log: Logger = log
         ) -> None:
@@ -966,7 +966,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             episode_info: EpisodeInfo,
             *,
             log: Logger = log,
-        ) -> Optional[bytes]:
+        ) -> bytes | None:
         """
         Get the source image for the given episode within Emby.
 

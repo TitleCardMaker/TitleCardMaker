@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from json import JSONDecodeError, loads
 from pathlib import Path
-from typing import Optional, TypedDict
+from typing import TypedDict
 
 from app.schemas.logs import LogLevel
 
@@ -29,7 +29,7 @@ class RawLogData(TypedDict):
     level: LogLevel
     time: datetime
     execution: ExecutionDetails
-    exception: Optional[ExceptionDetails]
+    exception: ExceptionDetails | None
     file: Path
 # pylint: enable=missing-class-docstring
 
@@ -40,7 +40,7 @@ unnecessarily (as their contents should not change).
 _LOG_DATA: dict[Path, list[RawLogData]] = {}
 
 
-def parse_line(line: str, file: Path) -> Optional[RawLogData]:
+def parse_line(line: str, file: Path) -> RawLogData | None:
     """
     Parse the raw log line into a dictionary of log data.
 
@@ -83,8 +83,8 @@ def parse_line(line: str, file: Path) -> Optional[RawLogData]:
 
 def read_log_files(
         *,
-        after: Optional[datetime] = None,
-        before: Optional[datetime] = None,
+        after: datetime | None = None,
+        before: datetime | None = None,
         shallow: bool = True,
     ) -> list[RawLogData]:
     """

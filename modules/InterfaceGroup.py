@@ -1,4 +1,4 @@
-from typing import Generic, Iterable, Iterator, Mapping, Optional, TypeVar
+from typing import Generic, Iterable, Iterator, Mapping, TypeVar
 
 from modules.Debug import Logger, log
 from modules.Interface import Interface
@@ -71,7 +71,7 @@ class InterfaceGroup(Generic[_InterfaceID, _Interface],
         return len(self.interfaces)
 
 
-    def __getitem__(self, interface_id: _InterfaceID) -> Optional[_Interface]:
+    def __getitem__(self, interface_id: _InterfaceID) -> _Interface | None:
         """
         Get the Interface with the given ID. If the Interface with the
         given ID is defined but not initialized / active, then an
@@ -139,7 +139,7 @@ class InterfaceGroup(Generic[_InterfaceID, _Interface],
 
 
     @property
-    def first_interface_id(self) -> Optional[_InterfaceID]:
+    def first_interface_id(self) -> _InterfaceID | None:
         """The first interface ID with a defined, active Interface."""
 
         for interface_id, interface in self.interfaces.items():

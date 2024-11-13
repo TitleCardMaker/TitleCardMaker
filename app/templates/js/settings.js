@@ -1,7 +1,11 @@
 {% if False %}
 import {
-  AvailableFont, AvailableTemplate, CardTypeDescription,
-  EpisodeDataSourceToggle, ImageSourceToggle, UpdatePreferences,
+  AvailableFont,
+  AvailableTemplate,
+  CardTypeDescription,
+  EpisodeDataSourceToggle,
+  ImageSourceToggle,
+  UpdatePreferences,
 } from './.types.js';
 {% endif %}
 

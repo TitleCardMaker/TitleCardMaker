@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Union
+from typing import Any
 from pathlib import Path
 
 from tinydb import where, Query
@@ -13,7 +13,7 @@ from modules.SeasonPosterSet import SeasonPosterSet
 from modules.SeriesInfo import SeriesInfo
 from modules.StyleSet import StyleSet
 
-SourceImage = Union[str, bytes, None]
+type SourceImage = str | bytes | None
 
 
 class MediaServer(ABC):
@@ -57,7 +57,7 @@ class MediaServer(ABC):
         return True
 
 
-    def compress_image(self, image: Path) -> Optional[Path]:
+    def compress_image(self, image: Path) -> Path | None:
         """
         Compress the given image until below the filesize limit.
 
@@ -133,7 +133,7 @@ class MediaServer(ABC):
     def _get_loaded_episode(self,
             loaded_series: list[dict[str, Any]],
             episode: Episode
-        ) -> Optional[dict[str, Any]]:
+        ) -> dict[str, Any] | None:
         """
         Get the loaded details of the given Episode from the given list
         of loaded series details.

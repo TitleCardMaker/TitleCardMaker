@@ -6,8 +6,6 @@ from typing import (
     Callable,
     Iterable,
     Literal,
-    Optional,
-    Union
 )
 
 from titlecase import titlecase
@@ -61,7 +59,7 @@ class Coordinate:
 
 
     def __add__(self,
-            other: Union['Coordinate', tuple[float, float]],
+            other: 'Coordinate | tuple[float, float]',
         ) -> 'Coordinate':
         """
         Add the given coordinates to this object, returning a new
@@ -81,7 +79,7 @@ class Coordinate:
 
 
     def __iadd__(self,
-            other: Union['Coordinate', tuple[float, float]],
+            other: 'Coordinate | tuple[float, float]',
         ) -> 'Coordinate':
         """
         Add the given Coordinate to this one. This adds the x/y
@@ -250,7 +248,7 @@ class Shadow:
 
         return str(self)
 
-TextCase = Literal['blank', 'lower', 'source', 'title', 'upper']
+type TextCase = Literal['blank', 'lower', 'source', 'title', 'upper']
 
 class BaseCardType(ImageMaker):
     """
@@ -348,7 +346,7 @@ class BaseCardType(ImageMaker):
             blur: bool = False,
             grayscale: bool = False,
             *,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """
@@ -655,7 +653,7 @@ class BaseCardType(ImageMaker):
             file: Path,
             /,
             *,
-            pre_processing: Optional[ImageMagickCommands] = None,
+            pre_processing: ImageMagickCommands | None = None,
             x: int = 0,
             y: int = 0,
         ) -> ImageMagickCommands:
@@ -723,9 +721,9 @@ class BaseCardType(ImageMaker):
 
     def add_drop_shadow(self,
             commands: ImageMagickCommands,
-            shadow: Union[str, Shadow],
-            x: Union[int, float] = 0,
-            y: Union[int, float] = 0,
+            shadow: str | Shadow,
+            x: int | float = 0,
+            y: int | float = 0,
             *,
             shadow_color: str = 'black',
         ) -> ImageMagickCommands:

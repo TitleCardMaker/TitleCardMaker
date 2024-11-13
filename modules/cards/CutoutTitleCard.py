@@ -151,7 +151,7 @@ class CutoutTitleCard(BaseCardType):
             cutout_vertical_shift: int = 0,
             overlay_color: str = 'black',
             overlay_transparency: float = 0.0,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""
@@ -186,7 +186,7 @@ class CutoutTitleCard(BaseCardType):
         self.overlay_transparency = overlay_transparency
 
         # Implementation details
-        self.__text_mask: Optional[Path] = None
+        self.__text_mask: Path | None = None
 
 
     def _format_episode_text(self, episode_text: str) -> str:

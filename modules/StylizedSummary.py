@@ -30,7 +30,7 @@ class StylizedSummary(BaseSummary):
     def __init__(self,
             show: 'Show',
             background: str = BACKGROUND_COLOR, # pylint: disable=unused-argument
-            created_by: Optional[str] = None
+            created_by: str | None = None
         ) -> None:
         """
         Construct a new instance of this object.

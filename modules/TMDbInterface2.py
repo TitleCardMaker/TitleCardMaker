@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable
 
 from fastapi import HTTPException
 from tmdbapis import (
@@ -540,7 +540,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             title_match: bool = True,
             *,
             log: Logger = log
-        ) -> Optional[Union[TMDbEpisode, TMDbMovie]]:
+        ) -> TMDbEpisode | TMDbMovie | None:
         """
         Finds the episode index for the given entry. Searching is done
         in the following priority:
@@ -612,7 +612,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         # Search for movie with this episode title
         def _find_episode_as_movie(
                 episode_info: EpisodeInfo
-            ) -> Optional[TMDbMovie]:
+            ) -> TMDbMovie | None:
             """Attempt to find the given Episode as a Movie"""
 
             try:
@@ -662,7 +662,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                 episode_info: EpisodeInfo,
                 season_number: int,
                 episode_number: int
-            ) -> Optional[TMDbEpisode]:
+            ) -> TMDbEpisode | None:
             # Find episode with series TMDb ID and given index
             try:
                 (episode := self.api.tv_episode(
@@ -753,7 +753,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             *,
             is_source_image: bool = True,
             skip_localized: bool = False,
-        ) -> Optional[TMDbStill]:
+        ) -> TMDbStill | None:
         """
         Determine the best image and return it's contents from within
         the database return JSON.
@@ -852,7 +852,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             *,
             log: Logger = log,
-        ) -> Optional[list[TMDbStill]]:
+        ) -> list[TMDbStill] | None:
         """
         Get all logos for the requested series.
 
@@ -891,7 +891,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             *,
             log: Logger = log,
-        ) -> Optional[list[TMDbStill]]:
+        ) -> list[TMDbStill] | None:
         """
         Get all backdrops for the requested series.
 
@@ -936,7 +936,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             skip_localized_images: bool = False,
             raise_exc: bool = True,
             log: Logger = log,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the best source image for the requested entry.
 
@@ -1029,7 +1029,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             language_code: str = 'en-US',
             *,
             log: Logger = log,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the episode title for the given entry for the given language.
 
@@ -1080,7 +1080,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
 
     @catch_and_log('Error getting series logo', default=None)
-    def get_series_logo(self, series_info: SeriesInfo) -> Optional[str]:
+    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
         """
         Get the best logo for the given series.
 
@@ -1146,7 +1146,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             *,
             skip_localized_images: bool = False,
             raise_exc: bool = True
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the best backdrop for the given series.
 
@@ -1199,7 +1199,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             *,
             log: Logger = log,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the best poster for the given series.
 

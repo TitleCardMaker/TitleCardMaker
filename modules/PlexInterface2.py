@@ -7,7 +7,6 @@ from typing import (
     Callable,
     Literal,
     NamedTuple,
-    Optional,
     Union,
     cast
 )
@@ -171,7 +170,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             *,
             log: Logger = log,
-        ) -> Optional[PlexLibrary]:
+        ) -> PlexLibrary | None:
         """
         Get the Library object under the given name.
 
@@ -198,7 +197,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             series_info: SeriesInfo,
             *,
             log: Logger = log,
-        ) -> Optional[PlexShow]:
+        ) -> PlexShow | None:
         """
         Get the Series object from within the given Library associated
         with the given SeriesInfo. This tries to match by TVDb ID,
@@ -657,7 +656,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             *,
             proxy_url: bool = False,
             log: Logger = log,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the source image for the given episode within Plex.
 
@@ -766,8 +765,8 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
            before_sleep=lambda _:log.warning('Cannot upload image, retrying..'),
            reraise=True)
     def __retry_upload(self,
-            entry: Union[PlexShow, PlexSeason, PlexEpisode],
-            image: Union[str, Path],
+            entry: PlexShow | PlexSeason | PlexEpisode,
+            image: str | Path,
             kind: Literal['art', 'poster'] = 'poster',
             *,
             log: Logger = log,
@@ -931,7 +930,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def load_season_posters(self,
             library_name: str,
             series_info: SeriesInfo,
-            posters: dict[int, Union[str, Path]],
+            posters: dict[int, str | Path],
             *,
             log: Logger = log,
         ) -> None:
@@ -990,7 +989,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def load_series_poster(self,
             library_name: str,
             series_info: SeriesInfo,
-            image: Union[str, Path],
+            image: str | Path,
             *,
             log: Logger = log
         ) -> None:
@@ -1038,7 +1037,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def load_series_background(self,
             library_name: str,
             series_info: SeriesInfo,
-            image: Union[str, Path],
+            image: str | Path,
             *,
             log: Logger = log
         ) -> None:

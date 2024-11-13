@@ -1,5 +1,5 @@
 from re import compile as re_compile, IGNORECASE
-from typing import Any, Callable, Literal, Optional
+from typing import Any, Callable, Literal
 
 from modules.Debug import log
 from modules.EpisodeInfo import EpisodeInfo
@@ -27,8 +27,8 @@ class EpisodeMap:
 
 
     def __init__(self,
-            seasons: Optional[dict[str, Any]] = None,
-            episode_ranges: Optional[dict[str, Any]] = None
+            seasons: dict[str, Any] | None = None,
+            episode_ranges: dict[str, Any] | None = None
         ) -> None:
         """
         Construct a new instance of an EpisodeMap. This maps titles and
@@ -264,9 +264,9 @@ class EpisodeMap:
 
 
     def get_generic_season_title(self, *,
-            season_number: Optional[int] = None,
-            episode_info: Optional[EpisodeInfo] = None,
-            default: Optional[Callable[[EpisodeInfo], str]] = None,
+            season_number: int | None = None,
+            episode_info: EpisodeInfo | None = None,
+            default: Callable[[EpisodeInfo], str] | None = None,
         ) -> str:
         """
         Get the generic season title for the given entry.
@@ -289,7 +289,7 @@ class EpisodeMap:
 
         # Ensure at least one argument was provided
         if season_number is None and episode_info is None:
-            raise ValueError(f'Must provide season_number or episode_info')
+            raise ValueError('Must provide season_number or episode_info')
 
         # Get episode's season number if not provided directly
         if season_number is None:
@@ -379,7 +379,7 @@ class EpisodeMap:
     def get_season_title(self,
             episode_info: EpisodeInfo,
             *,
-            default: Optional[Callable[[EpisodeInfo], str]] = None,
+            default: Callable[[EpisodeInfo | None], str] | None = None,
         ) -> str:
         """
         Get the season title for the given Episode.

@@ -1,6 +1,6 @@
 from pathlib import Path
 from time import sleep
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -283,7 +283,7 @@ def add_card_to_database(
         card_model: NewTitleCard,
         CardTypeModel: Base,
         card_file: Path,
-        library: Optional[Library],
+        library: Library | None,
     ) -> Card:
     """
     Add the given Card to the Database.
@@ -376,7 +376,7 @@ def create_card(
         card_model: NewTitleCard,
         CardClass: type[BaseCardType],
         CardTypeModel: Base,
-        library: Optional[Library],
+        library: Library | None,
         *,
         log: Logger = log,
     ) -> None:
@@ -411,7 +411,7 @@ def create_card(
 
 def resolve_card_settings(
         episode: Episode,
-        library: Optional[Library] = None,
+        library: Library | None = None,
         *,
         log: Logger = log,
     ) -> dict:
@@ -717,7 +717,7 @@ def resolve_card_settings(
 def create_episode_card(
         db: Session,
         episode: Episode,
-        library: Optional[Library],
+        library: Library | None,
         *,
         raise_exc: bool = True,
         log: Logger = log,
@@ -765,7 +765,7 @@ def create_episode_card(
     card_settings['card_file'].parent.mkdir(parents=True, exist_ok=True)
 
     # Find existing Card
-    existing_card: Optional[Card] = None
+    existing_card: Card | None = None
     # Library unique mode is disabled, look for any Card for this Episode
     if not get_preferences().library_unique_cards or not library:
         existing_card = db.query(Card).filter_by(episode_id=episode.id).first()
@@ -916,7 +916,7 @@ def get_watched_statuses(
 def delete_cards(
         db: Session,
         card_query: Query,
-        loaded_query: Optional[Query] = None,
+        loaded_query: Query | None = None,
         *,
         commit: bool = True,
         log: Logger = log,

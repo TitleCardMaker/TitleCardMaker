@@ -1,7 +1,6 @@
 from datetime import timedelta
 from logging import Logger
 from os import environ
-from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi.security import OAuth2PasswordRequestForm
@@ -20,7 +19,7 @@ from app.models.user import User as UserModel
 from app.schemas.auth import NewUser, Token, UpdateUser, User
 
 
-EXPIRATION_TIME = timedelta(days=7)
+_EXPIRATION_TIME = timedelta(days=7)
 
 
 # Create sub router for all /auth API requests
@@ -175,8 +174,8 @@ def get_all_usernames(db: Session = Depends(get_database)) -> list[str]:
 
 @auth_router.get('/active')
 def get_active_username(
-        user: Optional[User] = Depends(get_current_user),
-    ) -> Optional[str]:
+        user: User | None = Depends(get_current_user),
+    ) -> str | None:
     """Get the username of the active User."""
 
     return None if user is None else user.username
@@ -187,7 +186,7 @@ def update_user_credentials(
         request: Request,
         update_user: UpdateUser = Body(...),
         db: Session = Depends(get_database),
-        user: Optional[User] = Depends(get_current_user),
+        user: User | None = Depends(get_current_user),
     ) -> User:
     """
     Update the credentials of the current User.
@@ -252,10 +251,10 @@ def login_for_access_token(
     # Create new access token for this User
     access_token = create_access_token(
         data={'sub': user.username, 'uid': user.hashed_password},
-        expires_delta=EXPIRATION_TIME,
+        expires_delta=_EXPIRATION_TIME,
     )
     request.state.log.info(
-        f'Authenticated User({user.username}) for {EXPIRATION_TIME}'
+        f'Authenticated User({user.username}) for {_EXPIRATION_TIME}'
     )
 
     return Token(

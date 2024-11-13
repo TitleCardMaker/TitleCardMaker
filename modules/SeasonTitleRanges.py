@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 from re import IGNORECASE, compile as re_compile
-from typing import Callable, Optional, Union
+from typing import Callable
 
 from modules.Debug import Logger, log
 from modules.EpisodeInfo2 import EpisodeInfo
@@ -35,7 +35,7 @@ class SeasonTitleRanges:
             /,
             ranges: dict[str, str],
             *,
-            fallback: Optional[Callable[[EpisodeInfo], str]] = None,
+            fallback: Callable[[EpisodeInfo], str] | None = None,
             log: Logger = log,
         ) -> None:
         """
@@ -53,7 +53,7 @@ class SeasonTitleRanges:
         """
 
         # Parse ranges into objects
-        self.titles: dict[Union[AbsoluteRange, EpisodeRange, Season], str] = {}
+        self.titles: dict[AbsoluteRange | EpisodeRange | Season, str] = {}
         for key, title in list(ranges.items())[::-1]:
             if (match := self.ABSOLUTE_RANGE_REGEX.match(key)) is not None:
                 self.titles[AbsoluteRange(*map(int, match.groups()))] = title

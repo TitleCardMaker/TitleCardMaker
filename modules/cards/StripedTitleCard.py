@@ -3,7 +3,7 @@ from math import tan, pi as PI
 from pathlib import Path
 from random import choice as random_choice, randint
 from re import IGNORECASE, compile as re_compile
-from typing import TYPE_CHECKING, Literal, Optional, Sequence
+from typing import TYPE_CHECKING, Literal, Sequence
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -129,7 +129,7 @@ class PolygonDistribution:
         self._str = polygons.lower()
         match = self._RANDOMIZED_POLYGONS_REGEX.match(self._str)
 
-        self._distribution: Optional[Sequence[str]] = None
+        self._distribution: Sequence[str] | None = None
         self._order: list[str] = []
         self._sizes: dict[str, list[int]] = self.DEFAULT_SHAPE_SIZES
         self._repeating = False
@@ -455,7 +455,7 @@ class StripedTitleCard(BaseCardType):
             polygons: str = DEFAULT_POLYGON_STRING,
             separator: str = ' - ',
             text_position: TextPosition = DEFAULT_TEXT_POSITION,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

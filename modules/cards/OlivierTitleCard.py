@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
     BaseCardType, ImageMagickCommands, Extra, CardTypeDescription
@@ -136,7 +136,7 @@ class OlivierTitleCard(BaseCardType):
             episode_text_vertical_shift: int = 0,
             omit_gradient: bool = True,
             stroke_color: str = STROKE_COLOR,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this card."""

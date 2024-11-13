@@ -292,7 +292,7 @@ class ComicBookTitleCard(BaseCardType):
             episode_text_color : str = 'black',
             index_text_position: Literal['left', 'middle', 'right'] = 'left',
             text_box_fill_color: str = 'white',
-            text_box_edge_color: Optional[str] = None,
+            text_box_edge_color: str | None = None,
             title_text_rotation_angle: float = -4.0,
             index_text_rotation_angle: float = -4.0,
             banner_fill_color: str = BANNER_FILL_COLOR,
@@ -300,7 +300,7 @@ class ComicBookTitleCard(BaseCardType):
             index_banner_shift: int = 0,
             hide_title_banner: bool = False,
             hide_index_banner: bool = False,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """

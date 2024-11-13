@@ -1,7 +1,7 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import PositiveFloat, root_validator, validator # pylint: disable=no-name-in-module
 
@@ -25,36 +25,36 @@ Creation classes
 class NewEpisode(Base):
     series_id: int
     template_ids: list[int] = []
-    font_id: Optional[int] = None
+    font_id: int | None = None
 
-    source_file: Optional[str] = None
-    card_file: Optional[str] = None
+    source_file: str | None = None
+    card_file: str | None = None
 
     season_number: int = 1
     episode_number: int = 1
-    absolute_number: Optional[int] = None
+    absolute_number: int | None = None
 
     title: str
-    match_title: Optional[bool] = None
-    auto_split_title: Optional[bool] = None
+    match_title: bool | None = None
+    auto_split_title: bool | None = None
 
-    card_type: Optional[str]
-    hide_season_text: Optional[bool]
-    season_text: Optional[str]
-    hide_episode_text: Optional[bool]
-    episode_text: Optional[str]
-    unwatched_style: Optional[Style]
-    watched_style: Optional[Style]
+    card_type: str | None
+    hide_season_text: bool | None
+    season_text: str | None
+    hide_episode_text: bool | None
+    episode_text: str | None
+    unwatched_style: Style | None
+    watched_style: Style | None
 
-    font_color: Optional[str] = None
-    font_size: Optional[PositiveFloat] = None
-    font_kerning: Optional[float] = None
-    font_stroke_width: Optional[float] = None
-    font_interline_spacing: Optional[int] = None
-    font_interword_spacing: Optional[int] = None
-    font_vertical_shift: Optional[int] = None
+    font_color: str | None = None
+    font_size: PositiveFloat | None = None
+    font_kerning: float | None = None
+    font_stroke_width: float | None = None
+    font_interline_spacing: int | None = None
+    font_interword_spacing: int | None = None
+    font_vertical_shift: int | None = None
 
-    airdate: Optional[datetime] = None
+    airdate: datetime | None = None
     emby_id: EmbyID = ''
     imdb_id: IMDbID = None
     jellyfin_id: JellyfinID = ''
@@ -62,7 +62,7 @@ class NewEpisode(Base):
     tvdb_id: TVDbID = None
     tvrage_id: TVRageID = None
 
-    extras: Optional[dict[str, Any]] = None
+    extras: dict[str, Any] | None = None
     translations: dict[str, str] = {}
 
     @validator('template_ids', pre=False)
@@ -76,45 +76,45 @@ Update classes
 """
 class UpdateEpisode(UpdateBase):
     template_ids: list[int] = UNSPECIFIED
-    font_id: Optional[int] = UNSPECIFIED
+    font_id: int | None = UNSPECIFIED
 
-    source_file: Optional[str] = UNSPECIFIED
-    card_file: Optional[str] = UNSPECIFIED
+    source_file: str | None = UNSPECIFIED
+    card_file: str | None = UNSPECIFIED
 
     season_number: int = UNSPECIFIED
     episode_number: int = UNSPECIFIED
-    absolute_number: Optional[int] = UNSPECIFIED
+    absolute_number: int | None = UNSPECIFIED
 
     title: str = UNSPECIFIED
-    match_title: Optional[bool] = UNSPECIFIED
-    auto_split_title: Optional[bool] = UNSPECIFIED
+    match_title: bool | None = UNSPECIFIED
+    auto_split_title: bool | None = UNSPECIFIED
 
-    card_type: Optional[str] = UNSPECIFIED
-    hide_season_text: Optional[bool] = UNSPECIFIED
-    season_text: Optional[str] = UNSPECIFIED
-    hide_episode_text: Optional[bool] = UNSPECIFIED
-    episode_text: Optional[str] = UNSPECIFIED
-    unwatched_style: Optional[Style] = UNSPECIFIED
-    watched_style: Optional[Style] = UNSPECIFIED
+    card_type: str | None = UNSPECIFIED
+    hide_season_text: bool | None = UNSPECIFIED
+    season_text: str | None = UNSPECIFIED
+    hide_episode_text: bool | None = UNSPECIFIED
+    episode_text: str | None = UNSPECIFIED
+    unwatched_style: Style | None = UNSPECIFIED
+    watched_style: Style | None = UNSPECIFIED
 
-    font_color: Optional[str] = UNSPECIFIED
-    font_size: Optional[PositiveFloat] = UNSPECIFIED
-    font_kerning: Optional[float] = UNSPECIFIED
-    font_stroke_width: Optional[float] = UNSPECIFIED
-    font_interline_spacing: Optional[int] = UNSPECIFIED
-    font_interword_spacing: Optional[int] = UNSPECIFIED
-    font_vertical_shift: Optional[int] = UNSPECIFIED
+    font_color: str | None = UNSPECIFIED
+    font_size: PositiveFloat | None = UNSPECIFIED
+    font_kerning: float | None = UNSPECIFIED
+    font_stroke_width: float | None = UNSPECIFIED
+    font_interline_spacing: int | None = UNSPECIFIED
+    font_interword_spacing: int | None = UNSPECIFIED
+    font_vertical_shift: int | None = UNSPECIFIED
 
-    airdate: Optional[datetime] = UNSPECIFIED
-    emby_id: Optional[EmbyID] = UNSPECIFIED
+    airdate: datetime | None = UNSPECIFIED
+    emby_id: EmbyID | None = UNSPECIFIED
     imdb_id: IMDbID = UNSPECIFIED
-    jellyfin_id: Optional[JellyfinID] = UNSPECIFIED
+    jellyfin_id: JellyfinID | None = UNSPECIFIED
     tmdb_id: TMDbID = UNSPECIFIED
     tvdb_id: TVDbID = UNSPECIFIED
     tvrage_id: TVRageID = UNSPECIFIED
 
-    extra_keys: Optional[list[str]] = UNSPECIFIED
-    extra_values: Optional[list[Any]] = UNSPECIFIED
+    extra_keys: list[str] | None = UNSPECIFIED
+    extra_values: list[Any] | None = UNSPECIFIED
     translations: dict[str, str] = UNSPECIFIED
 
     @validator('*', pre=True)
@@ -174,36 +174,36 @@ class Episode(Base):
     series_id: int
     series: SeriesData
     template_ids: list[int]
-    font_id: Optional[int]
+    font_id: int | None
 
-    source_file: Optional[str]
-    card_file: Optional[str]
+    source_file: str | None
+    card_file: str | None
 
     season_number: int
     episode_number: int
-    absolute_number: Optional[int]
+    absolute_number: int | None
 
     title: str
-    match_title: Optional[bool]
-    auto_split_title: Optional[bool]
+    match_title: bool | None
+    auto_split_title: bool | None
 
-    card_type: Optional[str]
-    hide_season_text: Optional[bool]
-    season_text: Optional[str]
-    hide_episode_text: Optional[bool]
-    episode_text: Optional[str]
-    unwatched_style: Optional[str]
-    watched_style: Optional[str]
+    card_type: str | None
+    hide_season_text: bool | None
+    season_text: str | None
+    hide_episode_text: bool | None
+    episode_text: str | None
+    unwatched_style: str | None
+    watched_style: str | None
 
-    font_color: Optional[str]
-    font_size: Optional[PositiveFloat]
-    font_kerning: Optional[float]
-    font_stroke_width: Optional[float]
-    font_interline_spacing: Optional[int]
-    font_interword_spacing: Optional[int]
-    font_vertical_shift: Optional[int]
+    font_color: str | None
+    font_size: PositiveFloat | None
+    font_kerning: float | None
+    font_stroke_width: float | None
+    font_interline_spacing: int | None
+    font_interword_spacing: int | None
+    font_vertical_shift: int | None
 
-    airdate: Optional[datetime]
+    airdate: datetime | None
     emby_id: EmbyID
     imdb_id: IMDbID
     jellyfin_id: JellyfinID
@@ -211,6 +211,6 @@ class Episode(Base):
     tvdb_id: TVDbID
     tvrage_id: TVRageID
 
-    extras: Optional[dict[str, Any]]
+    extras: dict[str, Any] | None
     translations: dict[str, str]
     cards: list[TitleCard]

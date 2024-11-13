@@ -1,4 +1,4 @@
-from typing import Literal, Optional, TypedDict, Union, TYPE_CHECKING
+from typing import Literal, Optional, TypedDict, TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, JSON, String
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from app.models.series import Series
 
 
-SyncInterface = Literal['Emby', 'Jellyfin', 'Plex', 'Sonarr']
+type SyncInterface = Literal['Emby', 'Jellyfin', 'Plex', 'Sonarr']
 SonarrKwargs = TypedDict('SonarrKwargs', {
     'required_tags': list[str], 'excluded_tags': list[str],
     'monitored_only': bool, 'downloaded_only': bool,
@@ -124,7 +124,7 @@ class Sync(Base):
 
 
     @property
-    def sync_kwargs(self) -> Union[SonarrKwargs, NonSonarrKwargs]:
+    def sync_kwargs(self) -> SonarrKwargs | NonSonarrKwargs:
         """
         Keyword arguments for calling the Sync function of the Interface
         associated with this type of Sync - e.g. some implementation of

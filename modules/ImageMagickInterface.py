@@ -5,7 +5,7 @@ from re import findall
 from shlex import split as command_split
 from string import hexdigits
 from subprocess import Popen, PIPE, TimeoutExpired
-from typing import Iterable, Literal, NamedTuple, Optional, Union, overload
+from typing import Iterable, Literal, NamedTuple, overload
 
 from imagesize import get as im_get
 
@@ -13,8 +13,8 @@ from modules.Debug import Logger, log
 
 
 class Dimensions(NamedTuple): # pylint: disable=missing-class-docstring
-    width: Union[int, float]
-    height: Union[int, float]
+    width: int | float
+    height: int | float
 
 
 class ImageMagickInterface:
@@ -62,9 +62,9 @@ class ImageMagickInterface:
 
 
     def __init__(self,
-            container: Optional[str] = None,
+            container: str | None = None,
             use_magick_prefix: bool = False,
-            executable: Optional[Union[str, Path]] = None,
+            executable: str | Path | None = None,
             timeout: int = COMMAND_TIMEOUT_SECONDS,
         ) -> None:
         """
@@ -112,7 +112,7 @@ class ImageMagickInterface:
     def escape_chars(string: str) -> str: ...
 
     @staticmethod
-    def escape_chars(string: Optional[str]) -> Optional[str]:
+    def escape_chars(string: str | None) -> str | None:
         """
         Escape the necessary characters within the given string so that
         they can be sent to ImageMagick.
@@ -134,7 +134,7 @@ class ImageMagickInterface:
         return string
 
 
-    def run(self, command: Union[str, list[str]]) -> tuple[bytes, bytes]:
+    def run(self, command: str | list[str]) -> tuple[bytes, bytes]:
         """
         Wrapper for running a given command. This uses either the host
         machine (i.e. direct calls); or through the provided docker
@@ -211,7 +211,7 @@ class ImageMagickInterface:
             return b''.join(output).decode('iso8859')
 
 
-    def delete_intermediate_images(self, *paths: Optional[Path]) -> None:
+    def delete_intermediate_images(self, *paths: Path | None) -> None:
         """
         Delete all the provided intermediate files. The files do not
         have to exist.
@@ -257,7 +257,7 @@ class ImageMagickInterface:
     def get_text_dimensions(self,
             text_command: list[str],
             *,
-            density: Optional[int] = None,
+            density: int | None = None,
             interline_spacing: int = 0,
             line_count: int = 1,
             width: Literal['sum', 'max'] = 'max',
@@ -330,8 +330,8 @@ class ImageMagickInterface:
             output_image: Path,
             *,
             by: Literal['width', 'height'],
-            width: Optional[int] = None,
-            height: Optional[int] = None
+            width: int | None = None,
+            height: int | None = None
         ) -> Path:
         """
         Resize the given input image by a given width or height.
@@ -373,7 +373,7 @@ class ImageMagickInterface:
             image: Path,
             destination: Path,
             min_dimension: int = 2500
-        ) -> Optional[Path]:
+        ) -> Path | None:
         """
         Convert the given SVG image to PNG format.
 
@@ -431,7 +431,7 @@ class ImageMagickInterface:
     def round_image_corners(self,
             image: Path,
             commands: list[str],
-            dimensions: Optional[Dimensions] = None,
+            dimensions: Dimensions | None = None,
             radius: int = 25,
         ) -> Path:
         """

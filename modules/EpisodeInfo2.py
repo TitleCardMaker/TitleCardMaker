@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional, TypedDict, Union
+from typing import TYPE_CHECKING, TypedDict
 
 from plexapi.video import Episode as PlexEpisode
 from sqlalchemy import ColumnElement, and_, func, or_
@@ -13,13 +13,13 @@ if TYPE_CHECKING:
 
 # pylint: disable=missing-class-docstring
 class UserData(TypedDict):
-    Played: Optional[bool]
+    Played: bool | None
 
 class EmbyProviderIDs(TypedDict):
-    Imdb: Optional[str]
-    Tmdb: Optional[int]
-    Tvdb: Optional[int]
-    TvRage: Optional[int]
+    Imdb: str | None
+    Tmdb: int | None
+    Tvdb: int | None
+    TvRage: int | None
 
 class EmbyEpisodeDict(TypedDict):
     Name: str
@@ -32,23 +32,23 @@ class EmbyEpisodeDict(TypedDict):
 
 class EpisodeDatabaseIDs(TypedDict):
     emby_id: str
-    imdb_id: Optional[str]
+    imdb_id: str | None
     jellyfin_id: str
-    tmdb_id: Optional[int]
-    tvdb_id: Optional[int]
-    tvrage_id: Optional[int]
+    tmdb_id: int | None
+    tvdb_id: int | None
+    tvrage_id: int | None
 
 class EpisodeCharacteristics(TypedDict, total=False):
     season_number: int
     episode_number: int
-    absolute_number: Optional[int]
+    absolute_number: int | None
     absolute_episode_number: int
-    airdate: Optional[datetime]
+    airdate: datetime | None
 
 class EpisodeIndices(TypedDict):
     season_number: int
     episode_number: int
-    absolute_number: Optional[int]
+    absolute_number: int | None
 # pylint: enable=missing-class-docstring
 
 
@@ -76,19 +76,19 @@ class EpisodeInfo(DatabaseInfoContainer):
 
 
     def __init__(self,
-            title: Union[str, Title],
+            title: str | Title,
             season_number: int,
             episode_number: int,
-            absolute_number: Optional[int] = None,
+            absolute_number: int | None = None,
             *,
-            emby_id: Optional[str] = None,
-            imdb_id: Optional[str] = None,
-            jellyfin_id: Optional[str] = None,
-            plex_id: Optional[str] = None,
-            tmdb_id: Optional[int] = None,
-            tvdb_id: Optional[int] = None,
-            tvrage_id: Optional[int] = None,
-            airdate: Optional[datetime] = None,
+            emby_id: str | None = None,
+            imdb_id: str | None = None,
+            jellyfin_id: str | None = None,
+            plex_id: str | None = None,
+            tmdb_id: int | None = None,
+            tvdb_id: int | None = None,
+            tvrage_id: int | None = None,
+            airdate: datetime | None = None,
         ) -> None:
         """
         Initialize this object with the given title, indices, database
@@ -102,12 +102,12 @@ class EpisodeInfo(DatabaseInfoContainer):
         self.airdate = airdate
 
         self.emby_id = InterfaceID(emby_id, type_=int, libraries=True)
-        self.imdb_id: Optional[str] = None
+        self.imdb_id: str | None = None
         self.jellyfin_id = InterfaceID(jellyfin_id, type_=str, libraries=True)
         self.plex_id = InterfaceID(plex_id, type_=int, libraries=True)
-        self.tmdb_id: Optional[int] = None
-        self.tvdb_id: Optional[int] = None
-        self.tvrage_id: Optional[int] = None
+        self.tmdb_id: int | None = None
+        self.tvdb_id: int | None = None
+        self.tvrage_id: int | None = None
 
         self.set_imdb_id(imdb_id)
         self.set_tmdb_id(tmdb_id)
@@ -132,7 +132,7 @@ class EpisodeInfo(DatabaseInfoContainer):
         return f'S{self.season_number:02}E{self.episode_number:02}'
 
 
-    def __eq__(self, other: Union['EpisodeInfo', PlexEpisode]) -> bool:
+    def __eq__(self, other: 'EpisodeInfo | PlexEpisode') -> bool:
         """
         Returns whether the given episode info object corresponds to the
         same entry. This comparison prioritizes ID matches, and gives
@@ -408,7 +408,7 @@ class EpisodeInfo(DatabaseInfoContainer):
 
 
     def set_emby_id(self,
-            emby_id: Optional[int],
+            emby_id: int | None,
             interface_id: int,
             library_name: str,
         ) -> None:
@@ -420,14 +420,14 @@ class EpisodeInfo(DatabaseInfoContainer):
         )
 
 
-    def set_imdb_id(self, imdb_id: Optional[str]) -> None:
+    def set_imdb_id(self, imdb_id: str | None) -> None:
         """Set the IMDb ID of this object. See `_update_attribute()`."""
 
         self._update_attribute('imdb_id', imdb_id, str)
 
 
     def set_jellyfin_id(self,
-            jellyfin_id: Optional[str],
+            jellyfin_id: str | None,
             interface_id: int,
             library_name: str,
         ) -> None:
@@ -439,19 +439,19 @@ class EpisodeInfo(DatabaseInfoContainer):
         )
 
 
-    def set_tmdb_id(self, tmdb_id: Optional[int]) -> None:
+    def set_tmdb_id(self, tmdb_id: int | None) -> None:
         """Set the TMDb ID of this object. See `_update_attribute()`."""
 
         self._update_attribute('tmdb_id', tmdb_id, int)
 
 
-    def set_tvdb_id(self, tvdb_id: Optional[int]) -> None:
+    def set_tvdb_id(self, tvdb_id: int | None) -> None:
         """Set the TVDb ID of this object. See `_update_attribute()`."""
 
         self._update_attribute('tvdb_id', tvdb_id, int)
 
 
-    def set_tvrage_id(self, tvrage_id: Optional[int]) -> None:
+    def set_tvrage_id(self, tvrage_id: int | None) -> None:
         """Set the TVRage ID of this object. See `_update_attribute()`."""
 
         self._update_attribute('tvrage_id', tvrage_id, int)

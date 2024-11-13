@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from re import IGNORECASE, compile as re_compile
 from sys import exit as sys_exit
-from typing import Any, Optional
+from typing import Any
 
 from modules.Debug import log
 from modules.EpisodeDataSource import EpisodeDataSource
@@ -196,7 +196,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface):
             excluded_tags: list[str] = [],
             monitored_only: bool = False,
             downloaded_only: bool = False,
-            series_type: Optional[str] = None,
+            series_type: str | None = None,
         ) -> list[tuple[SeriesInfo, str]]:
         """
         Get all the series within Sonarr, filtered by the given
@@ -334,7 +334,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface):
     def get_all_episodes(self,
             library_name: Any,
             series_info: SeriesInfo,
-            episode_infos: Optional[list[EpisodeInfo]] = None
+            episode_infos: list[EpisodeInfo] | None = None
         ) -> list[EpisodeInfo]:
         """
         Gets all episode info for the given series. Only episodes that

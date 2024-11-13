@@ -1,10 +1,13 @@
 from pathlib import Path
 from random import choice
 from re import compile as re_compile
-from typing import TYPE_CHECKING, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, NamedTuple
 
 from modules.BaseCardType import (
-    BaseCardType, ImageMagickCommands, Extra, CardTypeDescription
+    BaseCardType,
+    ImageMagickCommands,
+    Extra,
+    CardTypeDescription
 )
 from modules.Debug import log
 from modules.Title import SplitCharacteristics
@@ -24,10 +27,10 @@ class Offset:
     OFFSET_REGEX = re_compile(r'([-+]\d+.?\d*)([-+]\d+.?\d*)')
 
     def __init__(self,
-            offset_str: Optional[str] = None,
+            offset_str: str | None = None,
             *,
-            x: Optional[float] = None,
-            y: Optional[float] = None,
+            x: float | None = None,
+            y: float | None = None,
         ) -> None:
         """
         Initialize an Offset object with the given ImageMagick offset
@@ -312,7 +315,7 @@ class RomanNumeralTitleCard(BaseCardType):
             background: str = BACKGROUND_COLOR,
             roman_numeral_color: str = ROMAN_NUMERAL_TEXT_COLOR,
             season_text_color: str = SEASON_TEXT_COLOR,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""
@@ -448,7 +451,7 @@ class RomanNumeralTitleCard(BaseCardType):
 
     def create_season_text_command(self,
             rotation: str,
-            offset: Union[str, Offset],
+            offset: str | Offset,
         ) -> ImageMagickCommands:
         """
         Generate the ImageMagick commands necessary to create season

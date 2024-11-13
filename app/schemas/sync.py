@@ -1,6 +1,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import constr, validator
 
@@ -48,8 +48,8 @@ class NewSonarrSync(NewBaseSync):
     interface = 'Sonarr'
     downloaded_only: bool = False
     monitored_only: bool = False
-    required_series_type: Optional[SonarrSeriesType] = None
-    excluded_series_type: Optional[SonarrSeriesType] = None
+    required_series_type: SonarrSeriesType | None = None
+    excluded_series_type: SonarrSeriesType | None = None
     required_root_folders: list[str] = []
 
 class ExistingBaseSync(NewBaseSync):
@@ -83,8 +83,8 @@ class UpdateSync(Base):
     downloaded_only: bool = UNSPECIFIED
     monitored_only: bool = UNSPECIFIED
     required_root_folders: list[str] = UNSPECIFIED
-    required_series_type: Optional[SonarrSeriesType] = UNSPECIFIED
-    excluded_series_type: Optional[SonarrSeriesType] = UNSPECIFIED
+    required_series_type: SonarrSeriesType | None = UNSPECIFIED
+    excluded_series_type: SonarrSeriesType | None = UNSPECIFIED
 
     @validator('template_ids', pre=False)
     def validate_unique_template_ids(cls, val):

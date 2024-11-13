@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Callable, Iterable
 
 from tinydb import Query, where
 from tmdbapis import TMDbAPIs, NotFound, Unauthorized, TMDbException
@@ -195,7 +195,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
     def __get_condition(self,
             query_type: str,
             series_info: SeriesInfo,
-            episode_info: Optional[EpisodeInfo] = None,
+            episode_info: EpisodeInfo | None = None,
         ) -> Query:
         """
         Get the tinydb query condition for the given query.
@@ -228,7 +228,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
 
     def __update_blacklist(self,
             series_info: SeriesInfo,
-            episode_info: Optional[EpisodeInfo],
+            episode_info: EpisodeInfo | None,
             query_type: str,
         ) -> None:
         """
@@ -341,7 +341,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
 
     @catch_and_log('Error setting series ID')
     def set_series_ids(self,
-            library_name: Optional[str],
+            library_name: str | None,
             series_info: SeriesInfo,
         ) -> None:
         """
@@ -425,7 +425,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_infos: Optional[list[EpisodeInfo]] = None,
+            episode_infos: list[EpisodeInfo] | None = None,
         ) -> list[EpisodeInfo]:
         """
         Gets all episode info for the given series. Only episodes that
@@ -507,7 +507,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
             title_match: bool = True
-        ) -> Optional[TMDbEpisode]:
+        ) -> TMDbEpisode | None:
         """
         Finds the episode index for the given entry. Searching is done
         in the following priority:
@@ -673,7 +673,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
 
     @catch_and_log('Error setting episode IDs')
     def set_episode_ids(self,
-            library_name: Optional[str],
+            library_name: str | None,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
             *,
@@ -742,7 +742,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
             *,
             title_match: bool = True,
             skip_localized_images: bool = False,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the best source image for the requested entry. The URL of
         this image is returned.
@@ -841,7 +841,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
             language_code: str = 'en-US',
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the episode title for the given entry for the given language.
 
@@ -895,7 +895,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
 
 
     @catch_and_log('Error getting series logo', default=None)
-    def get_series_logo(self, series_info: SeriesInfo) -> Optional[str]:
+    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
         """
         Get the best logo for the given series.
 
@@ -967,7 +967,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface):
             series_info: SeriesInfo,
             *,
             skip_localized_images: bool = False,
-        ) -> Optional[str]:
+        ) -> str | None:
         """
         Get the best backdrop for the given series.
 

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Callable, Literal, TypedDict
 
 from re import compile as re_compile, match, IGNORECASE
 
@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from modules.Episode import Episode
 
 
-FontProfile = Literal['custom', 'generic']
-SeasonProfile = Literal['custom', 'generic', 'hidden']
+type FontProfile = Literal['custom', 'generic']
+type SeasonProfile = Literal['custom', 'generic', 'hidden']
 class ProfileDescription(TypedDict): # pylint: disable=missing-class-docstring
     font: FontProfile
     seasons: SeasonProfile
@@ -117,7 +117,7 @@ class Profile:
         try:
             has_custom_font = card_class.is_custom_font(self.font, extras)
         except TypeError: # Handle old-style function calls
-            has_custom_font = card_class.is_custom_font(self.font)
+            has_custom_font = card_class.is_custom_font(self.font) # type: ignore
 
         # If not archiving all variations, return only indicated profile
         if not all_variations:
@@ -193,7 +193,7 @@ class Profile:
 
     def get_season_text(self,
             episode_info: EpisodeInfo,
-            default: Optional[Callable[[EpisodeInfo], str]] = None,
+            default: Callable[[EpisodeInfo | None], str] | None = None,
         ) -> str:
         """
         Gets the season text for the given season number, after applying

@@ -1,4 +1,3 @@
-from logging import Logger
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -29,6 +28,7 @@ from app.schemas.sync import (
 )
 from app.schemas.series import Series
 from app.models.sync import Sync as SyncModel
+from modules.Debug import Logger
 
 
 # Create sub router for all /sync API requests

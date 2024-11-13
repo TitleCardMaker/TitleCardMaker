@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -101,10 +101,10 @@ class FadeTitleCard(BaseCardType):
             font_vertical_shift: int = 0,
             blur: bool = False,
             grayscale: bool = False,
-            logo_file: Optional[Path] = None,
+            logo_file: Path | None = None,
             episode_text_color: str = EPISODE_TEXT_COLOR,
             separator: str = '•',
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """

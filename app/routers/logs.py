@@ -1,6 +1,4 @@
 from datetime import datetime
-from logging import Logger
-from typing import Optional
 from warnings import simplefilter
 
 from fastapi import (
@@ -22,7 +20,7 @@ from app.internal.logs import RawLogData, read_log_files
 from app.models.preferences import Preferences
 from app.schemas.logs import LogEntry, LogInternalServerError, LogLevel
 
-from modules.Debug import log, LOG_FILE
+from modules.Debug import log, Logger, LOG_FILE
 from modules.TemporaryZip import TemporaryZip # noqa: F401
 
 
@@ -51,10 +49,10 @@ _LEVEL_NUMBERS: dict[LogLevel, int] = {
 @log_router.get('/query')
 def query_logs(
         level: LogLevel = Query(default='DEBUG'),
-        after: Optional[datetime] = Query(default=None),
-        before: Optional[datetime] = Query(default=None),
-        context_id: Optional[str] = Query(default=None, min_length=1),
-        contains: Optional[str] = Query(default=None, min_length=1),
+        after: datetime | None = Query(default=None),
+        before: datetime | None = Query(default=None),
+        context_id: str | None = Query(default=None, min_length=1),
+        contains: str | None = Query(default=None, min_length=1),
         shallow: bool = Query(default=True),
     ) -> Page[LogEntry]:
     """
@@ -146,8 +144,8 @@ def get_zipped_log_file(
 
 @log_router.get('/errors')
 def get_internal_server_errors(
-        after: Optional[datetime] = Query(default=None),
-        before: Optional[datetime] = Query(default=None),
+        after: datetime | None = Query(default=None),
+        before: datetime | None = Query(default=None),
         shallow: bool = Query(default=False),
     ) -> list[LogInternalServerError]:
     """

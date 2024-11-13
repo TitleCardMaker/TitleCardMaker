@@ -15,7 +15,6 @@ from modules.Debug import log
 from modules.FormatString import FormatString
 
 if TYPE_CHECKING:
-    from sqlalchemy.event import Events
     from app.models.connection import Connection
     from app.models.episode import Episode
     from app.models.font import Font

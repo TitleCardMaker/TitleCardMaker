@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Iterable
 
 from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
@@ -158,7 +158,7 @@ def get_all_episode_data(
 def refresh_episode_data(
         db: Session,
         series: Series,
-        background_tasks: Optional[BackgroundTasks] = None,
+        background_tasks: BackgroundTasks | None = None,
         *,
         refresh_all_ids: bool = False,
         log: Logger = log,

@@ -1,6 +1,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from app.schemas.base import Base
 
@@ -21,13 +21,13 @@ class LogException(Base):
 
 class LogEntry(Base):
     level: LogLevel
-    context_id: Optional[str]
+    context_id: str | None
     time: datetime
     message: str
-    exception: Optional[LogException]
+    exception: LogException | None
 
 class LogInternalServerError(Base):
-    context_id: Optional[str]
+    context_id: str | None
     time: datetime
     # message: str
     file: str

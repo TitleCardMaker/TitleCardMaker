@@ -1,6 +1,6 @@
 from copy import copy
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal, Union, cast
 
 from tqdm import tqdm
 
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from modules.PreferenceParser import PreferenceParser
 
 
-MediaServer = Literal['emby', 'jellyfin', 'plex']
+type MediaServer = Literal['emby', 'jellyfin', 'plex']
 
 __all__ = ['Show']
 
@@ -106,8 +106,8 @@ class Show(YamlReader):
         self.card_filename_format = preferences.card_filename_format
         self.card_class = preferences.card_class
         self.episode_text_format = self.card_class.EPISODE_TEXT_FORMAT
-        self.library_name: Optional[str] = None
-        self.library: Optional[str] = None
+        self.library_name: str | None = None
+        self.library: str | None = None
         self.media_directory = None
         self.media_server: MediaServer = preferences.default_media_server
         self.image_source_priority = preferences.image_source_priority
@@ -372,11 +372,11 @@ class Show(YamlReader):
 
 
     def assign_interfaces(self,
-            emby_interface: Optional[EmbyInterface] = None,
-            jellyfin_interface: Optional[JellyfinInterface] = None,
-            plex_interface: Optional[PlexInterface] = None,
+            emby_interface: EmbyInterface | None = None,
+            jellyfin_interface: JellyfinInterface | None = None,
+            plex_interface: PlexInterface | None = None,
             sonarr_interfaces: list[SonarrInterface] = [],
-            tmdb_interface: Optional[TMDbInterface] = None,
+            tmdb_interface: TMDbInterface | None = None,
         ) -> None:
         """
         Assign the given interfaces to attributes of this object for
@@ -480,7 +480,7 @@ class Show(YamlReader):
             interface_function()
 
 
-    def __get_destination(self, episode_info: EpisodeInfo) -> Optional[Path]:
+    def __get_destination(self, episode_info: EpisodeInfo) -> Path | None:
         """
         Get the destination filename for the given entry of a datafile.
 
@@ -594,8 +594,13 @@ class Show(YamlReader):
             log.warning(f'Cannot source episodes for {self} from '
                         f'{self.episode_data_source}')
             return None
-        interface: Union[EmbyInterface, JellyfinInterface, PlexInterface,
-                         SonarrInterface, TMDbInterface] = interface
+        interface = cast(
+            Union[
+                EmbyInterface, JellyfinInterface, PlexInterface,
+                SonarrInterface, TMDbInterface
+            ],
+            interface
+        )
 
         all_episodes = interface.get_all_episodes(
             self.library_name, self.series_info, episode_infos=None,
@@ -803,7 +808,7 @@ class Show(YamlReader):
         return None
 
 
-    def __apply_styles(self, select_only: Optional[Episode] = None) -> bool:
+    def __apply_styles(self, select_only: Episode | None = None) -> bool:
         """
         Modify this series' Episode source images based on their watch
         statuses, and how that style applies to this show's un/watched
@@ -874,7 +879,7 @@ class Show(YamlReader):
 
 
     def select_source_images(self,
-            select_only: Optional[Episode] = None,
+            select_only: Episode | None = None,
         ) -> None:
         """
         Modify this series' Episode source images based on their watch
@@ -1137,9 +1142,12 @@ class Show(YamlReader):
         # Exit if no valid media interface
         if not media_interface:
             return None
+        media_interface = cast(
+            EmbyInterface | JellyfinInterface | PlexInterface,
+            media_interface
+        )
 
         # Set title cards and season posters in media interface
-        media_interface: Union[EmbyInterface, JellyfinInterface, PlexInterface]
         media_interface.set_title_cards(
             self.library_name, self.series_info, self.episodes,
         )

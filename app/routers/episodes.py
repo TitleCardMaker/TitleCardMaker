@@ -1,4 +1,3 @@
-from logging import Logger
 from typing import Literal
 
 from fastapi import (
@@ -40,6 +39,7 @@ from app.schemas.episode import (
     NewEpisode,
     UpdateEpisode
 )
+from modules.Debug import Logger
 
 
 episodes_router = APIRouter(

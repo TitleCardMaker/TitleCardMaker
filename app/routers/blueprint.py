@@ -1,7 +1,7 @@
 from json import dump
 from pathlib import Path
 from random import choice as random_choice
-from typing import Literal, Optional
+from typing import Literal
 
 from fastapi import (
     APIRouter,
@@ -275,7 +275,7 @@ def remove_blueprint_from_blacklist(
 def query_all_blueprints_(
         db: Session = Depends(get_database),
         blueprint_db: Session = Depends(get_blueprint_database),
-        creator: Optional[str] = Query(default=None),
+        creator: str | None = Query(default=None),
         order_by: Literal['date', 'name'] = Query(default='date'),
         include_blacklisted: bool = Query(default=False),
         include_imported: bool = Query(default=False),
@@ -371,10 +371,10 @@ def query_series_blueprints_(
 @blueprint_router.get('/query/series')
 def query_blueprints_by_info(
         name: str = Query(..., min_length=1),
-        year: Optional[int] = Query(default=None, min=1900),
-        imdb_id: Optional[str] = Query(default=None),
-        tmdb_id: Optional[int] = Query(default=None),
-        tvdb_id: Optional[int] = Query(default=None),
+        year: int | None = Query(default=None, min=1900),
+        imdb_id: str | None = Query(default=None),
+        tmdb_id: int | None = Query(default=None),
+        tvdb_id: int | None = Query(default=None),
         blueprint_db: Session = Depends(get_blueprint_database),
     ) -> list[RemoteBlueprint]:
     """

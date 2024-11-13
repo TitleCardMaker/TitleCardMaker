@@ -1,6 +1,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false, reportIncompatibleVariableOverride=false
-from typing import Literal, Optional, Union
+from typing import Literal, Union
 
 from pydantic import AnyUrl, SecretStr, constr, validator
 
@@ -47,7 +47,7 @@ class SonarrLibrary(Base):
     path: str
 
 class PotentialSonarrLibrary(SonarrLibrary):
-    interface_id: Optional[int] = None
+    interface_id: int | None = None
 
 class BaseServer(Base):
     id: int
@@ -85,12 +85,12 @@ Creation classes
 class NewEmbyConnection(BaseNewMediaServer):
     name: str = 'Emby Server'
     interface_type: Literal['Emby'] = 'Emby'
-    username: Optional[str] = None
+    username: str | None = None
 
 class NewJellyfinConnection(BaseNewMediaServer):
     name: str = 'Jellyfin Server'
     interface_type: Literal['Jellyfin'] = 'Jellyfin'
-    username: Optional[str] = None
+    username: str | None = None
 
 class NewPlexConnection(BaseNewMediaServer):
     name: str = 'Plex Server'
@@ -109,7 +109,7 @@ class NewTautulliConnection(BaseNewServer):
     tcm_url: str
     agent_name: str = 'TitleCardMaker'
     trigger_watched: bool = True
-    username: Optional[str] = None
+    username: str | None = None
 
 class NewTMDbConnection(Base):
     name: str = 'TMDb'
@@ -148,11 +148,11 @@ Update classes
 """
 class UpdateEmby(BaseUpdateMediaServer):
     api_key: Hexstring = UNSPECIFIED
-    username: Optional[str] = UNSPECIFIED
+    username: str | None = UNSPECIFIED
 
 class UpdateJellyfin(BaseUpdateMediaServer):
     api_key: Hexstring = UNSPECIFIED
-    username: Optional[str] = UNSPECIFIED
+    username: str | None = UNSPECIFIED
 
 class UpdatePlex(BaseUpdateMediaServer):
     api_key: str = UNSPECIFIED
@@ -210,12 +210,12 @@ Return classes
 """
 class EmbyConnection(BaseServer):
     url: str
-    username: Optional[str]
+    username: str | None
     filesize_limit: FilesizeLimit
 
 class JellyfinConnection(BaseServer):
     url: str
-    username: Optional[str]
+    username: str | None
     filesize_limit: FilesizeLimit
 
 class PlexConnection(BaseServer):

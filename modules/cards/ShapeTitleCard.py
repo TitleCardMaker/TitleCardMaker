@@ -5,8 +5,6 @@ from re import match as re_match
 from typing import (
     TYPE_CHECKING,
     Literal,
-    Optional,
-    Union,
     get_args as get_type_args
 )
 
@@ -29,11 +27,11 @@ if TYPE_CHECKING:
 _DEG_TO_RAD = PI / 180.0
 _TAN_60 = tan(60 * _DEG_TO_RAD)
 
-Shape = Literal['circle', 'diamond', 'square', 'down triangle', 'up triangle']
 RandomShapeRegex = (
     r'random\[\s*((circle|diamond|square|down triangle|up triangle)'
     r'\s*(,\s*(circle|diamond|square|down triangle|up triangle))*)\]'
 )
+Shape = Literal['circle', 'diamond', 'square', 'down triangle', 'up triangle']
 SeasonTextPosition = Literal['above', 'below']
 TextPosition = Literal[
     'upper left', 'upper right',
@@ -303,7 +301,7 @@ class ShapeTitleCard(BaseCardType):
             shape_width: int = SHAPE_WIDTH,
             stroke_color: str = 'black',
             text_position: TextPosition = 'lower left',
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""
@@ -433,8 +431,8 @@ class ShapeTitleCard(BaseCardType):
 
 
     def _base_title_text_commands(self,
-            x: Union[int, float] = 300,
-            y: Union[int, float] = 200,
+            x: int | float = 300,
+            y: int | float = 200,
             gravity: str = 'west',
         ) -> ImageMagickCommands:
         """
@@ -472,7 +470,7 @@ class ShapeTitleCard(BaseCardType):
 
 
     @property
-    def _title_text_width(self) -> Union[int, float]:
+    def _title_text_width(self) -> int | float:
         """The width of the title text. Only calculated once."""
 
         # No title text, width of 0

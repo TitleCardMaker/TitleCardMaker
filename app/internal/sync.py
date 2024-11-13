@@ -1,5 +1,4 @@
 from time import sleep
-from typing import Optional, Union
 
 from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.exc import OperationalError
@@ -79,7 +78,7 @@ def sync_all(*, log: Logger = log) -> None:
 
 def add_sync(
         db: Session,
-        new_sync: Union[NewEmbySync, NewJellyfinSync,NewPlexSync,NewSonarrSync],
+        new_sync: NewEmbySync | NewJellyfinSync | NewPlexSync | NewSonarrSync,
         *,
         log: Logger = log,
     ) -> Sync:
@@ -114,7 +113,7 @@ def add_sync(
 def run_sync(
         db: Session,
         sync: Sync,
-        background_tasks: Optional[BackgroundTasks] = None,
+        background_tasks: BackgroundTasks | None = None,
         *,
         log: Logger = log,
     ) -> list[Series]:

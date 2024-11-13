@@ -1,7 +1,7 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportIncompatibleVariableOverride=false
 from pathlib import Path
-from typing import Annotated, Any, Literal, Optional, Union
+from typing import Annotated, Any, Literal, Union
 
 from pydantic import validator, root_validator
 
@@ -22,8 +22,8 @@ class Extra(Base):
     name: str
     identifier: Annotated[str, DictKey]
     description: str
-    tooltip: Optional[str] = None
-    default: Optional[Any] = None
+    tooltip: str | None = None
+    default: Any | None = None
 
 class CardTypeDescription(Base):
     name: str
@@ -68,10 +68,10 @@ Creation classes
 class PreviewTitleCard(UpdateBase):
     card_type: str
     title_text: str = 'Example Title'
-    season_text: Optional[str] = None
+    season_text: str | None = None
     hide_season_text: bool = False
-    episode_text: Optional[str] = None
-    episode_text_format: Optional[str] = None
+    episode_text: str | None = None
+    episode_text_format: str | None = None
     hide_episode_text: bool = False
     blur: bool = False
     grayscale: bool = False
@@ -80,17 +80,17 @@ class PreviewTitleCard(UpdateBase):
     episode_number: int = 1
     absolute_number: int = 1
     style: Style = 'unique'
-    font_id: Optional[int] = None
-    font_color: Optional[str] = None
-    font_interline_spacing: Optional[int] = None
-    font_interword_spacing: Optional[int] = None
-    font_kerning: Optional[float] = None
-    font_size: Optional[float] = None
-    font_stroke_width: Optional[float] = None
-    font_title_case: Optional[TitleCase] = None
-    font_vertical_shift: Optional[int] = None
-    extra_keys: Optional[list[str]] = None
-    extra_values: Optional[list[str]] = None
+    font_id: int | None = None
+    font_color: str | None = None
+    font_interline_spacing: int | None = None
+    font_interword_spacing: int | None = None
+    font_kerning: float | None = None
+    font_size: float | None = None
+    font_stroke_width: float | None = None
+    font_title_case: TitleCase | None = None
+    font_vertical_shift: int | None = None
+    extra_keys: list[str] | None = None
+    extra_values: list[str] | None = None
 
     @validator('*', pre=True)
     def validate_arguments(cls, v):
@@ -113,7 +113,7 @@ class NewTitleCard(Base):
     episode_id: int
     card_file: str
     source_file: str
-    filesize: Optional[int] = None
+    filesize: int | None = None
     card_type: str
 
     @validator('card_file', pre=True)
@@ -137,11 +137,11 @@ class TMDbLanguage(Base):
     name: str
 
 class ExternalSourceImage(Base):
-    data: Optional[str] = None
-    url: Optional[str] = None
-    width: Optional[int] = None
-    height: Optional[int] = None
-    language: Optional[TMDbLanguage] = None
+    data: str | None = None
+    url: str | None = None
+    width: int | None = None
+    height: int | None = None
+    language: TMDbLanguage | None = None
     interface_type: ImageSource = 'TMDb'
 
 class SourceImage(Base):
@@ -167,7 +167,7 @@ class CardActions(Base):
 class EpisodeData(Base):
     season_number: int
     episode_number: int
-    absolute_number: Optional[int] = None
+    absolute_number: int | None = None
 
 class LoadedDetails(Base):
     library_name: str
@@ -181,5 +181,5 @@ class TitleCard(Base):
     file_url: str
     filesize: int
     model_json: dict
-    library_name: Optional[str] = None
-    loaded: Optional[LoadedDetails] = None
+    library_name: str | None = None
+    loaded: LoadedDetails | None = None

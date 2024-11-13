@@ -1,6 +1,6 @@
 from collections import namedtuple
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType, ImageMagickCommands, Extra, CardTypeDescription, Shadow
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from modules.Font import Font
 
 
-DarkenOption = Union[Literal['all', 'box'], bool]
+type DarkenOption = Literal['all', 'box'] | bool
 BoxCoordinates = namedtuple('BoxCoordinates', ('x0', 'y0', 'x1', 'y1'))
 
 
@@ -167,7 +167,7 @@ class LandscapeTitleCard(BaseCardType):
             box_width: int = BOX_WIDTH,
             darken: DarkenOption = 'box',
             shadow_color: str = SHADOW_COLOR,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) ->None:
         """Construct a new instance of this Card."""

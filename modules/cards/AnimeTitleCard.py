@@ -214,7 +214,7 @@ class AnimeTitleCard(BaseCardType):
             font_vertical_shift: int = 0,
             blur: bool = False,
             grayscale: bool = False,
-            kanji: Optional[str] = None,
+            kanji: str | None = None,
             episode_text_font_size: float = 1.0,
             episode_stroke_color: str = EPISODE_STROKE_COLOR,
             episode_text_color: str = EPISODE_TEXT_COLOR,
@@ -226,9 +226,9 @@ class AnimeTitleCard(BaseCardType):
             kanji_stroke_color: str = 'black',
             kanji_stroke_width: float = 1.0,
             kanji_vertical_shift: float = 0.0,
-            season_text_color: Optional[str] = None,
+            season_text_color: str | None = None,
             stroke_color: str = 'black',
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
     BaseCardType, ImageMagickCommands, Extra, CardTypeDescription
@@ -202,7 +202,7 @@ class LogoTitleCard(BaseCardType):
             separator: str = '•',
             stroke_color: str = 'black',
             use_background_image: bool = False,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this card."""

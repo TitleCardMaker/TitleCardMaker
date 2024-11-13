@@ -92,9 +92,9 @@ class PosterTitleCard(BaseCardType):
             font_size: float = 1.0,
             blur: bool = False,
             grayscale: bool = False,
-            logo_file: Optional[Path] = None,
+            logo_file: Path | None = None,
             episode_text_color: str = EPISODE_TEXT_COLOR,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this card."""

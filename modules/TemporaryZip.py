@@ -1,7 +1,6 @@
 from pathlib import Path
 from shutil import copy as copy_file, make_archive as zip_directory
 from time import sleep
-from typing import Optional
 
 from fastapi import BackgroundTasks
 
@@ -18,7 +17,7 @@ class TemporaryZip:
             temporary_directory: Path,
             background_tasks: BackgroundTasks,
             *,
-            name: Optional[str] = None,
+            name: str | None = None,
         ) -> None:
         """
         Initialize a new temporary directory.
@@ -77,7 +76,7 @@ class TemporaryZip:
 
     def add_file(self,
             file: Path,
-            filename: Optional[str] = None,
+            filename: str | None = None,
             *,
             log: Logger = log,
         ) -> None:

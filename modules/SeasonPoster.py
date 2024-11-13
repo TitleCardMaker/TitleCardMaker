@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal
 
 from modules.ImageMaker import ImageMagickCommands, ImageMaker
 
@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from modules.PreferenceParser import PreferenceParser
 
 
-_LogoPlacement = Literal['top', 'middle', 'bottom']
-_TextPlacement = Literal['top', 'bottom']
+type _LogoPlacement = Literal['top', 'middle', 'bottom']
+type _TextPlacement = Literal['top', 'bottom']
 
 
 class SeasonPoster(ImageMaker):
@@ -44,7 +44,7 @@ class SeasonPoster(ImageMaker):
             *,
             source: Path,
             destination: Path,
-            logo: Optional[Path],
+            logo: Path | None,
             season_text: str,
             font: Path = SEASON_TEXT_FONT,
             font_color: str = SEASON_TEXT_COLOR,
@@ -55,7 +55,7 @@ class SeasonPoster(ImageMaker):
             omit_gradient: bool = False,
             omit_logo: bool = False,
             text_placement: _TextPlacement = 'top',
-            preferences: Optional[Union['PreferenceParser', 'Preferences']] = None,
+            preferences: 'PreferenceParser | Preferences | None' = None,
         ) -> None:
         """Initialize this SeasonPoster object."""
 

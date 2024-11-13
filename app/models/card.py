@@ -47,7 +47,7 @@ class Card(Base):
 
     card_type: Mapped[str]
     model_json: Mapped[dict] = mapped_column(
-        MutableDict.as_mutable(JSON),
+        MutableDict.as_mutable(JSON), # type: ignore
         default={}
     )
 

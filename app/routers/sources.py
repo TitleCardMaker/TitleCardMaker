@@ -162,7 +162,7 @@ def download_series_logo_(
         series_id: int,
         request: Request,
         db: Session = Depends(get_database),
-    ) -> Optional[str]:
+    ) -> str | None:
     """
     Download a logo for the given Series. This uses the most relevant
     image source indicated by the appropriate image source priority
@@ -208,7 +208,7 @@ def get_all_episode_source_images(
         jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
         tmdb_interface: TMDbInterface = Depends(require_tmdb_interface),
-        tvdb_interface: Optional[TVDbInterface] = Depends(get_first_tvdb_interface),
+        tvdb_interface: TVDbInterface | None = Depends(get_first_tvdb_interface),
     ) -> list[ExternalSourceImage]:
     """
     Get all Source Images on all interfaces for the given Episode.
@@ -432,9 +432,9 @@ def delete_episode_source_images(
 async def set_episode_source_image(
         request: Request,
         episode_id: int,
-        url: Optional[str] = Form(default=None),
-        file: Optional[UploadFile] = None,
-        interface_id: Optional[int] = Query(default=None),
+        url: str | None = Form(default=None),
+        file: UploadFile | None = None,
+        interface_id: int | None = Query(default=None),
         db: Session = Depends(get_database),
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
     ) -> SourceImage:
@@ -491,7 +491,7 @@ async def set_episode_source_image(
     if uploaded_file:
         source_file.write_bytes(uploaded_file)
         log.debug(f'Wrote {len(uploaded_file)} bytes to {source_file}')
-    else:
+    elif url:
         # If proxied, de-proxy using associated interface
         if url.startswith('/api/proxy/plex?url='):
             # Use first Plex Connection if no ID provided
@@ -573,9 +573,9 @@ def mirror_episode_source_image(
 async def set_series_logo(
         request: Request,
         series_id: int,
-        url: Optional[str] = Form(default=None),
-        file: Optional[UploadFile] = None,
-        season_number: Optional[int] = Query(default=None),
+        url: str | None = Form(default=None),
+        file: UploadFile | None = None,
+        season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
     ) -> None:
     """
@@ -646,9 +646,9 @@ async def set_series_logo(
 async def set_series_backdrop(
         request: Request,
         series_id: int,
-        url: Optional[str] = Form(default=None),
-        file: Optional[UploadFile] = None,
-        season_number: Optional[int] = Query(default=None),
+        url: str | None = Form(default=None),
+        file: UploadFile | None = None,
+        season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
     ) -> None:
     """
@@ -713,7 +713,7 @@ async def set_series_backdrop(
 def delete_series_logo(
         request: Request,
         series_id: int,
-        season_number: Optional[int] = Query(default=None),
+        season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
     ) -> None:
     """
@@ -741,7 +741,7 @@ def delete_series_logo(
 def delete_series_backdrop(
         request: Request,
         series_id: int,
-        season_number: Optional[int] = Query(default=None),
+        season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
     ) -> None:
     """

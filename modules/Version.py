@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
 from re import compile as re_compile
-from typing import Optional, Union
 
 try:
     from modules.Debug import log
@@ -233,10 +232,10 @@ class Changelog:
 
 
     def __init__(self,
-            file: Union[Path, str],
+            file: Path | str,
             /,
-            version: Union[str, Version],
-            date: Optional[datetime] = None,
+            version: str | Version,
+            date: datetime | None = None,
         ) -> None:
         """
         Parse the Changelog (Markdown) in the given file.
@@ -364,7 +363,7 @@ class Changelog:
             )
         )
 
-    def write(self, file: Union[Path, str], /) -> None:
+    def write(self, file: Path | str, /) -> None:
         """Write this Changelog (HTML) to the given file."""
 
         Path(file).write_text(self.html)

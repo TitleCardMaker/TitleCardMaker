@@ -1,7 +1,7 @@
 # pylint: disable=dangerous-default-value
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Iterable, Literal, Optional
+from typing import Iterable, Literal
 
 from ruamel.yaml import YAML, round_trip_dump, comments
 from ruamel.yaml.constructor import DuplicateKeyError
@@ -15,8 +15,9 @@ from modules.PlexInterface import PlexInterface
 from modules.SonarrInterface import SonarrInterface
 from modules.SyncInterface import SyncInterface
 
-SeriesYaml = dict[str, dict[str, str]]
-SyncMode = Literal['append', 'match']
+type SeriesYaml = dict[str, dict[str, str]]
+type SyncMode = Literal['append', 'match']
+
 
 class SeriesYamlWriter:
     """
@@ -34,8 +35,8 @@ class SeriesYamlWriter:
             sync_mode: SyncMode = 'append',
             compact_mode: bool = True,
             volume_map: dict[str, str] = {},
-            template: Optional[str] = None,
-            card_directory: Optional[CleanPath] = None
+            template: str | None = None,
+            card_directory: CleanPath | None = None
         ) -> None:
         """
         Initialize an instance of a SeriesYamlWriter object.
@@ -233,7 +234,7 @@ class SeriesYamlWriter:
             dump(yaml, file_handle, **self.__WRITE_OPTIONS)
 
 
-    def __read_existing_file(self, yaml: SeriesYaml) -> Optional[SeriesYaml]:
+    def __read_existing_file(self, yaml: SeriesYaml) -> SeriesYaml | None:
         """
         Read the existing YAML from this writer's file. If the file has
         no existing YAML to read, then just write the given YAML.
@@ -569,7 +570,7 @@ class SeriesYamlWriter:
             required_tags: list[str] = [],
             monitored_only: bool = False,
             downloaded_only: bool = False,
-            series_type: Optional[str] = None,
+            series_type: str | None = None,
             exclusions: list[dict[str, str]] = [],
         ) -> None:
         """

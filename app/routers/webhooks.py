@@ -1,6 +1,5 @@
 from asyncio import wait_for, TimeoutError as AsyncTimeoutError
 from time import sleep
-from typing import Optional
 
 from fastapi import (
     APIRouter,
@@ -189,7 +188,7 @@ def create_cards_for_sonarr_webhook(
         log.info(f'Cannot find Series {series_info}')
         return None
 
-    def _find_episode(episode_info: EpisodeInfo) -> Optional[Episode]:
+    def _find_episode(episode_info: EpisodeInfo) -> Episode | None:
         """Attempt to find the associated Episode up to three times."""
 
         for _ in range(3):

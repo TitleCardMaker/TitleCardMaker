@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from re import match as re_match, IGNORECASE
 from sys import exit as sys_exit
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 try:
     import click
@@ -221,7 +221,7 @@ def movie_poster(
         top_subtitle: str,
         subtitle: str,
         index: str,
-        logo: Optional[Path],
+        logo: Path | None,
         font: Path,
         font_color: str,
         font_size: float,
@@ -262,8 +262,8 @@ def movie_poster(
 def show_summary(
         directory: Path,
         logo: Path,
-        background: Optional[str],
-        creator: Optional[str],
+        background: str | None,
+        creator: str | None,
         summary_type: Literal['standard', 'stylized'],
     ) -> None:
 
@@ -343,7 +343,7 @@ def show_summary(
 def season_poster(
         source: Path,
         destination: Path,
-        logo: Optional[Path],
+        logo: Path | None,
         season_text: list[str],
         font_file: Path,
         font_color: str,
@@ -409,10 +409,10 @@ def title_card(
         episode: str,
         season: str,
         title: list[str],
-        logo: Optional[Path],
-        font_file: Optional[Path],
+        logo: Path | None,
+        font_file: Path | None,
         font_size: float,
-        font_color: Optional[str],
+        font_color: str | None,
         font_vertical_shift: float,
         font_interline_spacing: float,
         font_kerning: float,

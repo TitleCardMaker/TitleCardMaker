@@ -1,7 +1,7 @@
 from copy import deepcopy
 from pathlib import Path
 from re import compile as re_compile
-from typing import Any, Iterable, Optional, Union
+from typing import Any, Iterable
 
 from modules import global_objects
 from modules.BaseCardType import BaseCardType
@@ -157,7 +157,7 @@ class Episode:
 
 
     def update_source(self,
-            new_source: Union[Path, str, None],
+            new_source: Path | str | None,
             *,
             downloadable: bool,
         ) -> bool:
@@ -195,7 +195,7 @@ class Episode:
         return True
 
 
-    def delete_card(self, *, reason: Optional[str] = None) -> bool:
+    def delete_card(self, *, reason: str | None = None) -> bool:
         """
         Delete the title card for this Episode.
 

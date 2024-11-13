@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union, overload
+from typing import Literal, Union, overload
 
 from sqlalchemy.orm import Session, object_session
 
@@ -13,10 +13,10 @@ from app.schemas.availability import AvailableTemplate
 
 @overload
 def get_effective_template(
-        obj: Union[Preferences, Series, Episode],
+        obj: Preferences | Series | Episode,
         series: Series,
-        episode: Optional[Episode] = None,
-        library: Optional[Library] = None,
+        episode: Episode | None = None,
+        library: Library | None = None,
         *,
         as_dict: Literal[True],
     ) -> dict:
@@ -24,23 +24,23 @@ def get_effective_template(
 
 @overload
 def get_effective_template(
-        obj: Union[Preferences, Series, Episode],
+        obj: Preferences | Series | Episode,
         series: Series,
-        episode: Optional[Episode] = None,
-        library: Optional[Library] = None,
+        episode: Episode | None = None,
+        library: Library | None = None,
         *,
         as_dict: Literal[False] = False,
-    ) -> Optional[Template]:
+    ) -> Template | None:
     ...
 
 def get_effective_template(
-        obj: Union[Preferences, Series, Episode],
+        obj: Preferences | Series | Episode,
         series: Series,
-        episode: Optional[Episode] = None,
-        library: Optional[Library] = None,
+        episode: Episode | None = None,
+        library: Library | None = None,
         *,
         as_dict: bool = False
-    ) -> Union[dict, Optional[Template]]:
+    ) -> dict | Template | None:
     """
     Get the effective Template for the given object, evaluated with the
     given Series and optional Episode. This evaluates all Template
@@ -79,28 +79,28 @@ def get_effective_template(
 def get_effective_templates(
         series: Series,
         episode: Literal[None] = None,
-        library: Optional[Library] = None,
-    ) -> Union[tuple[Optional[Template], None, None],
-               tuple[None, Optional[Template], None]]:
+        library: Library | None = None,
+    ) -> Union[tuple[Template | None, None, None],
+               tuple[None, Template | None, None]]:
     ...
 
 @overload
 def get_effective_templates(
         series: Series,
         episode: Episode,
-        library: Optional[Library] = None,
-    ) -> Union[tuple[Optional[Template], None, None],
-               tuple[None, Optional[Template], None],
-               tuple[None, None, Optional[Template]]]:
+        library: Library | None = None,
+    ) -> Union[tuple[Template | None, None, None],
+               tuple[None, Template | None, None],
+               tuple[None, None, Template]] | None:
     ...
 
 def get_effective_templates(
         series: Series,
-        episode: Optional[Episode] = None,
-        library: Optional[Library] = None,
-    ) -> Union[tuple[Optional[Template], None, None],
-               tuple[None, Optional[Template], None],
-               tuple[None, None, Optional[Template]]]:
+        episode: Episode | None = None,
+        library: Library | None = None,
+    ) -> Union[tuple[Template | None, None, None],
+               tuple[None, Template | None, None],
+               tuple[None, None, Template]] | None:
     """
     Get the effective Global, Series, and Episode Templates for the given
     Series and optional Episode. This evaluates all Template conditions

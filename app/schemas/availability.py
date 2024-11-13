@@ -1,6 +1,4 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
-from typing import Optional
-
 from app.schemas.base import Base
 
 
@@ -12,7 +10,7 @@ class AvailableSeries(Base):
     id: int
     name: str
     year: int
-    directory: Optional[str] = None
+    directory: str | None = None
 
 class AvailableTemplate(Base):
     id: int

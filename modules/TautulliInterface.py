@@ -1,7 +1,6 @@
 from json import dumps
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Optional
 
 from modules.Debug import log
 from modules.WebInterface import WebInterface
@@ -29,7 +28,7 @@ class TautulliInterface(WebInterface):
             update_script: Path,
             agent_name: str = DEFAULT_AGENT_NAME,
             script_timeout: int = DEFAULT_SCRIPT_TIMEOUT,
-            username: Optional[str] = None
+            username: str | None = None
         ) -> None:
         """
         Construct a new instance of an interface to Sonarr.
@@ -119,7 +118,7 @@ class TautulliInterface(WebInterface):
         return watched_integrated, created_integrated
 
 
-    def __create_agent(self) -> Optional[int]:
+    def __create_agent(self) -> int | None:
         """
         Create a new Notification Agent.
 

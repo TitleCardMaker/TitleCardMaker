@@ -1,6 +1,6 @@
 from pathlib import Path
 from random import random
-from typing import TYPE_CHECKING, Literal, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, Literal, NamedTuple
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -381,7 +381,7 @@ class MusicTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             add_controls: bool = False,
-            album_cover: Optional[Path] = None,
+            album_cover: Path | None = None,
             album_size: float = 1.0,
             control_colors: tuple[str, str, str, str, str] = DEFAULT_CONTROL_COLORS,
             draw_heart: bool = False,
@@ -389,7 +389,7 @@ class MusicTitleCard(BaseCardType):
             heart_color: str = 'transparent',
             heart_stroke_color: str = 'white',
             pause_or_play: PlayerAction = DEFAULT_PLAYER_ACTION,
-            percentage: Union[float, Literal['random']] = 'random',
+            percentage: float | Literal['random'] = 'random',
             player_position: PlayerPosition = DEFAULT_PLAYER_POSITION,
             player_color: str = DEFAULT_PLAYER_COLOR,
             player_inset: int = DEFAULT_INSET,
@@ -398,7 +398,7 @@ class MusicTitleCard(BaseCardType):
             round_corners: bool = True,
             subtitle: str = '',
             timeline_color: str = DEFAULT_TIMELINE_COLOR,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""
@@ -447,10 +447,10 @@ class MusicTitleCard(BaseCardType):
         self.timeline_color = timeline_color
 
         # Implementation details
-        self.__album_dimensions: Optional[Dimensions] = None
-        self.__title_dimensions: Optional[Dimensions] = None
-        self.__season_x: Optional[float] = None
-        self.__episode_x: Optional[float] = None
+        self.__album_dimensions: Dimensions | None = None
+        self.__title_dimensions: Dimensions | None = None
+        self.__season_x: float | None = None
+        self.__episode_x: float | None = None
         self.__cleanup: list[Path] = []
 
 

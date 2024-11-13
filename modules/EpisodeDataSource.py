@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from modules.EpisodeInfo import EpisodeInfo
 from modules.SeriesInfo import SeriesInfo
@@ -21,7 +20,7 @@ class EpisodeDataSource(ABC):
 
     @abstractmethod
     def set_series_ids(self,
-            library_name: Optional[str],
+            library_name: str | None,
             series_info: SeriesInfo,
         ) -> None:
         """Set the series ID's for the given SeriesInfo object."""
@@ -31,7 +30,7 @@ class EpisodeDataSource(ABC):
 
     @abstractmethod
     def set_episode_ids(self,
-            library_name: Optional[str],
+            library_name: str | None,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
             *,
@@ -46,7 +45,7 @@ class EpisodeDataSource(ABC):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_infos: Optional[list[EpisodeInfo]] = None,
+            episode_infos: list[EpisodeInfo] | None = None,
         ) -> list[EpisodeInfo]:
         """Get all the EpisodeInfo objects associated with the given series."""
 

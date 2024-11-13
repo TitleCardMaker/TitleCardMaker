@@ -57,7 +57,7 @@ class InterfaceID:
 
     def __init__(self,
             /,
-            id_: Optional[str] = None,
+            id_: str | None = None,
             *,
             type_: Callable[[str], DatabaseID] = str,
             libraries: bool = False,
@@ -379,6 +379,16 @@ class InterfaceID:
         self._ids = {}
 
 
+type IdName = Literal[
+    'emby_id', 'emby',
+    'jellyfin_id', 'jellyfin',
+    'sonarr_id', 'sonarr',
+    'imdb_id', 'imdb',
+    'tmdb_id', 'tmdb',
+    'tvdb_id', 'tvdb',
+    'tvrage_id', 'tvrage',
+]
+
 class DatabaseInfoContainer(ABC):
     """
     This class describes an abstract base class for all Info objects
@@ -428,10 +438,10 @@ class DatabaseInfoContainer(ABC):
     def _update_attribute(self,
             attribute: str,
             value: Any,
-            type_: Optional[Callable] = None,
+            type_: Callable | None = None,
             *,
-            interface_id: Optional[int] = None,
-            library_name: Optional[str] = None,
+            interface_id: int | None = None,
+            library_name: str | None = None,
         ) -> None:
         """
         Set the given attribute to the given value with the given type.
@@ -481,27 +491,29 @@ class DatabaseInfoContainer(ABC):
             id_: Literal['sonarr_id', 'sonarr'],
             /,
             interface_id: int,
-            library_name: Literal[None] = None
+            library_name: None = None
         ) -> bool:
         ...
 
     @overload
     def has_id(self,
             id_: Literal[
-                'imdb_id', 'imdb', 'tmdb_id', 'tmdb', 'tvdb_id', 'tvdb',
+                'imdb_id', 'imdb',
+                'tmdb_id', 'tmdb',
+                'tvdb_id', 'tvdb',
                 'tvrage_id', 'tvrage',
             ],
             /,
-            interface_id: Literal[None] = None,
-            library_name: Literal[None] = None,
+            interface_id: None = None,
+            library_name: None = None,
         ) -> bool:
         ...
 
     def has_id(self,
-            id_: str,
+            id_: IdName,
             /,
-            interface_id: Optional[int] = None,
-            library_name: Optional[str] = None,
+            interface_id: int | None = None,
+            library_name: str | None = None,
         ) -> bool:
         """
         Determine whether this object has defined the given ID.
@@ -537,21 +549,29 @@ class DatabaseInfoContainer(ABC):
 
 
     @overload
-    def has_ids(self, *ids: str, interface_id: int, library_name: str) -> bool:
+    def has_ids(self, *ids: IdName, interface_id: int, library_name: str) -> bool:
         ...
 
     @overload
     def has_ids(self,
-            *ids: str,
-            interface_id: Literal[None] = None,
-            library_name: Literal[None] = None,
+            *ids: IdName,
+            interface_id: int,
+            library_name: None = None,
+        ) -> bool:
+        ...
+
+    @overload
+    def has_ids(self,
+            *ids: IdName,
+            interface_id: None = None,
+            library_name: None = None,
         ) -> bool:
         ...
 
     def has_ids(self,
-            *ids: str,
-            interface_id: Optional[int] = None,
-            library_name: Optional[str] = None,
+            *ids: IdName,
+            interface_id: int | None = None,
+            library_name: str | None = None,
         ) -> bool:
         """
         Determine whether this object has defined all the given ID's.

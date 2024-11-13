@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -191,7 +191,7 @@ class MarvelTitleCard(BaseCardType):
             hide_border: bool = False,
             text_box_color: str = DEFAULT_TEXT_BOX_COLOR,
             text_box_height: int = DEFAULT_TEXT_BOX_HEIGHT,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

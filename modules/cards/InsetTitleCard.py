@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -17,12 +17,12 @@ if TYPE_CHECKING:
     from modules.Font import Font
 
 
-TextPosition = Literal[
+type TextPosition = Literal[
     'upper left', 'upper right',
     'left', 'right',
     'lower left', 'lower right',
 ]
-SeasonTextPosition = Literal['above', 'below']
+type SeasonTextPosition = Literal['above', 'below']
 
 
 class InsetTitleCard(BaseCardType):
@@ -149,7 +149,7 @@ class InsetTitleCard(BaseCardType):
             omit_gradient: bool = False,
             separator: str = '-',
             transparency: float = 1.0,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""
@@ -211,7 +211,7 @@ class InsetTitleCard(BaseCardType):
 
 
     @property
-    def title_height(self) -> Union[int, float]:
+    def title_height(self) -> int | float:
         """The height of the title text."""
 
         # No title, zero height

@@ -1,6 +1,6 @@
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Callable, TypeVar
 
 from yaml import safe_load
 from modules.BaseCardType import BaseCardType
@@ -57,9 +57,9 @@ class YamlReader:
 
     def get(self,
             *attributes: str,
-            type_: Optional[Callable[[str], _AttributeType]] = None,
+            type_: Callable[[str], _AttributeType] | None = None,
             default: Any = None,
-        ) -> Optional[_AttributeType]:
+        ) -> _AttributeType | None:
         """
         Get the value specified by the given attributes/sub-attributes
         of YAML, optionally converting to the given type. Log invalidity
@@ -136,7 +136,7 @@ class YamlReader:
 
 
     @staticmethod
-    def parse_card_type(card_type: str, /) -> Optional[BaseCardType]:
+    def parse_card_type(card_type: str, /) -> type[BaseCardType] | None:
         """
         Read the card_type specification for this object. This first
         looks at the locally implemented types in the TitleCard class,
@@ -163,7 +163,7 @@ class YamlReader:
         return None
 
 
-    def _parse_card_type(self, card_type: str, /) -> Optional[BaseCardType]:
+    def _parse_card_type(self, card_type: str, /) -> BaseCardType | None:
         """
         Read the card_type specification for this object. This first
         looks at the locally implemented types in the TitleCard class,

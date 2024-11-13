@@ -1,7 +1,6 @@
 from base64 import b64encode
 from datetime import datetime
 from sys import exit as sys_exit
-from typing import Optional, Union
 
 from modules import global_objects
 from modules.Debug import log
@@ -16,7 +15,7 @@ from modules.SyncInterface import SyncInterface
 from modules.WebInterface import WebInterface
 
 
-SourceImage = Union[bytes, None]
+type SourceImage = bytes | None
 
 
 class JellyfinInterface(EpisodeDataSource, MediaServer, SyncInterface):
@@ -43,9 +42,9 @@ class JellyfinInterface(EpisodeDataSource, MediaServer, SyncInterface):
     def __init__(self,
             url: str,
             api_key: str,
-            username: Optional[str] = None,
+            username: str | None = None,
             verify_ssl: bool = True,
-            filesize_limit: Optional[int] = None,
+            filesize_limit: int | None = None,
         ) -> None:
         """
         Construct a new instance of an interface to a Jellyfin server.
@@ -98,7 +97,7 @@ class JellyfinInterface(EpisodeDataSource, MediaServer, SyncInterface):
         self.libraries = self._map_libraries()
 
 
-    def _get_user_id(self, username: str) -> Optional[str]:
+    def _get_user_id(self, username: str) -> str | None:
         """
         Get the User ID associated with the given username.
 
@@ -154,7 +153,7 @@ class JellyfinInterface(EpisodeDataSource, MediaServer, SyncInterface):
             series_info: SeriesInfo,
             *,
             raw_obj: bool = False,
-        ) -> Optional[Union[str, SeriesInfo]]:
+        ) -> str | SeriesInfo | None:
         """
         Get the Jellyfin ID (or entire SeriesInfo) for the given series.
 
@@ -204,7 +203,7 @@ class JellyfinInterface(EpisodeDataSource, MediaServer, SyncInterface):
             'parentId': library_id,
         } | self.__params
 
-        def _query_series(year: int) -> Optional[str]:
+        def _query_series(year: int) -> str | None:
             """Look up the series in the specified year"""
 
             response = self.session.get(
@@ -270,7 +269,7 @@ class JellyfinInterface(EpisodeDataSource, MediaServer, SyncInterface):
 
 
     def set_episode_ids(self,
-            library_name: Optional[str],
+            library_name: str | None,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
             *,
@@ -393,7 +392,7 @@ class JellyfinInterface(EpisodeDataSource, MediaServer, SyncInterface):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_infos: Optional[list[EpisodeInfo]] = None,
+            episode_infos: list[EpisodeInfo] | None = None,
         ) -> list[EpisodeInfo]:
         """
         Gets all episode info for the given series. Only episodes that

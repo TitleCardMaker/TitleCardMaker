@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from tinydb import where, Query
 
@@ -61,14 +61,14 @@ class MediaInfoSet:
 
 
     def __series_info_condition(self,
-            full_name: Optional[str],
-            emby_id: Optional[str],
-            imdb_id: Optional[str],
-            jellyfin_id: Optional[str],
-            sonarr_id: Optional[int],
-            tmdb_id: Optional[int],
-            tvdb_id: Optional[int],
-            tvrage_id: Optional[int]
+            full_name: str | None,
+            emby_id: str | None,
+            imdb_id: str | None,
+            jellyfin_id: str | None,
+            sonarr_id: int | None,
+            tmdb_id: int | None,
+            tvdb_id: int | None,
+            tvrage_id: int | None
         ) -> Query:
         """
         Get the Query condition associated with the given SeriesInfo
@@ -95,15 +95,15 @@ class MediaInfoSet:
 
 
     def get_series_info(self,
-            name: Optional[str] = None,
-            year: Optional[int] = None, *,
-            emby_id: Optional[str] = None,
-            imdb_id: Optional[str] = None,
-            jellyfin_id: Optional[str] = None,
-            sonarr_id: Optional[int] = None,
-            tmdb_id: Optional[int] = None,
-            tvdb_id: Optional[int] = None,
-            tvrage_id: Optional[int] = None,
+            name: str | None = None,
+            year: int | None = None, *,
+            emby_id: str | None = None,
+            imdb_id: str | None = None,
+            jellyfin_id: str | None = None,
+            sonarr_id: int | None = None,
+            tmdb_id: int | None = None,
+            tvdb_id: int | None = None,
+            tvrage_id: int | None = None,
             match_titles: bool = True,
         ) -> SeriesInfo:
         """
@@ -268,12 +268,12 @@ class MediaInfoSet:
             series_info: SeriesInfo,
             season_number: int,
             episode_number: int,
-            emby_id: Optional[str],
-            imdb_id: Optional[str],
-            jellyfin_id: Optional[str],
-            tmdb_id: Optional[int],
-            tvdb_id: Optional[int],
-            tvrage_id: Optional[int]
+            emby_id: str | None,
+            imdb_id: str | None,
+            jellyfin_id: str | None,
+            tmdb_id: int | None,
+            tvdb_id: int | None,
+            tvrage_id: int | None
         ) -> list[str]:
         """
         Get the keys to update within the EpisodeInfo map for the given
@@ -305,15 +305,15 @@ class MediaInfoSet:
             title: str,
             season_number: int,
             episode_number: int,
-            abs_number: Optional[int] = None,
+            abs_number: int | None = None,
             *,
-            emby_id: Optional[str] = None,
-            imdb_id: Optional[str] = None,
-            jellyfin_id: Optional[str] = None,
-            tmdb_id: Optional[int] = None,
-            tvdb_id: Optional[int] = None,
-            tvrage_id: Optional[int] = None,
-            airdate: Optional[datetime] = None,
+            emby_id: str | None = None,
+            imdb_id: str | None = None,
+            jellyfin_id: str | None = None,
+            tmdb_id: int | None = None,
+            tvdb_id: int | None = None,
+            tvrage_id: int | None = None,
+            airdate: datetime | None = None,
             title_match: bool = True,
             **queried_kwargs: dict[str, bool]
         ) -> EpisodeInfo:

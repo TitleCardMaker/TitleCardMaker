@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, TypeVar, Union
 from pathlib import Path
 
 from PIL import Image
@@ -11,7 +11,7 @@ from modules.SeriesInfo2 import SeriesInfo
 
 _Card = TypeVar('_Card')
 _Episode = TypeVar('_Episode')
-SourceImage = Union[str, bytes, None]
+SourceImage = str | bytes | None
 
 
 class MediaServer(ABC):
@@ -30,7 +30,7 @@ class MediaServer(ABC):
 
 
     @abstractmethod
-    def __init__(self, filesize_limit: Optional[int]) -> None:
+    def __init__(self, filesize_limit: int | None) -> None:
         """
         Initialize an instance of this object.
         
@@ -43,10 +43,10 @@ class MediaServer(ABC):
 
 
     def compress_image(self,
-            image: Union[str, Path],
+            image: str | Path,
             *,
             log: Logger = log
-        ) -> Optional[Path]:
+        ) -> Path | None:
         """
         Compress the given image until below the filesize limit.
 
@@ -123,7 +123,7 @@ class MediaServer(ABC):
     def load_season_posters(self,
             library_name: str,
             series_info: SeriesInfo,
-            posters: dict[int, Union[str, Path]],
+            posters: dict[int, str | Path],
             *,
             log: Logger = log,
         ) -> None:
@@ -137,7 +137,7 @@ class MediaServer(ABC):
     def load_series_poster(self,
             library_name: str,
             series_info: SeriesInfo,
-            image: Union[str, Path],
+            image: str | Path,
             *,
             log: Logger = log
         ) -> None:
@@ -152,7 +152,7 @@ class MediaServer(ABC):
     def load_series_background(self,
             library_name: str,
             series_info: SeriesInfo,
-            image: Union[str, Path],
+            image: str | Path,
             *,
             log: Logger = log
         ) -> None:

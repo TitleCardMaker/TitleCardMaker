@@ -1,6 +1,6 @@
 from collections import namedtuple
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -171,7 +171,7 @@ class TintedGlassTitleCard(BaseCardType):
             glass_color: str = DARKEN_COLOR,
             rounding_radius: int = DEFAULT_ROUNDING_RADIUS,
             vertical_adjustment: int = 0,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
 

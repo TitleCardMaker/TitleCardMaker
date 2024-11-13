@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from re import IGNORECASE, compile as re_compile
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from fastapi import HTTPException
 
@@ -18,7 +18,7 @@ from modules.SyncInterface import SyncInterface
 from modules.WebInterface import WebInterface
 
 
-SeriesType = Literal['anime', 'daily', 'standard']
+type SeriesType = Literal['anime', 'daily', 'standard']
 
 
 class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface):
@@ -133,8 +133,8 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
             excluded_tags: list[str] = [],
             monitored_only: bool = False,
             downloaded_only: bool = False,
-            required_series_type: Optional[SeriesType] = None,
-            excluded_series_type: Optional[SeriesType] = None,
+            required_series_type: SeriesType | None = None,
+            excluded_series_type: SeriesType | None = None,
             required_root_folders: list[str] = [],
             *,
             log: Logger = log,
@@ -303,7 +303,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
             params={'term': query} | self.__standard_params,
         )
 
-        def get_poster_proxy(images: list[dict[str, str]]) -> Optional[str]:
+        def get_poster_proxy(images: list[dict[str, str]]) -> str | None:
             """
             Get the proxy URL of for the poster indicated in the given
             set of images.
@@ -326,7 +326,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
 
             return None
 
-        def get_sonarr_id(id_: Optional[int], /) -> Optional[str]:
+        def get_sonarr_id(id_: int | None, /) -> str | None:
             return None if id_ is None else f'{self.interface_id}:{id_}'
 
         return [

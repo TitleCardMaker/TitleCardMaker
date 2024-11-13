@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from modules import global_objects
 from modules.Debug import log # noqa: F401
@@ -47,7 +47,7 @@ class ImageMaker(ABC):
     @abstractmethod
     def __init__(self,
             *,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
         ) -> None:
         """
         Initializes a new instance. This gives all subclasses access to

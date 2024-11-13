@@ -1,6 +1,6 @@
 from pathlib import Path
 from re import compile as re_compile
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from num2words import num2words
 
@@ -38,7 +38,7 @@ class SeasonPosterSet(YamlReader):
             episode_map: 'EpisodeMap',
             source_directory: Path,
             media_directory: Path,
-            poster_config: Optional[dict] = None,
+            poster_config: dict | None = None,
         ) -> None:
         """
         Construct a new instance of the set. This parses all YAML
@@ -209,7 +209,7 @@ class SeasonPosterSet(YamlReader):
             )
 
 
-    def get_poster(self, season_number: int) -> Optional[Path]:
+    def get_poster(self, season_number: int) -> Path | None:
         """
         Get the path to the Poster from this set for the given season
         number.

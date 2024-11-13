@@ -1,6 +1,6 @@
 from pathlib import Path
 from re import compile as re_compile
-from typing import Optional, TypedDict
+from typing import TypedDict
 from modules.BaseCardType import BaseCardType
 
 from modules import global_objects
@@ -100,7 +100,7 @@ class Font(YamlReader):
     def __error(self,
             attribute: str,
             value: str,
-            description: Optional[str] = None,
+            description: str | None = None,
         ) -> None:
         """
         Print an error message for the given attribute of the given

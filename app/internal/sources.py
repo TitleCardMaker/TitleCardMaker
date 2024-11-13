@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Literal, Optional, overload
+from typing import Literal, overload
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -54,7 +54,7 @@ def download_all_series_logos(*, log: Logger = log) -> None:
 
 def resolve_source_settings(
         episode: Episode,
-        library: Optional[Library] = None,
+        library: Library | None = None,
     ) -> tuple[Style, Path]:
     """
     Get the Episode style and source file for the given Episode.
@@ -188,7 +188,7 @@ def download_series_logo(
         series: Series,
         *,
         log: Logger = log,
-    ) -> Optional[str]:
+    ) -> str | None:
     """
     Download the logo for the given Series.
 
@@ -272,7 +272,7 @@ def download_series_logo(
 def download_episode_source_image(
         db: Session,
         episode: Episode,
-        library: Optional[Library] = None,
+        library: Library | None = None,
         *,
         raise_exc: Literal[True],
         log: Logger = log,
@@ -283,21 +283,21 @@ def download_episode_source_image(
 def download_episode_source_image(
         db: Session,
         episode: Episode,
-        library: Optional[Library] = None,
+        library: Library | None = None,
         *,
         raise_exc: bool = False,
         log: Logger = log,
-    ) -> Optional[str]:
+    ) -> str | None:
     ...
 
 def download_episode_source_image(
         db: Session,
         episode: Episode,
-        library: Optional[Library] = None,
+        library: Library | None = None,
         *,
         raise_exc: bool = False,
         log: Logger = log,
-    ) -> Optional[str]:
+    ) -> str | None:
     """
     Download the source image for the given Episode.
 
@@ -440,7 +440,7 @@ def download_episode_source_images(
         *,
         raise_exc: bool = False,
         log: Logger = log,
-    ) -> list[Optional[str]]:
+    ) -> list[str] | None:
     """
     Download all Source Images for the given Episode.
 

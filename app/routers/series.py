@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -212,12 +210,12 @@ def delete_series_(
 
 @series_router.get('/search')
 def search_existing_series(
-        name: Optional[str] = None,
-        year: Optional[int] = None,
-        monitored: Optional[bool] = None,
-        font_id: Optional[int] = None,
-        sync_id: Optional[int] = None,
-        template_id: Optional[int] = None,
+        name: str | None = None,
+        year: int | None = None,
+        monitored: bool | None = None,
+        font_id: int | None = None,
+        sync_id: int | None = None,
+        template_id: int | None = None,
         db: Session = Depends(get_database),
     ) -> Page[Series]:
     """
@@ -470,7 +468,7 @@ def query_series_poster(
         series_id: int,
         db: Session = Depends(get_database),
         tmdb_interface: TMDbInterface = Depends(require_tmdb_interface)
-    ) -> Optional[str]:
+    ) -> str | None:
     """
     Query for a poster of the given Series.
 
@@ -486,8 +484,8 @@ def query_series_poster(
 async def set_series_poster(
         request: Request,
         series_id: int,
-        url: Optional[str] = Form(default=None),
-        file: Optional[UploadFile] = None,
+        url: str | None = Form(default=None),
+        file: UploadFile | None = None,
         db: Session = Depends(get_database),
         preferences: Preferences = Depends(get_preferences),
     ) -> str:

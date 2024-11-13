@@ -1,7 +1,7 @@
 from pathlib import Path
 from random import choice as random_choice
 from re import compile as re_compile, IGNORECASE
-from typing import Literal, Optional, TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -259,12 +259,12 @@ class TintedFrameTitleCard(BaseCardType):
             top_element: Element = 'title',
             middle_element: MiddleElement = 'omit',
             bottom_element: Element = 'index',
-            logo_file: Optional[Path] = None,
+            logo_file: Path | None = None,
             logo_size: float = 1.0,
             logo_vertical_shift: int = 0,
             shadow_color: str = SHADOW_COLOR,
             blur_edges: bool = True,
-            preferences: Optional['Preferences'] = None,
+            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""

@@ -1,7 +1,7 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring
 # pyright: reportInvalidTypeForm=false
 from datetime import datetime, timedelta
-from typing import Callable, Optional
+from typing import Callable
 
 from pydantic import conint, constr, PositiveInt
 
@@ -25,8 +25,8 @@ class NewJob(Base):
     description: str
     internal: bool = False
     running: bool = False
-    previous_start_time: Optional[datetime] = None
-    previous_end_time: Optional[datetime] = None
+    previous_start_time: datetime | None = None
+    previous_end_time: datetime | None = None
 
 """
 Update classes
@@ -37,7 +37,7 @@ class UpdateSchedule(Base):
     hours: PositiveInt = 0
     days: PositiveInt = 0
     weeks: PositiveInt = 0
-    crontab: Optional[CronExpression] = '*/10 * * * *'
+    crontab: CronExpression | None = '*/10 * * * *'
 
 """
 Return classes
@@ -45,8 +45,8 @@ Return classes
 class ScheduledTask(Base):
     id: str
     description: str
-    frequency: Optional[int] = None
-    crontab: Optional[str] = None
+    frequency: int | None = None
+    crontab: str | None = None
     next_run: str
-    previous_duration: Optional[timedelta] = None
+    previous_duration: timedelta | None = None
     running: bool

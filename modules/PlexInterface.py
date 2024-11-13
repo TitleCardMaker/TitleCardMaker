@@ -3,7 +3,7 @@ from os import environ
 from pathlib import Path
 from re import IGNORECASE, compile as re_compile
 from sys import exit as sys_exit
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable
 
 from PIL import Image
 from plexapi.exceptions import PlexApiException
@@ -158,7 +158,7 @@ class PlexInterface(EpisodeDataSource, MediaServer, SyncInterface):
     @retry(stop=stop_after_attempt(5),
            wait=wait_fixed(3)+wait_exponential(min=1, max=32),
            reraise=True)
-    def __get_library(self, library_name: str) -> Optional[PlexLibrary]:
+    def __get_library(self, library_name: str) -> PlexLibrary | None:
         """
         Get the Library object under the given name.
 
@@ -181,7 +181,7 @@ class PlexInterface(EpisodeDataSource, MediaServer, SyncInterface):
            reraise=True)
     def __get_series(self,
             library: PlexLibrary,
-            series_info: SeriesInfo) -> Optional[PlexShow]:
+            series_info: SeriesInfo) -> PlexShow | None:
         """
         Get the Series object from within the given Library associated
         with the given SeriesInfo. This tries to match by TVDb ID,
@@ -360,7 +360,7 @@ class PlexInterface(EpisodeDataSource, MediaServer, SyncInterface):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode_infos: Optional[list[EpisodeInfo]] = None,
+            episode_infos: list[EpisodeInfo] | None = None,
         ) -> list[EpisodeInfo]:
         """
         Gets all episode info for the given series. Only episodes that
@@ -688,11 +688,11 @@ class PlexInterface(EpisodeDataSource, MediaServer, SyncInterface):
 
 
     @retry(stop=stop_after_attempt(5),
-           wait=wait_fixed(3)+wait_exponential(min=1, max=32),
+           wait=wait_fixed(3) + wait_exponential(min=1, max=32),
            before_sleep=lambda _:log.warning('Cannot upload image, retrying..'),
            reraise=True)
     def __retry_upload(self,
-            plex_object: Union[PlexEpisode, PlexSeason],
+            plex_object: PlexEpisode | PlexSeason,
             filepath: Path,
         ) -> None:
         """

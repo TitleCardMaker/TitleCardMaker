@@ -1,7 +1,7 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal
 
 from pydantic import ( # pylint: disable=no-name-in-module
     NonNegativeFloat,
@@ -30,14 +30,14 @@ DefaultFont = {
 Base classes
 """
 class BaseFont(Base):
-    color: Optional[str] = None
+    color: str | None = None
     interline_spacing: int = 0
     interword_spacing: int = 0
     kerning: float = 1.0
     line_split_modifier: int = 0
     size: NonNegativeFloat = 1.0
     stroke_width: float = 1.0
-    title_case: Optional[TitleCase] = None
+    title_case: TitleCase | None = None
     vertical_shift: int = 0
 
 class BaseNamedFont(BaseFont):
@@ -55,7 +55,7 @@ class NewNamedFont(BaseNamedFont):
         return None if v == '' else v
 
     @validator('replacements_in', 'replacements_out', pre=True)
-    def validate_list(cls, v: Union[str, list[str]]) -> list[str]:
+    def validate_list(cls, v: str | list[str]) -> list[str]:
         return [v] if isinstance(v, str) else v
 
     @root_validator
@@ -65,20 +65,20 @@ class NewNamedFont(BaseNamedFont):
         return values
 
 class PreviewFont(Base):
-    color: Optional[str] = None
-    kerning: Optional[float] = None
-    interline_spacing: Optional[int] = None
-    interword_spacing: Optional[int] = None
-    size: Optional[PositiveFloat] = None
-    stroke_width: Optional[float] = None
-    vertical_shift: Optional[int] = None
+    color: str | None = None
+    kerning: float | None = None
+    interline_spacing: int | None = None
+    interword_spacing: int | None = None
+    size: PositiveFloat | None = None
+    stroke_width: float | None = None
+    vertical_shift: int | None = None
 
 """
 Update classes
 """
 class UpdateNamedFont(UpdateBase):
     name: constr(min_length=1) = UNSPECIFIED
-    color: Optional[str] = UNSPECIFIED
+    color: str | None = UNSPECIFIED
     interline_spacing: int = UNSPECIFIED
     interword_spacing: int = UNSPECIFIED
     kerning: float = UNSPECIFIED
@@ -87,7 +87,7 @@ class UpdateNamedFont(UpdateBase):
     replacements_out: list[str] = UNSPECIFIED
     size: PositiveFloat = UNSPECIFIED
     stroke_width: float = UNSPECIFIED
-    title_case: Optional[TitleCase] = UNSPECIFIED
+    title_case: TitleCase | None = UNSPECIFIED
     vertical_shift: int = UNSPECIFIED
 
     @validator('*', pre=True)
@@ -95,7 +95,7 @@ class UpdateNamedFont(UpdateBase):
         return None if v == '' else v
 
     @validator('replacements_in', 'replacements_out', pre=True)
-    def validate_list(cls, v: Union[str, list[str]]) -> list[str]:
+    def validate_list(cls, v: str | list[str]) -> list[str]:
         return [v] if isinstance(v, str) else v
 
     @root_validator
@@ -114,7 +114,7 @@ class FontAnalysis(Base):
 class NamedFont(BaseNamedFont):
     id: int
     sort_name: str
-    file: Optional[Path]
-    file_name: Optional[str]
+    file: Path | None
+    file_name: str | None
     replacements_in: list[str]
     replacements_out: list[str]

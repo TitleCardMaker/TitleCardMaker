@@ -1,6 +1,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import AnyUrl
 
@@ -24,7 +24,7 @@ class SonarrWebhookEpisode(Base):
     title: str
     seriesId: int
     # Added in v4.0.0.717 (https://github.com/Sonarr/Sonarr/pull/6151)
-    tvdbId: Optional[int] = None
+    tvdbId: int | None = None
 
 class SonarrWebhook(Base):
     series: SonarrWebhookSeries
@@ -114,7 +114,7 @@ class PlexMetadata(Base):
 class PlexWebhook(Base):
     event: PlexEvent
     # user: bool
-    owner: Optional[bool] = None
+    owner: bool | None = None
     # Account: PlexAccoun
     # Server: PlexServer
     # Player: PlexPlayer
