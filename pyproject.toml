@@ -113,7 +113,7 @@ line-length = 88
 indent-width = 4
 
 # Assume Python 3.11
-target-version = "py311"
+target-version = "py313"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
