@@ -254,7 +254,7 @@ class TintedFrameTitleCard(BaseCardType):
             episode_text_font: Path = EPISODE_TEXT_FONT,
             episode_text_font_size: float = 1.0,
             episode_text_vertical_shift: int = 0,
-            frame_color: str = ...,
+            frame_color: str = 'white',
             frame_width: int = BOX_WIDTH,
             top_element: Element = 'title',
             middle_element: MiddleElement = 'omit',
