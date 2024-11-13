@@ -23,6 +23,10 @@
   max-width: 150px;
 }
 
+#toolbar .invisible.item {
+  display: none;
+}
+
 /* #series-list .card > .image {
   position: relative;
 } */

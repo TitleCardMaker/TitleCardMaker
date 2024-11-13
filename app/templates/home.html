@@ -74,7 +74,16 @@
           <input name="libraries" type="hidden">
           <i class="dropdown icon"></i>
           <div class="default text">None</div>
-          <div class="menu"></div>
+          <div class="menu">
+            {% for connection_id, (connection_type, libraries) in preferences.libraries.items() %}
+              {% for library in libraries %}
+                <div class="vertical item" data-value="{{ connection_type }}::{{ connection_id }}::{{ library }}">
+                  <span class="description">{{ connection_type }}</span>
+                  <span class="text">{{ library }}</span>
+                </div>
+              {% endfor %}
+            {% endfor %}
+          </div>
         </div>
       </td>
       <td data-row="card_count" class="center aligned selectable">
@@ -187,6 +196,14 @@
         </div>
         {% endif %}
         <div class="right menu">
+          <a class="item" data-action="enable-counts" onclick="toggleCounts(true);">
+            <i class="green check circle outline icon"></i>
+            Display Counts
+          </a>
+          <a class="item" data-action="disable-counts" onclick="toggleCounts(false);">
+            <i class="red times circle outline icon"></i>
+            Remove Counts
+          </a>
           {% if preferences.home_page_table_view %}
             <a class="item" data-action="change-display" onclick="toggleGlobalDisplayStyle('poster');">
               <i class="file image outline icon"></i>
@@ -217,7 +234,7 @@
             <th class="six wide collapsing">Series</th>
             <th class="center aligned collapsing">Year</th>
             <th class="center aligned">Libraries</th>
-            <th class="center aligned">Title Cards</th>
+            <th data-column="card_count" class="center aligned">Title Cards</th>
             <th class="center aligned collapsing">Monitored</th>
             <th class="center aligned collapsing no-sort">Create<br>Cards</th>
           </tr>

@@ -1,18 +1,24 @@
 {% if False %}
-import {Series, SeriesPage, Statistic} from './.types.js';
+import {
+  Series,
+  SeriesPage,
+  Statistic
+} from './.types.js';
 {% endif %}
 
 /** @type {number[]} */
 let allIds = [];
 
 /** @type {boolean} */
-const library_unique_cards = {{preferences.library_unique_cards|tojson}};
+const library_unique_cards = {{ preferences.library_unique_cards|tojson }};
 /** @type {boolean} */
-const stylize_unmonitored_posters = {{preferences.stylize_unmonitored_posters|tojson}};
+const stylize_unmonitored_posters = {{ preferences.stylize_unmonitored_posters|tojson }};
 /** @type {boolean} */
-const reduced_animations = {{preferences.reduced_animations|tojson}};
+const reduced_animations = {{ preferences.reduced_animations|tojson }};
 /** @type {boolean} */
-const home_page_table_view = {{preferences.home_page_table_view|tojson}};
+const home_page_table_view = {{ preferences.home_page_table_view|tojson }};
+/** @type {Object.<number, string[]>} Mapping of Connection IDs to library names */
+const libraryMap = {{ preferences.libraries | safe }};
 
 /**
  * Refresh the Card data (progress and card counts) for the Series with the
@@ -176,6 +182,23 @@ function openSeries(seriesId) {
 }
 
 /**
+ * 
+ * @param {boolean} toggle New state of displaying count data.
+ */
+function toggleCounts(toggle) {
+  // Write new state to the localstorage
+  window.localStorage.setItem('home:include-counts', toggle);
+  if (toggle) {
+    document.querySelector('#toolbar .item[data-action="enable-counts"]').classList.add('invisible');
+    document.querySelector('#toolbar .item[data-action="disable-counts"]').classList.remove('invisible');
+  } else {
+    document.querySelector('#toolbar .item[data-action="enable-counts"]').classList.remove('invisible');
+    document.querySelector('#toolbar .item[data-action="disable-counts"]').classList.add('invisible');
+  }
+  getAllSeries();
+}
+
+/**
  * Populate a <tr> element whose base content is provided as `template` with the
  * data defined in the `Series` object `series`.
  * @param {Series} series - Series whose data is used to populate the row.
@@ -195,7 +218,8 @@ function _populateSeriesRow(series, template) {
   // Determine maximum number of Cards based on libraries
   const maxCards = library_unique_cards
     ? series.episode_count * series.libraries.length
-    : series.episode_count;
+    : series.episode_count
+  ;
 
   // Make row red / yellow depending on Card count
   if (series.card_count === 0 && series.episode_count > 0) {
@@ -219,6 +243,11 @@ function _populateSeriesRow(series, template) {
   const poster = row.querySelector('td[data-row="name"] img');
   poster.src = series.small_poster_url;
 
+  // Populate library dropdown
+  if (series.libraries) {
+    row.querySelector('.dropdown[data-value="libraries"] > input').value = series.libraries.map(library => `${library.interface}::${library.interface_id}::${library.name}`).join(',');
+  }
+
   // Add unmonitored class if styling
   if (stylize_unmonitored_posters && !series.monitored) {
     poster.classList.add('unmonitored');
@@ -230,16 +259,22 @@ function _populateSeriesRow(series, template) {
   // Sort libraries on the number of libraries
   row.querySelector('td[data-row="libraries"]').dataset.sortValue = series.libraries.length;
 
-  // Refresh Card data when the card count cell is clicked
-  row.querySelector('td[data-row="card_count"] a').onclick = () => refreshCardData(series.id);
-  
-  // Fill out Card and episode text
-  row.querySelector('td[data-row="card_count"] span[data-value="card_count"]').innerText = `${series.card_count} / ${maxCards} Cards`;
+  // Populate Card counts
+  const includeCounts = window.localStorage.getItem('home:include-counts') === 'true' || false;
+  if (includeCounts) {
+    // Fill out Card and episode text
+    row.querySelector('td[data-row="card_count"] span[data-value="card_count"]').innerText = `${series.card_count} / ${maxCards} Cards`;
 
-  // Populate Card progress bars
-  row.querySelector('td[data-row="card_count"] .progress').dataset.value = `${Math.min(series.card_count, maxCards)},${Math.max(0, maxCards - series.card_count)}`;
-  row.querySelector('td[data-row="card_count"] .progress').dataset.total = maxCards;
-  row.querySelector('td[data-row="card_count"]').dataset.sortValue = Math.max(0, maxCards - series.card_count);
+    // Refresh Card data when the card count cell is clicked
+    row.querySelector('td[data-row="card_count"] a').onclick = () => refreshCardData(series.id);
+
+    // Populate progress bars
+    row.querySelector('td[data-row="card_count"] .progress').dataset.value = `${Math.min(series.card_count, maxCards)},${Math.max(0, maxCards - series.card_count)}`;
+    row.querySelector('td[data-row="card_count"] .progress').dataset.total = maxCards;
+    row.querySelector('td[data-row="card_count"]').dataset.sortValue = Math.max(0, maxCards - series.card_count);
+  } else {
+    row.querySelector('td[data-row="card_count"]').remove();
+  }
 
   // Toggle monitored status when cell is clicked
   row.querySelector('td[data-row="monitored"] a').onclick = () => toggleMonitoredStatus(series.id);
@@ -297,15 +332,20 @@ function _populateSeriesCard(series, template) {
   title.innerText = series.name;
 
   // Progress bar
+  const includeCounts = window.localStorage.getItem('home:include-counts') === 'true' || false;
   const progressBar = clone.querySelector('.progress');
-  const cardVal = Math.min(series.card_count, series.episode_count);
-  if (cardVal > 0) {
-    if (series.monitored) {
-      progressBar.setAttribute('data-value', `${cardVal},${series.episode_count-cardVal},0,0`);
-    } else {
-      progressBar.setAttribute('data-value', `0,0,${cardVal},${series.episode_count-cardVal}`);
+  if (includeCounts) {
+    const cardVal = Math.min(series.card_count, series.episode_count);
+    if (cardVal > 0) {
+      if (series.monitored) {
+        progressBar.setAttribute('data-value', `${cardVal},${series.episode_count-cardVal},0,0`);
+      } else {
+        progressBar.setAttribute('data-value', `0,0,${cardVal},${series.episode_count-cardVal}`);
+      }
+      progressBar.setAttribute('data-total', series.episode_count);
     }
-    progressBar.setAttribute('data-total', series.episode_count);
+  } else {
+    progressBar.remove();
   }
 
   return clone;
@@ -325,6 +365,10 @@ async function getAllSeries(page=undefined, keepSelection=false) {
   // Get associated sort query param
   const sortParam = window.localStorage.getItem('sort-by') || 'alphabetical'
 
+  // Determine API URL based on the counts
+  const includeCounts = window.localStorage.getItem('home:include-counts') === 'true' || false;
+  const apiUrl = includeCounts ? '/api/series/all-extended' : '/api/series/all';
+
   // Fade out existing posters
   if (!reduced_animations) {
     if (home_page_table_view) {
@@ -336,8 +380,8 @@ async function getAllSeries(page=undefined, keepSelection=false) {
 
   // Get this page of Series data
   /** @type {SeriesPage} */
-  let allSeriesData = await fetch(`/api/series/all?order_by=${sortParam}&size={{preferences.home_page_size}}&page=${page}`).then(resp => resp.json());
-  await queryLibraries();
+  let allSeriesData = await fetch(`${apiUrl}?order_by=${sortParam}&size={{ preferences.home_page_size }}&page=${page}`).then(resp => resp.json());
+  // await queryLibraries();
   let allSeries = allSeriesData.items;
   allIds = allSeries.map(series => series.id);
 
@@ -347,10 +391,16 @@ async function getAllSeries(page=undefined, keepSelection=false) {
   // Create elements of each Series
   if (home_page_table_view) {
     const template = document.getElementById('series-row-template');
+    // Display/hiden the card count column
+    if (includeCounts) {
+      document.querySelector('table th[data-column="card_count"]').style.removeProperty('display');
+    } else {
+      document.querySelector('table th[data-column="card_count"]').style.display = 'none';
+    } 
 
     // Clear selected series if indicated
     if (!keepSelection) { selectedSeries = []; }
-    
+
     // Generate table rows
     let rows = allSeries.map(series => _populateSeriesRow(series, template));
   
@@ -359,7 +409,9 @@ async function getAllSeries(page=undefined, keepSelection=false) {
     if (!reduced_animations) {
       $('#series-table tr').transition({animation: 'scale', interval: 15});
     }
-    $('.progress').progress({duration: 1800});
+    if (includeCounts) {
+      $('.progress').progress({duration: 1800});
+    }
 
     // Set selected statuses
     selectedSeries.forEach(seriesId => {
@@ -371,26 +423,23 @@ async function getAllSeries(page=undefined, keepSelection=false) {
     $('#series-table').mousedown(function (event) { event.preventDefault(); });
 
     // Initialize library dropdown for each Series
-    allSeries.forEach(async (series) => {
-      await initializeLibraryDropdowns({
-        selectedLibraries: series.libraries,
-        dropdownElements: $(`#series-id${series.id} .dropdown[data-value="libraries"]`),
-        clearable: false,
-        useLabels: false,
-        onChange: function(value, text, $selectedItem) {
-          // Current value of the library dropdown
-          let libraries = [];
-          if (value) {
-            libraries = value.split(',').map(libraryStr => {
-              const libraryData = libraryStr.split('::');
-              return {interface: libraryData[0], interface_id: libraryData[1], name: libraryData[2]};
-            });
-          }
-          // Get series ID
-          const seriesId = $selectedItem.closest('tr').data('id');
-          updateSeriesConfig(seriesId, {libraries});
-        },
-      });
+    $('.ui.dropdown[data-value="libraries"]').dropdown({
+      placeholder: 'None',
+      clearable: false,
+      useLabels: false,
+      onChange: function(value, text, $selectedItem) {
+        // Current value of the library dropdown
+        let libraries = [];
+        if (value) {
+          libraries = value.split(',').map(libraryStr => {
+            const libraryData = libraryStr.split('::');
+            return {interface: libraryData[0], interface_id: libraryData[1], name: libraryData[2]};
+          });
+        }
+        // Get series ID
+        const seriesId = $selectedItem.closest('tr').data('id');
+        updateSeriesConfig(seriesId, {libraries});
+      },
     });
   } else {
     const template = document.getElementById('series-template');
@@ -401,7 +450,9 @@ async function getAllSeries(page=undefined, keepSelection=false) {
     if (!reduced_animations) {
       $('#series-list .card').transition({animation: 'scale', interval: 15});
     }
-    $('.progress').progress({duration: 2000});
+    if (includeCounts) {
+      $('.progress').progress({duration: 2000});
+    }
 
     // Dim Series posters on hover
     $('.ui.cards .image').dimmer({on: 'ontouchstart' in document.documentElement ? 'click' : 'hover'});
@@ -469,7 +520,7 @@ function getAllStatistics() {
 
 /** Initialize the page by querying for Series and statistics */
 function initAll() {
-  getAllSeries();
+  toggleCounts(window.localStorage.getItem('home:include-counts') === 'true');
   getAllStatistics();
   // Initialize table sorting and dropdowns
   $('table').tablesort();
@@ -551,7 +602,6 @@ function batchProcess() {
     contentType: 'application/json',
     success: () => {
       showInfoToast(`Started Processing ${selectedSeries.length} Series`);
-      // getAllSeries(undefined, true);
       getAllStatistics();
     },
     error: response => showErrorToast({title: 'Error Processing Series', response}),
@@ -588,7 +638,6 @@ function batchDeleteEpisodes() {
     contentType: 'application/json',
     success: actions => {
       showInfoToast(`Deleted Episodes and Title Cards`);
-      // getAllSeries(undefined, true);
       getAllStatistics();
     },
     error: response => showErrorToast({title: 'Error Deleting Episodes', response}),
@@ -608,7 +657,6 @@ function batchDeleteCards() {
     contentType: 'application/json',
     success: actions => {
       showInfoToast(`Deleted ${actions.deleted} Title Cards`);
-      // getAllSeries(undefined, true);
       getAllStatistics();
     },
     error: response => showErrorToast({title: 'Error Deleting Title Cards', response}),
@@ -627,7 +675,6 @@ function batchDeleteSeries() {
     contentType: 'application/json',
     success: () => {
       showInfoToast(`Deleted ${selectedSeries.length} Series`);
-      // getAllSeries(undefined, false); // Clear selection
       getAllStatistics();
     },
     error: response => showErrorToast({title: 'Error Deleting Series', response}),
