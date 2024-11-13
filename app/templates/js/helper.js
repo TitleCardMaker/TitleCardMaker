@@ -413,10 +413,20 @@ async function queryAvailableExtras() {
 }
 
 let popups = {};
-let _allLibraries, _allConnections;
+/** @type {import("./.types").MediaServerLibrary[]} */
+let _allLibraries;
+/** @type {import("./.types").AnyConnection[]} */
+let _allConnections;
+
+/**
+ * @typedef {Object} LibraryConnectionData
+ * @property {import("./.types").AnyConnection[]} connections
+ * @property {import("./.types").MediaServerLibrary[]} libraries
+ */
 /**
  * Query for all the globally available Connections and Libraries. This updates
  * the global variables. Only re-queries if not initialized.
+ * @returns {LibraryConnectionData} Library and Connection details.
  */
 async function queryLibraries() {
   if (_allConnections === undefined) {
@@ -424,9 +434,13 @@ async function queryLibraries() {
       .then(resp => resp.json());
   }
   if (_allLibraries === undefined) {
-    _allLibraries = await fetch('/api/available/libraries/all')
-      .then(resp => resp.json());
+    _allLibraries = await fetch('/api/available/libraries/all').then(resp => resp.json());
   }
+
+  return {
+    connections: _allConnections,
+    libraries: _allLibraries
+  };
 }
 
 /**
