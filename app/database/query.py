@@ -37,9 +37,9 @@ def _get_obj(
         db: Session,
         model: _ObjectType,
         model_name: str,
-        object_id: Optional[int],
+        object_id: int | None,
         raise_exc: bool = True
-    ) -> Optional[_ObjectType]:
+    ) -> _ObjectType | None:
     """
     Get the Object from the database with the given ID.
 
@@ -83,8 +83,8 @@ def _get_obj(
 
 @overload
 def get_blueprint(
-        db: Session, blueprint_id: Literal[None], *, raise_exc: bool = True
-    ) -> Literal[None]:
+        db: Session, blueprint_id: None, *, raise_exc: bool = True
+    ) -> None:
     ...
 
 @overload
@@ -96,15 +96,15 @@ def get_blueprint(
 @overload
 def get_blueprint(
         db: Session, blueprint_id: int, *, raise_exc: Literal[False]
-    ) -> Optional[Blueprint]:
+    ) -> Blueprint | None:
     ...
 
 def get_blueprint(
         db: Session,
-        blueprint_id: Optional[int],
+        blueprint_id: int | None,
         *,
         raise_exc: bool = True
-    ) -> Optional[Blueprint]:
+    ) -> Blueprint | None:
     """
     Get the Blueprint with the given ID from the given Database.
 
@@ -123,7 +123,7 @@ def get_blueprint_set(
 @overload
 def get_blueprint_set(
         db: Session, set_id: int, *, raise_exc: Literal[False] = False
-    ) -> Optional[BlueprintSet]:
+    ) -> BlueprintSet | None:
     ...
 
 def get_blueprint_set(
@@ -389,15 +389,6 @@ def get_all_templates(
     ]
 
 
-AnyInterface = Union[
-    EmbyInterface,
-    JellyfinInterface,
-    PlexInterface,
-    SonarrInterface,
-    TMDbInterface,
-    TVDbInterface,
-]
-
 @overload
 def get_interface(
         interface_id: int, *, raise_exc: Literal[True] = True
@@ -407,14 +398,14 @@ def get_interface(
 @overload
 def get_interface(
         interface_id: int, *, raise_exc: bool = True,
-    ) -> Optional[AnyInterface]:
+    ) -> AnyInterface | None:
     ...
 
 def get_interface(
-        interface_id: Optional[int],
+        interface_id: int | None,
         *,
         raise_exc: bool = True,
-    ) -> Optional[AnyInterface]:
+    ) -> AnyInterface | None:
     """
     Get the `Interface` to communicate with the service with the given
     ID. This searches all the global `InterfaceGroup` for each service.

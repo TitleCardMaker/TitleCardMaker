@@ -641,7 +641,9 @@ def parse_plex(
         api_key=_get(plex, 'api_key', type_=str),
         use_ssl=_get(plex, 'verify_ssl', type_=bool, default=True),
         filesize_limit=_parse_filesize_limit(plex),
-        integrate_with_pmm=_get(plex, 'integrate_with_pmm_overlays', type_=bool)
+        integrate_with_kometa=_get(
+            plex, 'integrate_with_pmm_overlays', type_=bool
+        )
     )
     add_connection(db, new_obj, get_emby_interfaces(), log=log)
 
@@ -775,7 +777,7 @@ def parse_tmdb(
         skip_localized=_get(
             tmdb, 'skip_localized_images', type_=bool, default=True
         ),
-        logo_language_priority=_get(
+        language_priority=_get(
             tmdb, 'logo_language_priority', type_=SplitList, default=['en']
         ),
     )
@@ -811,7 +813,7 @@ def parse_syncs(
         if 'add_template' not in sync:
             return []
 
-        template = db.query(models.template.Template)\
+        template = db.query(TemplateModel)\
             .filter_by(name=sync['add_template'])\
             .first()
         if template is None:
@@ -824,8 +826,12 @@ def parse_syncs(
     def _parse_media_server_sync(
             yaml_dict: YamlDict,
             connection: Connection,
-            NewSyncClass: Union[NewEmbySync, NewJellyfinSync, NewPlexSync]
-        ) -> Union[list[NewEmbySync], list[NewJellyfinSync], list[NewPlexSync]]:
+            NewSyncClass: Union[
+                type[NewEmbySync],
+                type[NewJellyfinSync],
+                type[NewPlexSync]
+            ]
+        ) -> list[NewEmbySync] | list[NewJellyfinSync] | list[NewPlexSync]:
         """
         Inner function to parse the Sync definition of a media server.
 
@@ -1061,7 +1067,7 @@ def parse_templates(
         # Font name specified
         elif isinstance(template_font, str):
             # Get Font ID of this Font (if indicated)
-            font = db.query(models.font.Font)\
+            font = db.query(FontModel)\
                 .filter_by(name=template_font).first()
             if font is None:
                 raise HTTPException(
@@ -1229,7 +1235,7 @@ def parse_series(
             )
         if isinstance(series_font, str):
             # Get Font ID of this Font (if indicated)
-            font = db.query(models.font.Font)\
+            font = db.query(FontModel)\
                 .filter_by(name=series_font).first()
             if font is None:
                 raise HTTPException(
@@ -1251,7 +1257,7 @@ def parse_series(
             )
 
         # Look for Template with this name
-        template_id: Optional[int] = db.query(models.template.Template.id)\
+        template_id = db.query(TemplateModel.id)\
             .filter_by(name=template_name)\
             .first()
         if series_template and not template_id:
@@ -1299,7 +1305,7 @@ def parse_series(
                     media_server = 'Plex'
 
             # Get first Connection for this server type
-            connection = db.query(models.connection.Connection)\
+            connection = db.query(Connection)\
                 .filter_by(interface_type=media_server.title())\
                 .first()
             if connection:
@@ -1441,7 +1447,7 @@ def import_cards(
         if episode.cards and force_reload:
             for card in episode.cards:
                 log.debug(f'{card} deleting record')
-                db.query(models.card.Card).filter_by(id=card.id).delete()
+                db.query(CardModel).filter_by(id=card.id).delete()
                 log.debug(f'{episode} has associated Card - reloading')
 
         # Get finalized Card settings for this Episode, override card file
@@ -1528,7 +1534,7 @@ def import_card_content(
                 if (not library
                     or (library and card.library_name == library['name'])):
                     log.debug(f'{card} deleting record')
-                    db.query(models.card.Card).filter_by(id=card.id).delete()
+                    db.query(CardModel).filter_by(id=card.id).delete()
                     log.debug(f'{episode} has associated Card - reloading')
 
         # If setting textless, change card type
@@ -1608,7 +1614,7 @@ def import_card_files(
                 if (not library
                     or (library and card.library_name == library['name'])):
                     log.debug(f'{card} deleting record')
-                    db.query(models.card.Card).filter_by(id=card.id).delete()
+                    db.query(CardModel).filter_by(id=card.id).delete()
                     log.debug(f'{episode} has associated Card - reloading')
 
         # If setting textless, change card type
