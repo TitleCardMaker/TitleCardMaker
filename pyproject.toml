@@ -20,7 +20,7 @@ dependencies = [
     "jinja2==3.1.4",
     "apscheduler==3.10.4",
     "tzdata==2024.2",
-    "fastapi-pagination==0.12.27",
+    "fastapi-pagination==0.12.31",
     "bcrypt==4.2.0",
     "pillow==10.4.0",
     "passlib[bcrypt]>=1.7.4",
