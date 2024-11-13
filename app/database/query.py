@@ -1,4 +1,4 @@
-from typing import Literal, Optional, TypeVar, Union, overload
+from typing import Literal, TypeVar, Union, overload
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -31,6 +31,16 @@ from modules.Debug import log
 
 
 _ObjectType = TypeVar('_ObjectType', bound=Base)
+
+type AnyInterface = Union[
+    EmbyInterface,
+    JellyfinInterface,
+    PlexInterface,
+    SonarrInterface,
+    TMDbInterface,
+    TVDbInterface,
+]
+type MediaInterface = EmbyInterface | JellyfinInterface | PlexInterface
 
 
 def _get_obj(
@@ -128,10 +138,10 @@ def get_blueprint_set(
 
 def get_blueprint_set(
         db: Session,
-        set_id: Optional[int],
+        set_id: int | None,
         *,
         raise_exc: bool = True
-    ) -> Optional[BlueprintSet]:
+    ) -> BlueprintSet | None:
     """
     Get the BlueprintSet with the given ID from the given Database.
 
@@ -150,15 +160,15 @@ def get_card(
 @overload
 def get_card(
         db: Session, card_id: int, *, raise_exc: Literal[False] = False,
-    ) -> Optional[Card]:
+    ) -> Card | None:
     ...
 
 def get_card(
         db: Session,
-        card_id: Optional[int],
+        card_id: int | None,
         *,
         raise_exc: bool = True
-    ) -> Optional[Card]:
+    ) -> Card | None:
     """
     Get the Card with the given ID from the given Database.
 
@@ -177,16 +187,16 @@ def get_connection(
 @overload
 def get_connection(
         db: Session, connection_id: int, /,*, raise_exc: bool,
-    ) -> Optional[Connection]:
+    ) -> Connection | None:
     ...
 
 def get_connection(
         db: Session,
-        connection_id: Optional[int],
+        connection_id: int | None,
         /,
         *,
         raise_exc: bool = True,
-    ) -> Optional[Connection]:
+    ) -> Connection | None:
     """
     Get the Connection with the given ID from the given Database.
 
@@ -205,15 +215,15 @@ def get_episode(
 @overload
 def get_episode(
         db: Session, episode_id: int, *, raise_exc: Literal[False] = False,
-    ) -> Optional[Episode]:
+    ) -> Episode | None:
     ...
 
 def get_episode(
         db: Session,
-        episode_id: Optional[int],
+        episode_id: int | None,
         *,
         raise_exc: bool = True
-    ) -> Optional[Episode]:
+    ) -> Episode | None:
     """
     Get the Episode with the given ID from the given Database.
 
@@ -225,8 +235,8 @@ def get_episode(
 
 @overload
 def get_font(
-        db: Session, font_id: Literal[None], *, raise_exc: bool = True,
-    ) -> Literal[None]:
+        db: Session, font_id: None, *, raise_exc: bool = True,
+    ) -> None:
     ...
 
 @overload
@@ -238,15 +248,15 @@ def get_font(
 @overload
 def get_font(
         db: Session, font_id: int, *, raise_exc: bool,
-    ) -> Optional[Font]:
+    ) -> Font | None:
     ...
 
 def get_font(
         db: Session,
-        font_id: Optional[int],
+        font_id: int | None,
         *,
         raise_exc: bool = True
-    ) -> Optional[Font]:
+    ) -> Font | None:
     """
     Get the Font with the given ID from the given Database.
 
@@ -265,15 +275,15 @@ def get_series(
 @overload
 def get_series(
         db: Session, series_id: int, *, raise_exc: Union[bool, Literal[False]],
-    ) -> Optional[Series]:
+    ) -> Series | None:
     ...
 
 def get_series(
         db: Session,
-        series_id: Optional[int],
+        series_id: int | None,
         *,
         raise_exc: bool = True
-    ) -> Optional[Series]:
+    ) -> Series | None:
     """
     Get the Series with the given ID from the given Database.
 
@@ -285,8 +295,8 @@ def get_series(
 
 @overload
 def get_sync(
-        db: Session, sync_id: Literal[None], *, raise_exc: bool = True,
-    ) -> Literal[None]:
+        db: Session, sync_id: None, *, raise_exc: bool = True,
+    ) -> None:
     ...
 
 @overload
@@ -299,15 +309,15 @@ def get_sync(
 def get_sync(
         db: Session, sync_id: int, *,
         raise_exc: Union[bool, Literal[False]] = True,
-    ) -> Optional[Sync]:
+    ) -> Sync | None:
     ...
 
 def get_sync(
         db: Session,
-        sync_id: Optional[int],
+        sync_id: int | None,
         *,
         raise_exc: bool = True
-    ) -> Optional[Sync]:
+    ) -> Sync | None:
     """
     Get the Sync with the given ID from the given Database.
 
@@ -326,15 +336,15 @@ def get_template(
 @overload
 def get_template(
         db: Session, template_id: int, *, raise_exc: Union[bool, Literal[False]],
-    ) -> Optional[Template]:
+    ) -> Template | None:
     ...
 
 def get_template(
         db: Session,
-        template_id: Optional[int],
+        template_id: int | None,
         *,
         raise_exc: bool = True
-    ) -> Optional[Template]:
+    ) -> Template | None:
     """
     Get the Template with the given ID from the given Database.
 
@@ -353,7 +363,7 @@ def get_all_templates(
 @overload
 def get_all_templates(
         db: Session, obj_dict: dict, *, raise_exc: Literal[False] = False,
-    ) -> Optional[list[Template]]:
+    ) -> list[Template | None]:
     ...
 
 def get_all_templates(
@@ -361,7 +371,7 @@ def get_all_templates(
         obj_dict: dict,
         *,
         raise_exc: bool = True,
-    ) -> Optional[list[Template]]:
+    ) -> list[Template | None]:
     """
     Get all Templates defined in the given Dictionaries "template_ids"
     key. This removes the "template_ids" key from obj_dict.
@@ -447,6 +457,76 @@ def get_interface(
         interface = TMDbInterfaces[interface_id]
     if not interface and interface_id in TVDbInterfaces:
         interface = TVDbInterfaces[interface_id]
+
+    # If defined (and activated), return
+    if interface:
+        return interface
+
+    # Not defined / activated, raise or return None
+    if raise_exc:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f'No Connection with ID {interface_id} - Connection might be '
+                f'disabled or invalid'
+            )
+        )
+
+    return None
+
+
+@overload
+def get_media_interface(
+        interface_id: int, *, raise_exc: Literal[True] = True
+    ) -> MediaInterface:
+    ...
+
+@overload
+def get_media_interface(
+        interface_id: int, *, raise_exc: bool = True,
+    ) -> MediaInterface | None:
+    ...
+
+def get_media_interface(
+        interface_id: int | None,
+        *,
+        raise_exc: bool = True,
+    ) -> MediaInterface | None:
+    """
+    Get the `Interface` to communicate with the service with the given
+    ID. This searches all the global `InterfaceGroup` for each service.
+
+    Args:
+        interface_id: ID of the Interface to return.
+        raise_exc: Whether to raise an `HTTPException` if there is no
+            Interface with this ID.
+
+    Returns:
+        `Interface` with the given ID, or None if `raise_exc` is False
+        and there is no `Interface` with that ID.
+
+    Raises:
+        HTTPException (404): If there is no valid and active Interface
+            with the given ID.
+        HTTPException (422): No interface ID was provided.
+    """
+
+    if interface_id is None:
+        if raise_exc:
+            raise HTTPException(
+                status_code=422,
+                detail='Connection ID must be provided',
+            )
+        return None
+
+    # Look for interface under each type
+    interface = None
+    if not interface and interface_id in EmbyInterfaces:
+        interface = EmbyInterfaces[interface_id]
+    if not interface and interface_id in JellyfinInterfaces:
+        interface = JellyfinInterfaces[interface_id]
+    if not interface and interface_id in PlexInterfaces:
+        interface = PlexInterfaces[interface_id]
 
     # If defined (and activated), return
     if interface:
