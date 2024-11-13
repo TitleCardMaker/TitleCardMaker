@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import wraps
-from typing import Callable, Literal, Optional
+from typing import Callable, Literal
 
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -75,10 +75,10 @@ Wrap all periodically called functions to set the runnin attributes when
 the job is started and finished.
 """
 # pylint: disable=missing-function-docstring,redefined-outer-name
-def wrap_scheduled_function(job_id: str) -> Callable[[Optional[Logger]], None]:
-    def decorator(func: Callable[[Optional[Logger]], None]) -> Callable[[Optional[Logger]], None]:
+def wrap_scheduled_function(job_id: str) -> Callable[..., Callable[[Logger], None]]:
+    def decorator(func: Callable[[Logger | None], None]) -> Callable[[Logger], None]:
         @wraps(func)
-        def wrapper(log: Optional[Optional[Logger]] = None) -> None:
+        def wrapper(log: Logger | None = None) -> None:
             log = log or contextualize()
             log.info(f'Task[{job_id}] started execution')
             if BaseJobs[job_id].running:
@@ -88,7 +88,7 @@ def wrap_scheduled_function(job_id: str) -> Callable[[Optional[Logger]], None]:
             BaseJobs[job_id].previous_start_time = datetime.now()
             BaseJobs[job_id].running = True
 
-            func(log=log)
+            func(log)
 
             log.info(f'Task[{job_id}] finished execution')
             BaseJobs[job_id].previous_end_time = datetime.now()
@@ -98,46 +98,46 @@ def wrap_scheduled_function(job_id: str) -> Callable[[Optional[Logger]], None]:
     return decorator
 
 @wrap_scheduled_function(JOB_CREATE_TITLE_CARDS)
-def wrapped_create_all_title_cards(log: Optional[Logger] = None) -> None:
-    create_all_title_cards(log=log)
+def wrapped_create_all_title_cards(log: Logger | None = None) -> None:
+    create_all_title_cards(log=log or contextualize())
 
 @wrap_scheduled_function(JOB_DOWNLOAD_SERIES_LOGOS)
-def wrapped_download_all_series_logos(log: Optional[Logger] = None) -> None:
-    download_all_series_logos(log=log)
+def wrapped_download_all_series_logos(log: Logger | None = None) -> None:
+    download_all_series_logos(log=log or contextualize())
 
 @wrap_scheduled_function(JOB_DOWNLOAD_SERIES_POSTERS)
-def wrapped_download_all_series_posters(log: Optional[Logger] = None) -> None:
-    download_all_series_posters(log=log)
+def wrapped_download_all_series_posters(log: Logger | None = None) -> None:
+    download_all_series_posters(log=log or contextualize())
 
 @wrap_scheduled_function(JOB_LOAD_MEDIA_SERVERS)
-def wrapped_load_media_servers(log: Optional[Logger] = None) -> None:
-    load_all_media_servers(log=log)
+def wrapped_load_media_servers(log: Logger | None = None) -> None:
+    load_all_media_servers(log=log or contextualize())
 
 @wrap_scheduled_function(JOB_SYNC_INTERFACES)
-def wrapped_sync_all(log: Optional[Logger] = None) -> None:
-    sync_all(log=log)
+def wrapped_sync_all(log: Logger | None = None) -> None:
+    sync_all(log=log or contextualize())
 
 @wrap_scheduled_function(INTERNAL_JOB_CHECK_FOR_NEW_RELEASE)
-def wrapped_get_latest_version(log: Optional[Logger] = None) -> None:
-    get_latest_version(log=log)
+def wrapped_get_latest_version(log: Logger | None = None) -> None:
+    get_latest_version(log=log or contextualize())
 
 @wrap_scheduled_function(INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES)
-def wrapped_refresh_all_remote_cards(log: Optional[Logger] = None) -> None:
-    refresh_all_remote_card_types(log=log)
+def wrapped_refresh_all_remote_cards(log: Logger | None = None) -> None:
+    refresh_all_remote_card_types(log=log or contextualize())
 
 @wrap_scheduled_function(INTERNAL_JOB_SET_SERIES_IDS)
-def wrapped_set_series_ids(log: Optional[Logger] = None) -> None:
-    set_all_series_ids(log=log)
+def wrapped_set_series_ids(log: Logger | None = None) -> None:
+    set_all_series_ids(log=log or contextualize())
 
 @wrap_scheduled_function(JOB_BACKUP_DATABASE)
-def wrapped_backup_database(log: Optional[Logger] = None) -> None:
-    backup_data(get_preferences().current_version, log=log)
+def wrapped_backup_database(log: Logger | None = None) -> None:
+    backup_data(get_preferences().current_version, log=log or contextualize())
 
 @wrap_scheduled_function(INTERNAL_JOB_CLEAN_DATABASE)
-def wrapped_clean_database(log: Optional[Logger] = None) -> None:
-    clean_database(log=log)
+def wrapped_clean_database(log: Logger | None = None) -> None:
+    clean_database(log=log or contextualize())
 
-def wrapped_snapshot_database(log: Optional[Logger] = None):
+def wrapped_snapshot_database(log: Logger | None = None):
     log = log or contextualize()
     BaseJobs[INTERNAL_JOB_SNAPSHOT_DATABASE].previous_start_time =datetime.now()
     BaseJobs[INTERNAL_JOB_SNAPSHOT_DATABASE].running = True
