@@ -440,7 +440,7 @@ def download_episode_source_images(
         *,
         raise_exc: bool = False,
         log: Logger = log,
-    ) -> list[str] | None:
+    ) -> list[str | None]:
     """
     Download all Source Images for the given Episode.
 

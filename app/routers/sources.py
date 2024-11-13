@@ -1,5 +1,4 @@
 from base64 import b64encode, b64decode
-from typing import Optional
 
 from fastapi import (
     APIRouter,
@@ -182,7 +181,7 @@ def download_episode_source_images_(
         episode_id: int,
         request: Request,
         db: Session = Depends(get_database),
-    ) -> list[Optional[str]]:
+    ) -> list[str | None]:
     """
     Download the Source Images for the given Episode. This uses the most
     relevant image source indicated by the global image source priority.

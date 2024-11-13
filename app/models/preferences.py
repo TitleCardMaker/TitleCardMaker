@@ -265,7 +265,10 @@ class Preferences:
         self.use_sonarr = False
         self.use_tmdb = False
         self.use_tvdb = False
-        self.libraries: dict[int, list[str]] = {}
+        self.libraries: dict[
+            int,
+            tuple[Literal['Emby', 'Jellyfin', 'Plex'], list[str]]
+        ] = {}
 
         self.use_magick_prefix = False
         self.blacklisted_blueprints: set[int] = set()

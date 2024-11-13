@@ -39,11 +39,11 @@ from modules.PlexInterface2 import PlexInterface
 
 
 _MediaServerInterface = (EmbyInterface, JellyfinInterface, PlexInterface)
-_NewConnection = Union[
+type _NewConnection = Union[
     NewEmbyConnection, NewJellyfinConnection, NewPlexConnection,
     NewSonarrConnection, NewTMDbConnection, NewTVDbConnection,
 ]
-_UpdateConnection = Union[
+type _UpdateConnection = Union[
     UpdateEmby, UpdateJellyfin, UpdatePlex, UpdateSonarr, UpdateTMDb, UpdateTVDb
 ]
 
@@ -99,7 +99,10 @@ def initialize_connections(
                 )
                 interface = interface_group[connection.id]
                 if isinstance(interface, _MediaServerInterface):
-                    preferences.libraries[connection.id] = interface.get_libraries()
+                    preferences.libraries[connection.id] = (
+                        interface_type,
+                        interface.get_libraries()
+                    )
                     log.trace(f'Preferences.libraries[{connection.id}] = '
                               f'{preferences.libraries[connection.id]}')
             except Exception:

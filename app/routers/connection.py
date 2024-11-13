@@ -734,7 +734,7 @@ def get_interface_libraries(
     - interface_id: ID of the Connection whose libraries to return.
     """
 
-    return preferences.libraries.get(interface_id, [])
+    return preferences.libraries.get(interface_id, [])[1]
 
 
 @connection_router.post('/{interface_id}/libraries')
@@ -753,23 +753,28 @@ def refresh_interface_libraries(
     """
 
     # Get associated Interface from relevant group
-    interface = None
+    interface, interface_type = None, None
     if interface_id in emby_interfaces:
         interface = emby_interfaces[interface_id]
+        interface_type = 'Emby'
     elif interface_id in jellyfin_interfaces:
         interface = jellyfin_interfaces[interface_id]
+        interface_type = 'Jellyfin'
     elif interface_id in plex_interfaces:
         interface = plex_interfaces[interface_id]
+        interface_type = 'Plex'
 
     # Raise 404 if no valid Interface was found
-    if interface is None:
+    if interface is None or interface_type is None:
         raise HTTPException(
             status_code=404,
             detail='No valid media server Connection with the given ID'
         )
 
     # Query libraries, return result
-    preferences.libraries[interface_id] = interface.get_libraries()
-    preferences.commit()
+    preferences.libraries[interface_id] = (
+        interface_type,
+        interface.get_libraries()
+    )
 
-    return preferences.libraries[interface_id]
+    return preferences.libraries[interface_id][1]

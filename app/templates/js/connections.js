@@ -10,7 +10,11 @@ const invalidConnectionIDs = {{ preferences.invalid_connections | safe }};
 /** @type {boolean} Whether authentication is required */
 const requireAuth = {{ preferences.require_auth | lower }};
 /** @type {Object.<number, string[]>} Mapping of Connection IDs to library names */
-const libraryMap = {{ preferences.libraries | safe }};
+const libraryMap = {
+  {% for connection_id, libraries in preferences.libraries.items() %}
+  {{ connection_id }}: {{libraries[1] | tojson}}
+  {% endfor %}
+};
 
 // TVDb ordering types
 const tvdbOrderingTypes = [
