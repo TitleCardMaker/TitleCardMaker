@@ -2,18 +2,22 @@ from pathlib import Path
 from time import sleep
 
 from fastapi import BackgroundTasks, HTTPException
+from fastapi_pagination.ext.sqlalchemy import paginate
 from PIL import Image, UnidentifiedImageError
 from requests import get
+from sqlalchemy import desc, func
 from sqlalchemy.exc import InvalidRequestError, OperationalError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only, joinedload
 
 from app.database.query import (
     get_all_templates,
     get_connection,
     get_font,
     get_interface,
+    get_media_interface,
     get_sync,
 )
+from app.database.session import Page
 from app.dependencies import (
     get_database,
     get_preferences,
@@ -38,7 +42,14 @@ from app.models.loaded import Loaded
 from app.models.series import Series
 from app.schemas.base import UNSPECIFIED
 from app.schemas.connection import EpisodeDataSourceInterface
-from app.schemas.series import NewSeries, SearchResult, UpdateSeries
+from app.schemas.series import (
+    NewSeries,
+    SearchResult,
+    SeriesOrder,
+    SeriesOverview,
+    SeriesOverviewWithCounts,
+    UpdateSeries
+)
 from modules.Debug import Logger, log
 from modules.EmbyInterface2 import EmbyInterface
 from modules.JellyfinInterface2 import JellyfinInterface
@@ -198,9 +209,9 @@ def download_series_poster(
     # Download poster from Media Server if possible
     series_info, poster = series.as_series_info, None
     for library in series.libraries:
-        if (interface := get_interface(library['interface_id'])):
+        if (interface := get_media_interface(library['interface_id'])):
             try:
-                poster = interface.get_series_poster( # type: ignore
+                poster = interface.get_series_poster(
                     library['name'], series_info, log=log
                 )
             except Exception:
@@ -583,7 +594,7 @@ def load_all_series_title_cards(
     # Load into each assigned library
     for library in series.libraries:
         interface_id = library['interface_id']
-        if (interface := get_interface(interface_id)):
+        if (interface := get_media_interface(interface_id)):
             load_series_title_cards(
                 series, library['name'], interface_id, db, interface,
                 force_reload=force_reload, episodes=episodes, log=log,
@@ -871,3 +882,77 @@ def lookup_series(
         result.added = existing is not None
 
     return results # type: ignore
+
+
+def query_and_filter_series(
+        db: Session,
+        order_by: SeriesOrder,
+        *,
+        include_counts: bool,
+    ) -> Page[SeriesOverview] | Page[SeriesOverviewWithCounts]:
+    """
+    """
+
+    # Include joined load for Episode and Cards if counts are expected
+    # to be returned
+    loads = []
+    if include_counts:
+        loads = [
+            joinedload(Series.episodes),
+            joinedload(Series.cards),
+        ]
+
+    # Perform query
+    query = db.query(Series).options(
+        *loads,
+        load_only(
+            Series.id,
+            Series.full_name,
+            Series.sort_name,
+            Series.year,
+            Series.poster_url,
+            # Series.small_poster_url,
+            Series.libraries,
+            # Series.episode_count,
+            # Series.card_count,
+            Series.sync_id,
+            Series.monitored,
+        )
+    )
+
+    # Order associated query
+    series = query
+    if order_by == 'alphabetical':
+        series = query.order_by(Series.sort_name, Series.year)
+    elif order_by == 'reverse-alphabetical':
+        series = query.order_by(desc(Series.sort_name), Series.year)
+    # Order by Cards
+    elif order_by == 'cards':
+        series = query\
+            .outerjoin(Card)\
+            .group_by(Series.id)\
+            .order_by(func.count(Series.id))
+    elif order_by == 'reverse-cards':
+        series = query\
+            .outerjoin(Card)\
+            .group_by(Series.id)\
+            .order_by(func.count(Series.id).desc())
+    # Order by Sync
+    elif order_by == 'sync':
+        series = query.order_by(
+            Series.sync_id.desc(),
+            Series.sort_name,
+            Series.year
+        )
+    # Order by ID
+    elif order_by == 'id':
+        series = query.order_by(Series.id)
+    elif order_by == 'reverse-id':
+        series = query.order_by(Series.id.desc())
+    # Order by Year > Name
+    elif order_by == 'year':
+        series = query.order_by(Series.year, func.lower(Series.sort_name))
+    elif order_by == 'reverse-year':
+        series = query.order_by(Series.year.desc(), func.lower(Series.sort_name))
+
+    return paginate(series)

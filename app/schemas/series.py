@@ -1,6 +1,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false, reportIncompatibleVariableOverride=false
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal
 
 from pydantic import conint, constr, Field, root_validator, validator
 
@@ -45,7 +45,7 @@ SeriesOrder = Literal[
 class Condition(Base):
     argument: FilterArgument
     operation: FilterOperation
-    reference: Optional[str] = None
+    reference: str | None = None
 
 class Translation(Base):
     language_code: TMDbLanguageCode
@@ -57,21 +57,21 @@ class MediaServerLibrary(Base):
     name: str
 
 class BaseConfig(Base):
-    font_id: Optional[int] = None
-    sync_specials: Optional[bool] = None
-    skip_localized_images: Optional[bool] = None
-    card_filename_format: Optional[str] = None
-    data_source_id: Optional[int] = None
-    card_type: Optional[str] = None
-    unwatched_style: Optional[Style] = None
-    watched_style: Optional[Style] = None
-    hide_season_text: Optional[bool] = None
-    hide_episode_text: Optional[bool] = None
-    episode_text_format: Optional[str] = None
-    image_source_priority: Optional[list[int]] = None
+    font_id: int | None = None
+    sync_specials: bool | None = None
+    skip_localized_images: bool | None = None
+    card_filename_format: str | None = None
+    data_source_id: int | None = None
+    card_type: str | None = None
+    unwatched_style: Style | None = None
+    watched_style: Style | None = None
+    hide_season_text: bool | None = None
+    hide_episode_text: bool | None = None
+    episode_text_format: str | None = None
+    image_source_priority: list[int] | None = None
 
     @validator('image_source_priority', pre=False)
-    def validate_unique_isp_id(cls, val: Optional[list[int]]) -> Optional[list[int]]:
+    def validate_unique_isp_id(cls, val: list[int] | None) -> list[int] | None:
         if val is None:
             return val
         if len(val) != len(set(val)):
@@ -81,27 +81,27 @@ class BaseConfig(Base):
 class BaseTemplate(BaseConfig):
     name: constr(min_length=1)
     filters: list[Condition] = []
-    translations: Optional[list[Translation]] = None
+    translations: list[Translation] | None = None
 
 class BaseSeries(BaseConfig):
     name: constr(min_length=1)
     year: conint(ge=1900)
     monitored: bool = True
-    template_ids: Optional[list[int]] = None
+    template_ids: list[int] | None = None
     match_titles: bool = True
     auto_split_title: bool = True
     use_per_season_assets: bool = False
-    translations: Optional[list[Translation]] = None
+    translations: list[Translation] | None = None
     libraries: list[MediaServerLibrary] = []
 
-    font_color: Optional[str] = None
-    font_title_case: Optional[TitleCase] = None
-    font_size: Optional[float] = None
-    font_kerning: Optional[float] = None
-    font_stroke_width: Optional[float] = None
-    font_interline_spacing: Optional[int] = None
-    font_interword_spacing: Optional[int] = None
-    font_vertical_shift: Optional[int] = None
+    font_color: str | None = None
+    font_title_case: TitleCase | None = None
+    font_size: float | None = None
+    font_kerning: float | None = None
+    font_stroke_width: float | None = None
+    font_interline_spacing: int | None = None
+    font_interword_spacing: int | None = None
+    font_vertical_shift: int | None = None
 
     emby_id: EmbyID = ''
     imdb_id: IMDbID = None
@@ -110,28 +110,28 @@ class BaseSeries(BaseConfig):
     tmdb_id: TMDbID = None
     tvdb_id: TVDbID = None
     tvrage_id: TVRageID = None
-    directory: Optional[str] = None
+    directory: str | None = None
 
 class BaseUpdate(UpdateBase):
-    name: Optional[constr(min_length=1)] = UNSPECIFIED
+    name: constr(min_length=1) | None = UNSPECIFIED
     monitored: bool = UNSPECIFIED
-    font_id: Optional[int] = UNSPECIFIED
-    sync_specials: Optional[bool] = UNSPECIFIED
-    skip_localized_images: Optional[bool] = UNSPECIFIED
-    card_filename_format: Optional[str] = UNSPECIFIED
-    data_source_id: Optional[int] = UNSPECIFIED
-    image_source_priority: Optional[list[int]] = UNSPECIFIED
-    translations: Optional[list[Translation]] = UNSPECIFIED
-    card_type: Optional[str] = UNSPECIFIED
-    hide_season_text: Optional[bool] = UNSPECIFIED
-    season_title_ranges: Optional[list[SeasonTitleRange]] = UNSPECIFIED
-    season_title_values: Optional[list[str]] = UNSPECIFIED
-    hide_episode_text: Optional[bool] = UNSPECIFIED
-    unwatched_style: Optional[Style] = UNSPECIFIED
-    watched_style: Optional[Style] = UNSPECIFIED
-    episode_text_format: Optional[str] = UNSPECIFIED
-    extra_keys: Optional[list[DictKey]] = UNSPECIFIED
-    extra_values: Optional[list[Any]] = UNSPECIFIED
+    font_id: int | None = UNSPECIFIED
+    sync_specials: bool | None = UNSPECIFIED
+    skip_localized_images: bool | None = UNSPECIFIED
+    card_filename_format: str | None = UNSPECIFIED
+    data_source_id: int | None = UNSPECIFIED
+    image_source_priority: list[int] | None = UNSPECIFIED
+    translations: list[Translation] | None = UNSPECIFIED
+    card_type: str | None = UNSPECIFIED
+    hide_season_text: bool | None = UNSPECIFIED
+    season_title_ranges: list[SeasonTitleRange] | None = UNSPECIFIED
+    season_title_values: list[str] | None = UNSPECIFIED
+    hide_episode_text: bool | None = UNSPECIFIED
+    unwatched_style: Style | None = UNSPECIFIED
+    watched_style: Style | None = UNSPECIFIED
+    episode_text_format: str | None = UNSPECIFIED
+    extra_keys: list[DictKey] | None = UNSPECIFIED
+    extra_values: list[Any] | None = UNSPECIFIED
 
     @validator('*', pre=True)
     def validate_arguments(cls, v):
@@ -140,7 +140,7 @@ class BaseUpdate(UpdateBase):
     @validator('translations',
                'season_title_ranges', 'season_title_values',
                'extra_keys', 'extra_values', pre=True)
-    def validate_list(cls, v: Union[str, list[str]]) -> list[str]:
+    def validate_list(cls, v: str | list[str] | None) -> list[str] | None:
         # Filter out empty strings - all arguments can accept empty lists
         if v is None:
             return None
@@ -148,7 +148,7 @@ class BaseUpdate(UpdateBase):
         return [val for val in ([v] if isinstance(v, str) else v) if val != '']
 
     @validator('image_source_priority', pre=False)
-    def validate_unique_isp_ids(cls, val: Optional[list[int]]) -> Optional[list[int]]:
+    def validate_unique_isp_ids(cls, val: list[int] | None) -> list[int] | None:
         if val is None:
             return val
         if len(val) != len(set(val)):
@@ -182,7 +182,7 @@ class NewTemplate(BaseTemplate):
 
     @validator('season_title_ranges', 'season_title_values',
                'extra_keys', 'extra_values', pre=True)
-    def validate_list(cls, v: Union[str, list[str]]) -> list[str]:
+    def validate_list(cls, v: str | list[str]) -> list[str]:
         return [v] if isinstance(v, str) else v
 
     @root_validator
@@ -201,15 +201,15 @@ class NewTemplate(BaseTemplate):
         )
 
 class NewSeries(BaseSeries):
-    season_title_ranges: Optional[list[SeasonTitleRange]] = None
-    season_title_values: Optional[list[str]] = None
-    extra_keys: Optional[list[str]] = None
-    extra_values: Optional[list[Any]] = None
-    sync_id: Optional[int] = None
+    season_title_ranges: list[SeasonTitleRange] | None = None
+    season_title_values: list[str] | None = None
+    extra_keys: list[str] | None = None
+    extra_values: list[Any] | None = None
+    sync_id: int | None = None
 
     @validator('season_title_ranges', 'season_title_values',
                'extra_keys', 'extra_values', pre=True)
-    def validate_list(cls, v: Union[str, list[str]]) -> list[str]:
+    def validate_list(cls, v: str | list[str]) -> list[str]:
         return [v] if isinstance(v, str) else v
 
     @validator('template_ids', pre=False)
@@ -246,42 +246,42 @@ class UpdateTemplate(BaseUpdate):
 
 class UpdateSeries(BaseUpdate):
     year: conint(ge=1900) = UNSPECIFIED
-    directory: Optional[str] = UNSPECIFIED
-    template_ids: Optional[list[int]] = UNSPECIFIED
-    font_id: Optional[int] = UNSPECIFIED
-    sync_specials: Optional[bool] = UNSPECIFIED
-    skip_localized_images: Optional[bool] = UNSPECIFIED
+    directory: str | None = UNSPECIFIED
+    template_ids: list[int] | None = UNSPECIFIED
+    font_id: int | None = UNSPECIFIED
+    sync_specials: bool | None = UNSPECIFIED
+    skip_localized_images: bool | None = UNSPECIFIED
     use_per_season_assets: bool = UNSPECIFIED
-    card_filename_format: Optional[str] = UNSPECIFIED
+    card_filename_format: str | None = UNSPECIFIED
     match_titles: bool = UNSPECIFIED
     auto_split_title: bool = UNSPECIFIED
-    translations: Optional[list[Translation]] = UNSPECIFIED
+    translations: list[Translation] | None = UNSPECIFIED
     libraries: list[MediaServerLibrary] = UNSPECIFIED
 
-    card_type: Optional[str] = UNSPECIFIED
-    hide_season_text: Optional[bool] = UNSPECIFIED
-    season_title_ranges: Optional[list[SeasonTitleRange]] = UNSPECIFIED
-    season_title_values: Optional[list[str]] = UNSPECIFIED
-    hide_episode_text: Optional[bool] = UNSPECIFIED
-    unwatched_style: Optional[Style] = UNSPECIFIED
-    watched_style: Optional[Style] = UNSPECIFIED
-    episode_text_format: Optional[str] = UNSPECIFIED
-    extra_keys: Optional[list[DictKey]] = UNSPECIFIED
-    extra_values: Optional[list[Any]] = UNSPECIFIED
+    card_type: str | None = UNSPECIFIED
+    hide_season_text: bool | None = UNSPECIFIED
+    season_title_ranges: list[SeasonTitleRange] | None = UNSPECIFIED
+    season_title_values: list[str] | None = UNSPECIFIED
+    hide_episode_text: bool | None = UNSPECIFIED
+    unwatched_style: Style | None = UNSPECIFIED
+    watched_style: Style | None = UNSPECIFIED
+    episode_text_format: str | None = UNSPECIFIED
+    extra_keys: list[DictKey] | None = UNSPECIFIED
+    extra_values: list[Any] | None = UNSPECIFIED
 
-    font_color: Optional[str] = UNSPECIFIED
-    font_title_case: Optional[TitleCase] = UNSPECIFIED
-    font_size: Optional[float] = UNSPECIFIED
-    font_kerning: Optional[float] = UNSPECIFIED
-    font_stroke_width: Optional[float] = UNSPECIFIED
-    font_interline_spacing: Optional[int] = UNSPECIFIED
-    font_interword_spacing: Optional[int] = UNSPECIFIED
-    font_vertical_shift: Optional[int] = UNSPECIFIED
+    font_color: str | None = UNSPECIFIED
+    font_title_case: TitleCase | None = UNSPECIFIED
+    font_size: float | None = UNSPECIFIED
+    font_kerning: float | None = UNSPECIFIED
+    font_stroke_width: float | None = UNSPECIFIED
+    font_interline_spacing: int | None = UNSPECIFIED
+    font_interword_spacing: int | None = UNSPECIFIED
+    font_vertical_shift: int | None = UNSPECIFIED
 
-    emby_id: Optional[EmbyID] = UNSPECIFIED # Not actually optional
+    emby_id: EmbyID | None = UNSPECIFIED # Not actually optional
     imdb_id: IMDbID = UNSPECIFIED
-    jellyfin_id: Optional[JellyfinID] = UNSPECIFIED # Not actually optional
-    sonarr_id: Optional[SonarrID] = UNSPECIFIED # Not actually optional
+    jellyfin_id: JellyfinID | None = UNSPECIFIED # Not actually optional
+    sonarr_id: SonarrID | None = UNSPECIFIED # Not actually optional
     tmdb_id: TMDbID = UNSPECIFIED
     tvdb_id: TVDbID = UNSPECIFIED
     tvrage_id: TVRageID = UNSPECIFIED
@@ -307,15 +307,15 @@ class SearchResult(Base):
     name: str
     year: int
     overview: list[str] = ['No overview available']
-    poster: Optional[str] = None
-    ongoing: Optional[bool] = None
-    emby_id: Optional[str] = None
-    imdb_id: Optional[str] = None
-    jellyfin_id: Optional[str] = None
-    sonarr_id: Optional[str] = None
-    tmdb_id: Optional[int] = None
-    tvdb_id: Optional[int] = None
-    tvrage_id: Optional[int] = None
+    poster: str | None = None
+    ongoing: bool | None = None
+    emby_id: str | None = None
+    imdb_id: str | None = None
+    jellyfin_id: str | None = None
+    sonarr_id: str | None = None
+    tmdb_id: int | None = None
+    tvdb_id: int | None = None
+    tvrage_id: int | None = None
     added: bool = False
 
 class Template(BaseTemplate):
@@ -326,25 +326,25 @@ class Template(BaseTemplate):
 
 class Series(BaseSeries):
     id: int
-    sync_id: Optional[int]
+    sync_id: int | None
     full_name: str
     sort_name: str
     # clean_name: str
-    poster_path: Optional[str]
+    poster_path: str | None
     poster_url: str
-    small_poster_url: Optional[str]
+    small_poster_url: str | None
     episode_count: int
     card_count: int
-    font_color: Optional[str]
-    font_title_case: Optional[TitleCase]
-    font_size: Optional[float]
-    font_kerning: Optional[float]
-    font_stroke_width: Optional[float]
-    font_interline_spacing: Optional[int]
-    font_interword_spacing: Optional[int]
-    font_vertical_shift: Optional[int]
-    season_titles: Optional[dict[SeasonTitleRange, str]]
-    extras: Optional[dict[str, Any]]
+    font_color: str | None
+    font_title_case: TitleCase | None
+    font_size: float | None
+    font_kerning: float | None
+    font_stroke_width: float | None
+    font_interline_spacing: int | None
+    font_interword_spacing: int | None
+    font_vertical_shift: int | None
+    season_titles: dict[SeasonTitleRange, str] | None
+    extras: dict[str, Any] | None
     # Don't error on ID validation errors
     emby_id: Any
     imdb_id: Any
@@ -353,3 +353,27 @@ class Series(BaseSeries):
     tmdb_id: Any
     tvdb_id: Any
     tvrage_id: Any
+
+class SeriesOverview(Base):
+    id: int
+    name: str
+    full_name: str
+    sort_name: str
+    year: int
+    poster_url: str
+    small_poster_url: str | None
+    libraries: list[MediaServerLibrary] = []
+    monitored: bool
+
+class SeriesOverviewWithCounts(Base):
+    id: int
+    name: str
+    full_name: str
+    sort_name: str
+    year: int
+    poster_url: str
+    small_poster_url: str | None
+    libraries: list[MediaServerLibrary] = []
+    episode_count: int
+    card_count: int
+    monitored: bool

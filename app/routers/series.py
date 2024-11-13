@@ -12,7 +12,7 @@ from fastapi import (
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import paginate as paginate_sequence
 from PIL import Image
-from sqlalchemy import and_, desc, func, or_
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 from unidecode import unidecode
 
@@ -33,10 +33,10 @@ from app.internal.series import (
     download_series_poster,
     lookup_series,
     process_series,
+    query_and_filter_series,
     update_series_config,
 )
 from app.internal.auth import get_current_user
-from app.models.card import Card
 from app.models.series import Series as SeriesModel
 from app.schemas.series import (
     BatchUpdateSeries,
@@ -44,6 +44,8 @@ from app.schemas.series import (
     SearchResult,
     Series,
     SeriesOrder,
+    SeriesOverview,
+    SeriesOverviewWithCounts,
     UpdateSeries
 )
 from modules.PlexInterface2 import PlexInterface
@@ -61,68 +63,35 @@ series_router = APIRouter(
 def get_all_series(
         db: Session = Depends(get_database),
         order_by: SeriesOrder = Query(default='alphabetical'),
-        # filter: SeriesFilter = Query(default={}),
-    ) -> Page[Series]:
+    ) -> Page[SeriesOverview]:
     """
     Get all defined Series.
 
     - order_by: How to order the Series in the returned list.
     """
-    # from app.models.loaded import Loaded
-    # from app.models.episode import Episode
-    # from sqlalchemy import distinct, select
 
-    # query = db.query(SeriesModel)\
-    #     .outerjoin(SeriesModel.loaded)\
-    #     .outerjoin(SeriesModel.episodes)\
-    #     .group_by(SeriesModel.id)\
-    #     .having(func.count(Episode.id) == 14)#== func.count(Episode.id))
+    return query_and_filter_series(db, order_by=order_by, include_counts=False)
 
-    # pylint: disable=not-callable
-    # Order by Name > Year
-    query = db.query(SeriesModel)
-    if order_by == 'alphabetical':
-        series = query.order_by(SeriesModel.sort_name)\
-            .order_by(SeriesModel.year)
-    elif order_by == 'reverse-alphabetical':
-        series = query.order_by(desc(SeriesModel.sort_name))\
-            .order_by(SeriesModel.year)
-    # Order by Cards
-    elif order_by == 'cards':
-        series = query.outerjoin(Card)\
-            .group_by(SeriesModel.id)\
-            .order_by(func.count(SeriesModel.id))
-    elif order_by == 'reverse-cards':
-        series = query.outerjoin(Card)\
-            .group_by(SeriesModel.id)\
-            .order_by(func.count(SeriesModel.id).desc())
-    # Order by Sync
-    elif order_by == 'sync':
-        series = query.order_by(SeriesModel.sync_id.desc(),
-                                SeriesModel.sort_name,
-                                SeriesModel.year)
-    # Order by ID
-    elif order_by == 'id':
-        series = query.order_by(SeriesModel.id)
-    elif order_by == 'reverse-id':
-        series = query.order_by(SeriesModel.id.desc())
-    # Order by Year > Name
-    elif order_by == 'year':
-        series = query.order_by(SeriesModel.year)\
-            .order_by(func.lower(SeriesModel.sort_name))
-    elif order_by == 'reverse-year':
-        series = query.order_by(SeriesModel.year.desc())\
-            .order_by(func.lower(SeriesModel.sort_name))
 
-    # Return paginated results
-    return paginate(series)
+@series_router.get('/all-extended')
+def get_all_series_including_counts(
+        db: Session = Depends(get_database),
+        order_by: SeriesOrder = Query(default='alphabetical'),
+    ) -> Page[SeriesOverviewWithCounts]:
+    """
+    Get all defined Series.
+
+    - order_by: How to order the Series in the returned list.
+    """
+
+    return query_and_filter_series(db, order_by=order_by, include_counts=True)
 
 
 @series_router.get('/series/{series_id}/previous')
 def get_previous_series(
         series_id: int,
         db: Session = Depends(get_database),
-    ) -> Optional[Series]:
+    ) -> Series | None:
     """
     Get the previous Series (sorted alphabetically, year, then by ID).
 
@@ -149,7 +118,7 @@ def get_previous_series(
 def get_next_series(
         series_id: int,
         db: Session = Depends(get_database),
-    ) -> Optional[Series]:
+    ) -> Series | None:
     """
     Get the next Series (sorted alphabetically, year, then by ID).
 
