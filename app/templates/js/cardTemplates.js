@@ -333,7 +333,11 @@ async function getAllTemplates() {
     if (templateObj.unwatched_style) {
       base.querySelector('.dropdown[data-value="unwatched_style"] > input').value = templateObj.unwatched_style;
     }
-    // Hide season text set later
+    // Hide season text
+    if (templateObj.hide_season_text !== null) {
+      const value = templateObj.hide_season_text ? 'True' : 'False';
+      base.querySelector('.dropdown[data-value="hide_season_text"] > input').value = value;
+    }
     // Season titles
     if (Object.entries(templateObj.season_titles).length > 0) {
       const rangeDiv = base.querySelector('.field[data-value="season-title-range"]');
@@ -348,15 +352,24 @@ async function getAllTemplates() {
         valueDiv.appendChild(valueElem);
       }
     }
-    // Hide episode text set later
+    // Hide episode text
+    if (templateObj.hide_episode_text !== null) {
+      const value = templateObj.hide_episode_text ? 'True' : 'False';
+      base.querySelector('.dropdown[data-value="hide_episode_text"] > input').value = value;
+    }
     // Episode text format
     base.querySelector('input[name="episode_text_format"]').value = templateObj.episode_text_format;
-    // Ignore localized
-    if (templateObj.skip_localized_images) {
-      base.querySelector('input[name="skip_localized_images"]').setAttribute('checked', '');
+    // Ignored Localized Images
+    if (templateObj.skip_localized_images !== null) {
+      const value = templateObj.skip_localized_images ? 'True' : 'False';
+      base.querySelector('.dropdown[data-value="skip_localized_images"] > input').value = value;
     }
     // Episode data source set later
-    // Sync specials set later
+    // Sync specials
+    if (templateObj.sync_specials !== null) {
+      const value = templateObj.sync_specials ? 'True' : 'False';
+      base.querySelector('.dropdown[data-value="sync_specials"] > input').value = value;
+    }
     // Image source priority set later
     // Translations added later
     // Extras later
@@ -457,11 +470,6 @@ async function getAllTemplates() {
         placeholder: 'Global Default',
       }
     });
-    // Hide season text
-    initializeNullableBoolean({
-      dropdownElement: $(`#template-id${templateObj.id} .dropdown[data-value="hide_season_text"]`),
-      value: templateObj.hide_season_text,
-    });
     // Add new fields to add title button
     $(`#template-id${templateObj.id} .button[data-value="add-title"]`).on('click', () => {
       const newRange = document.createElement('input');
@@ -476,11 +484,6 @@ async function getAllTemplates() {
         position: 'right center',
       });
     });
-    // Hide episode text
-    initializeNullableBoolean({
-      dropdownElement: $(`#template-id${templateObj.id} .dropdown[data-value="hide_episode_text"]`),
-      value: templateObj.hide_episode_text,
-    });
     // Episode data source
     $(`#template-id${templateObj.id} .dropdown[data-value="data_source_id"]`).dropdown({
       placeholder: 'Global Default',
@@ -488,16 +491,6 @@ async function getAllTemplates() {
         return {name, value: interface_id, selected: interface_id === templateObj.data_source_id};
       }),
     });
-    // Skip localized images
-    initializeNullableBoolean({
-      dropdownElement: $(`#template-id${templateObj.id} .dropdown[data-value="skip_localized_images"]`),
-      value: templateObj.skip_localized_images,
-    });
-    // Special syncing
-    initializeNullableBoolean({
-      dropdownElement: $(`#template-id${templateObj.id} .dropdown[data-value="sync_specials"]`),
-      value: templateObj.sync_specials,
-    })
     // Translations
     if (templateObj.translations !== null && templateObj.translations.length > 0) {
       const translationSegment = $(`#template-id${templateObj.id} [data-value="translations"]`);
@@ -564,7 +557,9 @@ async function getAllTemplates() {
   // Enable accordion/dropdown/checkbox elements
   $('.ui.accordion').accordion();
   $('.ui.checkbox').checkbox();
-  $('.ui.dropdown[data-value="font_id"], .ui.dropdown[data-value="watched_style"], .ui.dropdown[data-value="unwatched_style"]').dropdown();
+  // $('.ui.dropdown[data-value="font_id"], .ui.dropdown[data-value="watched_style"], .ui.dropdown[data-value="unwatched_style"]').dropdown();
+  $('.ui.dropdown').dropdown();
+  $('.ui.clearable.dropdown').dropdown({clearable: true});
   $('.field[data-value="season-titles"] label i').popup({
     popup: '#season-title-popup',
     position: 'right center',
