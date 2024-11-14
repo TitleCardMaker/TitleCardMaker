@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -63,7 +63,7 @@ class BannerTitleCard(BaseCardType):
                 default=1.0,
             ),
             Extra(
-                name='Banner Toggle',
+                name='Disable Banner',
                 identifier='hide_banner',
                 description='Whether to hide the banner',
                 tooltip=(
@@ -242,7 +242,7 @@ class BannerTitleCard(BaseCardType):
 
 
     @property
-    def index_text_width(self) -> Union[int, float]:
+    def index_text_width(self) -> int | float:
         """Width of the index text."""
 
         # All text hidden, return 0
