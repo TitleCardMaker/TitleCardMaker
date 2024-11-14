@@ -16,4 +16,4 @@ In addition to this feature, which all card types support, the
 [Anime](./card_types/anime.md) card type also allows for displaying the
 Japanese titles (as kanji) on the card.
 
-In order to use this setting, [TMDB](./config/tmdb.md) __must__ be enabled.
+In order to use this setting, [TMDB](./prefs/tmdb.md) __must__ be enabled.

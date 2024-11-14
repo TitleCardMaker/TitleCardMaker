@@ -262,7 +262,7 @@ nav:
   - Version 1:
     - v1/index.md
     - Configuration:
-      - TMDb: v1/config/tmdb.md
+      - TMDb: v1/prefs/tmdb.md
     - Sync: v1/sync.md
     - Translation: v1/translation.md
     - Card Types:
