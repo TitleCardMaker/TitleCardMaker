@@ -237,7 +237,7 @@ function updateTemplate(templateId) {
 }
 
 /**
- * 
+ * Add a dropdown item (or header) to the dropdown.
  * @param {HTMLDivElement} element Dropdown menu which the item should be added
  * to as a child.
  * @param {ItemArgs} args Arguments for the new item.

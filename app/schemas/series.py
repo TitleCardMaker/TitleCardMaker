@@ -361,7 +361,7 @@ class SeriesOverview(Base):
     sort_name: str
     year: int
     poster_url: str
-    small_poster_url: str | None
+    # small_poster_url: str
     libraries: list[MediaServerLibrary] = []
     monitored: bool
 
@@ -372,7 +372,7 @@ class SeriesOverviewWithCounts(Base):
     sort_name: str
     year: int
     poster_url: str
-    small_poster_url: str | None
+    # small_poster_url: str
     libraries: list[MediaServerLibrary] = []
     episode_count: int
     card_count: int
