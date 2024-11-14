@@ -1,3 +1,4 @@
+from asyncio import gather as async_gather
 from pathlib import Path
 from shutil import copyfile
 from typing import Literal
@@ -444,9 +445,6 @@ async def import_mediux_yaml_for_series(
 
     # Get this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
-
-    from aiohttp import ClientSession
-    from asyncio import gather as async_gather
 
     # Parse all indicated files
     background, poster = None, None

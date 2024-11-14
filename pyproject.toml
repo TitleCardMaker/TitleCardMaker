@@ -49,7 +49,6 @@ dependencies = [
     "starlette==0.38.4",
     "urllib3==2.2.3",
     "six==1.16.0",
-    "aiohttp==3.10.10",
     "curl-cffi==0.7.3",
 ]
 
@@ -112,7 +111,7 @@ exclude = [
 line-length = 88
 indent-width = 4
 
-# Assume Python 3.11
+# Assume Python 3.13
 target-version = "py313"
 
 [tool.ruff.lint]
