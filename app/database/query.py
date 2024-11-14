@@ -32,7 +32,7 @@ from modules.Debug import log
 
 _ObjectType = TypeVar('_ObjectType', bound=Base)
 
-type AnyInterface = Union[
+AnyInterface = Union[
     EmbyInterface,
     JellyfinInterface,
     PlexInterface,
@@ -40,7 +40,7 @@ type AnyInterface = Union[
     TMDbInterface,
     TVDbInterface,
 ]
-type MediaInterface = EmbyInterface | JellyfinInterface | PlexInterface
+MediaInterface = EmbyInterface | JellyfinInterface | PlexInterface
 
 
 def _get_obj(
@@ -362,7 +362,7 @@ def get_all_templates(
 
 @overload
 def get_all_templates(
-        db: Session, obj_dict: dict, *, raise_exc: Literal[False] = False,
+        db: Session, obj_dict: dict, *, raise_exc: Literal[False],
     ) -> list[Template | None]:
     ...
 
@@ -371,7 +371,7 @@ def get_all_templates(
         obj_dict: dict,
         *,
         raise_exc: bool = True,
-    ) -> list[Template | None]:
+    ) -> list[Template] | list[Template | None]:
     """
     Get all Templates defined in the given Dictionaries "template_ids"
     key. This removes the "template_ids" key from obj_dict.
