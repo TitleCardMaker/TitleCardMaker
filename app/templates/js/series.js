@@ -2000,9 +2000,10 @@ function browseBackdrops(seasonNumber) {
  * @param {?number} seasonNumber - Season number being uploaded. If null, then
  * it is assumed to be the series itself.
  */
-function uploadLogo(seasonNumber) {
+function uploadLogo(seasonNumber=null) {
   // Get uploaded file
-  const file = $('#logo-upload')[0].files[0];
+  const inputId = seasonNumber === null ? 'logo-upload' : `logo-upload-season${seasonNumber}`;
+  const file = document.getElementById(inputId).files[0];
   if (!file) { return; }
 
   // Verify file is an image
@@ -2015,19 +2016,26 @@ function uploadLogo(seasonNumber) {
   const form = new FormData();
   form.append('file', file);
 
+  const params = new URLSearchParams();
+  if (seasonNumber !== null) {
+    params.append('season_number', seasonNumber);
+  }
+
   // Submit API request
   $.ajax({
     type: 'PUT',
-    url: '/api/sources/series/{{series.id}}/logo/upload',
+    url: `/api/sources/series/{{series.id}}/logo/upload?${params.toString()}`,
     data: form,
     cache: false,
     contentType: false,
     processData: false,
     success: () => {
       showInfoToast('Updated Logo');
-      const logo = document.querySelector('#logo');
-      logo.src = `/source/{{series.path_safe_name}}/logo.png?${new Date().getTime()}`;
-      logo.style.display = 'block';
+      if (seasonNumber === null) {
+        const logo = document.getElementById('#logo');
+        logo.src = `/source/{{series.path_safe_name}}/logo.png?${new Date().getTime()}`;
+        logo.style.display = 'block';
+      }
     },
     error: response => showErrorToast({title: 'Error Updating Logo', response}),
   });

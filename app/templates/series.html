@@ -1268,7 +1268,7 @@
                   {% endif %}
                 </div>
                 <div class="description">
-                  <input type="file" id="logo-upload-season{{ season_number }}" class="ui invisible file input" onchange="uploadLogo(null);">
+                  <input type="file" id="logo-upload-season{{ season_number }}" class="ui invisible file input" onchange="uploadLogo({{ season_number }});">
                   <div class="image-analysis-group" data-season="{{ season_number }}" data-type="logo">
                     {% if exists %}
                     <img class="ui rounded image" loading="lazy" src="{{ file }}">
