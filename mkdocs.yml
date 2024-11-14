@@ -261,7 +261,10 @@ nav:
   - Help & Support: help_and_support.md
   - Version 1:
     - v1/index.md
+    - Configuration:
+      - TMDb: v1/config/tmdb.md
     - Sync: v1/sync.md
+    - Translation: v1/translation.md
     - Card Types:
       - v1/card_types/index.md
       - Anime: v1/card_types/anime.md
