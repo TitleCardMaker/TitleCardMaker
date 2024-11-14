@@ -124,10 +124,10 @@ and library names to match your setup.
 
         ```yaml title="preferences.yml" hl_lines="10-20"
         options:
-          source: ./config/source/
+          source: /config/source/
           series: # (4)!
-            - ./config/sync_anime.yml
-            - ./config/sync_tv.yml
+            - /config/sync_anime.yml
+            - /config/sync_tv.yml
 
         sonarr:
           url: # (1)!
@@ -293,21 +293,19 @@ anything.
 
     sync:
       - mode: append # (1)!
-        volumes:
-          /docker/tv/: /tcm/tv/
 
       - file: ./config/sync_file_1.yaml
         add_template: template_1
 
       - file: ./config/sync_file_2.yaml
         exclusions:
-      - series: Breaking Bad (2008)
+          - series: Breaking Bad (2008)
         mode: sync
     ```
 
     1. Since there is no `file` specified, this will not result in any syncing.
-    Since this is the first item in the list, `mode` and `volumes` will be
-    carried over to the following syncs.
+    Since this is the first item in the list, the `mode` setting will be carried
+    over to the following syncs.
 
 ## Attributes
 
@@ -316,21 +314,21 @@ anything.
     The Emby, Jellyfin, Plex, and Sonarr columns indicate whether that option
     _can_ be specified for that interface. No options are required.
 
-| Name                                              | YAML              | Allowed Values                  | Default  | Emby, Jellyfin, Plex                       | Sonarr                                     |
-| :-----------------------------------------------: | :---------------: | :-----------------------------: | :------: | :----------------------------------------: | :----------------------------------------: |
-| [YAML File](#yaml-file)                           | `file`            | Any valid file                  | -        | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
-| [Sync Mode](#sync-mode)                           | `mode`            | `append` or `match`             | `append` | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
-| [Compact Mode](#compact-mode)                     | `compact_mode`    | `true` or `false`               | `true`   | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
-| [Card Directory](#card-directory)                 | `card_directory`  | Any valid path                  | -        | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
-| [Template](#template)                             | `add_template`    | Any template name               | -        | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
-| [Filter Downloaded Only](#filter-downloaded-only) | `downloaded_only` | `true` or `false`               | `false`  | :fontawesome-regular-circle-xmark:{.red}   | :fontawesome-regular-circle-check:{.green} | 
-| [Filter Monitored Only](#filter-monitored-only)   | `monitored_only`  | `true` or `false`               | `false`  | :fontawesome-regular-circle-xmark:{.red}   | :fontawesome-regular-circle-check:{.green} | 
-| [Required Tags](#required-tags)                   | `required_tags`   | A list of any tags              | -        | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
-| [Filter Libraries](#filter-libraries)             | `libraries`       | A list of any library names     | -        | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-xmark:{.red}   |
-| [Series Type](#series-type)                       | `series_type`     | `anime`, `daily`, or `standard` | -        | :fontawesome-regular-circle-xmark:{.red}   | :fontawesome-regular-circle-check:{.green} | 
-| [Docker Volumes](#docker-volumes)                 | `volumes`         | _See below_                     | -        | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
-| [Plex Libraries](#plex-libraries)                 | `plex_libraries`  | _See below_                     | -        | :fontawesome-regular-circle-xmark:{.red}   | :fontawesome-regular-circle-check:{.green} | 
-| [Exclusions](#exclusions)                         | `exclusions`      | A list of any excluded entries  | -        | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
+| Name                                                              | YAML              | Allowed Values                  | Default        | Emby, Jellyfin, Plex                       | Sonarr                                     |
+| :---------------------------------------------------------------: | :---------------: | :-----------------------------: | :------------: | :----------------------------------------: | :----------------------------------------: |
+| [YAML File](#file-file)                                           | `file`            | Any valid file                  | -              | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
+| [Sync Mode](#mode-mode)                                           | `mode`            | `append` or `match`             | `append`       | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
+| [Compact Mode](#compact-mode-compact_mode)                        | `compact_mode`    | `#!yaml true` or `#!yaml false` | `#!yaml true`  | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
+| [Card Directory](#card-directory-card_directory)                  | `card_directory`  | Any valid path                  | -              | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
+| [Template](#template-name-add_template)                           | `add_template`    | Any template name               | -              | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
+| [Filter Downloaded Only](#filter-downloaded-only-downloaded_only) | `downloaded_only` | `#!yaml true` or `#!yaml false` | `#!yaml false` | :fontawesome-regular-circle-xmark:{.red}   | :fontawesome-regular-circle-check:{.green} | 
+| [Filter Monitored Only](#filter-monitored-only-monitored_only)    | `monitored_only`  | `#!yaml true` or `#!yaml false` | `#!yaml false` | :fontawesome-regular-circle-xmark:{.red}   | :fontawesome-regular-circle-check:{.green} | 
+| [Required Tags](#required-tags-required_tags)                     | `required_tags`   | A list of any tags              | -              | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
+| [Filter Libraries](#filter-libraries-libraries)                   | `libraries`       | A list of any library names     | -              | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-xmark:{.red}   |
+| [Series Type](#series-type-series_type)                           | `series_type`     | `anime`, `daily`, or `standard` | -              | :fontawesome-regular-circle-xmark:{.red}   | :fontawesome-regular-circle-check:{.green} | 
+| [Docker Volumes](#docker-volumes)                                 | `volumes`         | _See below_                     | -              | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
+| [Plex Libraries](#plex-libraries)                                 | `plex_libraries`  | _See below_                     | -              | :fontawesome-regular-circle-xmark:{.red}   | :fontawesome-regular-circle-check:{.green} | 
+| [Exclusions](#exclusions)                                         | `exclusions`      | A list of any excluded entries  | -              | :fontawesome-regular-circle-check:{.green} | :fontawesome-regular-circle-check:{.green} |
 
 Each of these options is explained in greater detail below.
 
@@ -420,7 +418,7 @@ series. See the example for more details.
 
     The following example specifies `my_template` for each synced series:
 
-    ```yaml hl_lines="6"
+    ```yaml hl_lines="6" title="preferences.yml"
     sonarr: 
       url: ...
       api_key: ...
@@ -431,7 +429,7 @@ series. See the example for more details.
 
     Which, would result in `./yml/plex_sync.yml` (hypothetically) looking like:
 
-    ```yaml
+    ```yaml title="plex_sync.yml"
     templates: # Created by you, the user, NOT the sync
       my_template:
         card_type: roman
@@ -484,7 +482,7 @@ called "Sharing labels".
     This will only sync series to the specified file that are tagged with both
     `dolby-vision` and `ongoing` will be written:
 
-    ```yaml
+    ```yaml hl_lines="6-8" title="preferences.yml"
     sonarr:
       url: ...
       api_key: ...
@@ -611,17 +609,18 @@ This means that Sonarr reports a path like `/sonarr/media/TV/Breaking Bad (2008)
 </details>
 
 ## Exclusions
-A list of exclusions to not sync to the specified file. This can be useful if there are series you either don't want cards for, or have custom cards specified in another file. All series titles are excluded case _insensitively_.
+
+A list of exclusions to not sync to the specified file. This can be useful if
+there are series you either don't want cards for, or have custom cards specified
+in another file. All series titles are excluded case _insensitively_.
 
 There are three _types_ of exclusions, all are listed below:
 
-| Exclusion Name | Description | Example |
-| :---: | :---: | :--- |
-| `series` | Full name of a series | `series: Breaking Bad (2008)` |
-| `tag` | Tag | `tag: ignore_tag` |
-| `yaml` | [Series YAML file](https://github.com/CollinHeist/TitleCardMaker/wiki/Series-YAML-Files) to exclude _all_ entries of<sup>1</sup> | `yaml: ./path/to/yaml_file.yml` |
-
-> <sup>1</sup>This can be useful if you have many series to exclude, or you have a YAML file of customized cards that you don't want the sync to override. All entries in the given file's `series` will be ignored.
+| Exclusion Name | Description           | Example                              |
+| :------------: | :-------------------: | :----------------------------------- |
+| `series`       | Full name of a series | `#!yaml series: Breaking Bad (2008)` |
+| `tag`          | Tag                   | `#!yaml tag: ignore_tag`             |
+| `yaml`         | [Series YAML file](https://github.com/CollinHeist/TitleCardMaker/wiki/Series-YAML-Files) to exclude _all_ entries of[^1] | `#!yaml yaml: ./path/to/yaml_file.yml` |
 
 This _must_ be given as a list, like so:
 
@@ -632,18 +631,26 @@ exclusions:
 - yaml: ...
 ```
 
-<details><summary>Example of an excluded YAML file</summary>
+??? example "Example YAML Exclusion File"
 
-If there are a lot of series you want to exclude - the most efficient way to do this is to create an excluded YAML file, and add it to your sync. An example of how this file might looks is:
+    If there are a lot of series you want to exclude, the most efficient way to
+    do this is to create an excluded YAML file and add it to the sync. For
+    example:
 
-```yaml
-series:
-  Beastars (2019): {}
-  Dark (2017): {}
-  "The Lord of the Rings: The Rings of Power (2022)": {}
-  # etc.
-```
+    ```yaml title="excluded.yml"
+    series:
+      Beastars (2019): {}
+      Dark (2017): {}
+      "The Lord of the Rings: The Rings of Power (2022)": {}
+      # etc.
+    ```
 
-Each 'entry' in the file must be under the `series` key (like a normal series YAML file), but there is no need to specify any actual "content" (e.g. custom fonts, card types, etc.) as TCM will just look at the _name_ of the series.
+    Each 'entry' in the file must be under the `series` key (like a normal
+    series YAML file), but there is no need to specify any actual "content"
+    (e.g. custom fonts, card types, etc.) as TCM will just look at the _name_ of
+    the series.
 
-</details>
+[^1]:
+    This can be useful if you have many series to exclude, or you have a YAML
+    file of customized cards that you don't want the sync to override. All
+    entries in the given file's `series` will be ignored.
