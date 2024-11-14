@@ -8,7 +8,7 @@ ARG PIP_EXTRA_INDEX_URL="https://www.piwheels.org/simple"
 
 # Install pipenv and convert to requirements.txt
 COPY pyproject.toml pyproject.toml
-RUN pip3 install --no-cache-dir --upgrade uv; \
+RUN pip3 install --no-cache-dir --upgrade setuptools uv; \
     uv pip compile pyproject.toml > requirements.txt
 
 # Install TCM dependencies
