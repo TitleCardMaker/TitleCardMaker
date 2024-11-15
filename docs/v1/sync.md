@@ -641,7 +641,7 @@ exclusions:
     series:
       Beastars (2019): {}
       Dark (2017): {}
-      "The Lord of the Rings: The Rings of Power (2022)": {}
+      "The Lord of the Rings: The Rings of Power (2022)": {}
       # etc.
     ```
 
