@@ -1,13 +1,20 @@
 from pathlib import Path
 from time import sleep
+from typing import Any, Callable, Literal, overload
 
 from fastapi import BackgroundTasks, HTTPException
 from fastapi_pagination.ext.sqlalchemy import paginate
 from PIL import Image, UnidentifiedImageError
 from requests import get
-from sqlalchemy import desc, func
+from sqlalchemy import ColumnElement, String, cast, desc, func, not_
 from sqlalchemy.exc import InvalidRequestError, OperationalError
-from sqlalchemy.orm import Session, load_only, joinedload
+from sqlalchemy.orm import (
+    InstrumentedAttribute,
+    Query,
+    Session,
+    load_only,
+    joinedload
+)
 
 from app.database.query import (
     get_all_templates,
@@ -42,6 +49,7 @@ from app.models.loaded import Loaded
 from app.models.series import Series
 from app.schemas.base import UNSPECIFIED
 from app.schemas.connection import EpisodeDataSourceInterface
+from app.schemas.filter import SeriesFilter
 from app.schemas.series import (
     NewSeries,
     SearchResult,
@@ -54,6 +62,89 @@ from modules.Debug import Logger, log
 from modules.EmbyInterface2 import EmbyInterface
 from modules.JellyfinInterface2 import JellyfinInterface
 from modules.PlexInterface2 import PlexInterface
+
+
+"""
+Dictionary of condition field names to attributes of the Series
+model/object which should be filtered.
+"""
+ConditionFieldAttributes: dict[str, InstrumentedAttribute[Any]] = {
+    'auto_split_titles': Series.auto_split_title,
+    'card_filename_format': Series.card_filename_format,
+    'card_type': Series.card_type,
+    'data_source_id': Series.data_source_id,
+    'directory': Series.directory,
+    'emby_id': Series.emby_id,
+    'episode_text_format': Series.episode_text_format,
+    'extras': Series.extras,
+    'font_color': Series.font_color,
+    'font_id': Series.font_id,
+    'font_interline_spacing': Series.font_interline_spacing,
+    'font_interword_spacing': Series.font_interword_spacing,
+    'font_kerning': Series.font_kerning,
+    'font_size': Series.font_size,
+    'font_stroke_width': Series.font_stroke_width,
+    'font_title_case': Series.font_title_case,
+    'font_vertical_shift': Series.font_vertical_shift,
+    'hide_episode_text': Series.hide_episode_text,
+    'hide_season_text': Series.hide_season_text,
+    'id': Series.id,
+    'image_source_priority': Series.image_source_priority,
+    'imdb_id': Series.imdb_id,
+    'jellyfin_id': Series.jellyfin_id,
+    'libraries': Series.libraries,
+    'match_titles': Series.match_titles,
+    # 'missing_cards': ..., # This must be handled separately
+    'monitored': Series.monitored,
+    'name': Series.name,
+    'season_titles': Series.season_titles,
+    'skip_localized_images': Series.skip_localized_images,
+    'sonarr_id': Series.sonarr_id,
+    'sync_id': Series.sync_id,
+    'sync_specials': Series.sync_specials,
+    'tmdb_id': Series.tmdb_id,
+    'translations': Series.translations,
+    'tvdb_id': Series.tvdb_id,
+    'tvrage_id': Series.tvrage_id,
+    'unwatched_style': Series.unwatched_style,
+    'use_per_season_assets': Series.use_per_season_assets,
+    'watched_style': Series.watched_style,
+    'year': Series.year,
+}
+
+"""
+Dictionary of filter expressions to functions which apply that filter
+function to a given Series model attribute and optional filter reference
+field.
+"""
+type _FilterFunction = Callable[
+    [InstrumentedAttribute[Any], str | None],
+    ColumnElement[bool]
+]
+ConditionExpressionFunctions: dict[str, _FilterFunction] = {
+    'equals': lambda attr, ref: cast(attr, String) == ref,
+    'does not equal': lambda attr, ref: cast(attr, String) != ref,
+    'contains': lambda attr, ref: attr.contains(ref),
+    'does not contain': lambda attr, ref: not_(attr.contains(ref)),
+    'starts with': lambda attr, ref: attr.startswith(ref),
+    'does not start with': lambda attr, ref: not_(attr.startswith(ref)),
+    'ends with': lambda attr, ref: attr.endswith(ref),
+    'does not end with': lambda attr, ref: not_(attr.endswith(ref)),
+    'matches': lambda attr, ref: func.regex_match(ref, attr),
+    'does not match': lambda attr, ref: not_(func.regex_match(ref, attr)),
+    'is less than': lambda attr, ref: attr < ref,
+    'is less than or equal to': lambda attr, ref: attr <= ref,
+    'is greater than': lambda attr, ref: attr > ref,
+    'is greater than or equal to': lambda attr, ref: attr >= ref,
+    'is null': lambda attr, _: attr.is_(None),
+    'is not null': lambda attr, _: attr.isnot(None),
+    'is true': lambda attr, _: attr.is_(True),
+    'is false': lambda attr, _: attr.is_(False),
+    'is empty': lambda attr, _: func.json_array_length(attr) == 0,
+    'is not empty': lambda attr, _: func.json_array_length(attr) > 0,
+    'includes': lambda attr, ref: attr.contains(ref),
+    'does not include': lambda attr, ref: not_(attr.contains(ref)),
+}
 
 
 def set_all_series_ids(*, log: Logger = log) -> None:
@@ -884,13 +975,105 @@ def lookup_series(
     return results # type: ignore
 
 
+def apply_filter(
+        db: Session,
+        query: Query[Series],
+        filter: SeriesFilter | None,
+        *,
+        log: Logger = log,
+    ) -> Query[Series]:
+    """
+    Apply the given set of filters to the provided query.
+
+    Args:
+        db: Session to optionally query if necessary.
+        query: Query of Series to modify.
+        filter: Optional filter to apply. May include any number of
+            conditions, which will be applied in order.
+        log: Logger for all log messages.
+
+    Returns:
+        A modified query (`query`) with the indicated filter conditions
+        applied.
+    """
+
+    # Return unmodified original query if no filter was provided
+    if not filter or not filter.conditions:
+        return query
+
+    # Apply each filter condition of the given filter
+    criterion: list[ColumnElement[bool]] = []
+    for condition in filter.conditions:
+        # Special handling for the "missing cards" criteria
+        if condition.field == 'missing_cards':
+            if condition.expression == 'is true':
+                card_ids = db.query(Card.episode_id).distinct()
+                missing_series_ids: list[int] = [
+                    id_[0] for id_ in 
+                    db.query(Episode.series_id)\
+                        .filter(not_(Episode.id.in_(card_ids)))\
+                        .distinct()\
+                        .all()
+                ]
+                criterion.append(Series.id.in_(missing_series_ids))
+                continue
+
+        # Get attribute which will be operated on
+        if (attribute := ConditionFieldAttributes.get(condition.field)) is None:
+            log.debug(f'Unrecognized condition "{condition.field}"')
+            continue
+
+        # Get expression function, add to list of filter criteria
+        expr_function = ConditionExpressionFunctions[condition.expression]
+        criterion.append(expr_function(attribute, condition.reference))
+
+    return query.filter(*criterion)
+
+
+@overload
 def query_and_filter_series(
         db: Session,
-        order_by: SeriesOrder,
+        filter: SeriesFilter | None,
         *,
+        order_by: SeriesOrder,
+        include_counts: Literal[True],
+        log: Logger = log,
+    ) -> Page[SeriesOverviewWithCounts]: # type: ignore
+    ...
+
+@overload
+def query_and_filter_series(
+        db: Session,
+        filter: SeriesFilter | None,
+        *,
+        order_by: SeriesOrder,
+        include_counts: Literal[False],
+        log: Logger = log,
+    ) -> Page[SeriesOverview]: # type: ignore
+    ...
+
+def query_and_filter_series(
+        db: Session,
+        filter: SeriesFilter | None,
+        *,
+        order_by: SeriesOrder,
         include_counts: bool,
-    ) -> Page[SeriesOverview] | Page[SeriesOverviewWithCounts]:
+        log: Logger = log,
+    ) -> Page[SeriesOverview] | Page[SeriesOverviewWithCounts]: # type: ignore
     """
+    Query for Series which match the given filter, ordering the results
+    as indicated.
+
+    Args:
+        db: Session to query for Series.
+        filter: Optional set of filter conditions to apply
+        order_by: How to order the returned query.
+        include_counts: Whether to include counts in the query. If True,
+            then Episodes and Cards are loaded in the same query.
+        log: Logger for all log messages.
+
+    Returns:
+        Paginated overview of all matching Series.
     """
 
     # Include joined load for Episode and Cards if counts are expected
@@ -911,14 +1094,13 @@ def query_and_filter_series(
             Series.sort_name,
             Series.year,
             Series.poster_url,
-            # Series.small_poster_url,
             Series.libraries,
-            # Series.episode_count,
-            # Series.card_count,
             Series.sync_id,
             Series.monitored,
         )
     )
+
+    query = apply_filter(db, query, filter, log=log)
 
     # Order associated query
     series = query

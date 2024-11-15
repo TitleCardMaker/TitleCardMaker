@@ -351,6 +351,8 @@ function _populateSeriesCard(series, template) {
   return clone;
 }
 
+let currentFilter = null;
+
 /**
  * Submit an API request to get all the Series at the given page number and add
  * their content to the page.
@@ -366,9 +368,15 @@ async function getAllSeries(page=undefined, keepSelection=false) {
   // Get associated sort query param
   const sortParam = window.localStorage.getItem('sort-by') || 'alphabetical'
 
-  // Determine API URL based on the counts
+  // Determine API URL and queries based on the counts toggle
   const includeCounts = window.localStorage.getItem('home:include-counts') === 'true' || false;
   const apiUrl = includeCounts ? '/api/series/all-extended' : '/api/series/all';
+  const params = new URLSearchParams({
+    order_by: sortParam,
+    size: '{{ preferences.home_page_size }}',
+    page,
+  });
+  if (currentFilter) { params.append('filter', JSON.stringify(currentFilter)); }
 
   // Fade out existing posters
   if (!reduced_animations) {
@@ -381,7 +389,7 @@ async function getAllSeries(page=undefined, keepSelection=false) {
 
   // Get this page of Series data
   /** @type {SeriesPage} */
-  let allSeriesData = await fetch(`${apiUrl}?order_by=${sortParam}&size={{ preferences.home_page_size }}&page=${page}`).then(resp => resp.json());
+  let allSeriesData = await fetch(`${apiUrl}?${params.toString()}`).then(resp => resp.json());
   // await queryLibraries();
   let allSeries = allSeriesData.items;
   allIds = allSeries.map(series => series.id);
@@ -521,11 +529,12 @@ function getAllStatistics() {
 
 /** Initialize the page by querying for Series and statistics */
 function initAll() {
-  toggleCounts(window.localStorage.getItem('home:include-counts') === 'true');
+  toggleCounts(window.localStorage.getItem('home:include-counts') === 'true'); // This calls getAllSeries
   getAllStatistics();
   // Initialize table sorting and dropdowns
   $('table').tablesort();
   $('.ui.dropdown').dropdown();
+  initializeFilterTemplate();
 }
 
 const sortStates = {
@@ -696,4 +705,344 @@ function toggleGlobalDisplayStyle(style) {
     success: () => location.reload(),
     error: response => showErrorToast({title: 'Error Changing View', response}),
   });
+}
+
+// Filter Functions ------------------------------------------------------------
+
+/** "Live" update the title of the tab containing this filter name input. **/
+function updateTitle(inputElement) {
+  const tabName = inputElement.closest('.tab.segment').dataset.tab;
+  document.querySelector(`#filter-modal .tabular.menu .item[data-tab="${tabName}"]`).innerText = inputElement.value;
+}
+
+/**
+ * Add a new tab to the filter modal.
+ * @param {SeriesFilter} filter Existing filter to populate the new tab from.
+ * @returns {HTMLDivElement} Newly added tab.
+ */
+function addTab(filter=null) {
+  // Determine tab number - check for existence in case a middle tab was deleted
+  let tabNumber = document.querySelectorAll('#filter-modal .tabular.menu .item').length - 1;
+  while (document.querySelector(`#filter-modal .tabular.menu .item[data-tab="tab${tabNumber}"]`)) {
+    tabNumber += 1;
+  }
+
+  // Add new tab selector to menu, just before add tab item
+  const $tabHeader = $('<div>', {
+    class: 'item',
+    'data-tab': 'tab' + tabNumber,
+    text: filter?.name || 'New Filter',
+  });
+  $('#filter-modal .tabular.menu .item.add-tab').before($tabHeader);
+
+  // Add blank tab
+  const newTab = document.getElementById('blank-tab-template').content.cloneNode(true);
+  newTab.querySelector('.tab').dataset.tab = 'tab' + tabNumber;
+  if (filter) {
+    newTab.querySelector('input[name="filter_name"]').value = filter.name;
+  }
+  document.querySelector('#filter-modal .content').appendChild(newTab);
+  $('#filter-modal .tabular.menu .item').tab();
+
+  const tabs = document.querySelectorAll('#filter-modal .content .tab.segment');
+  return tabs[tabs.length - 1];
+}
+
+/**
+ * Add a dropdown item (or header) to the dropdown.
+ * @param {HTMLDivElement} element Dropdown menu which the item should be added
+ * to as a child.
+ * @param {ItemArgs} args Arguments for the new item.
+ * @param {?string} args.className Class name of the new item.
+ * @param {string} args.innerText Display text of the new item.
+ * @param {?string} args.value Value of the item.
+ */
+function addDropdownItem(element, args) {
+  // Get arguments
+  const {className = 'item', innerText, value = null} = args;
+
+  // Create element
+  const newItem = document.createElement('div');
+  newItem.className = className;
+  newItem.innerText = innerText;
+  if (value !== null) { newItem.dataset.value = value; }
+
+  element.appendChild(newItem);
+}
+
+/**
+ * 
+ * @param {HTMLButtonElement} deleteButton Button which was clicked.
+ */
+function deleteFilter(deleteButton) {
+  const tabID = deleteButton.closest('.tab.segment').dataset.tab;
+  document.querySelectorAll(`#filter-modal [data-tab="${tabID}"]`).forEach(tab => tab.remove());
+  $('#filter-modal .tabular.menu .item').tab('change tab', 'tab0');
+}
+
+const filterSettings = [
+  // name                       value                    type
+  ['Card Directory',            'directory',              'nullable string' ],
+  ['Series Name',               'name',                   'string'          ],
+  ['Series Year',               'year',                   'numeric'         ],
+  ['Monitored Status',          'monitored',              'boolean'         ],
+  ['Series ID',                 'id',                     'numeric'         ],
+  ['Sync ID',                   'sync_id',                'nullable numeric'],
+  ['Font ID',                   'font_id',                'nullable numeric'],
+  ['Episode Data Source ID',    'data_source_id',         'nullable numeric'],
+  ['List of Libraries',         'libraries',              'list'            ],
+  ['Has Missing Title Cards',   'missing_cards',          'boolean',        ],
+  ['Card Filename Format',      'card_filename_format',   'nullable string' ],
+  ['Enable Specials',           'sync_specials',          'nullable boolean'],
+  ['Localized Image Rejection', 'skip_localized_images',  'nullable boolean'],
+  ['List of Translations',      'translations',           'list'            ],
+  ['Match Titles',              'match_titles',           'boolean'         ],
+  ['Auto-Split Titles',         'auto_split_titles',      'boolean'         ],
+  ['Per-Season Assets',         'use_per_season_assets',  'boolean'         ],
+  ['Image Source Priority',     'image_source_priority',  'list'            ],
+  ['Emby Database ID',          'emby_id',                'nullable string' ],
+  ['IMDb Database ID',          'imdb_id',                'nullable string' ],
+  ['Jellyfin Database ID',      'jellyfin_id',            'nullable string' ],
+  ['Sonarr Database ID',        'sonarr_id',              'nullable string' ],
+  ['TMDb Database ID',          'tmdb_id',                'nullable numeric'],
+  ['TVDb Database ID',          'tvdb_id',                'nullable numeric'],
+  ['TVRage Database ID',        'tvrage_id',              'nullable string' ],
+  ['Font Color',                'font_color',             'nullable string' ],
+  ['Font Title Case',           'font_title_case',        'nullable string' ],
+  ['Font Size',                 'font_size',              'nullable numeric'],
+  ['Font Kerning',              'font_kerning',           'nullable numeric'],
+  ['Font Stroke Width',         'font_stroke_width',      'nullable numeric'],
+  ['Font Interline Spacing',    'font_interline_spacing', 'nullable numeric'],
+  ['Font Interword Spacing',    'font_interword_spacing', 'nullable numeric'],
+  ['Font Vertical Shift',       'font_vertical_shift',    'nullable numeric'],
+  ['Card Type',                 'card_type',              'nullable string' ],
+  ['Hide Season Text',          'hide_season_text',       'nullable boolean'],
+  ['Season Title List',         'season_titles',          'nullable list'   ],
+  ['Hide Episode Text',         'hide_episode_text',      'nullable boolean'],
+  ['Episode Text Format',       'episode_text_format',    'nullable string' ],
+  ['Unwatched Card Style',      'unwatched_style',        'nullable string' ],
+  ['Watched Card Style',        'watched_style',          'nullable string' ],
+  ['Extras',                    'extras',                 'nullable list'   ],
+].sort((a, b) => a[0].localeCompare(b[0])).map(setting => {
+  return { name: setting[0], value: setting[1], type: setting[2] };
+});
+
+const filterChoices = {
+  'string': [
+    {name: 'equals',              requiresInput: true},
+    {name: 'does not equal',      requiresInput: true},
+    {name: 'contains',            requiresInput: true},
+    {name: 'does not contain',    requiresInput: true},
+    {name: 'starts with',         requiresInput: true},
+    {name: 'does not start with', requiresInput: true},
+    {name: 'ends with',           requiresInput: true},
+    {name: 'does not end with',   requiresInput: true},
+    {name: 'matches',             requiresInput: true},
+    {name: 'does not match',      requiresInput: true},
+  ],
+  'nullable string': [
+    {name: 'equals',              requiresInput: true },
+    {name: 'does not equal',      requiresInput: true },
+    {name: 'contains',            requiresInput: true },
+    {name: 'does not contain',    requiresInput: true },
+    {name: 'starts with',         requiresInput: true },
+    {name: 'does not start with', requiresInput: true },
+    {name: 'ends with',           requiresInput: true },
+    {name: 'does not end with',   requiresInput: true },
+    {name: 'matches',             requiresInput: true },
+    {name: 'does not match',      requiresInput: true },
+    {name: 'is null',             requiresInput: false},
+    {name: 'is not null',         requiresInput: false},
+  ],
+  'numeric': [
+    {name: 'is less than',                requiresInput: true},
+    {name: 'is less than or equal to',    requiresInput: true},
+    {name: 'equals',                      requiresInput: true},
+    {name: 'is greater than',             requiresInput: true},
+    {name: 'is greater than or equal to', requiresInput: true},
+  ],
+  'nullable numeric': [
+    {name: 'is less than',                requiresInput: true },
+    {name: 'is less than or equal to',    requiresInput: true },
+    {name: 'equals',                      requiresInput: true },
+    {name: 'is greater than',             requiresInput: true },
+    {name: 'is greater than or equal to', requiresInput: true },
+    {name: 'is null',                     requiresInput: false},
+    {name: 'is not null',                 requiresInput: false},
+  ],
+  'boolean': [
+    {name: 'is true',  requiresInput: false},
+    {name: 'is false', requiresInput: false},
+  ],
+  'nullable boolean': [
+    {name: 'is true',     requiresInput: false},
+    {name: 'is false',    requiresInput: false},
+    {name: 'is null',     requiresInput: false},
+    {name: 'is not null', requiresInput: false},
+  ],
+  'list': [
+    {name: 'is empty',         requiresInput: false},
+    {name: 'is not empty',     requiresInput: false},
+    {name: 'includes',         requiresInput: true },
+    {name: 'does not include', requiresInput: true },
+  ],
+  'nullable list': [
+    {name: 'is empty',         requiresInput: false},
+    {name: 'is not empty',     requiresInput: false},
+    {name: 'includes',         requiresInput: true },
+    {name: 'does not include', requiresInput: true },
+    {name: 'is null',          requiresInput: false},
+    {name: 'is not null',      requiresInput: false},
+  ],
+};
+
+
+function updateConditions(obj) {
+  // Disable and clear reference field until condition is selected
+  const referenceField = $(obj).closest('.fields').find('.field[data-label="reference"]');
+  referenceField.toggleClass('disabled', true);
+  referenceField.find('input').val('');
+
+  // No value means the field was cleared
+  if (!obj.value) {
+    // Clear condition dropdown
+    $(obj).closest('.fields').find('[data-label="condition"] .ui.dropdown').dropdown({
+      values: []
+    });
+    return;
+  }
+
+  // Get the type of the newly selected filter field
+  const fieldType = filterSettings.find(filter => filter.value === obj.value).type;
+
+  // Initialize associated dropdown with condition choices for this type
+  $(obj).closest('.fields').find('[data-label="condition"] .ui.dropdown').dropdown({
+    onChange: (condition, text, $selectedItem) => {
+      // Enable/disable the dropdown based on the selected condition
+      const requiresInput = filterChoices[fieldType].find(choice => choice.name === condition).requiresInput;
+      $($selectedItem).closest('.fields').find('.field[data-label="reference"]').toggleClass('disabled', !requiresInput);
+    },
+    placeholder: 'Condition Type',
+    values: filterChoices[fieldType].map(choice => {
+      return {
+        name: choice.name,
+        value: choice.name,
+        selected: false,
+      };
+    }),
+  });
+}
+
+function initializeFilterTemplate() {
+  const template = document.getElementById('filter-template').content;
+  filterSettings.forEach(filter => {
+    const item = document.createElement('div');
+    item.className = 'item'; item.dataset.value = filter.value; item.innerText = filter.name;
+    template.querySelector('.dropdown .menu').appendChild(item);
+  });
+
+  const filterData = JSON.parse(window.localStorage.getItem('home:filters'));
+  const existingFilters = filterData.filters || [];
+  existingFilters.forEach(filter => {
+    // Add blank tab for this filter
+    const tab = addTab(filter);
+  
+    // Add each condition
+    filter.conditions.forEach((condition, index) => {
+      // Add new filter row for this condition
+      const newFields = document.getElementById('filter-template').content.cloneNode(true);
+  
+      // Remove labels for all but the first condition
+      if (index > 0) {
+        newFields.querySelectorAll('.field label').forEach(label => label.remove());
+      }
+  
+      // Initialize field
+      newFields.querySelector('.field[data-label="field"] div.dropdown > input').value = condition.field;
+
+      // Initialize condition items
+      const fieldType = filterSettings.find(filter => filter.value === condition.field).type;
+      filterChoices[fieldType].forEach(choice => {
+        addDropdownItem(
+          newFields.querySelector('.field[data-label="condition"] div.dropdown .menu'),
+          {className: 'item', innerText: choice.name, value: choice.name}
+        );
+      });
+      newFields.querySelector('.field[data-label="condition"] div.dropdown > input').value = condition.expression;
+      if (condition.reference !== null) {
+        newFields.querySelector('.field[data-label="reference"] input').value = condition.reference;
+      }
+
+      // Add to page so dropdowns can be populated
+      tab.querySelector('.form').appendChild(newFields);
+    });
+  });
+  $('#filter-modal div.dropdown').dropdown();
+
+  // Set active tab
+  if (filterData?.activeTab !== undefined) {
+    $('#filter-modal .tabular.menu').tab('change tab', `tab${filterData.activeTab}`);
+  }
+}
+
+function addFilterCondition(addButton, removeLabels=true) {
+  const newFields = document.getElementById('filter-template').content.cloneNode(true);
+  if (removeLabels) {
+    newFields.querySelectorAll('.field label').forEach(label => label.remove());
+  }
+
+  // Add to page, initialize dropdowns
+  addButton.closest('.tab.segment').querySelector('.form').appendChild(newFields);
+  $('#filter-modal .form .dropdown').dropdown();
+}
+
+// Function to serialize form inputs into a list of objects
+function serializeAllFilters() {
+  const filters = [];
+  let activeTab = null;
+
+  // Serialize each tab
+  document.querySelectorAll('#filter-modal .content .tab.segment').forEach((tab, index) => {
+    const data = {
+      name: tab.querySelector('input[name="filter_name"]').value,
+      conditions: [],
+    };
+
+    // Update active tab number if needed
+    if (activeTab === null && tab.classList.contains('active')) {
+      activeTab = index;
+    }
+
+    // Loop through each group of fields and gather inputs
+    tab.querySelectorAll('.fields').forEach((fieldDiv) => {
+      // Get the values of all input fields
+      const fieldInput = fieldDiv.querySelector('input[name="field"]');
+      const conditionInput = fieldDiv.querySelector('input[name="condition"]');
+      const referenceInput = fieldDiv.querySelector('input[name="reference"]');
+
+      // An input is required if the reference field is not disabled
+      const requiresInput = !fieldDiv.querySelector('.field[data-label="reference"]').className.includes('disabled');
+
+      // Ensure all inputs exist and retrieve their values
+      if (fieldInput && conditionInput && referenceInput) {
+        const field = fieldInput.value,
+          expression = conditionInput.value,
+          reference = referenceInput.value || null;
+
+        if (field && expression && (reference || !requiresInput)) {
+          data.conditions.push({ field, expression, reference, });
+        }
+      }
+    });
+
+    filters.push(data);
+  });
+
+  // Add new filter data to local storage
+  window.localStorage.setItem('home:filters', JSON.stringify({ filters, activeTab }));
+
+  // Set current filter, re-query Series, hide the filter modal
+  currentFilter = filters[activeTab];
+  getAllSeries();
+  $('#filter-modal').modal('hide');
 }

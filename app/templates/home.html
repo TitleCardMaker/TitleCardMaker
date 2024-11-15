@@ -99,6 +99,58 @@
       <td class="center aligned selectable" data-row="process"><a><i class="images outline icon"></i></a></td>
     </tr>
   </template>
+
+  <template id="blank-tab-template">
+    <div class="ui bottom attached tab uninvertible segment">
+      <form class="ui uninvertible form">
+        <div class="ui field">
+          <label>Filter Name</label>
+          <input type="text" name="filter_name" placeholder="Name" value="New Filter" oninput="updateTitle(this);">
+        </div>
+        <div class="ui divider"></div>
+        <!-- Conditions added later -->
+      </form>
+  
+      <div class="ui labeled icon button" onclick="addFilterCondition(this);">
+        <i class="plus circle icon"></i>
+        Add Condition
+      </div>
+  
+      <div class="ui right floated red icon button" onclick="deleteFilter(this);">
+        <i class="trash alternate outline icon"></i>
+        Delete Filter
+      </div>
+    </div>
+  </template>
+  
+  <template id="filter-template">
+    <div class="three fields">
+      <div class="field" data-label="field">
+        <label>Field</label>
+        <div class="ui selection clearable search dropdown">
+          <input type="hidden" name="field" onchange="updateConditions(this);">
+          <i class="dropdown icon"></i>
+          <div class="default text">Field Name</div>
+          <div class="menu"></div>
+        </div>
+      </div>
+  
+      <div class="field" data-label="condition">
+        <label>Condition</label>
+        <div class="ui selection dropdown">
+          <input type="hidden" name="condition">
+          <i class="dropdown icon"></i>
+          <div class="default text">Condition Type</div>
+          <div class="menu"></div>
+        </div>
+      </div>
+  
+      <div class="disabled field" data-label="reference">
+        <label>Reference</label>
+        <input type="text" name="reference" placeholder="Reference Value">
+      </div>
+    </div>
+  </template>
 </head>
 
 <body onload="initAll();">
@@ -115,6 +167,10 @@
     <div id="main-content" class="article">
       <!-- Toolbar -->
       <div id="toolbar" class="ui menu">
+        <a class="item" data-action="filter" onclick="$('#filter-modal').modal({blurring: true}).modal('show');">
+          <i class="filter icon"></i>
+          Filter
+        </a>
         <div class="ui dropdown item">
           <i class="ui sort icon"></i>
           Sort
@@ -319,38 +375,24 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Modals -->
-      <div id="filter-modal" class="ui small scrolling modal">
-        <i class="close icon"></i>
-        <div class="header">Filter Series</div>
-        <div class="scrolling content">
-          <form class="ui form">
-            <div class="ui checkbox field">
-              <label>Included Monitored</label>
-              <input name="monitored" type="checkbox">
-            </div>
-            <br>
-
-            <div class="ui checkbox field">
-              <label>Included Unmonitored</label>
-              <input name="unmonitored" type="checkbox">
-            </div>
-            <br>
-
-            <div class="ui checkbox field">
-              <label>Missing Title Cards</label>
-              <input name="missing_title_cards" type="checkbox">
-            </div>
-          </form>
+    <!-- Modals -->
+    <div class="ui uninvertible modal" id="filter-modal">
+      <div class="header">Filters</div>
+      <div class="content">
+        <div class="ui top attached tabular wrapping uninvertible menu">
+          <!-- Tab selector added later -->
+          <div class="item add-tab" data-tab="add" onclick="addTab();"><i class="plus circle blue icon"></i></div>
         </div>
-        <div class="actions">
-          <button class="ui cancel button">Cancel</button>
-          <button class="ui blue right labeled icon button">
-            <i class="solid filter icon"></i>
-            Filter
-          </button>
-        </div>
+        <!-- Tabs added later -->
+      </div>
+    
+      <div class="actions">
+        <button class="ui blue button" onclick="serializeAllFilters();">
+          <i class="check icon"></i>
+          Apply Filter
+        </button>
       </div>
     </div>
   </div>

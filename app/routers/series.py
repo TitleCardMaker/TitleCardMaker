@@ -12,6 +12,7 @@ from fastapi import (
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import paginate as paginate_sequence
 from PIL import Image
+from pydantic import ValidationError
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 from unidecode import unidecode
@@ -38,6 +39,7 @@ from app.internal.series import (
 )
 from app.internal.auth import get_current_user
 from app.models.series import Series as SeriesModel
+from app.schemas.filter import SeriesFilter
 from app.schemas.series import (
     BatchUpdateSeries,
     NewSeries,
@@ -48,6 +50,7 @@ from app.schemas.series import (
     SeriesOverviewWithCounts,
     UpdateSeries
 )
+from modules.Debug import Logger, log
 from modules.PlexInterface2 import PlexInterface
 from modules.WebInterface import WebInterface
 
@@ -61,30 +64,66 @@ series_router = APIRouter(
 
 @series_router.get('/all')
 def get_all_series(
+        request: Request,
         db: Session = Depends(get_database),
         order_by: SeriesOrder = Query(default='alphabetical'),
-    ) -> Page[SeriesOverview]:
+        filter_: str = Query(alias='filter', default=None),
+    ) -> Page[SeriesOverview]: # type: ignore
     """
     Get all defined Series.
 
     - order_by: How to order the Series in the returned list.
+    - filter: Optional filter conditions to apply the list of returned
+    Series.
     """
 
-    return query_and_filter_series(db, order_by=order_by, include_counts=False)
+    # Get contextual logger
+    log: Logger = request.state.log
+
+    try:
+        filter = SeriesFilter.parse_raw(filter_) if filter_ else None
+    except ValidationError as exc:
+        log.exception('Invalid filter definition')
+        raise HTTPException(
+            status_code=422,
+            detail='Filter definition is invalid',
+        ) from exc
+
+    return query_and_filter_series(
+        db, filter, order_by=order_by, include_counts=False, log=log
+    )
 
 
 @series_router.get('/all-extended')
 def get_all_series_including_counts(
+        request: Request,
         db: Session = Depends(get_database),
         order_by: SeriesOrder = Query(default='alphabetical'),
-    ) -> Page[SeriesOverviewWithCounts]:
+        filter_: str = Query(alias='filter', default=None),
+    ) -> Page[SeriesOverviewWithCounts]: # type: ignore
     """
     Get all defined Series.
 
     - order_by: How to order the Series in the returned list.
+    - filter: Optional filter conditions to apply the list of returned
+    Series.
     """
 
-    return query_and_filter_series(db, order_by=order_by, include_counts=True)
+    # Get contextual logger
+    log: Logger = request.state.log
+
+    try:
+        filter = SeriesFilter.parse_raw(filter_) if filter_ else None
+    except ValidationError as exc:
+        log.exception('Invalid filter definition')
+        raise HTTPException(
+            status_code=422,
+            detail='Filter definition is invalid',
+        ) from exc
+
+    return query_and_filter_series(
+        db, filter, order_by=order_by, include_counts=True, log=log
+    )
 
 
 @series_router.get('/series/{series_id}/previous')
@@ -186,7 +225,7 @@ def search_existing_series(
         sync_id: int | None = None,
         template_id: int | None = None,
         db: Session = Depends(get_database),
-    ) -> Page[Series]:
+    ) -> Page[Series]: # type: ignore
     """
     Query all defined defined series by the given parameters. This
     performs an AND operation with the given conditions.
@@ -304,7 +343,7 @@ def copy_series_config(
         db: Session = Depends(get_database),
     ) -> Series:
     """
-    
+
     """
 
     # Get to- and from-Series
