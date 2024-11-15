@@ -288,12 +288,12 @@ class AnimeTitleCard(BaseCardType):
         font_size = 150 * self.font_size
 
         return [
-            f'-font "{self.font_file}"',
-            f'-kerning {self.font_kerning}',
-            f'-interline-spacing {self.font_interline_spacing}',
-            f'-interword-spacing {self.font_interword_spacing}',
-            f'-pointsize {font_size}',
-            f'-gravity southwest',
+            fr'-font "{self.font_file}"',
+            fr'-kerning {self.font_kerning}',
+            fr'-interline-spacing {self.font_interline_spacing}',
+            fr'-interword-spacing {self.font_interword_spacing}',
+            fr'-pointsize {font_size}',
+            fr'-gravity southwest',
         ]
 
 
@@ -310,9 +310,9 @@ class AnimeTitleCard(BaseCardType):
         stroke_width = 5 * self.font_stroke_width
 
         return [
-            f'-fill "{self.stroke_color}"',
-            f'-stroke "{self.stroke_color}"',
-            f'-strokewidth {stroke_width}',
+            fr'-fill "{self.stroke_color}"',
+            fr'-stroke "{self.stroke_color}"',
+            fr'-strokewidth {stroke_width}',
         ]
 
 
@@ -321,9 +321,9 @@ class AnimeTitleCard(BaseCardType):
         """Subcommands to implement the title text's standard effects."""
 
         return [
-            f'-fill "{self.font_color}"',
-            f'-stroke "{self.font_color}"',
-            f'-strokewidth 0.5',
+            fr'-fill "{self.font_color}"',
+            fr'-stroke "{self.font_color}"',
+            fr'-strokewidth 0.5',
         ]
 
 
@@ -337,11 +337,11 @@ class AnimeTitleCard(BaseCardType):
         size = 67 * self.episode_text_size
 
         return [
-            f'-font "{self.SERIES_COUNT_FONT.resolve()}"',
-            f'-kerning 2',
-            f'-pointsize {size}',
-            f'-interword-spacing 25',
-            f'-gravity southwest',
+            fr'-font "{self.SERIES_COUNT_FONT.resolve()}"',
+            fr'-kerning 2',
+            fr'-pointsize {size}',
+            fr'-interword-spacing 25',
+            fr'-gravity southwest',
         ]
 
 
@@ -357,9 +357,9 @@ class AnimeTitleCard(BaseCardType):
         title_commands = [
             *self.__title_text_global_effects,
             *self.__title_text_black_stroke,
-            f'-annotate +75+{base_offset} "{self.title_text}"',
+            fr'-annotate +75+{base_offset} "{self.title_text}"',
             *self.__title_text_effects,
-            f'-annotate +75+{base_offset} "{self.title_text}"',
+            fr'-annotate +75+{base_offset} "{self.title_text}"',
         ]
 
         if not self.use_kanji:
@@ -370,7 +370,7 @@ class AnimeTitleCard(BaseCardType):
             [
                 *self.__title_text_global_effects,
                 *self.__title_text_effects,
-                f'-annotate +75+{base_offset} "{self.title_text}"',
+                fr'-annotate +75+{base_offset} "{self.title_text}"',
             ],
             interline_spacing=self.font_interline_spacing,
             line_count=len(self.title_text.splitlines()),
@@ -380,17 +380,17 @@ class AnimeTitleCard(BaseCardType):
 
         return [
             *title_commands,
-            f'-font "{self.KANJI_FONT.resolve()}"',
             f'-kerning -3.0',
-            f'-pointsize {85 * self.kanji_font_size}',
-            f'-strokewidth {5 * self.kanji_stroke_width:.2f}',
-            f'-fill "{self.kanji_stroke_color}"',
-            f'-stroke "{self.kanji_stroke_color}"',
-            f'-annotate +75+{kanji_offset} "{self.kanji}"',
-            f'-fill "{self.kanji_color}"',
-            f'-stroke "{self.kanji_stroke_color}"',
-            f'-strokewidth 0.5',
-            f'-annotate +75+{kanji_offset} "{self.kanji}"',
+            fr'-font "{self.KANJI_FONT.resolve()}"',
+            fr'-pointsize {85 * self.kanji_font_size}',
+            fr'-strokewidth {5 * self.kanji_stroke_width:.2f}',
+            fr'-fill "{self.kanji_stroke_color}"',
+            fr'-stroke "{self.kanji_stroke_color}"',
+            fr'-annotate +75+{kanji_offset} "{self.kanji}"',
+            fr'-fill "{self.kanji_color}"',
+            fr'-stroke "{self.kanji_stroke_color}"',
+            fr'-strokewidth 0.5',
+            fr'-annotate +75+{kanji_offset} "{self.kanji}"',
         ]
 
 
@@ -413,53 +413,53 @@ class AnimeTitleCard(BaseCardType):
 
             return [
                 *self.__series_count_text_global_effects,
-                f'-fill "{self.episode_stroke_color}"',
-                f'-stroke "{self.episode_stroke_color}"',
-                f'-strokewidth 6',
-                f'-annotate +75+90 "{text}"',
-                f'-fill "{color}"',
-                f'-stroke "{color}"',
-                f'-strokewidth 0',
-                f'-annotate +75+90 "{text}"',
+                fr'-fill "{self.episode_stroke_color}"',
+                fr'-stroke "{self.episode_stroke_color}"',
+                fr'-strokewidth 6',
+                fr'-annotate +75+90 "{text}"',
+                fr'-fill "{color}"',
+                fr'-stroke "{color}"',
+                fr'-strokewidth 0',
+                fr'-annotate +75+90 "{text}"',
             ]
 
         # Add season and episode text
         return [
-            f'-background transparent',
+            fr'-background transparent',
             *self.__series_count_text_global_effects,
-            f'-fill "{self.episode_stroke_color}"',
-            f'-stroke "{self.episode_stroke_color}"',
-            f'-strokewidth 6',
+            fr'-fill "{self.episode_stroke_color}"',
+            fr'-stroke "{self.episode_stroke_color}"',
+            fr'-strokewidth 6',
             # Stroke behind season and episode text
-            f'\( -gravity center',
+            fr'\( -gravity center',
             # Stroke uses same font for season/episode text
-            f'label:"{self.season_text} {self.separator}"',
-            f'label:"{self.episode_text}"',
+            fr'label:"{self.season_text} {self.separator}"',
+            fr'label:"{self.episode_text}"',
             # Combine season and episode text into one "image"
-            f'+smush 30 \)',
-            f'-gravity southwest',
+            fr'+smush 30 \)',
+            fr'-gravity southwest',
             # Overlay stroke "image" - use different offset for stroke
-            f'-geometry +73+88',
-            f'-composite',
+            fr'-geometry +73+88',
+            fr'-composite',
             # Primary season and episode text
             *self.__series_count_text_global_effects,
-            f'-fill "{self.season_text_color}"',
-            f'-stroke "{self.season_text_color}"',
-            f'\( -gravity center',
+            fr'-fill "{self.season_text_color}"',
+            fr'-stroke "{self.season_text_color}"',
+            fr'\( -gravity center',
             # Season text and separator uses larger stroke
-            f'-strokewidth 2',
-            f'label:"{self.season_text} {self.separator}"',
+            fr'-strokewidth 2',
+            fr'label:"{self.season_text} {self.separator}"',
             # Zero-width stroke for episode text
-            f'-strokewidth 0',
-            f'-fill "{self.episode_text_color}"',
-            f'-stroke "{self.episode_text_color}"',
-            f'label:"{self.episode_text}"',
+            fr'-strokewidth 0',
+            fr'-fill "{self.episode_text_color}"',
+            fr'-stroke "{self.episode_text_color}"',
+            fr'label:"{self.episode_text}"',
             # Combine season+episode text images
-            f'+smush 35 \)',
+            fr'+smush 35 \)',
             # Add text to source image
-            f'-gravity southwest',
-            f'-geometry +75+90',
-            f'-composite',
+            fr'-gravity southwest',
+            fr'-geometry +75+90',
+            fr'-composite',
         ]
 
 
@@ -566,13 +566,13 @@ class AnimeTitleCard(BaseCardType):
         gradient_command = []
         if not self.omit_gradient:
             gradient_command = [
-                f'"{self.__GRADIENT_IMAGE.resolve()}"',
-                f'-composite',
+                fr'"{self.__GRADIENT_IMAGE.resolve()}"',
+                fr'-composite',
             ]
 
         contrast = [f'-modulate 100,125']
         command = ' '.join([
-            f'convert "{self.source_file.resolve()}"',
+            fr'convert "{self.source_file.resolve()}"',
             # Resize and optionally blur source image
             *self.resize_and_style,
             # Increase contrast of source image
@@ -590,7 +590,7 @@ class AnimeTitleCard(BaseCardType):
             ),
             # Create card
             *self.resize_output,
-            f'"{self.output_file.resolve()}"',
+            fr'"{self.output_file.resolve()}"',
         ])
 
         self.image_magick.run(command)
