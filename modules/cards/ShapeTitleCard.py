@@ -75,7 +75,7 @@ class ShapeTitleCard(BaseCardType):
                 default='False',
             ),
             Extra(
-                name='Italize Season Text',
+                name='Italicize Season Text',
                 identifier='italicize_season_text',
                 description='Whether to italicize the season text',
                 tooltip=(
