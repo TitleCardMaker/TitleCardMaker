@@ -257,7 +257,7 @@ function showEditModel(sync) {
     })
   ;
 
-  $(`#edit-sync${sync.id}`).modal('show');
+  $(`#edit-sync${sync.id}`).modal({blurring: true}).modal('show');
 }
 
 async function showDeleteSyncModal(syncId) {
@@ -307,7 +307,7 @@ async function showDeleteSyncModal(syncId) {
       });
     });
 
-  $('#delete-sync-modal').modal('show');
+  $('#delete-sync-modal').modal({blurring: true}).modal('show');
 }
 
 /**
@@ -478,10 +478,10 @@ function initAll() {
   $('.ui.dropdown.additions').dropdown({allowAdditions: true});
 
   // Attach button clicks to modal hiding
-  $('#add-emby-sync-modal').modal('attach events', '#add-emby-sync', 'show');
-  $('#add-jellyfin-sync-modal').modal('attach events', '#add-jellyfin-sync', 'show');
-  $('#add-plex-sync-modal').modal('attach events', '#add-plex-sync', 'show');
-  $('#add-sonarr-sync-modal').modal('attach events', '#add-sonarr-sync', 'show');
+  $('#add-emby-sync-modal').modal({blurring: true}).modal('attach events', '#add-emby-sync', 'show');
+  $('#add-jellyfin-sync-modal').modal({blurring: true}).modal('attach events', '#add-jellyfin-sync', 'show');
+  $('#add-plex-sync-modal').modal({blurring: true}).modal('attach events', '#add-plex-sync', 'show');
+  $('#add-sonarr-sync-modal').modal({blurring: true}).modal('attach events', '#add-sonarr-sync', 'show');
   
   // Submit API request to create a new sync, do so for each source
   const syncData = [
