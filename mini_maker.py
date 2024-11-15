@@ -401,6 +401,7 @@ def season_poster(
               help='Font stroke scalar')
 @click.option('--blur', is_flag=True, help='Apply a blurred styling')
 @click.option('--grayscale', is_flag=True, help='Apply a grayscale styling')
+@click.option('--debug', is_flag=True, help='ImageMagick debug mode')
 @click.argument('extras', nargs=-1)
 def title_card(
         source: Path,
@@ -419,6 +420,7 @@ def title_card(
         font_stroke_width: float,
         blur: bool,
         grayscale: bool,
+        debug: bool,
         extras: list[Any],
     ) -> None:
 
@@ -473,6 +475,8 @@ def title_card(
     card.create()
     if destination.exists():
         log.info(f'Created "{destination.resolve()}"')
+        if debug:
+            card.image_magick.print_command_history()
     else:
         log.warning(f'Could not create "{destination.resolve()}"')
         card.image_magick.print_command_history()
