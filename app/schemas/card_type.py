@@ -877,8 +877,6 @@ class StripedCardType(BaseCardTypeAllText):
 class TextlessCardType(BaseCardModel):
     source_file: Path # Optional source file for importing w/o sources
 
-OuterElement = Literal['index', 'logo', 'omit', 'title']
-MiddleElement = Literal['logo', 'omit']
 class TintedFrameCardType(BaseCardTypeAllText):
     logo_file: Path
     font_color: str = TintedFrameTitleCard.TITLE_COLOR
@@ -892,14 +890,16 @@ class TintedFrameCardType(BaseCardTypeAllText):
     episode_text_color: str | None = None
     episode_text_font: Literal['{title_font}'] | str | Path = TintedFrameTitleCard.EPISODE_TEXT_FONT
     episode_text_font_size: confloat(ge=0.0) = 1.0
-    episode_text_vertical_shift: int = 0
+    episode_text_vertical_shift: conint(ge=-1800, le=1800) = 0
     frame_color: str | None = None
     frame_width: conint(ge=0, le=1600) = TintedFrameTitleCard.BOX_WIDTH
-    top_element: OuterElement = 'title'
-    middle_element: MiddleElement = 'omit'
-    bottom_element: OuterElement = 'index'
+    index_text_horizontal_shift: conint(ge=-1600, le=1600) = 0
+    title_horizontal_shift: conint(ge=-1600, le=1600) = 0
+    top_element: Literal['index', 'logo', 'omit', 'title'] = 'title'
+    middle_element: Literal['logo', 'omit'] = 'omit'
+    bottom_element: Literal['index', 'logo', 'omit', 'title'] = 'index'
     logo_size: PositiveFloat = 1.0
-    logo_vertical_shift: int = 0
+    logo_vertical_shift: conint(ge=-1800, le=1800) = 0
     blur_edges: bool = True
     shadow_color: str = TintedFrameTitleCard.SHADOW_COLOR
 

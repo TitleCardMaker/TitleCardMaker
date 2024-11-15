@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 RandomColorRegex = re_compile(r'random\[([^[\]]*(?:,[^[\]]*)*)\]', IGNORECASE)
-Element = Literal['index', 'logo', 'omit', 'title']
+OuterElement = Literal['index', 'logo', 'omit', 'title']
 MiddleElement = Literal['logo', 'omit']
 
 
@@ -68,11 +68,32 @@ class TintedFrameTitleCard(BaseCardType):
                 default=1.0,
             ),
             Extra(
+                name='Episode Text Horizontal Shift',
+                identifier='index_text_horizontal_shift',
+                description='Horizontal shift for the season and episode text',
+                tooltip=(
+                    'Number between <v>-1600</v> and <v>1600</v>. Default is '
+                    '<v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
+            Extra(
                 name='Episode Text Vertical Shift',
                 identifier='episode_text_vertical_shift',
-                description=(
-                    'Additional vertical shift to apply to the season and '
-                    'episode text. Default is <v>0</v>.'
+                description='Vertical shift of the season and episode text',
+                tooltip=(
+                    'Number between <v>-1800</v> and <v>1800</v>. Default is '
+                    '<v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
+            Extra(
+                name='Title Text Horizontal Shift',
+                identifier='title_horizontal_shift',
+                description='Horizontal shift of the title text',
+                tooltip=(
+                    'Number between <v>-1600</v> and <v>1600</v>. Default is '
+                    '<v>0</v>. Unit is pixels.'
                 ),
                 default=0,
             ),
@@ -155,8 +176,9 @@ class TintedFrameTitleCard(BaseCardType):
                 identifier='logo_vertical_shift',
                 description='Vertical shift to apply to the logo',
                 tooltip=(
-                    'Positive values to shift the logo down, negative values to'
-                    'shift it up. Unit is pixels. Default is <v>0.0</v>.'
+                    'Number between <v>-1800</v> and <v>1800</v>. Positive '
+                    'values to shift the logo down, negative values to shift '
+                    'it up. Unit is pixels. Default is <v>0.0</v>.'
                 ),
                 default=0.0,
             ),
@@ -220,15 +242,37 @@ class TintedFrameTitleCard(BaseCardType):
 
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_file',
-        'font_size', 'font_color', 'font_interline_spacing',
-        'font_interword_spacing', 'font_kerning', 'font_vertical_shift',
-        'blur_edges', 'bottom_element', 'episode_text_color',
-        'episode_text_font', 'episode_text_font_size',
-        'episode_text_vertical_shift', 'frame_color', 'frame_width', 'logo',
-        'logo_size', 'logo_vertical_shift', 'middle_element', 'separator',
-        'shadow_color', 'top_element',
+        'source_file',
+        'output_file',
+        'title_text',
+        'season_text',
+        'episode_text',
+        'hide_season_text',
+        'hide_episode_text',
+        'font_file',
+        'font_size',
+        'font_color',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_vertical_shift',
+        'blur_edges',
+        'bottom_element',
+        'episode_text_color',
+        'episode_text_font',
+        'episode_text_font_size',
+        'episode_text_vertical_shift',
+        'frame_color',
+        'frame_width',
+        'logo',
+        'logo_size',
+        'logo_vertical_shift',
+        'middle_element',
+        'separator',
+        'shadow_color',
+        'top_element',
+        'title_horizontal_shift',
+        'index_text_horizontal_shift',
     )
 
 
@@ -256,13 +300,15 @@ class TintedFrameTitleCard(BaseCardType):
             episode_text_vertical_shift: int = 0,
             frame_color: str = 'white',
             frame_width: int = BOX_WIDTH,
-            top_element: Element = 'title',
+            index_text_horizontal_shift: int = 0,
+            top_element: OuterElement = 'title',
             middle_element: MiddleElement = 'omit',
-            bottom_element: Element = 'index',
+            bottom_element: OuterElement = 'index',
             logo_file: Path | None = None,
             logo_size: float = 1.0,
             logo_vertical_shift: int = 0,
             shadow_color: str = SHADOW_COLOR,
+            title_horizontal_shift: int = 0,
             blur_edges: bool = True,
             preferences: 'Preferences | None' = None,
             **unused,
@@ -301,11 +347,13 @@ class TintedFrameTitleCard(BaseCardType):
         self.episode_text_vertical_shift = episode_text_vertical_shift
         self.frame_color = self.__select_color(frame_color)
         self.frame_width = frame_width
+        self.index_text_horizontal_shift = int(index_text_horizontal_shift)
         self.logo_size = logo_size
         self.logo_vertical_shift = logo_vertical_shift
         self.middle_element = middle_element
         self.separator = separator
         self.shadow_color = shadow_color
+        self.title_horizontal_shift = int(title_horizontal_shift)
         self.top_element = top_element
 
 
@@ -352,15 +400,15 @@ class TintedFrameTitleCard(BaseCardType):
 
         return [
             # Blur entire image
-            f'-blur 0x20',
+            fr'-blur 0x20',
             # Crop out center area of the source image
-            f'-gravity center',
-            f'\( "{self.source_file.resolve()}"',
+            fr'-gravity center',
+            fr'\( "{self.source_file.resolve()}"',
             *self.resize_and_style,
-            f'-crop {crop_width}x{crop_height}+0+0',
-            f'+repage \)',
+            fr'-crop {crop_width}x{crop_height}+0+0',
+            fr'+repage \)',
             # Overlay unblurred center area
-            f'-composite',
+            fr'-composite',
         ]
 
 
@@ -369,8 +417,8 @@ class TintedFrameTitleCard(BaseCardType):
         """Subcommand for adding title text to the source image."""
 
         # No title text, or not being shown
-        if (len(self.title_text) == 0
-            or (self.top_element != 'title' and self.bottom_element !='title')):
+        if (not self.title_text
+            or 'title' not in (self.top_element, self.bottom_element)):
             return []
 
         # Determine vertical position based on which element the title is
@@ -381,17 +429,17 @@ class TintedFrameTitleCard(BaseCardType):
 
         return self.add_drop_shadow(
             [
-                f'-background transparent',
-                f'-font "{self.font_file}"',
-                f'-pointsize {100 * self.font_size}',
-                f'-kerning {1 * self.font_kerning}',
-                f'-interline-spacing {self.font_interline_spacing}',
-                f'-interword-spacing {self.font_interword_spacing}',
-                f'-fill "{self.font_color}"',
-                f'label:"{self.title_text}"',
+                fr'-background transparent',
+                fr'-font "{self.font_file}"',
+                fr'-pointsize {100 * self.font_size}',
+                fr'-kerning {1 * self.font_kerning}',
+                fr'-interline-spacing {self.font_interline_spacing}',
+                fr'-interword-spacing {self.font_interword_spacing}',
+                fr'-fill "{self.font_color}"',
+                fr'label:"{self.title_text}"',
             ],
             Shadow(opacity=85, sigma=3, x=8, y=8),
-            x=0, y=vertical_shift,
+            x=self.title_horizontal_shift, y=vertical_shift,
             shadow_color=self.shadow_color,
         )
 
@@ -430,7 +478,9 @@ class TintedFrameTitleCard(BaseCardType):
                 f'label:"{index_text}"',
             ],
             Shadow(opacity=85, sigma=3, x=6, y=6),
-            x=0, y=vertical_shift, shadow_color=self.shadow_color,
+            x=self.index_text_horizontal_shift,
+            y=vertical_shift,
+            shadow_color=self.shadow_color,
         )
 
 
@@ -469,17 +519,17 @@ class TintedFrameTitleCard(BaseCardType):
         if self.middle_element == 'logo':
             # Constrain by width and height
             resize_command = [
-                f'-resize x{logo_height}',
-                f'-resize {2500 * self.logo_size}x{logo_height}\>',
+                fr'-resize x{logo_height}',
+                fr'-resize {2500 * self.logo_size}x{logo_height}\>',
             ]
         else:
             resize_command = [f'-resize x{logo_height}']
 
         return self.add_drop_shadow(
             [
-                f'\( "{self.logo.resolve()}"',
+                fr'\( "{self.logo.resolve()}"',
                 *resize_command,
-                f'\) -gravity center',
+                fr'\) -gravity center',
             ],
             shadow=Shadow(opacity=85, sigma=4),
             x=0, y=vertical_shift,
@@ -510,15 +560,17 @@ class TintedFrameTitleCard(BaseCardType):
             return [Rectangle(TopLeft, TopRight).draw()]
 
         # Element is index text
+        element_width, margin, l_margin, r_margin = 0, 0, 0, 0
         if self.top_element == 'index':
             element_width, _ = self.image_magick.get_text_dimensions(
                 self.index_text_commands, width='max',
             )
             margin = 25
+            l_margin = r_margin = self.index_text_horizontal_shift
         # Element is logo
         elif self.top_element == 'logo':
             element_width, logo_height = self.image_magick.get_image_dimensions(
-                self.logo
+                self.logo # type: ignore
             )
             element_width /= (logo_height / 150)
             element_width *= self.logo_size
@@ -529,10 +581,11 @@ class TintedFrameTitleCard(BaseCardType):
                 self.title_text_commands, width='max',
             )
             margin = 10
+            l_margin = r_margin = self.title_horizontal_shift
 
         # Determine bounds based on element width
-        left_box_x = (self.WIDTH / 2) - (element_width / 2) - margin
-        right_box_x = (self.WIDTH / 2) + (element_width / 2) + margin
+        left_box_x = (self.WIDTH / 2) - (element_width / 2) - margin + l_margin
+        right_box_x = (self.WIDTH / 2) + (element_width / 2) + margin + r_margin
 
         # If the boundaries are wider than the start of the frame, draw nothing
         if left_box_x < INSET or right_box_x > (self.WIDTH - INSET):
@@ -583,15 +636,17 @@ class TintedFrameTitleCard(BaseCardType):
             ]
 
         # Element is index text
+        element_width, margin, l_margin, r_margin = 0, 0, 0, 0
         if self.bottom_element == 'index':
             element_width, _ = self.image_magick.get_text_dimensions(
                 self.index_text_commands, width='max',
             )
             margin = 25
+            l_margin = r_margin = self.index_text_horizontal_shift
         # Element is logo
         elif self.bottom_element == 'logo':
             element_width, logo_height = self.image_magick.get_image_dimensions(
-                self.logo
+                self.logo # type: ignore
             )
             element_width /= (logo_height / 150)
             element_width *= self.logo_size
@@ -602,10 +657,12 @@ class TintedFrameTitleCard(BaseCardType):
                 self.title_text_commands, width='max',
             )
             margin = 10
+            l_margin = self.title_horizontal_shift
+            r_margin = self.title_horizontal_shift
 
         # Determine bounds based on element width
-        left_box_x = (self.WIDTH / 2) - (element_width / 2) - margin
-        right_box_x = (self.WIDTH / 2) + (element_width / 2) + margin
+        left_box_x = (self.WIDTH / 2) - (element_width / 2) - margin + l_margin
+        right_box_x = (self.WIDTH / 2) + (element_width / 2) + margin + r_margin
 
         # If the boundaries are wider than the start of the frame, draw nothing
         if left_box_x < INSET or right_box_x > (self.WIDTH - INSET):
