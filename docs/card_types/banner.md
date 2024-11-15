@@ -4,15 +4,14 @@ description: >
     An overview of the built-in Banner card type.
 ---
 
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.css">
+<script src="../../javascripts/imageCompare.js" defer></script>
+
 # Banner Card Type
-
-??? warning "Under Construction"
-
-    This documentation is actively being developed.
 
 This card design was created by [CollinHeist](https://github.com/CollinHeist),
 and the design was inspired by graphic designer and TPDb contributor
-[Danny Beaton](www.DannyBeaton.com.au).
+[Danny Beaton](https://www.dannybeaton.com.au/).
 
 These cards feature a solid-color banner at the bottom of the image, with all
 text directly on top of or within the banner. The banner and text can all be
@@ -24,7 +23,7 @@ recolored and resized.
 
 ??? note "Labeled Card Elements"
 
-    ![Labeled Banner Card Elements](./assets/banner-labeled.webp)
+    ![Labeled Banner Card Elements](./assets/banner/labeled.webp)
 
 ## Alternate Coloring
 
@@ -38,10 +37,10 @@ This extra will also affect the coloring of the season and episode text.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="83"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/notification-mask-raw.webp"/>
-        <img src="../assets/notification-mask.webp"/>
+        data-starting-point="34.6"
+        data-left-label="goldenrod2" data-right-label="black">
+        <img src="../assets/banner/alternate_color.webp"/>
+        <img src="../assets/banner.webp"/>
     </div>
 
 ## Banner Customization
@@ -54,10 +53,11 @@ default, this matches the title text / font color.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="83"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/notification-mask-raw.webp"/>
-        <img src="../assets/notification-mask.webp"/>
+        data-starting-point="55.4"
+        data-left-label="rgba(212, 212, 212, 0.7)"
+        data-right-label="white">
+        <img src="../assets/banner/banner_color.webp"/>
+        <img src="../assets/banner.webp"/>
     </div>
 
 ### Height
@@ -67,10 +67,11 @@ The height of the banner can be adjusted with the _Banner Height_ extra.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="83"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/notification-mask-raw.webp"/>
-        <img src="../assets/notification-mask.webp"/>
+        data-starting-point="55.4"
+        data-left-label="150"
+        data-right-label="185">
+        <img src="../assets/banner/banner_height.webp"/>
+        <img src="../assets/banner.webp"/>
     </div>
 
 ### Toggle
@@ -84,10 +85,11 @@ this is _generally_ not advised.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="83"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/notification-mask-raw.webp"/>
-        <img src="../assets/notification-mask.webp"/>
+        data-starting-point="37"
+        data-left-label="True"
+        data-right-label="False">
+        <img src="../assets/banner/banner_toggle.webp"/>
+        <img src="../assets/banner.webp"/>
     </div>
 
 ## Episode Text
@@ -107,10 +109,11 @@ _Episode Text Font Size_ extra. Like all font sizes, values greater than
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="83"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/notification-mask-raw.webp"/>
-        <img src="../assets/notification-mask.webp"/>
+        data-starting-point="12.5"
+        data-left-label="1.1"
+        data-right-label="1.0">
+        <img src="../assets/banner/episode_text_font_size.webp"/>
+        <img src="../assets/banner.webp"/>
     </div>
 
 ## Horizontal Offset
@@ -122,10 +125,11 @@ between the text and the edge of the image, while negative values _decrease_ it.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="83"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/notification-mask-raw.webp"/>
-        <img src="../assets/notification-mask.webp"/>
+        data-starting-point="16.75"
+        data-left-label="90"
+        data-right-label="50">
+        <img src="../assets/banner/horizontal_offset.webp"/>
+        <img src="../assets/banner.webp"/>
     </div>
 
 ## Mask Images
@@ -138,8 +142,9 @@ effects.
 !!! example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="83"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/notification-mask-raw.webp"/>
-        <img src="../assets/notification-mask.webp"/>
+        data-starting-point="48.6"
+        data-left-label="Mask Image"
+        data-right-label="Resulting Title Card">
+        <img src="../assets/banner/mask-raw.webp"/>
+        <img src="../assets/banner/mask.webp"/>
     </div>
