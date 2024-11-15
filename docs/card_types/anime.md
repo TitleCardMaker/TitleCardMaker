@@ -4,11 +4,10 @@ description: >
     An overview of the built-in Anime card type.
 ---
 
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.css">
+<script src="../../javascripts/imageCompare.js" defer></script>
+
 # Anime Card Type
-
-!!! warning "Under Construction"
-
-    This documentation is actively being developed.
 
 This card design was created by [CollinHeist](https://github.com/CollinHeist),
 and designed by Reddit User
@@ -25,7 +24,7 @@ the image. The kanji, title, and season/episode text can all be adjusted.
 
 ??? note "Labeled Card Elements"
 
-    ![Labeled Anime Card Elements](./assets/anime-labeled.webp)
+    ![Labeled Anime Card Elements](./assets/anime/labeled.webp)
 
 ## Episode Text
 
@@ -42,10 +41,10 @@ extra.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="15"
-        data-left-label="basic" data-right-label="artwork">
-        <img src="../assets/music-basic-style.webp"/>
-        <img src="../assets/music.webp"/>
+        data-starting-point="22"
+        data-left-label="rgb(233,20,35)" data-right-label="#CFCFCF">
+        <img src="../assets/anime/etc.webp"/>
+        <img src="../assets/anime.webp"/>
     </div>
 
 ### Size
@@ -58,15 +57,27 @@ size of the text, and values less than `#!yaml 1.0` will decrease it.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="basic" data-right-label="artwork">
-        <img src="../assets/music-basic-style.webp"/>
-        <img src="../assets/music.webp"/>
+        data-left-label="1.3" data-right-label="1.0">
+        <img src="../assets/anime/etfs.webp"/>
+        <img src="../assets/anime.webp"/>
     </div>
+
+    A small vertical shift is also applied to the title text to avoid
+    overlapping the episode text.
 
 ### Stroke Color
 
 The color of the stroke used for the episode text can be adjusted with the
 _Episode Text Stroke Color_ extra.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="15"
+        data-left-label="crimson" data-right-label="black">
+        <img src="../assets/anime/etsc.webp"/>
+        <img src="../assets/anime.webp"/>
+    </div>
 
 ## Gradient Overlay
 
@@ -77,10 +88,10 @@ this gradient overlay, set the _Gradient Omission_ extra to `True`.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="90"
-        data-left-label="/" data-right-label="||">
-        <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-separator.webp"/>
+        data-starting-point="20"
+        data-left-label="False" data-right-label="True">
+        <img src="../assets/anime.webp"/>
+        <img src="../assets/anime/gradient.webp"/>
     </div>
 
 ## Kanji
@@ -111,10 +122,10 @@ The color of the kanji text can be adjusted with the _Kanji Color_ extra.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="15"
-        data-left-label="basic" data-right-label="artwork">
-        <img src="../assets/music-basic-style.webp"/>
-        <img src="../assets/music.webp"/>
+        data-starting-point="14.5"
+        data-left-label="skyblue" data-right-label="white">
+        <img src="../assets/anime/kanji_color.webp"/>
+        <img src="../assets/anime.webp"/>
     </div>
 
 ### Requiring Kanji
@@ -134,39 +145,39 @@ the text, and values less than `#!yaml 1.0` will decrease it.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="15"
-        data-left-label="basic" data-right-label="artwork">
-        <img src="../assets/music-basic-style.webp"/>
-        <img src="../assets/music.webp"/>
+        data-starting-point="11.2"
+        data-left-label="1.5" data-right-label="1.0">
+        <img src="../assets/anime/kanji_size.webp"/>
+        <img src="../assets/anime.webp"/>
     </div>
 
 ### Stroke Color
 
 The color of the stroke which surrounds the kanji text can be adjusted with the
 _Kanji Stroke Color_ extra. If unspecified, the stroke color will match that of
-the [title text](#...).
+the [title text](#stroke-color-2).
 
 ??? example "Example"
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="basic" data-right-label="artwork">
-        <img src="../assets/music-basic-style.webp"/>
-        <img src="../assets/music.webp"/>
+        data-left-label="crimson" data-right-label="black">
+        <img src="../assets/anime/kanji_stroke_color.webp"/>
+        <img src="../assets/anime.webp"/>
     </div>
 
 ### Stroke Width
 
-The width of the stroke effect can be adjusted wit the _Kanji Stroke Width_
+The width of the stroke effect can be adjusted with the _Kanji Stroke Width_
 extra.
 
 ??? example "Example"
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="basic" data-right-label="artwork">
-        <img src="../assets/music-basic-style.webp"/>
-        <img src="../assets/music.webp"/>
+        data-left-label="1.4" data-right-label="1.0">
+        <img src="../assets/anime/kanji_stroke_width.webp"/>
+        <img src="../assets/anime.webp"/>
     </div>
 
 ### Vertical Shift
@@ -175,14 +186,13 @@ By default, TCM calculates the dimensions of the title text in order to position
 the kanji text above it. However, if you want to manually offset the position
 of the kanji, you can do so with the _Kanji Vertical Shift_ extra.
 
-
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="15"
-        data-left-label="basic" data-right-label="artwork">
-        <img src="../assets/music-basic-style.webp"/>
-        <img src="../assets/music.webp"/>
+        data-starting-point="10.5"
+        data-left-label="20" data-right-label="0">
+        <img src="../assets/anime/kanji_shift.webp"/>
+        <img src="../assets/anime.webp"/>
     </div>
 
 ## Season Text Color
@@ -194,10 +204,10 @@ extra overrides that.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="15"
-        data-left-label="basic" data-right-label="artwork">
-        <img src="../assets/music-basic-style.webp"/>
-        <img src="../assets/music.webp"/>
+        data-starting-point="20.7"
+        data-left-label="skyblue" data-right-label="#CFCFCF">
+        <img src="../assets/anime/stc.webp"/>
+        <img src="../assets/anime.webp"/>
     </div>
 
 ## Separator Character
@@ -214,9 +224,9 @@ extras, with the season coloring taking priority over the episode.
 
     <div class="image-compare example-card"
         data-starting-point="90"
-        data-left-label="/" data-right-label="||">
-        <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-separator.webp"/>
+        data-left-label="·" data-right-label="//">
+        <img src="../assets/anime.webp"/>
+        <img src="../assets/anime/separator.webp"/>
     </div>
 
 ## Stroke Color
@@ -227,10 +237,10 @@ _Stroke Text Color_ extra.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="90"
-        data-left-label="/" data-right-label="||">
-        <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-separator.webp"/>
+        data-starting-point="15"
+        data-left-label="red" data-right-label="black">
+        <img src="../assets/anime/stroke_color.webp"/>
+        <img src="../assets/anime.webp"/>
     </div>
 
 ## Mask Images
@@ -243,8 +253,8 @@ effects.
 !!! example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="83"
+        data-starting-point="17.35"
         data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/notification-mask-raw.webp"/>
-        <img src="../assets/notification-mask.webp"/>
+        <img src="../assets/anime/mask-raw.webp"/>
+        <img src="../assets/anime/mask.webp"/>
     </div>
