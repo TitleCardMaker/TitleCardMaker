@@ -51,7 +51,8 @@ class BannerTitleCard(BaseCardType):
                 identifier='banner_height',
                 description='Height of the banner',
                 tooltip=(
-                    'Number ><v>0</v>. Default is <v>185</v>. Unit is pixels.'
+                    'Number between <v>0</v> and <v>1800</v>. Default is '
+                    '<v>185</v>. Unit is pixels.'
                 ),
                 default=185,
             ),
@@ -77,7 +78,8 @@ class BannerTitleCard(BaseCardType):
                 identifier='x_offset',
                 description='How far from the edge the text should appear',
                 tooltip=(
-                    'Number ≥<v>0</v>. Default is <v>50</v>. Unit is pixels.'
+                    'Number between <v>0</v> and <v>3200</v>. Default is '
+                    '<v>50</v>. Unit is pixels.'
                 ),
                 default=50,
             ),
@@ -204,8 +206,8 @@ class BannerTitleCard(BaseCardType):
         height = self.HEIGHT - self.banner_height
 
         return [
-            f'-fill "{self.banner_color}"',
-            f'-draw "rectangle 0,{self.HEIGHT} {self.WIDTH},{height}"',
+            fr'-fill "{self.banner_color}"',
+            fr'-draw "rectangle 0,{self.HEIGHT} {self.WIDTH},{height}"',
         ]
 
 
@@ -223,21 +225,21 @@ class BannerTitleCard(BaseCardType):
         elif self.hide_episode_text:
             index_text = self.season_text
         else:
-            index_text = f'{self.season_text}\n{self.episode_text}'
+            index_text = fr'{self.season_text}\n{self.episode_text}'
 
         # Determine placement
         x = self.x_offset
         y = self.HEIGHT - self.banner_height - 43
 
         return [
-            f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
-            f'-fill "{self.alternate_color}"',
-            f'-pointsize {95 * self.episode_text_font_size:.0f}',
-            f'-gravity northwest',
-            f'-interline-spacing -65',
-            f'-interword-spacing 20',
-            f'-annotate {x:+.0f}{y:+.0f}',
-            f'"{index_text}"',
+            fr'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
+            fr'-fill "{self.alternate_color}"',
+            fr'-pointsize {95 * self.episode_text_font_size:.0f}',
+            fr'-gravity northwest',
+            fr'-interline-spacing -65',
+            fr'-interword-spacing 20',
+            fr'-annotate {x:+.0f}{y:+.0f}',
+            fr'"{index_text}"',
         ]
 
 
@@ -264,7 +266,7 @@ class BannerTitleCard(BaseCardType):
 
         # Return width of the longest text
         modified_commands = self.index_text_commands
-        modified_commands[-1] = f'"{text}"'
+        modified_commands[-1] = fr'"{text}"'
 
         return self.image_magick.get_text_dimensions(modified_commands)[0]
 
@@ -285,21 +287,21 @@ class BannerTitleCard(BaseCardType):
 
         # Base font commands for top and bottom text
         base_commands = [
-            f'-font "{self.font_file}"',
-            f'-fill {self.font_color}',
-            f'-interline-spacing {interline_spacing:+}',
-            f'-interword-spacing {interword_spacing:+}',
-            f'-kerning {kerning:.0f}',
-            f'-pointsize {size:.0f}',
+            fr'-font "{self.font_file}"',
+            fr'-fill {self.font_color}',
+            fr'-interline-spacing {interline_spacing:+}',
+            fr'-interword-spacing {interword_spacing:+}',
+            fr'-kerning {kerning:.0f}',
+            fr'-pointsize {size:.0f}',
         ]
 
         # Determine the width of the title text
         top_y = self.banner_height + self.font_vertical_shift - 60
         top_text_commands = [
-            f'\( -background none',
+            fr'\( -background none',
             *base_commands,
-            f'-gravity southwest',
-            f'label:"{self.top_title_text}" \)',
+            fr'-gravity southwest',
+            fr'label:"{self.top_title_text}" \)',
         ]
         top_width, _ = self.image_magick.get_text_dimensions(top_text_commands)
 
@@ -307,10 +309,10 @@ class BannerTitleCard(BaseCardType):
         if self.bottom_title_text:
             bottom_text_commands = [
                 *base_commands,
-                f'-fill "{self.alternate_color}"',
-                f'-gravity northwest',
-                f'-annotate +0+0',
-                f'"{self.bottom_title_text}"',
+                fr'-fill "{self.alternate_color}"',
+                fr'-gravity northwest',
+                fr'-annotate +0+0',
+                fr'"{self.bottom_title_text}"',
             ]
 
             # Positioning the bottom line of text 300px within from end of top
@@ -330,7 +332,7 @@ class BannerTitleCard(BaseCardType):
             # If would overlap from right edge, move left
             if bottom_x + bottom_width > self.WIDTH - self.x_offset:
                 bottom_x = self.WIDTH - self.x_offset - bottom_width
-            bottom_text_commands[-2] = f'-annotate +{bottom_x}+{bottom_y}'
+            bottom_text_commands[-2] = fr'-annotate +{bottom_x}+{bottom_y}'
         else:
             bottom_text_commands = []
 
@@ -428,17 +430,17 @@ class BannerTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = BannerTitleCard.EPISODE_TEXT_FORMAT.upper()
-
-        return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+        return (
+            custom_episode_map
+            or episode_text_format != BannerTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
-        command = ' '.join([
-            f'convert "{self.source_file.resolve()}"',
+        self.image_magick.run([
+            fr'convert "{self.source_file.resolve()}"',
             # Resize and apply styles to source image
             *self.resize_and_style,
             # Add text and banner
@@ -448,7 +450,5 @@ class BannerTitleCard(BaseCardType):
             *self.add_overlay_mask(self.source_file),
             # Create card
             *self.resize_output,
-            f'"{self.output_file.resolve()}"',
+            fr'"{self.output_file.resolve()}"',
         ])
-
-        self.image_magick.run(command)

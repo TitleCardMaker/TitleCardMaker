@@ -209,10 +209,10 @@ class BannerCardType(BaseCardTypeAllText):
     font_vertical_shift: int = 0
     alternate_color: str = BannerTitleCard.EPISODE_TEXT_COLOR
     banner_color: str | None = None
-    banner_height: PositiveInt = BannerTitleCard.BANNER_HEIGHT
+    banner_height: conint(ge=0, le=1800) = BannerTitleCard.BANNER_HEIGHT
     episode_text_font_size: PositiveFloat = 1.0
     hide_banner: bool = False
-    x_offset: PositiveInt = BannerTitleCard.X_OFFSET
+    x_offset: conint(ge=0, le=3200) = BannerTitleCard.X_OFFSET
 
     @root_validator(skip_on_failure=True)
     def assign_unassigned_color(cls, values: dict) -> dict:
@@ -258,14 +258,14 @@ class ComicBookCardType(BaseCardTypeCustomFontAllText):
     text_box_edge_color: str | None = None
     title_text_rotation_angle: float | RandomAngle = -4.0
     index_text_rotation_angle: float | RandomAngle = -4.0
-    banner_fill_color: str = 'rgba(235,73,69,0.6)'
+    banner_fill_color: str = ComicBookTitleCard.BANNER_FILL_COLOR
     title_banner_shift: int = 0
     index_banner_shift: int = 0
     hide_title_banner: bool = None
     hide_index_banner: bool = None
 
     @validator('title_text_rotation_angle', 'index_text_rotation_angle')
-    def validate_random_angle(cls, val: str | float):
+    def validate_random_angle(cls, val: str | float) -> float:
         """
         Validate the rotation angles. This verifies the randomized angles
         are valid, generates them if necessary, and limits all angles
