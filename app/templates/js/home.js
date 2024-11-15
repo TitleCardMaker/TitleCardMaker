@@ -359,6 +359,7 @@ function _populateSeriesCard(series, template) {
  * Series.
  */
 async function getAllSeries(page=undefined, keepSelection=false) {
+  document.querySelector('#main-content .loader').style.display = 'block';
   // Get page from URL param if provided
   page = page || new URLSearchParams(window.location.search).get('page') || 1;
 
@@ -386,7 +387,7 @@ async function getAllSeries(page=undefined, keepSelection=false) {
   allIds = allSeries.map(series => series.id);
 
   // Hide loader
-  $('.loading.container').transition('fade out');
+  document.querySelector('#main-content .loader').style.display = 'none';
 
   // Create elements of each Series
   if (home_page_table_view) {
