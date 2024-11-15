@@ -285,7 +285,7 @@ function updatePagination(args) {
   // Add no links if only one page
   if (pages === 1) {
     if (hideIfSinglePage) {
-      $(`#${paginationElementId}`).remove();
+      document.getElementById(paginationElementId).remove();
     } else {
       $(`#${paginationElementId}`).append([
         createPageElement(1, 1, true, navigateFunction)

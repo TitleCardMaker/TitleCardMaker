@@ -465,7 +465,7 @@ async function getAllSeries(page=undefined, keepSelection=false) {
     page: allSeriesData.page,
     pages: allSeriesData.pages,
     amountVisible: isSmallScreen() ? 5 : 25,
-    hideIfSinglePage: true,
+    hideIfSinglePage: false,
   });
 
   // Update page search param field for the current page

@@ -76,7 +76,7 @@ def _get_obj(
         return None
 
     # Query for object, raise or return None if not found
-    if (obj := db.query(model).filter_by(id=object_id).first()) is None:
+    if (obj := db.get(model, object_id)) is None:
         # Object not found and raising exception, raise
         if raise_exc:
             raise HTTPException(

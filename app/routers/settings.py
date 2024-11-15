@@ -105,8 +105,7 @@ def get_image_source_priority(
     # Add all selected Connections
     sources, source_ids = [], []
     for interface_id in preferences.image_source_priority:
-        isp_connection = db.query(Connection).filter_by(id=interface_id).first()
-        if isp_connection is None:
+        if (isp_connection := db.get(Connection, interface_id)) is None:
             request.state.log.warning(f'No Connection with ID {interface_id}')
             continue
 
@@ -130,6 +129,7 @@ def get_image_source_priority(
                 'name': connection.name,
                 'selected': False,
             })
+
     return sources
 
 
