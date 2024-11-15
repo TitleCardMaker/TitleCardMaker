@@ -149,14 +149,14 @@ class StarWarsTitleCard(BaseCardType):
         vertical_shift = 829 + self.font_vertical_shift
 
         return [
-            f'-font "{self.font_file}"',
-            f'-gravity northwest',
-            f'-pointsize {size}',
-            f'-kerning 0.5',
-            f'-interline-spacing {interline_spacing}',
-            f'-interword-spacing {self.font_interword_spacing}',
-            f'-fill "{self.font_color}"',
-            f'-annotate +320{vertical_shift:+} "{self.title_text}"',
+            fr'-font "{self.font_file}"',
+            fr'-gravity northwest',
+            fr'-pointsize {size}',
+            fr'-kerning 0.5',
+            fr'-interline-spacing {interline_spacing}',
+            fr'-interword-spacing {self.font_interword_spacing}',
+            fr'-fill "{self.font_color}"',
+            fr'-annotate +320{vertical_shift:+} "{self.title_text}"',
         ]
 
 
@@ -170,23 +170,23 @@ class StarWarsTitleCard(BaseCardType):
 
         return [
             # Global font options
-            f'-gravity west',
-            f'-pointsize 53',
-            f'-kerning 19',
-            f'+interword-spacing',
-            f'-fill "{self.episode_text_color}"',
-            f'-background transparent',
+            fr'-gravity west',
+            fr'-pointsize 53',
+            fr'-kerning 19',
+            fr'+interword-spacing',
+            fr'-fill "{self.episode_text_color}"',
+            fr'-background transparent',
             # Create prefix text
-            f'\( -font "{self.EPISODE_TEXT_FONT.resolve()}"',
-            f'label:"{self.episode_prefix}"',
+            fr'\( -font "{self.EPISODE_TEXT_FONT.resolve()}"',
+            fr'label:"{self.episode_prefix}"',
             # Create actual episode text
-            f'-font "{self.EPISODE_NUMBER_FONT.resolve()}"',
-            f'label:"{self.episode_text}"',
+            fr'-font "{self.EPISODE_NUMBER_FONT.resolve()}"',
+            fr'label:"{self.episode_text}"',
             # Combine prefix and episode text
-            f'+smush 65 \)',
+            fr'+smush 65 \)',
             # Add combined text to image
-            f'-geometry +325-140',
-            f'-composite',
+            fr'-geometry +325-140',
+            fr'-composite',
         ]
 
 
@@ -229,7 +229,8 @@ class StarWarsTitleCard(BaseCardType):
 
         custom_extras = (
             ('episode_text_color' in extras
-                and extras['episode_text_color'] != StarWarsTitleCard.EPISODE_TEXT_COLOR)
+                and extras['episode_text_color'] != \
+                    StarWarsTitleCard.EPISODE_TEXT_COLOR)
         )
 
         return (custom_extras
@@ -267,12 +268,12 @@ class StarWarsTitleCard(BaseCardType):
         """Create the title card as defined by this object."""
 
         self.image_magick.run([
-            f'convert "{self.source_file.resolve()}"',
+            fr'convert "{self.source_file.resolve()}"',
             # Resize and apply styles
             *self.resize_and_style,
             # Overlay star gradient
-            f'"{self.__STAR_GRADIENT_IMAGE.resolve()}"',
-            f'-composite',
+            fr'"{self.__STAR_GRADIENT_IMAGE.resolve()}"',
+            fr'-composite',
             # Add title text
             *self.title_text_command,
             # Add episode text
@@ -281,5 +282,5 @@ class StarWarsTitleCard(BaseCardType):
             *self.add_overlay_mask(self.source_file),
             # Create card
             *self.resize_output,
-            f'"{self.output_file.resolve()}"',
+            fr'"{self.output_file.resolve()}"',
         ])
