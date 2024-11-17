@@ -1079,11 +1079,11 @@ def query_and_filter_series(
     # Include joined load for Episode and Cards if counts are expected
     # to be returned
     loads = []
-    if include_counts:
-        loads = [
-            joinedload(Series.episodes),
-            joinedload(Series.cards),
-        ]
+    # if include_counts:
+    #     loads = [
+    #         joinedload(Series.episodes),
+    #         joinedload(Series.cards),
+    #     ]
 
     # Perform query
     query = db.query(Series).options(
