@@ -17,7 +17,11 @@ TextSide = Literal['left', 'right']
 
 class NegativeSpaceTitleCard(BaseCardType):
     """
-    CardType that produces title cards ... TODO
+    CardType that produces title cards featuring a large, prominent
+    numeral on the side of the image with overlapping title text. The
+    color of the numeral is inverted where the two texts overlap,
+    showing the title in the negative space. All text can be recolored
+    or adjusted independently via extras.
     """
 
     """API Parameters"""
