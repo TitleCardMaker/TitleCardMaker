@@ -12,10 +12,11 @@ from fastapi import (
 )
 from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
 
-from app.database.query import get_interface
+from app.database.query import get_episode, get_interface
 from app.dependencies import get_database, require_plex_interface, PlexInterface
 from app.internal.cards import create_episode_cards, delete_cards
 from app.internal.episodes import refresh_episode_data
@@ -338,3 +339,66 @@ def add_series_via_sonarr_webhook(
         db=db,
         log=request.state.log
     )
+
+
+from requests import post
+@webhook_router.post('/background-removal')
+def remove_image_background(
+        request: Request,
+        file: UploadFile | None = None,
+        episode_id: int | None = Query(default=None),
+        url: str = Query(...),
+        timeout: int = Query(default=30, min=5, max=240),
+        db: Session = Depends(get_database),
+    ) -> StreamingResponse:
+    """"""
+
+    if file:
+        try:
+            response = post(
+                url,
+                stream=True,
+                timeout=timeout,
+                files={
+                    'file': (
+                        file.filename,
+                        file.file,
+                        file.content_type or 'image/jpg'
+                    )
+                },
+            )
+        except ConnectionError as exc:
+            request.state.log.exception('Unable to submit BGR API request')
+            raise HTTPException(
+                status_code=400,
+                detail='Invalid BGR Request',
+            ) from exc
+    elif episode_id:
+        episode = get_episode(db, episode_id, raise_exc=True)
+        source = episode.get_source_file('unique')
+        with source.open('rb') as file_io:
+            try:
+                response = post(
+                    url,
+                    # stream=True,
+                    timeout=timeout,
+                    files={ 'file': file_io }
+                )
+            except ConnectionError as exc:
+                request.state.log.exception('Unable to submit BGR API request')
+                raise HTTPException(
+                    status_code=400,
+                    detail='Invalid BGR Request',
+                ) from exc
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail='File or episode ID is required'
+        )
+
+    # Stream the response back to the client
+    def iterfile():
+        for chunk in response.iter_content(chunk_size=4096):
+            yield chunk
+
+    return StreamingResponse(iterfile(), media_type='image/png')
