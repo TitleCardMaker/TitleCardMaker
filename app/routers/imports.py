@@ -458,7 +458,7 @@ async def import_mediux_yaml_for_series(
     # Parse each season
     tasks = []
     temp_images: list[Path] = []
-    async with AsyncSession() as session:
+    async with AsyncSession(max_clients=5, timeout=10) as session:
         for season_number, season_yaml in yaml.seasons.items():
             # Parse season posters if a library was provided and specified
             if library_names and import_season_posters:
@@ -474,7 +474,7 @@ async def import_mediux_yaml_for_series(
                     .first()
                 if not episode:
                     log.debug(f'No associated Episode for S{season_number:02}'
-                            f'E{episode_number:02}')
+                              f'E{episode_number:02}')
                     continue
 
                 # Skip if not forcing and has Cards
