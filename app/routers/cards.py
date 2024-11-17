@@ -338,7 +338,7 @@ def get_series_cards(
 
     return paginate(
         db.query(Card)\
-            .filter(Card.series_id == series_id)\
+            .filter_by(series_id=series_id)\
             .join(Episode)\
             .order_by(Episode.season_number)\
             .order_by(Episode.episode_number)\
