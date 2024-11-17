@@ -167,16 +167,16 @@ def run_sync(
             library_data = connection.determine_libraries(lib_or_dir)
             for interface_id, library in library_data:
                 # Get Connection of this library
-                interface_type = db.query(Connection.interface_type)\
+                interface = db.query(Connection)\
                     .filter_by(id=interface_id)\
                     .first()
-                if interface_type is None:
+                if interface is None:
                     log.error(f'No Connection of ID {interface_id} - cannot '
                               f'assign library')
                     continue
 
                 libraries.append({
-                    'interface': interface_type,
+                    'interface': interface.interface_type,
                     'interface_id': interface_id,
                     'name': library,
                 })
