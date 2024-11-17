@@ -308,7 +308,7 @@ function _populateSeriesCard(series, template) {
 
   // Set poster image src and alt text
   const img = clone.querySelector('img');
-  img.src = `${series.small_poster_url}?${series.name[0]}${series.year}`;
+  img.src = series.small_poster_url || `/assets/${series.id}/poster-750.jpg`;
 
   // Grayscale if unmonitored (and enabled)
   if (stylize_unmonitored_posters && !series.monitored) {
@@ -942,7 +942,7 @@ function initializeFilterTemplate() {
   });
 
   const filterData = JSON.parse(window.localStorage.getItem('home:filters'));
-  const existingFilters = filterData.filters || [];
+  const existingFilters = filterData?.filters || [];
   existingFilters.forEach(filter => {
     // Add blank tab for this filter
     const tab = addTab(filter);
