@@ -226,7 +226,7 @@ class DividerTitleCard(BaseCardType):
         """Subcommand for adding the title text to the source image."""
 
         # No title text, return blank commands
-        if len(self.title_text) == 0:
+        if not self.title_text:
             return []
 
         gravity = 'east' if self.title_text_position == 'left' else 'west'
@@ -420,10 +420,10 @@ class DividerTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = DividerTitleCard.EPISODE_TEXT_FORMAT.upper()
-
-        return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+        return (
+            custom_episode_map
+            or episode_text_format != DividerTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:
