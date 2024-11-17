@@ -12,10 +12,10 @@ import {
 {% endif %}
 
 const artStyles = [
-  ['Art',                      'art',         ],
-  ['Blurred Art',              'art blur',    ],
-  ['Grayscale Art',            'art grayscale'],
-  ['Unique',                   'unique',      ],
+  ['Art',                      'art',              ],
+  ['Blurred Art',              'art blur',         ],
+  ['Grayscale Art',            'art grayscale'     ],
+  ['Blurred Grayscale Art',    'blur grayscale art'],
 ].map(style => ({name: style[0], value: style[1]}));
 const uniqueStyles = [
   ['Blurred Unique',           'blur unique',         ],
