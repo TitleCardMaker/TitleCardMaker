@@ -100,8 +100,10 @@ def resolve_source_settings(
         return watched_style, episode.get_source_file(watched_style)
 
     # Episode is watched, use watched style
-    if (library and
-        episode.get_watched_status(library['interface_id'], library['name'])):
+    if (episode.is_completely_watched
+        or (library and
+            episode.get_watched_status(library['interface_id'], library['name'])
+        )):
         return watched_style, episode.get_source_file(watched_style)
 
     # Watch status is unset or Episode is unwatched, use unwatched style

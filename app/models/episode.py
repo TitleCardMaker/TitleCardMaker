@@ -480,6 +480,13 @@ class Episode(Base):
 
 
     @property
+    def is_completely_watched(self) -> bool:
+        """Whether is Episode is watched in all known libraries."""
+
+        return all(status for status in self.watched_statuses.values())
+
+
+    @property
     def watched_statuses_flat(self) -> dict[str, bool]:
         """
         Get a mapping of library names to watched statuses for this
