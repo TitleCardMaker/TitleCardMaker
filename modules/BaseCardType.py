@@ -259,6 +259,7 @@ class Shadow:
 
 type TextCase = Literal['blank', 'lower', 'source', 'title', 'upper']
 
+
 class BaseCardType(ImageMaker):
     """
     This class describes an abstract card type. A BaseCardType is a
@@ -701,11 +702,11 @@ class BaseCardType(ImageMaker):
             pre_processing = self.resize_and_style
 
         return [
-            f'\( "{mask.resolve()}"',
+            fr'\( "{mask.resolve()}"',
             *self.resize,
             *pre_processing,
-            f'\) -geometry {x:+}{y:+}',
-            f'-composite',
+            fr'\) -geometry {x:+}{y:+}',
+            fr'-composite',
         ]
 
 
@@ -735,35 +736,49 @@ class BaseCardType(ImageMaker):
             y: int | float = 0,
             *,
             shadow_color: str = 'black',
+            compose: bool = True,
         ) -> ImageMagickCommands:
         """
-        Amend the given commands to apply a drop shadow effect.
+        Amend the given commands to apply a drop shadow effect. See
+        https://imagemagick.org/script/command-line-options.php?#shadow
+        for details on the shadow string.
 
         Args:
             commands: List of commands being modified. Must contain some
                 image definition that can be cloned.
-            shadow: IM Shadow string - i.e. `85x10+10+10`.
-            x: X-position of the offset to apply when compositing.
-            y: Y-position of the offset to apply when compositing.
+            shadow: IM Shadow string (e.g `85x10+10+10`), or Shadow
+                object.
+            x: X-position of the offset to apply when compositing if
+                `compose` is `True`.
+            y: Y-position of the offset to apply when compositing if
+                `compose` is `True`.
             shadow_color: Color of the shadow to add.
+            compose: Whether to include composition in the returned
+                commands.
 
         Returns:
             List of ImageMagick commands.
         """
 
+        compose_commands = []
+        if compose:
+            compose_commands = [
+                fr'-geometry {x:+.0f}{y:+.0f}',
+                fr'-composite',
+            ]
+
         return [
-            f'\(',
+            fr'\(',
             *commands,
-            f'\( +clone',
-            f'-background "{shadow_color}"',
-            f'-shadow {shadow} \)',
-            f'+swap',
-            f'-background None',
-            f'-layers merge',
-            f'+repage \)',
-            f'-geometry {x:+.0f}{y:+.0f}',
-            f'-composite',
-        ]
+            fr'\( +clone',
+            fr'-background "{shadow_color}"',
+            fr'-shadow {shadow} \)',
+            fr'+swap',
+            fr'-background None',
+            fr'-layers merge',
+            fr'+repage \)',
+            *compose_commands,
+        ] if commands else []
 
 
     @abstractmethod
