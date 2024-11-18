@@ -12,7 +12,7 @@ const requireAuth = {{ preferences.require_auth | lower }};
 /** @type {Object.<number, string[]>} Mapping of Connection IDs to library names */
 const libraryMap = {
   {% for connection_id, libraries in preferences.libraries.items() %}
-  {{ connection_id }}: {{libraries[1] | tojson}}
+  {{ connection_id }}: {{libraries[1] | tojson}},
   {% endfor %}
 };
 
