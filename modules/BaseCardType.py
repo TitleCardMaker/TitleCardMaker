@@ -134,7 +134,10 @@ class Line:
 
     __slots__ = ('start', 'end')
 
-    def __init__(self, start: Coordinate, end: Coordinate) -> None:
+    def __init__(self,
+            start: Coordinate | tuple[int | float, int | float],
+            end: Coordinate | tuple[int | float, int | float],
+        ) -> None:
         """
         Initialize a Line which spans between the given start and end
         Coordinates.
@@ -144,7 +147,12 @@ class Line:
             end: Coordinate which defines the other end of this line.
         """
 
+        if isinstance(start, tuple):
+            start = Coordinate(*start)
         self.start = start
+
+        if isinstance(end, tuple):
+            end = Coordinate(*end)
         self.end = end
 
 
@@ -247,6 +255,7 @@ class Shadow:
         """Wrapper for `__str__`."""
 
         return str(self)
+
 
 type TextCase = Literal['blank', 'lower', 'source', 'title', 'upper']
 
