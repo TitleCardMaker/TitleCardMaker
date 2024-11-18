@@ -814,6 +814,7 @@ class StarWarsCardType(BaseCardModel):
     font_file: FilePath = StarWarsTitleCard.TITLE_FONT
     font_interline_spacing: int = 0
     font_interword_spacing: int = 0
+    font_kerning: float = 1.0
     font_size: PositiveFloat = 1.0
     font_vertical_shift: int = 0
     episode_text_color: str = StarWarsTitleCard.EPISODE_TEXT_COLOR

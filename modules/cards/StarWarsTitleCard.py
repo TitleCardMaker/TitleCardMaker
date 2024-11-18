@@ -2,7 +2,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
-    BaseCardType, ImageMagickCommands, Extra, CardTypeDescription
+    BaseCardType,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
 )
 from modules.Title import SplitCharacteristics
 
@@ -75,10 +78,20 @@ class StarWarsTitleCard(BaseCardType):
     __STAR_GRADIENT_IMAGE = REF_DIRECTORY / 'star_gradient.png'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'episode_text',
-        'hide_episode_text', 'font_color', 'font_file',
-        'font_interline_spacing', 'font_interword_spacing', 'font_size',
-        'font_vertical_shift', 'episode_text_color', 'episode_prefix',
+        'source_file',
+        'output_file',
+        'title_text',
+        'episode_text',
+        'hide_episode_text',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'episode_text_color',
+        'episode_prefix',
     )
 
     def __init__(self,
@@ -91,6 +104,7 @@ class StarWarsTitleCard(BaseCardType):
             font_file: str = TITLE_FONT,
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
+            font_kerning: float = 1.0,
             font_size: float = 1.0,
             font_vertical_shift: int = 0,
             blur: bool = False,
@@ -116,6 +130,7 @@ class StarWarsTitleCard(BaseCardType):
         self.font_file = font_file
         self.font_interline_spacing = font_interline_spacing
         self.font_interword_spacing = font_interword_spacing
+        self.font_kerning = font_kerning
         self.font_size = font_size
         self.font_vertical_shift = font_vertical_shift
 
@@ -146,13 +161,14 @@ class StarWarsTitleCard(BaseCardType):
 
         size = 124 * self.font_size
         interline_spacing = 20 + self.font_interline_spacing
+        kerning = 0.5 * self.font_kerning
         vertical_shift = 829 + self.font_vertical_shift
 
         return [
             fr'-font "{self.font_file}"',
             fr'-gravity northwest',
             fr'-pointsize {size}',
-            fr'-kerning 0.5',
+            fr'-kerning {kerning:.1f}',
             fr'-interline-spacing {interline_spacing}',
             fr'-interword-spacing {self.font_interword_spacing}',
             fr'-fill "{self.font_color}"',
@@ -260,8 +276,7 @@ class StarWarsTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return episode_text_format.upper() != \
-            StarWarsTitleCard.EPISODE_TEXT_FORMAT.upper()
+        return episode_text_format != StarWarsTitleCard.EPISODE_TEXT_FORMAT
 
 
     def create(self) -> None:
