@@ -6,7 +6,6 @@ site_description: >-
 
 repo_name: CollinHeist/TitleCardMaker
 repo_url: https://github.com/CollinHeist/TitleCardMaker
-# edi_uri: edit/web-ui/docs/
 
 theme:
   logo: ./assets/logo.svg
