@@ -54,6 +54,7 @@ from modules.cards.OlivierTitleCard import OlivierTitleCard
 from modules.cards.OverlineTitleCard import OverlineTitleCard
 from modules.cards.PosterTitleCard import PosterTitleCard
 from modules.cards.RomanNumeralTitleCard import RomanNumeralTitleCard
+from modules.cards import ScoreTitleCard
 from modules.cards.ShapeTitleCard import (
     Shape,
     ShapeTitleCard,
@@ -103,6 +104,7 @@ LocalCardIdentifiers = Literal[
     'reality tv',
     'roman',
     'roman numeral',
+    'score',
     'shape',
     'sherlock',
     'standard',
@@ -752,6 +754,36 @@ class RomanNumeralCardType(BaseCardTypeAllText):
                              f'{RomanNumeralTitleCard.MAX_ROMAN_NUMERAL}')
         return val
 
+ColorPair = constr(regex=r'^\S+( \S+)?$', strip_whitespace=True)
+class ScoreCardType(BaseCardTypeAllText):
+    font_color: str = ScoreTitleCard.ScoreTitleCard.TITLE_COLOR
+    font_file: FilePath = ScoreTitleCard.ScoreTitleCard.TITLE_FONT
+    font_interline_spacing: int = 0
+    font_interword_spacing: int = 0
+    font_kerning: float = 1.0
+    font_size: PositiveFloat = 1.0
+    font_vertical_shift: int = 0
+    episode_text_color: ColorPair | None = None
+    episode_text_font_size: PositiveFloat = 1.0
+    episode_text_horizontal_offset: int = 0
+    episode_text_vertical_offset: int = 0
+    season_text_color: ColorPair | None = None
+    stroke_color: str = ScoreTitleCard.ScoreTitleCard.STROKE_COLOR
+    title_text_horizontal_offset: int = 0
+    label_placement: ScoreTitleCard.LabelPlacement = 'above'
+    omit_gradient: bool = False
+    placement: ScoreTitleCard.Placement = 'bottom'
+    variation: ScoreTitleCard.Variation = 'surround'
+
+    @root_validator(skip_on_failure=True)
+    def assign_unassigned_color(cls, values: dict) -> dict:
+        if values['episode_text_color'] is None:
+            values['episode_text_color'] = values['font_color']
+        if values['season_text_color'] is None:
+            values['season_text_color'] = values['episode_text_color']
+
+        return values
+
 RandomShapeRegex = (
     r'random\[\s*((circle|diamond|square|down triangle|up triangle)'
     r'\s*(,\s*(circle|diamond|square|down triangle|up triangle))*)\]'
@@ -1014,6 +1046,7 @@ LocalCardTypeModels: dict[str, type[Base]] = {
     'reality tv': LogoCardType,
     'roman': RomanNumeralCardType,
     'roman numeral': RomanNumeralCardType,
+    'score': ScoreCardType,
     'shape': ShapeCardType,
     'sherlock': TintedGlassCardType,
     'spotify': MusicCardType,

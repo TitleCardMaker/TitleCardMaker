@@ -33,6 +33,7 @@ from modules.cards.OlivierTitleCard import OlivierTitleCard
 from modules.cards.OverlineTitleCard import OverlineTitleCard
 from modules.cards.PosterTitleCard import PosterTitleCard
 from modules.cards.RomanNumeralTitleCard import RomanNumeralTitleCard
+from modules.cards.ScoreTitleCard import ScoreTitleCard
 from modules.cards.ShapeTitleCard import ShapeTitleCard
 from modules.cards.StandardTitleCard import StandardTitleCard
 from modules.cards.StarWarsTitleCard import StarWarsTitleCard
@@ -114,6 +115,7 @@ class TitleCard:
         'reality tv': LogoTitleCard,
         'roman': RomanNumeralTitleCard,
         'roman numeral': RomanNumeralTitleCard,
+        'score': ScoreTitleCard,
         'shape': ShapeTitleCard,
         'sherlock': TintedGlassTitleCard,
         'spotify': MusicTitleCard,
