@@ -67,6 +67,7 @@ TitleCardMaker currently has the following built-in card types:
 | [Overline](./overline.md)             | <img src="./assets/overline.webp" width="350">       |
 | [Poster](./poster.md)                 | <img src="./assets/poster.webp" width="350">         |
 | [Roman Numeral](./roman_numeral.md)   | <img src="./assets/roman_numeral.webp" width="350">  |
+| [Score](./score.md)                   | <img src="./assets/score.webp" width="350">          |
 | [Shape](./shape.md)                   | <img src="./assets/shape.webp" width="350">          |
 | [Star Wars](./star_wars.md)           | <img src="./assets/star_wars.webp" width="350">      |
 | [Standard](./standard.md)             | <img src="./assets/standard.webp" width="350">       |

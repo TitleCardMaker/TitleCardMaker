@@ -149,6 +149,11 @@ TitleCardMaker:
         <img class="no-lightbox" src="./card_types/assets/roman_numeral.webp" loading="lazy">
       </a>
     </figure>
+    <figure data-label="Score">
+      <a data-label="Score" href="./card_types/score">
+        <img class="no-lightbox" src="./card_types/assets/score.webp" loading="lazy">
+      </a>
+    </figure>
     <figure data-label="Shape">
       <a data-label="Shape" href="./card_types/shape">
         <img class="no-lightbox" src="./card_types/assets/shape.webp" loading="lazy">

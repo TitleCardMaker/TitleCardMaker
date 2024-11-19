@@ -247,6 +247,7 @@ nav:
       - Notification: card_types/notification.md
       - Poster: card_types/poster.md
       - Roman Numeral: card_types/roman_numeral.md
+      - Score: card_types/score.md
       - Shape: card_types/shape.md
       - Standard: card_types/standard.md
       - Star Wars: card_types/star_wars.md
