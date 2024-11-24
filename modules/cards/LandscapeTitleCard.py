@@ -88,6 +88,13 @@ class LandscapeTitleCard(BaseCardType):
                 default='box',
             ),
             Extra(
+                name='Darken Color',
+                identifier='darken_color',
+                description='Color to use for image darkening',
+                tooltip='Default is <c>#00000030</c>.',
+                default='#00000030',
+            ),
+            Extra(
                 name='Shadow Color',
                 identifier='shadow_color',
                 description='Color of the text drop shadow.',
@@ -142,10 +149,23 @@ class LandscapeTitleCard(BaseCardType):
     SHADOW_COLOR = 'black'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'font_color', 'font_file',
-        'font_interline_spacing', 'font_interword_spacing', 'font_kerning',
-        'font_size', 'font_vertical_shift', 'add_bounding_box',
-        'box_adjustments', 'box_color', 'box_width', 'darken', 'shadow_color',
+        'source_file',
+        'output_file'
+         'title_text',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'add_bounding_box',
+        'box_adjustments'
+        'box_color',
+        'box_width',
+        'darken',
+        'darken_color',
+        'shadow_color',
     )
 
     def __init__(self, *,
@@ -166,6 +186,7 @@ class LandscapeTitleCard(BaseCardType):
             box_color: str = TITLE_COLOR,
             box_width: int = BOX_WIDTH,
             darken: DarkenOption = 'box',
+            darken_color: str = DARKEN_COLOR,
             shadow_color: str = SHADOW_COLOR,
             preferences: 'Preferences | None' = None,
             **unused,
@@ -194,6 +215,7 @@ class LandscapeTitleCard(BaseCardType):
         self.box_color = box_color
         self.box_width = box_width
         self.darken = darken
+        self.darken_color = darken_color
         self.shadow_color = shadow_color
 
 
@@ -220,17 +242,17 @@ class LandscapeTitleCard(BaseCardType):
             x_start, y_start, x_end, y_end = coordinates
 
             return [
-                f'-fill "{self.DARKEN_COLOR}"',
-                f'-draw "rectangle {x_start},{y_start},{x_end},{y_end}"',
+                fr'-fill "{self.darken_color}"',
+                fr'-draw "rectangle {x_start},{y_start},{x_end},{y_end}"',
             ]
 
         return [
             # Create image the size of the title card filled with darken color
-            f'\( -size "{self.TITLE_CARD_SIZE}"',
-            f'xc:"{self.DARKEN_COLOR}" \)',
+            fr'\( -size "{self.TITLE_CARD_SIZE}"',
+            fr'xc:"{self.darken_color}" \)',
             # Compose atop of source image
-            f'-gravity center',
-            f'-composite',
+            fr'-gravity center',
+            fr'-composite',
         ]
 
 
@@ -249,14 +271,14 @@ class LandscapeTitleCard(BaseCardType):
 
         # Text-relevant commands
         text_command = [
-            f'-font "{self.font_file}"',
-            f'-gravity center',
-            f'-pointsize {font_size:.1f}',
-            f'-interline-spacing {interline_spacing:.1f}',
-            f'-interword-spacing {interword_spacing:.1f}',
-            f'-kerning {kerning:.2f}',
-            f'-fill "{self.font_color}"',
-            f'label:"{self.title_text}"',
+            fr'-font "{self.font_file}"',
+            fr'-gravity center',
+            fr'-pointsize {font_size:.1f}',
+            fr'-interline-spacing {interline_spacing:.1f}',
+            fr'-interword-spacing {interword_spacing:.1f}',
+            fr'-kerning {kerning:.2f}',
+            fr'-fill "{self.font_color}"',
+            fr'label:"{self.title_text}"',
         ]
 
         # Get dimensions of text - since text is stacked, do max/sum operations
@@ -307,12 +329,12 @@ class LandscapeTitleCard(BaseCardType):
 
         return self.add_drop_shadow(
             [
-                f'-size {self.TITLE_CARD_SIZE}',
-                f'xc:None',
-                f'-fill transparent',
-                f'-strokewidth {self.box_width}',
-                f'-stroke "{self.box_color}"',
-                f'-draw "rectangle {x_start},{y_start},{x_end},{y_end}"',
+                fr'-size {self.TITLE_CARD_SIZE}',
+                fr'xc:None',
+                fr'-fill transparent',
+                fr'-strokewidth {self.box_width}',
+                fr'-stroke "{self.box_color}"',
+                fr'-draw "rectangle {x_start},{y_start},{x_end},{y_end}"',
             ],
             Shadow(opacity=85, sigma=3, x=10, y=10),
             x=0, y=0,
@@ -331,14 +353,14 @@ class LandscapeTitleCard(BaseCardType):
 
         return self.add_drop_shadow(
             [
-                f'-font "{self.font_file}"',
-                f'-gravity center',
-                f'-pointsize {font_size:.1f}',
-                f'-interline-spacing {interline_spacing:.1f}',
-                f'-interword-spacing {interword_spacing:.1f}',
-                f'-kerning {kerning:.2f}',
-                f'-fill "{self.font_color}"',
-                f'label:"{self.title_text}"',
+                fr'-font "{self.font_file}"',
+                fr'-gravity center',
+                fr'-pointsize {font_size:.1f}',
+                fr'-interline-spacing {interline_spacing:.1f}',
+                fr'-interword-spacing {interword_spacing:.1f}',
+                fr'-kerning {kerning:.2f}',
+                fr'-fill "{self.font_color}"',
+                fr'label:"{self.title_text}"',
             ],
             Shadow(opacity=85, sigma=3, x=10, y=10),
             x=0, y=self.font_vertical_shift,
@@ -427,10 +449,10 @@ class LandscapeTitleCard(BaseCardType):
         # If title is 0-length, just stylize
         if len(self.title_text) == 0:
             self.image_magick.run([
-                f'convert "{self.source_file.resolve()}"',
+                fr'convert "{self.source_file.resolve()}"',
                 *self.resize_and_style,
                 *self.darken_commands((0, 0, 0, 0)),
-                f'"{self.output_file.resolve()}"',
+                fr'"{self.output_file.resolve()}"',
             ])
             return None
 
@@ -438,7 +460,7 @@ class LandscapeTitleCard(BaseCardType):
         bounding_box = self.bounding_box_coordinates
 
         self.image_magick.run([
-            f'convert "{self.source_file.resolve()}"',
+            fr'convert "{self.source_file.resolve()}"',
             # Resize and apply any style modifiers
             *self.resize_and_style,
             # Add box or image darkening
@@ -451,6 +473,6 @@ class LandscapeTitleCard(BaseCardType):
             *self.add_overlay_mask(self.source_file),
             # Create card
             *self.resize_output,
-            f'"{self.output_file.resolve()}"',
+            fr'"{self.output_file.resolve()}"',
         ])
         return None
