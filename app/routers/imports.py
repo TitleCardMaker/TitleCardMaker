@@ -3,6 +3,7 @@ from pathlib import Path
 from shutil import copyfile
 from typing import Literal
 
+from curl_cffi import CurlHttpVersion
 from curl_cffi.requests import AsyncSession
 from fastapi import (
     APIRouter,
@@ -19,7 +20,11 @@ from sqlalchemy.orm import Session
 from yaml import safe_load
 from yaml.parser import ParserError
 
-from app.database.query import get_all_templates, get_interface, get_series
+from app.database.query import (
+    get_all_templates,
+    get_media_interface,
+    get_series
+)
 from app.dependencies import get_database, get_preferences
 from app.internal.auth import get_current_user
 from app.internal.imports import (
@@ -45,12 +50,12 @@ from app.internal.series import (
     set_series_database_ids,
 )
 from app.internal.sources import download_series_logo
-from app import models
 from app.models.episode import Episode
 from app.models.font import Font as FontModel
 from app.models.preferences import Preferences as PrefencesModel
 from app.models.series import Series as SeriesModel
 from app.models.sync import Sync as SyncModel
+from app.models.template import Template as TemplateModel
 from app.schemas.font import NamedFont
 from app.schemas.imports import (
     ImportCardDirectory,
@@ -89,11 +94,11 @@ def import_global_options_yaml(
 
     # Parse raw YAML into dictionary
     if not (yaml_dict := parse_raw_yaml(import_yaml.yaml)):
-        return []
+        return preferences # type: ignore
 
     # Modify the preferences  from the YAML dictionary
     try:
-        return parse_preferences(preferences, yaml_dict, log=log)
+        return parse_preferences(preferences, yaml_dict, log=log) # type: ignore
     except ValidationError as exc:
         log.exception('Invalid YAML')
         raise HTTPException(
@@ -280,7 +285,7 @@ def import_template_yaml(
     # Add each defined Template to the database
     all_templates = []
     for new_template in new_templates:
-        template = models.template.Template(**new_template.dict())
+        template = TemplateModel(**new_template.dict())
         db.add(template)
         log.info(f'{template} imported to Database')
         all_templates.append(template)
@@ -458,7 +463,9 @@ async def import_mediux_yaml_for_series(
     # Parse each season
     tasks = []
     temp_images: list[Path] = []
-    async with AsyncSession(max_clients=5, timeout=10) as session:
+    async with AsyncSession(
+            max_clients=5, timeout=10, http_version=CurlHttpVersion.V1_1
+        ) as session:
         for season_number, season_yaml in yaml.seasons.items():
             # Parse season posters if a library was provided and specified
             if library_names and import_season_posters:
@@ -517,7 +524,7 @@ async def import_mediux_yaml_for_series(
     for library_name in library_names:
         # If the library cannot be found, skip
         if (not (library := series.get_library(library_name)) or not
-            (iface := get_interface(library['interface_id'], raise_exc=False))):
+            (iface := get_media_interface(library['interface_id'], raise_exc=False))):
             log.warning(f'Cannot import to library "{library_name}"')
             continue
 
@@ -533,7 +540,7 @@ async def import_mediux_yaml_for_series(
                 library['name'],
                 library['interface_id'],
                 db,
-                get_interface(library['interface_id'], raise_exc=True), # type: ignore
+                iface,
                 episodes=[episode for episode, _ in cards],
                 log=log,
             )
@@ -549,7 +556,7 @@ async def import_mediux_yaml_for_series(
             )
         if season_posters:
             iface.load_season_posters(
-                library_name, series.as_series_info, season_posters,
+                library_name, series.as_series_info, season_posters, # type: ignore
                 log=log,
             )
 
