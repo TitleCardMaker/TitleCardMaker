@@ -132,6 +132,11 @@ Unraid users can directly add the container as a "template" within the UI.
             you should check the PAT you genered in Step 2 has `read:packages`
             permission; and that you typed `docker login ghcr.io` __exactly__.
 
+    7. Verify your volumes are mapped correctly by looking for a `db.sqlite`
+    file inside the `config` directory. If you do not see one, then correct the
+    volumes specified in Step 5 (double check your quotes are in the correct
+    position).
+
 === ":material-docker: Docker"
 
     1. Open a terminal[^1] of your choice, and go to your desired install
@@ -239,6 +244,11 @@ Unraid users can directly add the container as a "template" within the UI.
             If you get an error saying any variation of permission denied - then
             you should check the PAT you genered in Step 2 has `read:packages`
             permission; and that you typed `docker login ghcr.io` __exactly__.
+
+    6. Verify your volumes are mapped correctly by looking for a `db.sqlite`
+    file inside the `config` directory. If you do not see one, then correct the
+    volumes specified in Step 5 (double check your quotes are in the correct
+    position).
 
 === ":material-language-python: Non-Docker"
 

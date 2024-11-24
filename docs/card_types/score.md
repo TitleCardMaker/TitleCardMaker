@@ -14,7 +14,9 @@ and the design was inspired by
 [this](https://www.everymanjack.com/products/28-8oz-3-in-1-all-over-wash?variant=43908560388258)
 shampoo bottle I saw at the grocery store.
 
-...
+Cards of this style resemble a game score (hence the name), and feature a
+prominent centered title, with the season and episode text in the corners of the
+image. All text can be re-positioned and colored with extras.
 
 <figure markdown="span" style="max-width: 70%">
   ![Example Score Card](./assets/score.webp)
