@@ -180,7 +180,7 @@ class ScoreTitleCard(BaseCardType):
     USES_SEASON_TITLE: bool = False
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Balance Style'
+    ARCHIVE_NAME: str = 'Score Style'
 
     """Default variables"""
     STROKE_COLOR: str = 'black'
