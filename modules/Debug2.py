@@ -53,7 +53,7 @@ def reduced_serializer(record: 'Record') -> str:
     """Formatter which serializes a subset of the record."""
 
     exc = None
-    if record['exception'] is not None:
+    if record['exception'] is not None and len(logger._core.handlers) > 2:
         # Grab the ExceptionFormatter from the logger directly, rather
         # than using the better- exceptions formatter, so that extended
         # traceback stacks are properly displayed; handler[2]
