@@ -206,7 +206,7 @@ Unraid users can directly add the container as a "template" within the UI.
     `America/Los_Angeles` - for the next step.
 
     5. Create (and launch) the Docker container by executing the following
-    command[^2] - make sure to replace the install directory and timezone with
+    command - make sure to replace the install directory and timezone with
     _your_ directory (from Step 2) and timezone (from Step 6).
 
         === ":material-linux: Linux"
@@ -516,25 +516,5 @@ information about specific aspects of TitleCardMaker, look at the
     - For Mac users, this is `Terminal` and can be found via the Spotlight
     - For Windows users, this is `Command Prompt` or `PowerShell`. Both can be
     accessed from the search menu
-
-[^2]:
-    The exact purpose of this command breaks down as follow:
-    ```bash
-    docker run -itd ^ # (1)!
-        --net="bridge" ^ # (2)!
-        -v ".../config":"/config/" ^ # (3)!
-        -e TZ="America/Los_Angeles" ^ # (4)!
-        -p 4242:4242 ^ # (5)!
-        --name "TitleCardMaker" ^ # (6)!
-        "ghcr.io/collinheist/titlecardmaker-webui:latest"
-    ```
-
-    1. Launch the container in the background.
-    2. Ensure that TCM has access to the ports of your other Docker
-    containers.
-    3. Make the specified directory available inside the container.
-    4. Set the internal timezone equal to your local timezone.
-    5. Make the TCM WebUI accessible at port 4242 on your machine.
-    6. Name the container TitleCardMaker.
 
 *[PAT]: Personal Access Token

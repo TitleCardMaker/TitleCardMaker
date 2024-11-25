@@ -1011,7 +1011,7 @@ class WhiteBorderCardType(BaseCardTypeCustomFontAllText):
     episode_text_color: str = WhiteBorderTitleCard.TITLE_COLOR
     episode_text_font_size: PositiveFloat = 1.0
 
-LocalCardTypeModels: dict[str, type[Base]] = {
+LocalCardTypeModels: dict[str, type[BaseCardModel]] = {
     '4x3': FadeCardType,
     'anime': AnimeCardType,
     'banner': BannerCardType,
