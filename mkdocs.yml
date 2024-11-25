@@ -229,6 +229,7 @@ nav:
     - Built-in Card Types:
       - Anime: card_types/anime.md
       - Banner: card_types/banner.md
+      - Calligraphy: card_types/calligraphy.md
       - Comic Book: card_types/comic_book.md
       - Cutout: card_types/cutout.md
       - Divider: card_types/divider.md
