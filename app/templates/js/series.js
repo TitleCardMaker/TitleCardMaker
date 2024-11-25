@@ -375,15 +375,6 @@ async function initializeSeriesConfig() {
     document.querySelector('#card-config-form .field[data-value="font_color"] .color.circle').style.setProperty('--color', $(this).val());
   });
   // Font card case
-  $('#card-config-form .dropdown[data-value="font_title_case"]').dropdown({
-    values: [
-      {name: 'Blank', value: 'blank', selected: '{{series.font_title_case}}' === 'blank'},
-      {name: 'Lowercase', value: 'lower', selected: '{{series.font_title_case}}' === 'lower'},
-      {name: 'Source', value: 'source', selected: '{{series.font_title_case}}' === 'source'},
-      {name: 'Titlecase', value: 'title', selected: '{{series.font_title_case}}' === 'title'},
-      {name: 'Uppercase', value: 'upper', selected: '{{series.font_title_case}}' === 'upper'},
-    ],
-  });
   // Hide season text
   initializeNullableBoolean({
     dropdownElement: $('#card-config-form .dropdown[data-value="hide_season_text"]'),

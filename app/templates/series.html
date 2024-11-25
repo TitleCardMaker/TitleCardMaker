@@ -807,7 +807,11 @@
                   <div class="field">
                     <label>Text Case</label>
                     <div data-value="font_title_case" class="ui clearable selection dropdown">
+                      {% if series.font_title_case is none %}
                       <input name="font_title_case" type="hidden">
+                      {% else %}
+                      <input name="font_title_case" type="hidden" value="{{ series.font_title_case }}">
+                      {% endif %}
                       <div class="default text">Default</div>
                       <i class="dropdown icon"></i>
                       <div class="menu">
@@ -1006,7 +1010,7 @@
             <i class="file export icon"></i>
             Export
           </button>
-            
+
           <div class="ui floating hidden info icon message">
             <i class="blue notched circle loading icon"></i>
             <div class="content">
