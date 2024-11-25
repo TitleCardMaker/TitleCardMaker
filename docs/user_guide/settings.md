@@ -180,6 +180,86 @@ icon next to either dropdown.
     configuration, but the watched statuses of a Plex Media Server will
     __always__ come from the server admin.
 
+### Default Templates
+
+An ordered list of [Templates](./templates.md) which should be applied to _all_
+Series and Episodes in TCM which do not already have any Templates assigned.
+
+Setting this is generally not recommended for most users, and simply assigning
+a Template as part of a [Sync](./syncs.md) is generally preferable. However,
+more complex behavior can be achieved through the use of [Template
+Filters](./templates.md#filters) to selectively apply Templates to large parts
+of your library.
+
+??? example "Example Global Template Filters"
+
+    I personally use three global Templates to selectively apply the
+    [Anime](../card_types/anime.md) card type to my Anime library, and hide the
+    season text of all series' which only have one season. This is accomplished
+    with the following Templates:
+
+    1. A "Seasonless Anime" Template which sets the card type to
+    [Anime](../card_types/anime.md), hides season text, and has two filters:
+
+        1. `Number of Seasons` `equals` `1`
+        2. `Series Library Names` `contains` `Anime`
+
+    2. A "Seasonless Anime" Template which sets the card type to Anime and only
+    has one filter:
+
+        1. `Series Library Names` `contains` `Anime`
+
+    3. A "Seasonless Non-Anime" Template which has no assigned card type (so the
+    Series defaults to the global setting), and has one filter:
+
+        1. `Number of Seasons` `equals` `1`
+
+    This effectively allows me to have two "default" card types based on the
+    assigned library of the Series, and automatically hides or shows the season
+    text for Series with only one season.
+
+### Global Extras
+
+<!-- md:overwritable Episode, Series, Template -->
+
+Each [card type](../card_types/index.md) has a list of supported extra settings
+which can customize particular aspects of Title Cards of that type. The _Global
+Extras_ setting allows you to change the default setting for a specific card
+type across your entire server.
+
+Any extra of the same name specified for a specific Episode, Series, or Template
+will overwrite these. However, extras with the same name across different card
+types will not be shared - i.e. the _Episode Text Font Size_ extra of the
+[Negative Space](../card_types/negative_space.md) card will __not__ affect the
+_Episode Text Font Size_ extra of the [Score](../card_types/score.md) card (even
+though they have the same name).
+
+### Global Fonts
+
+<!-- md:overwritable Episode, Series, Template -->
+
+The standard Font characteristics of each [card type](../card_types/index.md)
+can be adjusted with the _Global Fonts_ setting. Each card type can be assigned
+any [named Font](./fonts.md) you have added to TCM.
+
+!!! note "Font Customization Requirements"
+
+    You __do not__ have to provide all the Font settings in that Font. For
+    example, you can change only the default font size of the
+    [Music](../card_types/music.md) card type, while leaving all other settings
+    (kerning, spacing, etc.) as the default - that is supported.
+
+### Global Blur Profiles
+
+Each [card type](../card_types/index.md) in TCM has a default blur "profile"
+which is used when a blurred [style](#watched-and-unwatched-episode-styles) is
+being utilized. This profile has the effect of changing how blurry a Card
+appears, but the default profile can be changed for each Card.
+
+??? example "Effects of Various Blur Profiles"
+
+    ![Blur Profile Comparison](./assets/blur-profile-comparison.webp)
+
 --------------------------------------------------------------------------------
 
 ## ImageMagick
