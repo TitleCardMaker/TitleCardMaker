@@ -1174,14 +1174,18 @@
             </div>
           </div>
 
-          <h2 class="ui dividing header">Source Images</h2>
-          {% if not series.monitored %}
-          <div class="ui visible floating warning message">
-            <i class="exclamation triangle icon"></i>
-            <b>Warning</b> Unmonitored Series will not automatically download Source Images.
-            Click <i class="eye link icon" onclick="toggleMonitorStatus();"></i>to monitor this Series.
-          </div>
-          {% endif %}
+          <h2 class="ui dividing header">
+            Source Images
+            {% if not series.monitored %}
+            <span data-tooltip="Unmonitored Series will not automatically download Source Images." data-position="right center">
+              <i class="small yellow exclamation triangle icon"></i>
+            </span>
+            {% else %}
+            <span data-tooltip="Source Images are downloaded automatically when Title Cards are created" data-position="right center">
+              <i class="tiny blue question circle outline icon"></i>
+            </span>
+            {% endif %}
+          </h2>
           <div class="ui scrolling long fluid container">
             <table class="ui compact striped head stuck sortable unstackable scrolling long table">
               <thead>
