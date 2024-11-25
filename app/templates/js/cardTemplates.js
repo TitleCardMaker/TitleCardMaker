@@ -1,6 +1,7 @@
 {% if False %}
 import {
   AvailableFont,
+  EpisodeDataSourceToggle,
   PreviewTitleCard,
   SeriesPage,
   Style,
@@ -10,18 +11,6 @@ import {
   Translation
 } from './.types.js';
 {% endif %}
-
-const artStyles = [
-  ['Art',                      'art',              ],
-  ['Blurred Art',              'art blur',         ],
-  ['Grayscale Art',            'art grayscale'     ],
-  ['Blurred Grayscale Art',    'blur grayscale art'],
-].map(style => ({name: style[0], value: style[1]}));
-const uniqueStyles = [
-  ['Blurred Unique',           'blur unique',         ],
-  ['Grayscale Unique',         'grayscale unique',    ],
-  ['Blurred Grayscale Unique', 'blur grayscale unique'],
-].map(style => ({name: style[0], value: style[1]}));
 
 /**
  * Parse some list value, converting empty lists to the fallback
@@ -262,39 +251,67 @@ function addDropdownItem(element, args) {
  * Query all templates, adding their content to the page.
  */
 async function getAllTemplates() {
-  /** @type {AvailableFont[]} */
-  const allFonts = await fetch('/api/available/fonts').then(resp => resp.json());
+  // Start querying templates, but do not wait for results
+  const templatePromise = fetch('/api/templates/all').then(resp => resp.json());
 
-  // ------------------------ Add selectable items to the HTML template dropdown
+  // Query all "available" data used to populate dropdowns in the HTML template
+  /** @type {[AvailableFont[], EpisodeDataSourceToggle[], TemplateFilter[], Translation[]]} */
+  const [
+    allFonts,
+    allEpisodeDataSources,
+    allFilterOptions,
+    allTranslations,
+  ] = await Promise.all([
+    fetch('/api/available/fonts').then(resp => resp.json()),
+    fetch('/api/settings/episode-data-source').then(resp => resp.json()),
+    fetch('/api/available/template-filters').then(resp => resp.json()),
+    fetch('/api/available/translations').then(resp => resp.json()),
+  ]);
+
+  // ----------------------- Add selectable items to the HTML template dropdowns
   const htmlTemplate = document.querySelector('#template').content;
-  // Fonts
-  allFonts.forEach(font => {
-    addDropdownItem(
-      htmlTemplate.querySelector('.dropdown[data-value="font_id"] .menu'),
-      {className: 'item', innerText: font.name, value: font.id},
-    );
+  const filterTemplate = document.getElementById('filter-template').content;
+  const translationTemplate = document.getElementById('translation-template').content;
+  // Filters arguments
+  const argumentMenu = filterTemplate.querySelector('.dropdown[data-value="filter-arguments"] .menu');
+  allFilterOptions.arguments.forEach(argument => {
+    addDropdownItem(argumentMenu, {innerText: argument, value: argument});
   });
-  // Watched Style
-  htmlTemplate.querySelectorAll('.dropdown[data-value="watched_style"] .menu, .dropdown[data-value="unwatched_style"] .menu').forEach(selector => {
-    // Add art header
-    addDropdownItem(selector, {className: 'header', innerText: 'Art Variations'});
-    artStyles.forEach(style => {
-      addDropdownItem(selector, {className: 'item', innerText: style.name, value: style.value});
-    });
-    // Add unique header
-    addDropdownItem(selector, {className: 'header', innerText: 'Unique Variations'});
-    uniqueStyles.forEach(style => {
-      addDropdownItem(selector, {className: 'item', innerText: style.name, value: style.value});
-    });
+  // Filter operations
+  const operationMenu = filterTemplate.querySelector('.dropdown[data-value="filter-operators"] .menu');
+  allFilterOptions.operations.forEach(operation => {
+    addDropdownItem(operationMenu, {innerText: operation, value: operation});
+  });
+  // Fonts
+  const fontMenu = htmlTemplate.querySelector('.dropdown[data-value="font_id"] .menu');
+  allFonts.forEach(font => {
+    addDropdownItem(fontMenu, {innerText: font.name, value: font.id});
+  });
+  // Data source IDs
+  const dataSourceIdMenu = htmlTemplate.querySelector('.dropdown[data-value="data_source_id"] .menu');
+  allEpisodeDataSources.forEach(source => {
+    addDropdownItem(dataSourceIdMenu, {innerText: source.name, value: source.interface_id});
+  });
+  // Translation languages
+  const translationMenu = translationTemplate.querySelector('.dropdown[data-value="language_code"] .menu');
+  allTranslations.forEach(translation => {
+    addDropdownItem(translationMenu, {innerText: translation.language, value: translation.language_code});
   });
   // ---------------------------------------------------------------------------
 
-  /** @type {TemplatePage} Query all Templates */
-  const allTemplates = await fetch('/api/templates/all').then(resp => resp.json());
+  // Populate extras
+  await populateExtraTemplate({
+    extraTemplateSection: htmlTemplate.querySelector('section[aria-label="extras"]'),
+    inputTemplateElement: document.getElementById('extra-template'),
+    groupAmount: 3,
+  })
+
+  /** @type {TemplatePage} Finish Template data query */
+  const allTemplates = await templatePromise;
 
   // Create elements to add to the page
   const elements = [],
-        hasManyTemplates = allTemplates.items.length > 10;
+    hasManyTemplates = allTemplates.items.length > 10;
   let currentHeader = '';
   allTemplates.items.forEach(templateObj => {
     // Add letter header for this Template if necessary
@@ -318,6 +335,21 @@ async function getAllTemplates() {
     nameElem.placeholder = templateObj.name;
     nameElem.value = templateObj.name;
     // Filters added later
+    if (templateObj.filters.length > 0) {
+      const conditionsDiv = base.querySelector('[data-value="conditions"]');
+      for (const condition of templateObj.filters) {
+        // Clone filter template
+        const newCondition = document.getElementById('filter-template').content.cloneNode(true);
+        // Populate filter
+        newCondition.querySelector('input[name="argument"]').value = condition.argument;
+        newCondition.querySelector('input[name="operation"]').value = condition.operation;
+        if (condition.reference !== null) {
+          newCondition.querySelector('input[name="reference"]').value = condition.reference;
+        }
+        // Add to page
+        conditionsDiv.appendChild(newCondition);
+      }
+    }
     // Card type set later
     // Font ID
     if (templateObj.font_id === null) {
@@ -365,14 +397,31 @@ async function getAllTemplates() {
       base.querySelector('.dropdown[data-value="skip_localized_images"] > input').value = value;
     }
     // Episode data source set later
+    if (templateObj.data_source_id !== null) {
+      base.querySelector('.dropdown[data-value="data_source_id"] > input').value = templateObj.data_source_id;
+    }
     // Sync specials
     if (templateObj.sync_specials !== null) {
       const value = templateObj.sync_specials ? 'True' : 'False';
       base.querySelector('.dropdown[data-value="sync_specials"] > input').value = value;
     }
     // Image source priority set later
-    // Translations added later
-    // Extras later
+    // Translations
+    if (templateObj.translations !== null && templateObj.translations.length > 0) {
+      const translationSegment = base.querySelector('[data-value="translations"]');
+      for (const translation of templateObj.translations) {
+        const newTranslation = document.getElementById('translation-template').content.cloneNode(true);
+        newTranslation.querySelector('input[name="language_code"]').value = translation.language_code;
+        newTranslation.querySelector('input[name="data_key"]').value = translation.data_key;
+        translationSegment.append(newTranslation);
+      }
+    }
+    // Extras
+    if (templateObj.extras !== null) {
+      for (const [identifier, value] of Object.entries(templateObj.extras)) {
+        base.querySelectorAll(`section[aria-label="extras"] input[name="${identifier}"]`).forEach(input => input.value = value);
+      }
+    }
     // Update card preview(s)
     const watchedCard = base.querySelector('.card[content-type="watched"]'),
         unwatchedCard = base.querySelector('.card[content-type="unwatched"]');
@@ -402,66 +451,22 @@ async function getAllTemplates() {
   // Add elements to the page, refresh theme, and then initialize accordions
   document.getElementById('templates').replaceChildren(...elements);
   refreshTheme();
-  $('.ui.accordion').accordion();
+  $('.ui.accordion').accordion({
+    /**
+     * Callback when a template accordion is opened. When the template is
+     * viewed, initialize the extra tabs. This is not done ahead of time
+     * because it can be very slow.
+     */
+    onOpen: function () {
+      // Get the card type of this template (or global) to determine which tab to open to
+      const cardIdentifier = $(this).find('input[name="card_type"]').val() || '{{ preferences.default_card_type }}';
+      $(this).find('section[aria-label="extras"] .item').tab('change tab', cardIdentifier);
+    },
+  });
 
-  // Query all "extra" content necessary for dropdowns and such
-  /** @type {TemplateFilter} */
-  const allFilterOptions = await fetch('/api/available/template-filters').then(resp => resp.json());
-  const allEpisodeDataSources = await fetch('/api/settings/episode-data-source').then(resp => resp.json());
-  /** @type {Translation[]} */
-  const allTranslations = await fetch('/api/available/translations').then(resp => resp.json());
-  await queryAvailableExtras();
+  // Fill in fancy values  
   await getAllCardTypes();
-
-  // Fill in fancy values
   allTemplates.items.forEach(templateObj => {
-    // Filters
-    if (templateObj.filters.length > 0) {
-      const conditionsDiv = $(`#template-id${templateObj.id} [data-value="conditions"]`);
-      for (const condition of templateObj.filters) {
-        // Create new filter, add to div
-        const newCondition = document.getElementById('filter-template').content.cloneNode(true);
-        conditionsDiv.append(newCondition);
-        // Initialize dropdowns
-        $(`#template-id${templateObj.id} .dropdown[data-value="filter-arguments"]`).last().dropdown({
-          placeholder: 'Select Argument',
-          values: allFilterOptions.arguments.map(argument => {
-            return {name: argument, value: argument, selected: argument === condition.argument};
-          })
-        });
-        $(`#template-id${templateObj.id} .dropdown[data-value="filter-operators"]`).last().dropdown({
-          placeholder: 'Select Operation',
-          values: allFilterOptions.operations.map(operation => {
-            return {
-              name: operation,
-              value: operation,
-              selected: operation === condition.operation
-            };
-          })
-        });
-        if (condition.reference !== null) {
-          $(`#template-id${templateObj.id} input[data-value="filter-reference"]`).last().val(condition.reference);
-        }
-      }
-    }
-    // Add new fields with add condition button
-    $(`#template-id${templateObj.id} .button[data-add-field="condition"]`).on('click', () => {
-      const newCondition = document.getElementById('filter-template').content.cloneNode(true);
-      $(`#template-id${templateObj.id} [data-value="conditions"]`).append(newCondition);
-      $(`#template-id${templateObj.id} [data-value="conditions"] .dropdown[data-value="filter-arguments"]`).last().dropdown({
-        placeholder: 'Select Argument',
-        values: allFilterOptions.arguments.map(argument => {
-          return {name: argument, value: argument, selected: false};
-        }),
-      });
-      $(`#template-id${templateObj.id} [data-value="conditions"] .dropdown[data-value="filter-operators"]`).last().dropdown({
-        placeholder: 'Select Operation',
-        values: allFilterOptions.operations.map(operation => {
-          return {name: operation, value: operation, selected: false};
-        }),
-      });
-      refreshTheme();
-    });
     // Card type
     loadCardTypes({
       element: `#template-id${templateObj.id} .dropdown[data-value="card_type"]`,
@@ -470,94 +475,11 @@ async function getAllTemplates() {
         placeholder: 'Global Default',
       }
     });
-    // Add new fields to add title button
-    $(`#template-id${templateObj.id} .button[data-value="add-title"]`).on('click', () => {
-      const newRange = document.createElement('input');
-      newRange.name = 'season_title_ranges'; newRange.type = 'text';
-      newRange.setAttribute('data-value', 'season-titles');
-      const newTitle = document.createElement('input');
-      newTitle.name = 'season_title_values'; newTitle.type = 'text';
-      $(`#template-id${templateObj.id} >* .field[data-value="season-title-range"]`).append(newRange);
-      $(`#template-id${templateObj.id} >* .field[data-value="season-title-value"]`).append(newTitle);
-      $('.field[data-value="season-titles"] label i').popup({
-        popup: '#season-title-popup',
-        position: 'right center',
-      });
-    });
-    // Episode data source
-    $(`#template-id${templateObj.id} .dropdown[data-value="data_source_id"]`).dropdown({
-      placeholder: 'Global Default',
-      values: allEpisodeDataSources.map(({name, interface_id}) => {
-        return {name, value: interface_id, selected: interface_id === templateObj.data_source_id};
-      }),
-    });
-    // Translations
-    if (templateObj.translations !== null && templateObj.translations.length > 0) {
-      const translationSegment = $(`#template-id${templateObj.id} [data-value="translations"]`);
-      for (const translation of templateObj.translations) {
-        // Create new translation entry, add to translation segment
-        const newTranslation = document.querySelector('#translation-template').content.cloneNode(true);
-        translationSegment.append(newTranslation);
-        // Initialize dropdowns
-        $(`#template-id${templateObj.id} .dropdown[data-value="language_code"]`).last().dropdown({
-          values: [
-            {name: 'Language', type: 'header'},
-            ...allTranslations.map(({language_code, language}) => {
-              return {name: language, value: language_code, selected: translation.language_code === language_code};
-            })
-          ],
-        });
-        let extraValue = [];
-        if (translation.data_key !== 'preferred_title' && translation.data_key !== 'kanji') {
-          extraValue.push({name: translation.data_key, value: translation.data_key, selected: true});
-        }
-        $(`#template-id${templateObj.id} .dropdown[data-value="data_key"]`).last().dropdown({
-          allowAdditions: true,
-          values: [
-            {name: 'Key', type: 'header'},
-            {name: 'Preferred title', text: 'the preferred title', value: 'preferred_title', selected: translation.data_key === 'preferred_title'},
-            {name: 'Kanji', text: 'kanji', value: 'kanji', selected: translation.data_key === 'kanji'},
-            ...extraValue,
-          ]
-        });
-      }
-    }
-    // Extras
-    initializeExtras(
-      templateObj.extras,
-      templateObj.card_type || '{{preferences.default_card_type}}',
-      `#template-id${templateObj.id} section[aria-label="extras"]`,
-      document.getElementById('extra-template'),
-    );
-    // Add new field with add translation button
-    $(`#template-id${templateObj.id} .button[data-add-field="translation"]`).on('click', () => {
-      const newTranslation = document.getElementById('translation-template').content.cloneNode(true);
-      $(`#template-id${templateObj.id} [data-value="translations"]`).append(newTranslation);
-      // Language code dropdown
-      $(`#template-id${templateObj.id} .dropdown[data-value="language_code"]`).last().dropdown({
-        values: [
-          {name: 'Language', type: 'header'},
-          ...allTranslations.map(({language_code, language}) => {
-            return {name: language, value: language_code};
-          })
-        ],
-      });
-      // Translation data key dropdown
-      $(`#template-id${templateObj.id} .dropdown[data-value="data_key"]`).last().dropdown({
-        allowAdditions: true,
-        values: [
-          {name: 'Key', type: 'header'},
-          {name: 'Preferred title', text: 'the preferred title', value: 'preferred_title'},
-          {name: 'Kanji', text: 'kanji', value: 'kanji'},
-        ]
-      });
-    });
   });
 
   // Enable accordion/dropdown/checkbox elements
-  $('.ui.accordion').accordion();
+  document.getElementById('loader')?.remove();
   $('.ui.checkbox').checkbox();
-  // $('.ui.dropdown[data-value="font_id"], .ui.dropdown[data-value="watched_style"], .ui.dropdown[data-value="unwatched_style"]').dropdown();
   $('.ui.dropdown').dropdown();
   $('.ui.clearable.dropdown').dropdown({clearable: true});
   $('.field[data-value="season-titles"] label i').popup({
@@ -571,4 +493,63 @@ async function getAllTemplates() {
 
 function initAll() {
   getAllTemplates();
+}
+
+/**
+ * Add a new blank filter set to the template containing the initiating button.
+ * @param {HTMLDivElement} addButton Initiating add button which was clicked.
+ */
+function addBlankFilter(addButton) {
+  // Get blank filter template
+  const newCondition = document.getElementById('filter-template').content.cloneNode(true);
+  // Add to condition list
+  addButton.closest('div[data-label="filters"]')
+    .querySelector('div[data-value="conditions"]')
+    .appendChild(newCondition);
+  // Initialize newly added dropdowns, refresh theme
+  $(addButton).parent('div[data-label="filters"]').find('.ui.dropdown').dropdown();
+  refreshTheme();
+}
+
+/**
+ * Add a new blank season title set to the template containing the initiating
+ * button.
+ * @param {HTMLDivElement} addButton Initiating add button which was clicked.
+ */
+function addBlankTitle(addButton) {
+  // Create range input
+  const newRange = document.createElement('input');
+  newRange.name = 'season_title_ranges'; newRange.type = 'text';
+  newRange.setAttribute('data-value', 'season-titles');
+  // Create title input
+  const newTitle = document.createElement('input');
+  newTitle.name = 'season_title_values'; newTitle.type = 'text';
+  // Add to page
+  addButton.closest('div.field')
+    .querySelector('.field[data-value="season-title-range"]')
+    .appendChild(newRange);
+    addButton.closest('div.field')
+    .querySelector('.field[data-value="season-title-value"]')
+    .appendChild(newTitle);
+
+  refreshTheme();
+}
+
+/**
+ * Add a new blank translation set to the template containing the initiating
+ * button.
+ * @param {HTMLDivElement} addButton Initiating add button which was clicked.
+ */
+function addBlankTranslation(addButton) {
+  // Get blank translation template
+  const newTranslation = document.getElementById('translation-template').content.cloneNode(true);
+  // Add to section
+  addButton.closest('div.field')
+    .querySelector('div[data-value="translations"]')
+    .appendChild(newTranslation);
+  // Initialize newly added dropdowns, refresh theme
+  $(addButton).parent('div.field').find('.ui.dropdown').dropdown({
+    allowAdditions: true,
+  });
+  refreshTheme();
 }

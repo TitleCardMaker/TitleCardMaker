@@ -14,7 +14,7 @@
   <template id="filter-template">
     <div class="ui three fields">
       <div class="ui field">
-        <div data-value="filter-arguments" class="ui clearable selection dropdown">
+        <div class="ui clearable selection dropdown" data-value="filter-arguments">
           <input name="argument" type="hidden">
           <i class="dropdown icon"></i>
           <div class="default text">Select Argument</div>
@@ -22,7 +22,7 @@
         </div>
       </div>
       <div class="ui field">
-        <div data-value="filter-operators" class="ui clearable selection dropdown">
+        <div class="ui clearable selection dropdown" data-value="filter-operators">
           <input name="operation" type="hidden">
           <i class="dropdown icon"></i>
           <div class="default text">Select Operation</div>
@@ -40,7 +40,7 @@
   <template id="extra-template">
     <div class="field">
       <label>{label}</label>
-      <input type="text">
+      <input oninput="updateColorBubble(this);" onchange="updateLinkedFields(this);" type="text">
       <p class="help">{tooltip}</p>
     </div>
   </template>
@@ -48,18 +48,21 @@
   <template id="translation-template">
     <span class="ui text">
       Translate
-      <div data-value="language_code" class="ui inline scrolling clearable dropdown">
+      <div class="ui inline scrolling clearable dropdown" data-value="language_code">
         <input name="language_code" type="hidden">
-        <div class="text">{language}</div>
+        <div class="default text">Language</div>
         <i class="dropdown icon"></i>
         <div class="menu"><!-- Added asynchronously --></div>
       </div>
       titles into 
-      <div data-value="data_key" class="ui inline user-additions search clearable dropdown">
+      <div class="ui inline user-additions search clearable dropdown" data-value="data_key">
         <input name="data_key" type="hidden">
-        <div class="text"></div>
+        <div class="default text">Key</div>
         <i class="dropdown icon"></i>
-        <div class="menu"><!-- Added asynchronously --></div>
+        <div class="menu">
+          <div class="item" data-value="preferred_title" data-text="the title text">Title Text</div>
+          <div class="item" data-value="kanji" data-text="kanji">Kanji</div>
+        </div>
       </div>
     </span>
     <br>
@@ -69,7 +72,7 @@
     <div class="ui styled fluid accordion">
       <div class="title">
         <i class="dropdown icon"></i>
-        TEMPLATE NAME
+        Name
       </div>
       <div class="content">
         <div class="ui stackable grid">
@@ -115,7 +118,7 @@
 
               <h4 class="ui horizontal middle aligned divider header">Filters</h4>
 
-              <div>
+              <div data-label="filters">
                 <div class="ui floating visible info small message">
                   <span class="ui text">Filters restrict when a Template is active for a Series or Episode.</span>
                   <ul class="list">
@@ -126,7 +129,7 @@
                   </ul>
                 </div>
                 <div data-value="conditions"></div>
-                <div data-add-field="condition" class="ui circular mini icon add-field button">
+                <div data-add-field="condition" class="ui circular mini icon add-field button" onclick="addBlankFilter(this);">
                   <i class="plus square outline icon"></i>
                   Add Condition
                 </div>
@@ -163,7 +166,18 @@
                     <span class="default text">Server Default</span>
                     <input name="watched_style" type="hidden">
                     <i class="dropdown icon"></i>
-                    <div class="menu"><!-- Added asynchronously --></div>
+                    <div class="menu">
+                      <div class="header">Art</div>
+                      <div class="item" data-value="art">Art</div>
+                      <div class="item" data-value="art blur">Blurred Art</div>
+                      <div class="item" data-value="art grayscale">Grayscale Art</div>
+                      <div class="item" data-value="art blur grayscale">Blurred Grayscale Art</div>
+                      <div class="header">Unique</div>
+                      <div class="item" data-value="unique">Unique</div>
+                      <div class="item" data-value="blur unique">Blurred Unique</div>
+                      <div class="item" data-value="grayscale unique">Grayscale Uniue</div>
+                      <div class="item" data-value="blur grayscale unique">Blurred Grayscale Uniue</div>
+                    </div>
                   </div>
                 </div>
 
@@ -173,7 +187,18 @@
                     <span class="default text">Server Default</span>
                     <input name="unwatched_style" type="hidden">
                     <i class="dropdown icon"></i>
-                    <div class="menu"><!-- Added asynchronously --></div>
+                    <div class="menu">
+                      <div class="header">Art</div>
+                      <div class="item" data-value="art">Art</div>
+                      <div class="item" data-value="art blur">Blurred Art</div>
+                      <div class="item" data-value="art grayscale">Grayscale Art</div>
+                      <div class="item" data-value="art blur grayscale">Blurred Grayscale Art</div>
+                      <div class="header">Unique</div>
+                      <div class="item" data-value="unique">Unique</div>
+                      <div class="item" data-value="blur unique">Blurred Unique</div>
+                      <div class="item" data-value="grayscale unique">Grayscale Uniue</div>
+                      <div class="item" data-value="blur grayscale unique">Blurred Grayscale Uniue</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -206,7 +231,7 @@
                     <label>Title</label>
                   </div>
                 </div>
-                <div data-value="add-title" class="ui circular mini icon add-field button">
+                <div data-value="add-title" class="ui circular mini icon add-field button" onclick="addBlankTitle(this);">
                   <i class="plus square outline icon"></i>
                   Add Title
                 </div>
@@ -279,7 +304,7 @@
                 <div data-value="translations" class="ui segment">
                   <!-- Added asynchrously -->
                 </div>
-                <div data-add-field="translation" class="ui circular mini icon add-field button">
+                <div data-add-field="translation" class="ui circular mini icon add-field button" onclick="addBlankTranslation(this);">
                   <i class="plus square outline icon"></i>
                   Add Translation
                 </div>
@@ -331,6 +356,7 @@
       </button>
 
       <!-- Templates -->
+      <div class="ui active centered inline blue elastic loader" id="loader"></div>
       <div id="templates"><!-- Elements added asynchronously --></div>
 
       <div class="ui compact floating info message">

@@ -59,6 +59,7 @@ async function loadCardTypes(args) {
 
   // Initialize dropdown with values
   $(element).dropdown({
+    ...dropdownArgs,
     values: [
       {name: 'Built-in Cards', type: 'header'},
       ...builtinTypes,
@@ -66,7 +67,7 @@ async function loadCardTypes(args) {
       ...localTypes,
       {name: 'Remote Cards', type: 'header'},
       ...remoteTypes,
-    ], ...dropdownArgs,
+    ],
   });
 
   return allCardTypes;

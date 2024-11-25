@@ -458,7 +458,7 @@
 /**
  * @typedef {Object} Translation
  * @property {string} language_code
- * @property {string} data_key
+ * @property {string} language
  */
 
 /**
