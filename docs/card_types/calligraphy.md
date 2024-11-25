@@ -28,6 +28,120 @@ blurred or grayscale styling.
 
     ![Labeled Calligraphy Card Elements](./assets/calligraphy/labeled.webp)
 
+## Deep Blur Toggle
+
+If the Card is being blurred as a result of an [unwatched
+style](../user_guide/settings.md#watched-and-unwatched-episode-styles), TCM
+automatically applies a stronger / more blurry effect to the Card to match the
+'calligraphy on paper' aesthetic. This can be disabled by setting the _Deep
+Blur Unwatched Toggle_ extra to `False`.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="50"
+        data-left-label="True"
+        data-right-label="False">
+        <img src="../assets/calligraphy/deep_blur_enabled.webp"/>
+        <img src="../assets/calligraphy/deep_blur_disabled.webp"/>
+    </div>
+
+!!! note "Interaction with the Global Blur Profile Setting"
+
+    If you have customized the blur profile of the Calligraphy card by adjusting
+    the [global setting](../user_guide/settings.md#global-blur-profiles), then
+    the custom blur profile will only take effect if this setting is _disabled_
+    or if the Card is blurred for a _watched_ Episode.
+
+## Episode Text
+
+Unless explicitly stated otherwise, all of the following extras will refer to
+both the season _and_ episode text. "Episode text" is used for brevity.
+
+### Coloring
+
+The color of the season and episode text can be adjusted with the _Episode Text
+Color_ extra. If unspecified, this defaults to match the color of the title
+text.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="50"
+        data-left-label="rgb(81, 124, 102)"
+        data-right-label="white">
+        <img src="../assets/calligraphy/episode_text_color.webp"/>
+        <img src="../assets/calligraphy.webp"/>
+    </div>
+
+### Size
+
+The size of the season and episode text can be adjusted with the _Episode Text
+Font Size_ extra. Like all font sizes, values greater than `#!yaml 1.0` will
+increase the size of the text, and values less than `#!yaml 1.0` will decrease
+it.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="50"
+        data-left-label="1.5" data-right-label="1.0">
+        <img src="../assets/calligraphy/episode_text_font_size.webp"/>
+        <img src="../assets/calligraphy.webp"/>
+    </div>
+
+## Logo Size
+
+If a logo file is supplied and available, that file will be added to the center
+of the card. The size of this logo can be adjusted with the _Logo Size_ extra.
+Like all sizes, values greater than `#!yaml 1.0` will increase the size of the
+image, and values less than `#!yaml 1.0` will decrease it.
+
+Adjusting this size will also change where the [Episode Text](#episode-text) is
+positioned, as TCM moves that text just above the bounds of the logo.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="50"
+        data-left-label="0.8" data-right-label="1.0">
+        <img src="../assets/calligraphy/logo_size.webp"/>
+        <img src="../assets/calligraphy.webp"/>
+    </div>
+
+## Separator Character
+
+If both the season and episode text are displayed on the Card, then a separator
+character is added between them. This character can be adjusted with the
+_Separator Character_ extra.
+
+The color of this character will be controlled by the
+[_Episode Text Color_](#coloring) extra.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="56"
+        data-left-label="/" data-right-label="-">
+        <img src="../assets/calligraphy/separator.webp"/>
+        <img src="../assets/calligraphy.webp"/>
+    </div>
+
+## Shadow Color
+
+Rather than a stroke, TCM adds a drop shadow to all elements on this card in
+order to improve legibility. The color of this shadow can be changed with the
+_Shadow Color_ extra.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="50"
+        data-left-label="rgb(81, 124, 102)" data-right-label="black">
+        <img src="../assets/calligraphy/shadow_color.webp"/>
+        <img src="../assets/calligraphy.webp"/>
+    </div>
+
 ## Texture Customization
 
 By default, TCM adds a "texture" overlay image to all Cards of this type. This
@@ -48,11 +162,27 @@ applied.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="50"
+        data-starting-point="93.3"
         data-left-label="False"
         data-right-label="True">
         <img src="../assets/calligraphy/texture_toggle.webp"/>
         <img src="../assets/calligraphy.webp"/>
+    </div>
+
+## Title Offset
+
+TCM automatically applies an "offset" to some multi-line titles to give the
+stylized appearance of the two lines not being centered in the page. This can be
+disabled by setting the _Offset Title Toggle_ extra to `False`.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="30.5"
+        data-left-label="False"
+        data-right-label="True">
+        <img src="../assets/calligraphy/title_offset_off.webp"/>
+        <img src="../assets/calligraphy/title_offset_on.webp"/>
     </div>
 
 ## Mask Images

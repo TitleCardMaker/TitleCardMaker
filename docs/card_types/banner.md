@@ -94,6 +94,9 @@ this is _generally_ not advised.
 
 ## Episode Text
 
+Unless explicitly stated otherwise, all of the following extras will refer to
+both the season _and_ episode text. "Episode text" is used for brevity.
+
 ### Color
 
 The color of the season and episode text is controlled with the
