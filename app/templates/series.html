@@ -1775,9 +1775,12 @@
                     <div class="default text">Select a Library</div>
                     <i class="dropdown icon"></i>
                     <div class="menu">
-                      {% for library in preferences.libraries[connection.id] %}
-                      <div class="item" data-value="{{ library }}">{{ library }}</div>
-                      {% endfor %}
+                      {% if preferences.libraries[connection.id] %}
+                        {% set libraries = preferences.libraries[connection.id][1] %}
+                        {% for library in libraries %}
+                          <div class="item" data-value="{{ library }}">{{ library }}</div>
+                        {% endfor %}
+                      {% endif %}
                     </div>
                   </div>
                 </div>
