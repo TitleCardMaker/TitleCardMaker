@@ -194,7 +194,7 @@ class NotificationTitleCard(BaseCardType):
             episode_text_vertical_shift: int = 0,
             glass_color: str = GLASS_COLOR,
             position: Position = 'right',
-            separator: str = '/',
+            separator: str = '-',
             preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
@@ -246,15 +246,15 @@ class NotificationTitleCard(BaseCardType):
         y = self._TITLE_TEXT_Y_OFFSET + self.font_vertical_shift
 
         return [
-            f'-gravity {gravity}',
-            f'-font "{self.font_file}"',
-            f'-fill "{self.font_color}"',
-            f'-pointsize {80 * self.font_size}',
-            f'-interline-spacing {-10 + self.font_interline_spacing:+}',
-            f'-interword-spacing {self.font_interword_spacing}',
-            f'-kerning {1 * self.font_kerning}',
-            f'-annotate {self._TEXT_X_OFFSET:+}{y:+}',
-            f'"{self.title_text}"',
+            fr'-gravity {gravity}',
+            fr'-font "{self.font_file}"',
+            fr'-fill "{self.font_color}"',
+            fr'-pointsize {80 * self.font_size}',
+            fr'-interline-spacing {-10 + self.font_interline_spacing:+}',
+            fr'-interword-spacing {self.font_interword_spacing}',
+            fr'-kerning {1 * self.font_kerning}',
+            fr'-annotate {self._TEXT_X_OFFSET:+}{y:+}',
+            fr'"{self.title_text}"',
         ]
 
 
@@ -274,21 +274,21 @@ class NotificationTitleCard(BaseCardType):
         elif self.hide_episode_text:
             text = self.season_text
         else:
-            text = f'{self.season_text} {self.separator} {self.episode_text}'
+            text = fr'{self.season_text} {self.separator} {self.episode_text}'
 
         gravity = 'southwest' if self.position == 'left' else 'southeast'
         y = self._INDEX_TEXT_Y_OFFSET + self.episode_text_vertical_shift
 
         return [
-            f'-gravity {gravity}',
-            f'-interline-spacing -10',
-            f'-interword-spacing 0',
-            f'-kerning 1',
-            f'-pointsize {40 * self.episode_text_font_size}',
-            f'-fill "{self.episode_text_color}"',
-            f'-font "{self.TITLE_FONT}"',
-            f'-annotate {self._TEXT_X_OFFSET:+}{y:+}',
-            f'"{text}"',
+            fr'-gravity {gravity}',
+            fr'-interline-spacing -10',
+            fr'-interword-spacing 0',
+            fr'-kerning 1',
+            fr'-pointsize {40 * self.episode_text_font_size}',
+            fr'-fill "{self.episode_text_color}"',
+            fr'-font "{self.TITLE_FONT}"',
+            fr'-annotate {self._TEXT_X_OFFSET:+}{y:+}',
+            fr'"{text}"',
         ]
 
 
@@ -373,23 +373,23 @@ class NotificationTitleCard(BaseCardType):
 
         return [
             # Duplicate image to blur rectangle in the given bounds
-            f'\( -clone 0',
-            f'-fill white',
-            f'-colorize 100',
-            f'-fill black',
+            fr'\( -clone 0',
+            fr'-fill white',
+            fr'-colorize 100',
+            fr'-fill black',
             glass.draw(),
-            f'-alpha off',
-            f'-write mpr:mask',
-            f'+delete \)',
-            f'-mask mpr:mask',
+            fr'-alpha off',
+            fr'-write mpr:mask',
+            fr'+delete \)',
+            fr'-mask mpr:mask',
             # Do not blur if whole image is being blurred
-            f'' if self.blur else f'-blur {self._GLASS_BLUR_PROFILE}',
-            f'+mask',
+            fr'' if self.blur else fr'-blur {self._GLASS_BLUR_PROFILE}',
+            fr'+mask',
             # Draw glass shape
-            f'-fill "{self.glass_color}"',
+            fr'-fill "{self.glass_color}"',
             glass.draw(),
             # Draw edge
-            f'-fill "{self.edge_color}"',
+            fr'-fill "{self.edge_color}"',
             edge.draw(),
         ]
 
@@ -477,8 +477,8 @@ class NotificationTitleCard(BaseCardType):
         """Create this object's defined Title Card."""
 
         self.image_magick.run([
-            f'convert "{self.source_file.resolve()}"',
-            f'-density 100',
+            fr'convert "{self.source_file.resolve()}"',
+            fr'-density 100',
             # Resize and apply styles to source image
             *self.resize_and_style,
             # Add background player glass
@@ -504,5 +504,5 @@ class NotificationTitleCard(BaseCardType):
             *self.add_overlay_mask(self.source_file),
             # Create card
             *self.resize_output,
-            f'"{self.output_file.resolve()}"',
+            fr'"{self.output_file.resolve()}"',
         ])
