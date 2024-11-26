@@ -10,6 +10,7 @@ from modules.BaseCardType import (
     Shadow,
 )
 from modules.Debug import log
+from modules.EpisodeInfo2 import EpisodeInfo
 from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
@@ -216,6 +217,22 @@ class ScoreTitleCard(BaseCardType):
         'title_text_horizontal_offset',
         'variation',
     )
+
+
+    @staticmethod
+    def SEASON_TEXT_FORMATTER(episode_info: EpisodeInfo) -> str:
+        """
+        Fallback season title formatter.
+
+        Args:
+            episode_info: Info of the Episode whose season text is being
+                determined.
+
+        Returns:
+            'Season {x}' of the given Episode.
+        """
+
+        return 'Season {season_number}'
 
 
     def __init__(self, *,
