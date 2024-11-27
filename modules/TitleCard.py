@@ -9,6 +9,7 @@ from modules.Debug import log
 from modules.EpisodeInfo import EpisodeInfo
 from modules.FormatString import FormatString
 from modules.SeriesInfo import SeriesInfo
+from modules.TieredSettings import TieredSettings
 from modules.Title import SplitCharacteristics
 
 # Built-in BaseCardType classes
@@ -177,24 +178,27 @@ class TitleCard:
                 log.error(f'Invalid title text format - {exc}')
 
         # Initialize this episode's CardType instance
-        kwargs = {
-            'backdrop_file': episode.source.parent / 'backdrop.jpg',
-            'source_file': episode.source,
-            'card_file': episode.destination,
-            'title_text': self.converted_title,
-            'season_text': profile.get_season_text(
-                self.episode.episode_info,
-                getattr(self.episode.card_class, 'SEASON_TEXT_FORMATTER', None),
-            ),
-            'episode_text': profile.get_episode_text(self.episode),
-            'hide_season_text': profile.hide_season_title,
-            'blur': episode.blur,
-            'grayscale': episode.grayscale,
-            'watched': episode.watched,
-        } | profile.font.attributes \
-          | series_info.characteristics \
-          | self.episode.episode_info.indices \
-          | extra_characteristics
+        kwargs = TieredSettings.new_settings(
+            {
+                'backdrop_file': episode.source.parent / 'backdrop.jpg',
+                'source_file': episode.source,
+                'card_file': episode.destination,
+                'title_text': self.converted_title,
+                'season_text': profile.get_season_text(
+                    self.episode.episode_info,
+                    getattr(self.episode.card_class, 'SEASON_TEXT_FORMATTER', None),
+                ),
+                'episode_text': profile.get_episode_text(self.episode),
+                'hide_season_text': profile.hide_season_title,
+                'blur': episode.blur,
+                'grayscale': episode.grayscale,
+                'watched': episode.watched,
+            },
+            profile.font.attributes, # type: ignore
+            series_info.characteristics, # type: ignore
+            self.episode.episode_info.indices, # type: ignore
+            extra_characteristics,
+        )
 
         # Initialize model
         if hasattr(self.episode.card_class, 'CardModel'):
@@ -212,11 +216,11 @@ class TitleCard:
                 **kwargs,
             )
 
+        self.maker: BaseCardType | None = None
         try:
             self.maker = self.episode.card_class(**CardModel.dict())
         except Exception as e:
             log.exception(f'Cannot initialize Card for {self.episode} - {e}')
-            self.maker = None
 
         # File associated with this card is the episode's destination
         self.file = episode.destination

@@ -65,7 +65,7 @@ class AspectRatioFixer(ImageMaker):
 
         # Copy style command
         if self.style == 'copy':
-            command = ' '.join([
+            self.image_magick.run([
                 f'convert "{self.source.resolve()}"',
                 # Force resize source to correct size
                 f'-resize "3200x1800!"',
@@ -102,7 +102,7 @@ class AspectRatioFixer(ImageMaker):
             # Stretch sides to fit into 3200px wide
             side_width = (3200 - width + 100) // 2
 
-            command = ' '.join([
+            self.image_magick.run([
                 f'convert',
                 # Crop left 50px and stretch
                 f'\( "{self.__RESIZED_TEMP.resolve()}"',
@@ -119,8 +119,6 @@ class AspectRatioFixer(ImageMaker):
                 f'+append',
                 f'"{self.destination.resolve()}"',
             ])
-
-        self.image_magick.run(command)
 
         # Delete temporary images
         if self.style == 'stretch':
