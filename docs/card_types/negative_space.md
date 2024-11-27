@@ -19,7 +19,7 @@ and is based the video transitions in
 
 ??? note "Labeled Card Elements"
 
-    ![Labeled Negative Space Card Elements](./assets/negative_space-labeled.webp)
+    ![Labeled Negative Space Card Elements](./assets/negative_space/labeled.webp)
 
 ## Text Positioning
 
@@ -32,9 +32,10 @@ TCM will randomly select a side when the Card is generated.
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="left" data-right-label="right">
+        data-left-label="left"
+        data-right-label="right">
         <img src="../assets/negative_space.webp"/>
-        <img src="../assets/negative_space-side.webp"/>
+        <img src="../assets/negative_space/side.webp"/>
     </div>
 
 ## Episode Text Adjustments
@@ -51,9 +52,10 @@ extra. If unspecified, it defaults to matching the font color.
 
     <div class="image-compare example-card"
         data-starting-point="11.9"
-        data-left-label="white" data-right-label="MediumGoldenRod">
+        data-left-label="white"
+        data-right-label="MediumGoldenRod">
         <img src="../assets/negative_space.webp"/>
-        <img src="../assets/negative_space-etc.webp"/>
+        <img src="../assets/negative_space/episode_text_color.webp"/>
     </div>
 
 ### Size
@@ -66,9 +68,10 @@ decrease it.
 
     <div class="image-compare example-card"
         data-starting-point="11.9"
-        data-left-label="1.0" data-right-label="0.8">
+        data-left-label="1.0"
+        data-right-label="0.8">
         <img src="../assets/negative_space.webp"/>
-        <img src="../assets/negative_space-etfs.webp"/>
+        <img src="../assets/negative_space/episode_text_font_size.webp"/>
     </div>
 
 ### Position
@@ -87,9 +90,10 @@ will be positioned slightly differently than `61` (starting with `6`).
 
     <div class="image-compare example-card"
         data-starting-point="11.9"
-        data-left-label="0" data-right-label="200">
+        data-left-label="0"
+        data-right-label="200">
         <img src="../assets/negative_space.webp"/>
-        <img src="../assets/negative_space-eths.webp"/>
+        <img src="../assets/negative_space/episode_text_horizontal_shift.webp"/>
     </div>
 
 #### Vertical Shift
@@ -102,9 +106,10 @@ down, and negative values shift it up.
 
     <div class="image-compare example-card"
         data-starting-point="11.9"
-        data-left-label="0" data-right-label="300">
+        data-left-label="0"
+        data-right-label="300">
         <img src="../assets/negative_space.webp"/>
-        <img src="../assets/negative_space-etvs.webp"/>
+        <img src="../assets/negative_space/episode_text_vertical_shift.webp"/>
     </div>
 
 ## Title Text Horizontal Shift
@@ -116,9 +121,10 @@ _Title Text Horizontal Shift_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="11.9"
-        data-left-label="0" data-right-label="250">
+        data-left-label="0"
+        data-right-label="250">
         <img src="../assets/negative_space.webp"/>
-        <img src="../assets/negative_space-tths.webp"/>
+        <img src="../assets/negative_space/title_text_horizontal_shift.webp"/>
     </div>
 
 ## Mask Images
@@ -132,7 +138,9 @@ effects.
 
     <div class="image-compare example-card"
         data-starting-point="14.25"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/negative_space-mask-raw.webp"/>
-        <img src="../assets/negative_space-mask.webp"/>
+        data-left-label="Mask Image"
+       
+        data-right-label="Resulting Title Card">
+        <img src="../assets/negative_space/mask-raw.webp"/>
+        <img src="../assets/negative_space/mask.webp"/>
     </div>

@@ -131,7 +131,7 @@ this gradient overlay, set the _Gradient Omission_ extra to `True`.
 
 ## Season Text Color
 
-Like the [episode text](#episde-text), the color of the season text can be
+Like the [episode text](#episode-text), the color of the season text can be
 adjusted with the _Season Text Color_ extra. If unspecified, this defaults to
 the [episode text color](#coloring).
 

@@ -10,8 +10,8 @@ description: >
 # Striped Card Type
 
 This card design was created by [CollinHeist](https://github.com/CollinHeist),
-and was inspired by some of the official artwork for
-[The Rookie](https://www.themoviedb.org/tv/79744-the-rookie/images/posters).
+and was inspired by some of the official artwork for [The
+Rookie](https://www.themoviedb.org/tv/79744-the-rookie/images/posters).
 
 These cards feature a solid color overlay with stripes of rectangles "cut" out
 to expose the underlying Source Image. By default the stripes are randomly
@@ -24,7 +24,7 @@ position of the text can also be adjusted to any of the four corners.
 
 ??? note "Labeled Card Elements"
 
-    ![Labeled Striped Card Elements](./assets/striped-labeled.webp)
+    ![Labeled Striped Card Elements](./assets/striped/labeled.webp)
 
 ## Stripe Adjustments
 
@@ -39,9 +39,10 @@ than 90.
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="79.5" data-right-label="85">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-angle.webp"/>
+        data-left-label="79.5"
+        data-right-label="85">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/angle.webp"/>
     </div>
 
 ### Definition
@@ -77,9 +78,10 @@ of each stripe will use the builtin size ranges.
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="random[ssmmmlll]" data-right-label="random[smllllll]">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-definition-1.webp"/>
+        data-left-label="random[ssmmmlll]"
+        data-right-label="random[smllllll]">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/definition-1.webp"/>
     </div>
 
 This pattern will always fill the width of the card.
@@ -95,9 +97,10 @@ wide. Repition is allowed. These must be comma-separated positive values.
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="random[ssmmmlll]" data-right-label="random[100,200]">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-definition-2.webp"/>
+        data-left-label="random[ssmmmlll]"
+        data-right-label="random[100,200]">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/definition-2.webp"/>
     </div>
 
 This pattern will always fill the width of the card.
@@ -115,9 +118,10 @@ in which the second value is equal to or greater than the first.
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="random[ssmmmlll]" data-right-label="random[10-20,200-250]">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-definition-3.webp"/>
+        data-left-label="random[ssmmmlll]"
+        data-right-label="random[10-20,200-250]">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/definition-3.webp"/>
     </div>
 
 This pattern will always fill the width of the card.
@@ -133,9 +137,10 @@ each stripe will use the builtin size ranges.
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="random[ssmmmlll]" data-right-label="sml+">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-definition-4.webp"/>
+        data-left-label="random[ssmmmlll]"
+        data-right-label="sml+">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/definition-4.webp"/>
     </div>
 
 This pattern will __not repeat__ unless it ends with `+` - e.g. `sml+`.
@@ -151,9 +156,10 @@ stripes in the specified order of the specified widths. For example:
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="random[ssmmmlll]" data-right-label="10,100,400+">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-definition-5.webp"/>
+        data-left-label="random[ssmmmlll]"
+        data-right-label="10,100,400+">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/definition-5.webp"/>
     </div>
 
 This pattern will __not repeat__ unless it ends with `+` - e.g. `10,100,400+`.
@@ -170,9 +176,10 @@ These must be comma-separated positive values.
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="random[ssmmmlll]" data-right-label="10-50,400-800+">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-definition-6.webp"/>
+        data-left-label="random[ssmmmlll]"
+        data-right-label="10-50,400-800+">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/definition-6.webp"/>
     </div>
 
 This pattern will __not repeat__ unless it ends with `+` - e.g. `10-50,400-800+`.
@@ -186,9 +193,10 @@ Spacing_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="8" data-right-label="10">
-        <img src="../assets/striped-spacing.webp"/>
-        <img src="../assets/striped-ref.webp"/>
+        data-left-label="8"
+        data-right-label="10">
+        <img src="../assets/striped/spacing.webp"/>
+        <img src="../assets/striped/ref.webp"/>
     </div>
 
 ## Episode Text Adjustments
@@ -205,9 +213,10 @@ extra.
 
     <div class="image-compare example-card"
         data-starting-point="10"
-        data-left-label="crimson" data-right-label="black">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-etc.webp"/>
+        data-left-label="crimson"
+        data-right-label="black">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/episode_text_color.webp"/>
     </div>
 
 ### Size
@@ -220,9 +229,10 @@ the stripes from overlapping the episode text.
 
     <div class="image-compare example-card"
         data-starting-point="10"
-        data-left-label="1.0" data-right-label="1.2">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-etfs.webp"/>
+        data-left-label="1.0"
+        data-right-label="1.2">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/episode_text_font_size.webp"/>
     </div>
 
 ## Overlay Color
@@ -234,9 +244,10 @@ This extra _does_ support transparency.
 
     <div class="image-compare example-card"
         data-starting-point="10"
-        data-left-label="white" data-right-label="azure">
-        <img src="../assets/striped-ref.webp"/>
-        <img src="../assets/striped-overlay.webp"/>
+        data-left-label="white"
+        data-right-label="azure">
+        <img src="../assets/striped/ref.webp"/>
+        <img src="../assets/striped/overlay.webp"/>
     </div>
 
 ## Separator Character
@@ -256,7 +267,8 @@ effects.
 
     <div class="image-compare example-card"
         data-starting-point="83"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/striped-mask-raw.webp"/>
-        <img src="../assets/striped-mask.webp"/>
+        data-left-label="Mask Image"
+        data-right-label="Resulting Title Card">
+        <img src="../assets/striped/mask-raw.webp"/>
+        <img src="../assets/striped/mask.webp"/>
     </div>

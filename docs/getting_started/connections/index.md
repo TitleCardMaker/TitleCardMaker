@@ -22,6 +22,6 @@ instructions for setting up each type of Connection.
     Using multiple Media Servers together is _possible_, using [watch-specific
     styles](../../user_guide/settings.md#watched-and-unwatched-episode-styles)
     will require enabling the global [multi-library
-    filename](../../user_guide/settings.md#multi-library-filename-support)
-    setting in order to properly integrate. Carefully read the in-UI help text
-    and the linked documentation before enabling this.
+    filename](../../user_guide/settings.md#multi-library-file-naming) setting in
+    order to properly integrate. Carefully read the in-UI help text and the
+    linked documentation before enabling this.

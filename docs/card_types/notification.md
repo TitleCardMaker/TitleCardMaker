@@ -11,8 +11,8 @@ description: >
 
 This card design was created by [CollinHeist](https://github.com/CollinHeist),
 and is a relatively simple card which borrows a lot of the design elements of
-the [Tinted Glass](./tinted_glass.md) card, but was directly inspired by the UI notifications
-from Palworld.
+the [Tinted Glass](./tinted_glass.md) card, but was directly inspired by the UI
+notifications from Palworld.
 
 These cards feature two compact rectangular frames which contain the title,
 season, and episode text. These frames, as well as the text, can be
@@ -24,7 +24,7 @@ re-positioned, colored, and sized with extras.
 
 ??? note "Labeled Card Elements"
 
-    ![Labeled Notification Card Elements](./assets/notification-labeled.webp)
+    ![Labeled Notification Card Elements](./assets/notification/labeled.webp)
 
 ## Edge Adjustments
 
@@ -40,9 +40,10 @@ is set to `transparent`, then the edge will be removed completely.
 
     <div class="image-compare example-card"
         data-starting-point="75.87"
-        data-left-label="white" data-right-label="crimson">
+        data-left-label="white
+        data-right-label="crimson">
         <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-edge-color.webp"/>
+        <img src="../assets/notification/edge-color.webp"/>
     </div>
 
 ### Width
@@ -54,9 +55,10 @@ perform any validation to ensure the edge does not overlap the title text.
 
     <div class="image-compare example-card"
         data-starting-point="75.87"
-        data-left-label="5" data-right-label="15">
+        data-left-label="5
+        data-right-label="15">
         <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-edge-width.webp"/>
+        <img src="../assets/notification/edge-width.webp"/>
     </div>
 
 ## Episode Text Adjustments
@@ -73,9 +75,10 @@ extra. If unspecified, this matches the Font color.
 
     <div class="image-compare example-card"
         data-starting-point="88.91"
-        data-left-label="white" data-right-label="crimson">
+        data-left-label="white"
+        data-right-label="crimson">
         <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-etc.webp"/>
+        <img src="../assets/notification/episode_text_color.webp"/>
     </div>
 
 ### Size
@@ -89,9 +92,10 @@ text does not overlap the title text.
 
     <div class="image-compare example-card"
         data-starting-point="88.91"
-        data-left-label="1.0" data-right-label="1.5">
+        data-left-label="1.0
+        data-right-label="1.5">
         <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-etfs.webp"/>
+        <img src="../assets/notification/episode_text_font_size.webp"/>
     </div>
 
 ### Vertical Position
@@ -105,9 +109,10 @@ text.
 
     <div class="image-compare example-card"
         data-starting-point="88.91"
-        data-left-label="0" data-right-label="-30">
+        data-left-label="0
+        data-right-label="-30">
         <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-etvs.webp"/>
+        <img src="../assets/notification/episode_text_vertical_shift.webp"/>
     </div>
 
 ## Background Color
@@ -119,9 +124,10 @@ Background Color_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="88.91"
-        data-left-label="rgba(0,0,0,0.50)" data-right-label="rgba(5, 122, 246, 0.5)">
+        data-left-label="rgba(0,0,0,0.50)"
+        data-right-label="rgba(5, 122, 246, 0.5)">
         <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-background-color.webp"/>
+        <img src="../assets/notification/background-color.webp"/>
     </div>
 
 ## Notification Position
@@ -134,8 +140,9 @@ episode text).
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="left" data-right-label="right">
-        <img src="../assets/notification-position-left.webp"/>
+        data-left-label="left"
+        data-right-label="right">
+        <img src="../assets/notification/position-left.webp"/>
         <img src="../assets/notification.webp"/>
     </div>
 
@@ -149,9 +156,10 @@ _Separator Character_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="90"
-        data-left-label="/" data-right-label="||">
+        data-left-label="/"
+        data-right-label="||">
         <img src="../assets/notification.webp"/>
-        <img src="../assets/notification-separator.webp"/>
+        <img src="../assets/notification/separator.webp"/>
     </div>
 
 ## Mask Images
@@ -165,7 +173,8 @@ effects.
 
     <div class="image-compare example-card"
         data-starting-point="83"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/notification-mask-raw.webp"/>
-        <img src="../assets/notification-mask.webp"/>
+        data-left-label="Mask Image"
+        data-right-label="Resulting Title Card">
+        <img src="../assets/notification/mask-raw.webp"/>
+        <img src="../assets/notification/mask.webp"/>
     </div>

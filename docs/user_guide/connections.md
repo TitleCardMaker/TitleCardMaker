@@ -459,13 +459,6 @@ recommended to set this to (your language) _then_ English; as this will prompt
 TCM to search for logos in your native language and then English if none are
 available.
 
-[^1]: If you are using an uncompressed
-[file extension](./settings.md#card-extension), like `.png` or `.tiff`, 
-alongside a low filesize limit, then the compression algorithm TCM uses might
-fail to compress and upload some Title Cards.
-[^2]: _Technically_, Emby and Jellyfin can provide logos as well, however their
-logos are not browsable.
-
 ### Ignore Localized Images
 
 <!-- md:overwritable Series, Template -->

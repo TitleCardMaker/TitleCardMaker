@@ -122,7 +122,8 @@ The color of this character will be controlled by the
 
     <div class="image-compare example-card"
         data-starting-point="56"
-        data-left-label="/" data-right-label="-">
+        data-left-label="/"
+        data-right-label="-">
         <img src="../assets/calligraphy/separator.webp"/>
         <img src="../assets/calligraphy.webp"/>
     </div>
@@ -137,7 +138,8 @@ _Shadow Color_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="rgb(81, 124, 102)" data-right-label="black">
+        data-left-label="rgb(81, 124, 102)"
+        data-right-label="black">
         <img src="../assets/calligraphy/shadow_color.webp"/>
         <img src="../assets/calligraphy.webp"/>
     </div>

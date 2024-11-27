@@ -394,7 +394,7 @@ Unraid users can directly add the container as a "template" within the UI.
             ```
 
             ```bash
-            uv run uvicorn app-main:app --host "0.0.0.0" --port 4242
+            python3 -m uv run uvicorn app-main:app --host "0.0.0.0" --port 4242
             ```
 
         === ":material-apple: MacOS"
@@ -404,7 +404,7 @@ Unraid users can directly add the container as a "template" within the UI.
             ```
 
             ```bash
-            uv run uvicorn app-main:app --host "0.0.0.0" --port 4242
+            python3 -m uv run uvicorn app-main:app --host "0.0.0.0" --port 4242
             ```
 
         === ":material-powershell: Windows (Powershell)"
@@ -414,7 +414,7 @@ Unraid users can directly add the container as a "template" within the UI.
             ```
 
             ```bash
-            uv run uvicorn app-main:app --host "0.0.0.0" --port 4242
+            python3 -m uv run uvicorn app-main:app --host "0.0.0.0" --port 4242
             ```
 
         === ":material-microsoft-windows: Windows (Non-Powershell)"
@@ -424,7 +424,7 @@ Unraid users can directly add the container as a "template" within the UI.
             ```
 
             ```bash
-            uv run uvicorn app-main:app --host "0.0.0.0" --port 4242
+            python3 -m uv run uvicorn app-main:app --host "0.0.0.0" --port 4242
             ```
     
     4. You should see an output _like_ this:

@@ -157,7 +157,7 @@ refresh that information.
 
     If the listed Card count is higher than the total number of Episodes, then
     most likely you have enabled [Multi-Library Filename
-    Support](./settings.md#multi-library-filename-support), and TCM has created
+    Support](./settings.md#multi-library-file-naming), and TCM has created
     a separate Card for each library of the Series.
 
 ## Poster

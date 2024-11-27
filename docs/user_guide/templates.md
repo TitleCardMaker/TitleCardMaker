@@ -225,9 +225,8 @@ reference value.
 
     === "Episode Watched Status"
 
-        Watched statuses are evaluated per-library (even if
-        [Multi-Library mode](./settings.md#multi-library-filename-support) is
-        disabled).
+        Watched statuses are evaluated per-library (even in [Multi-Library
+        mode](./settings.md#multi-library-file-naming) is disabled).
 
         | Operation | Description | Reference Value |
         | --------: | :---------- | :-------------: |

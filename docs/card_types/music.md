@@ -22,7 +22,7 @@ twenty available extra customizations.
 
 ??? note "Labeled Card Elements"
 
-    ![Labeled Music Card Elements](./assets/music-labeled.webp)
+    ![Labeled Music Card Elements](./assets/music/labeled.webp)
 
 ## Adjusting the Player Style
 
@@ -39,16 +39,18 @@ adjusting the _Player Style_ extra. This can be `basic`, `artwork`, `logo`, or
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="basic" data-right-label="artwork">
-        <img src="../assets/music-basic-style.webp"/>
+        data-left-label="basic"
+        data-right-label="artwork">
+        <img src="../assets/music/basic-style.webp"/>
         <img src="../assets/music.webp"/>
     </div>
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="logo" data-right-label="poster">
-        <img src="../assets/music-logo-style.webp"/>
-        <img src="../assets/music-poster-style.webp"/>
+        data-left-label="logo"
+        data-right-label="poster">
+        <img src="../assets/music/logo-style.webp"/>
+        <img src="../assets/music/poster-style.webp"/>
     </div>
 
 ## Controls
@@ -62,9 +64,10 @@ setting the _Control Toggle_ extra as `True`.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="False" data-right-label="True">
+        data-left-label="False"
+        data-right-label="True">
         <img src="../assets/music.webp"/>
-        <img src="../assets/music-control.webp"/>
+        <img src="../assets/music/control.webp"/>
     </div>
 
 ### Coloring
@@ -88,16 +91,18 @@ removed.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="white crimson skyblue SeaGreen1 yellow" data-right-label="white white white white white">
-        <img src="../assets/music-control-colors.webp"/>
-        <img src="../assets/music-control.webp"/>
+        data-left-label="white crimson skyblue SeaGreen1 yellow"
+        data-right-label="white white white white white">
+        <img src="../assets/music/control-colors.webp"/>
+        <img src="../assets/music/control.webp"/>
     </div>
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="rgb(29,185,84) none white none rgb(29,185,84)" data-right-label="white white white white white">
-        <img src="../assets/music-control-hidden.webp"/>
-        <img src="../assets/music-control.webp"/>
+        data-left-label="rgb(29,185,84) none white none rgb(29,185,84)"
+        data-right-label="white white white white white">
+        <img src="../assets/music/control-hidden.webp"/>
+        <img src="../assets/music/control.webp"/>
     </div>
 
 
@@ -111,9 +116,10 @@ Card) will update any time the watched status of the Episode changes.
 
     <div class="image-compare example-card"
         data-starting-point="15.5"
-        data-left-label="pause" data-right-label="play">
-        <img src="../assets/music-control-pause.webp"/>
-        <img src="../assets/music-control.webp"/>
+        data-left-label="pause"
+        data-right-label="play">
+        <img src="../assets/music/control-pause.webp"/>
+        <img src="../assets/music/control.webp"/>
     </div>
 
 ## Heart Icon
@@ -135,9 +141,10 @@ Toggle_ extra as `True`.
 
     <div class="image-compare example-card"
         data-starting-point="28"
-        data-left-label="False" data-right-label="True">
+        data-left-label="False"
+        data-right-label="True">
         <img src="../assets/music.webp"/>
-        <img src="../assets/music-heart-toggle.webp"/>
+        <img src="../assets/music/heart-toggle.webp"/>
     </div>
 
 ### Coloring
@@ -153,9 +160,10 @@ while not appearing "selected."
 
     <div class="image-compare example-card"
         data-starting-point="27.7"
-        data-left-label="white" data-right-label="rgb(29,185,84)">
-        <img src="../assets/music-heart-toggle.webp"/>
-        <img src="../assets/music-heart-stroke.webp"/>
+        data-left-label="white"
+        data-right-label="rgb(29,185,84)">
+        <img src="../assets/music/heart-toggle.webp"/>
+        <img src="../assets/music/heart-stroke.webp"/>
     </div>
 
     The following shows an adjustment to the _Heart Stroke Color_ __and__
@@ -163,9 +171,10 @@ while not appearing "selected."
 
     <div class="image-compare example-card"
         data-starting-point="27.7"
-        data-left-label="white" data-right-label="#FF2733">
-        <img src="../assets/music-heart-toggle.webp"/>
-        <img src="../assets/music-heart-fill.webp"/>
+        data-left-label="white"
+        data-right-label="#FF2733">
+        <img src="../assets/music/heart-toggle.webp"/>
+        <img src="../assets/music/heart-fill.webp"/>
     </div>
 
 ## Timeline
@@ -180,9 +189,10 @@ _Timeline Color_ extra. This only applies to the filled portion - e.g. the
 
     <div class="image-compare example-card"
         data-starting-point="10"
-        data-left-label="rgb(29,185,84)" data-right-label="skyblue">
+        data-left-label="rgb(29,185,84)"
+        data-right-label="skyblue">
         <img src="../assets/music.webp"/>
-        <img src="../assets/music-timeline-color.webp"/>
+        <img src="../assets/music/timeline-color.webp"/>
     </div>
 
 ### Filled Percentage
@@ -231,9 +241,10 @@ either `left`, `middle` or `right`.
 
     <div class="image-compare example-card"
         data-starting-point="66"
-        data-left-label="middle" data-right-label="right">
-        <img src="../assets/music-middle-position.webp"/>
-        <img src="../assets/music-right-position.webp"/>
+        data-left-label="middle"
+        data-right-label="right">
+        <img src="../assets/music/middle-position.webp"/>
+        <img src="../assets/music/right-position.webp"/>
     </div>
 
 ### Player Inset
@@ -246,9 +257,10 @@ and vertical spacing.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="50" data-right-label="150">
+        data-left-label="50"
+        data-right-label="150">
         <img src="../assets/music.webp"/>
-        <img src="../assets/music-inset-150.webp"/>
+        <img src="../assets/music/inset-150.webp"/>
     </div>
 
 ## Player Width
@@ -261,9 +273,10 @@ dynamically resized with the specified width.
 
     <div class="image-compare example-card"
         data-starting-point="33"
-        data-left-label="900" data-right-label="1200">
+        data-left-label="900"
+        data-right-label="1200">
         <img src="../assets/music.webp"/>
-        <img src="../assets/music-width-1200.webp"/>
+        <img src="../assets/music/width-1200.webp"/>
     </div>
 
 ## Player Color
@@ -275,9 +288,10 @@ Color_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="rgba(0,0,0,0.50)" data-right-label="rgba(120,120,120,0.50)">
+        data-left-label="rgba(0,0,0,0.50)"
+        data-right-label="rgba(120,120,120,0.50)">
         <img src="../assets/music.webp"/>
-        <img src="../assets/music-background-alt.webp"/>
+        <img src="../assets/music/background-alt.webp"/>
     </div>
 
 ## Subtitle Text
@@ -303,9 +317,10 @@ completely. See the full list of available variables
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="{series_name}" data-right-label="{series_full_name}">
-        <img src="../assets/music-control.webp"/>
-        <img src="../assets/music-subtitle.webp"/>
+        data-left-label="{series_name}"
+        data-right-label="{series_full_name}">
+        <img src="../assets/music/control.webp"/>
+        <img src="../assets/music/subtitle.webp"/>
     </div>
 
 ## Album Image Corner Rounding
@@ -320,9 +335,10 @@ This can be disabled by setting the _Round Album Corners Toggle_ extra to
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="True" data-right-label="False">
-        <img src="../assets/music-control.webp"/>
-        <img src="../assets/music-rounded.webp"/>
+        data-left-label="True"
+        data-right-label="False">
+        <img src="../assets/music/control.webp"/>
+        <img src="../assets/music/rounded.webp"/>
     </div>
 
 ## Title Line Truncation
@@ -339,9 +355,10 @@ this to `False` will stop truncation altogether.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="2" data-right-label="3">
-        <img src="../assets/music-truncate-2.webp"/>
-        <img src="../assets/music-truncate-3.webp"/>
+        data-left-label="2"
+        data-right-label="3">
+        <img src="../assets/music/truncate-2.webp"/>
+        <img src="../assets/music/truncate-3.webp"/>
     </div>
 
 ## Mask Images
@@ -357,6 +374,6 @@ effects.
         data-starting-point="30"
         data-left-label="Mask Image"
         data-right-label="Resulting Title Card">
-        <img src="../assets/music-mask-raw.webp"/>
-        <img src="../assets/music-mask.webp"/>
+        <img src="../assets/music/mask-raw.webp"/>
+        <img src="../assets/music/mask.webp"/>
     </div>

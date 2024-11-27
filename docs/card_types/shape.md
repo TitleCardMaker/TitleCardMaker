@@ -20,7 +20,7 @@ triangles are also implemented.
 
 ??? note "Labeled Card Elements"
 
-    ![Labeled Striped Card Elements](./assets/shape-labeled.webp)
+    ![Labeled Striped Card Elements](./assets/shape/labeled.webp)
 
 ## Episode Text
 
@@ -45,15 +45,16 @@ This color does support transparency.
 !!! note "Affect on Season Text Color"
 
     Changing this will also change the color of the season text, unless that
-    color is manually specified - see [here](#color-2).
+    color is manually specified - see [here](#color_2).
 
 ??? example "Examples"
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="skyblue" data-right-label="rgb(101,189,108)">
+        data-left-label="skyblue"
+        data-right-label="rgb(101,189,108)">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-color.webp"/>
+        <img src="../assets/shape/color.webp"/>
     </div>
 
 ### Inset
@@ -67,9 +68,10 @@ which case this only affects the horizontal spacing.
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="75" data-right-label="25">
+        data-left-label="75"
+        data-right-label="25">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-inset.webp"/>
+        <img src="../assets/shape/inset.webp"/>
     </div>
 
 ### Shape
@@ -99,23 +101,26 @@ result in a different shape.
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="circle" data-right-label="diamond">
-        <img src="../assets/shape-circle.webp"/>
+        data-left-label="circle"
+        data-right-label="diamond">
+        <img src="../assets/shape/circle.webp"/>
         <img src="../assets/shape.webp"/>
     </div>
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="square" data-right-label="diamond">
-        <img src="../assets/shape-square.webp"/>
+        data-left-label="square"
+        data-right-label="diamond">
+        <img src="../assets/shape/square.webp"/>
         <img src="../assets/shape.webp"/>
     </div>
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="up triangle" data-right-label="down triangle">
-        <img src="../assets/shape-up_triangle.webp"/>
-        <img src="../assets/shape-down_triangle.webp"/>
+        data-left-label="up triangle"
+        data-right-label="down triangle">
+        <img src="../assets/shape/up_triangle.webp"/>
+        <img src="../assets/shape/down_triangle.webp"/>
     </div>
 
 ### Size
@@ -139,9 +144,10 @@ a two-line title would be effectively 143% (1.30 * 1.10).
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="1.0" data-right-label="0.7">
+        data-left-label="1.0"
+        data-right-label="0.7">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-size.webp"/>
+        <img src="../assets/shape/size.webp"/>
     </div>
 
 ### Stroke
@@ -155,9 +161,10 @@ _Shape Stroke Color_ Extra.
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="black" data-right-label="white">
-        <img src="../assets/shape-stroke_width.webp"/>
-        <img src="../assets/shape-stroke_color_white.webp"/>
+        data-left-label="black"
+        data-right-label="white">
+        <img src="../assets/shape/stroke_width.webp"/>
+        <img src="../assets/shape/stroke_color_white.webp"/>
     </div>
 
 #### Width
@@ -172,9 +179,10 @@ _Shape Stroke Width_ to some value greater than 0, a stroke will be added.
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="0.0" data-right-label="8.0">
+        data-left-label="0.0"
+        data-right-label="8.0">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-stroke_width.webp"/>
+        <img src="../assets/shape/stroke_width.webp"/>
     </div>
 
 ### Toggle
@@ -186,9 +194,10 @@ change the text positioning.
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="False" data-right-label="True">
+        data-left-label="False"
+        data-right-label="True">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-hidden.webp"/>
+        <img src="../assets/shape/hidden.webp"/>
     </div>
 
 ### Width
@@ -200,9 +209,10 @@ extra.
 
     <div class="image-compare example-card"
         data-starting-point="9.45"
-        data-left-label="9.45" data-right-label="15">
+        data-left-label="9.45"
+        data-right-label="15">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-width.webp"/>
+        <img src="../assets/shape/width.webp"/>
     </div>
 
 ## Season Text
@@ -223,9 +233,10 @@ specified color will override that behavior.
 
     <div class="image-compare example-card"
         data-starting-point="17.4"
-        data-left-label="skyblue" data-right-label="white">
+        data-left-label="skyblue"
+        data-right-label="white">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-stc.webp"/>
+        <img src="../assets/shape/season_text_color.webp"/>
     </div>
 
 ### Italics
@@ -237,9 +248,10 @@ adjusting the _Italize Season Text_ Extra.
 
     <div class="image-compare example-card"
         data-starting-point="17.4"
-        data-left-label="False" data-right-label="True">
+        data-left-label="False"
+        data-right-label="True">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-italicize.webp"/>
+        <img src="../assets/shape/italicize.webp"/>
     </div>
 
 ### Position
@@ -251,9 +263,10 @@ the _Season Text Position_ Extra.
 
     <div class="image-compare example-card"
         data-starting-point="17.4"
-        data-left-label="below" data-right-label="above">
+        data-left-label="below"
+        data-right-label="above">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-above.webp"/>
+        <img src="../assets/shape/above.webp"/>
     </div>
 
 ### Size
@@ -265,9 +278,10 @@ Extra. This functions identically to the normal font size adjustment.
 
     <div class="image-compare example-card"
         data-starting-point="17.4"
-        data-left-label="1.0" data-right-label="1.3">
+        data-left-label="1.0"
+        data-right-label="1.3">
         <img src="../assets/shape.webp"/>
-        <img src="../assets/shape-sts.webp"/>
+        <img src="../assets/shape/season_text_size.webp"/>
     </div>
 
 ## Mask Images
@@ -281,7 +295,8 @@ effects.
 
     <div class="image-compare example-card"
         data-starting-point="12"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
-        <img src="../assets/shape-mask-raw.webp"/>
-        <img src="../assets/shape-mask.webp"/>
+        data-left-label="Mask Image"
+        data-right-label="Resulting Title Card">
+        <img src="../assets/shape/mask-raw.webp"/>
+        <img src="../assets/shape/mask.webp"/>
     </div>

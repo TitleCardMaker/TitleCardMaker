@@ -34,9 +34,8 @@ both the season and episode text.
 ### Color
 
 The color of the episode text can be adjusted with the _Episode Text Color_
-extra. This will also change the color of the [season text](#season-text), but
-that can be overwritten with the [_Season Text Color_](#season-text-color)
-extra.
+extra. This will also change the color of the season text, but that can be
+overwritten with the [_Season Text Color_](#season-text-color) extra.
 
 ??? example "Example"
 
@@ -113,7 +112,7 @@ as "Translate `Japanese` titles into `kanji`".
     To go one step further, you can auto-assign this Template to a subset of
     your Series when [Syncing](../user_guide/syncs.md); _or_ add the Template
     with some filters (i.e. by library name) to your
-    [Global Templates](../user_guide/settings.md#...).
+    [Default Templates](../user_guide/settings.md#default-templates).
 
 ### Coloring
 
@@ -155,7 +154,7 @@ the text, and values less than `#!yaml 1.0` will decrease it.
 
 The color of the stroke which surrounds the kanji text can be adjusted with the
 _Kanji Stroke Color_ extra. If unspecified, the stroke color will match that of
-the [title text](#stroke-color-2).
+the [title text](#stroke-color_2).
 
 ??? example "Example"
 

@@ -27,7 +27,8 @@ This card type is used whenever `card_type` is specified as `graph`.
 
 <div class="image-compare example-card"
     data-starting-point="80"
-    data-left-label="Standard" data-right-label="Blurred">
+    data-left-label="Standard"
+        data-right-label="Blurred">
     <img src="../../../card_types/assets/graph.webp"/>
     <img src="../assets/graph_blurred.webp"/>
 </div>
@@ -73,9 +74,10 @@ image behind the graph can be seen. This defaults to `rgba(140,140,140,0.5)`
 
     <div class="image-compare example-card"
         data-starting-point="7.68"
-        data-left-label="rgba(140,140,140,0.5)" data-right-label="rgba(232,232,232,0.2)">
+        data-left-label="rgba(140,140,140,0.5)"
+        data-right-label="rgba(232,232,232,0.2)">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-background.webp"/>
+        <img src="../../../../card_types/assets/graph/background.webp"/>
     </div>
 
 #### Fill Color (`graph_color`) { data-toc-label="Fill Color" }
@@ -100,16 +102,18 @@ is 100% (see the example below).
 
     <div class="image-compare example-card"
         data-starting-point="7.68"
-        data-left-label="rgb(99,184,255)" data-right-label="SpringGreen1">
+        data-left-label="rgb(99,184,255)"
+        data-right-label="SpringGreen1">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-color.webp"/>
+        <img src="../../../../card_types/assets/graph/color.webp"/>
     </div>
 
     <div class="image-compare example-card"
         data-starting-point="7.68"
-        data-left-label="rgb(99,184,255)" data-right-label="SpringGreen1">
+        data-left-label="rgb(99,184,255)"
+        data-right-label="SpringGreen1">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-color-filled.webp"/>
+        <img src="../../../../card_types/assets/graph/color-filled.webp"/>
     </div>
 
 #### Fill Percentage (`percentage`) { data-toc-label="Fill Percentage" }
@@ -173,9 +177,10 @@ value between `0.0` (no fill at all) and `1.0` (completely filled).
 
     <div class="image-compare example-card"
         data-starting-point="11"
-        data-left-label="0.6" data-right-label="0.2">
+        data-left-label="0.6"
+        data-right-label="0.2">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-fill_scale.webp"/>
+        <img src="../../../../card_types/assets/graph/fill_scale.webp"/>
     </div>
 
 #### Font Size (`graph_text_font_size`) { data-toc-label="Font Size" }
@@ -202,9 +207,10 @@ default.
 
     <div class="image-compare example-card"
         data-starting-point="7.68"
-        data-left-label="1.0" data-right-label="1.35">
+        data-left-label="1.0"
+        data-right-label="1.35">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-font_size.webp"/>
+        <img src="../../../../card_types/assets/graph/font_size.webp"/>
     </div>
 
 #### Inset (`graph_inset`) { data-toc-label="Inset" }
@@ -228,9 +234,10 @@ is a unit in pixels.
 
     <div class="image-compare example-card"
         data-starting-point="7.68"
-        data-left-label="75" data-right-label="30">
+        data-left-label="75"
+        data-right-label="30">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-inset.webp"/>
+        <img src="../../../../card_types/assets/graph/inset.webp"/>
     </div>
 
 #### Radius (`graph_radius`) { data-toc-label="Radius" }
@@ -256,9 +263,10 @@ value is `#!yaml 175`, but can be any value between `#!yaml 50` and
 
     <div class="image-compare example-card"
         data-starting-point="7.68"
-        data-left-label="175" data-right-label="125">
+        data-left-label="175"
+        data-right-label="125">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-radius.webp"/>
+        <img src="../../../../card_types/assets/graph/radius.webp"/>
     </div>
 
 #### Width (`graph_width`) { data-toc-label="Width" }
@@ -282,9 +290,10 @@ The default value is `#!yaml 25`. This can be any non-negative value.
 
     <div class="image-compare example-card"
         data-starting-point="7.68"
-        data-left-label="25" data-right-label="40">
+        data-left-label="25"
+        data-right-label="40">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-width.webp"/>
+        <img src="../../../../card_types/assets/graph/width.webp"/>
     </div>
 
 ### Gradient Overlay (`omit_gradient`) { data-toc-label="Gradient Overlay" }
@@ -305,9 +314,10 @@ This can be disabled by setting `#!yaml omit_gradient: true`.
 
     <div class="image-compare example-card"
         data-starting-point="7.68"
-        data-left-label="false" data-right-label="true">
+        data-left-label="false"
+        data-right-label="true">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-gradient.webp"/>
+        <img src="../../../../card_types/assets/graph/gradient.webp"/>
     </div>
 
 ### Position (`text_position`) { data-toc-label="Position" }
@@ -331,7 +341,8 @@ The position will also adjust the orientation of the gradient overlay, if
 
     <div class="image-compare example-card"
         data-starting-point="50"
-        data-left-label="lower left" data-right-label="right">
+        data-left-label="lower left"
+        data-right-label="right">
         <img src="../../../../card_types/assets/graph.webp"/>
-        <img src="../../../../card_types/assets/graph-position.webp"/>
+        <img src="../../../../card_types/assets/graph/position.webp"/>
     </div>

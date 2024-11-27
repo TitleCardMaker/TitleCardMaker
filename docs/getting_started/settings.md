@@ -20,9 +20,3 @@ Tinted Frame and Standard.
 
 For the purposes of this tutorial, the recommended settings can be found in
 [the user guide](../user_guide/settings.md#recommended-settings).
-
-[^1]: Only include the Connections which you are personally using.
-
-[^2]: Feel free to reduce this to some ratio of 16:9 (e.g. 1600:900) if you want
-to save storage space (at the minor cost of image fidelity). Increasing this is
-not recommended.
