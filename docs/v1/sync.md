@@ -345,7 +345,7 @@ The filepath that the Maker should create/modify with series YAML.
 ### Mode (`mode`) { data-toc-label="Mode" }
 
 The mode in which the Maker should write/update the specified
-[YAML file](#yaml-file). `append` mode will look at the file and skip and not
+[YAML file](#file-file). `append` mode will look at the file and skip and not
 modify any series/libraries that are already defined; while `match` mode will
 also remove series that are not present in the synced interface/filter (see
 below for details).

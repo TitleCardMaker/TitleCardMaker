@@ -10,8 +10,8 @@ description: >
 
 This is an optional YAML section of your [global preferences file](...)
 (`preferences.yml`) for outlining how TCM interacts with the public database
-service, [TMDb](themoviedb.org). TMDb is used for many things by TCM, but
-notably the following:
+service, [TMDb](https://www.themoviedb.org/). TMDb is used for many things by
+TCM, but notably the following:
 
 - Automatically downloading source image files for use in title cards
 - Automatically downloading logos for title cards and summaries
