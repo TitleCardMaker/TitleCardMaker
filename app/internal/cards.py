@@ -1,6 +1,6 @@
 from pathlib import Path
 from time import sleep
-from typing import Any
+from typing import Any, cast
 
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -352,8 +352,13 @@ def validate_card_type_model(
     if card_settings['card_type'] in LocalCardTypeModels:
         CardTypeModel = LocalCardTypeModels[card_settings['card_type']]
     # Remove card types
+    elif hasattr(CardClass, 'CardModel'):
+        CardTypeModel = cast(type[Base], CardClass.CardModel)
     else:
-        CardTypeModel: type[Base] = CardClass.CardModel
+        raise HTTPException(
+            status_code=400,
+            detail='Cannot create Card - invalid card class'
+        )
 
     try:
         return CardClass, CardTypeModel(**card_settings)

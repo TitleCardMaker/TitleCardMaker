@@ -174,7 +174,7 @@ def get_preferences() -> Preferences:
 _InterfaceType = TypeVar('_InterfaceType', bound=Interface)
 def _require_interface(
         interface_group: InterfaceGroup[int, _InterfaceType],
-        interface_id: int,
+        interface_id: int | None,
         name: str,
     ) -> _InterfaceType:
     """
@@ -499,7 +499,7 @@ def require_interface(interface_id: int = Query(...)) -> AnyInterface:
 
     for interface_group, name in groups:
         try:
-            return _require_interface(interface_group, interface_id, name)
+            return _require_interface(interface_group, interface_id, name) # type: ignore
         except HTTPException as exc:
             if exc.status_code != 404:
                 raise exc
