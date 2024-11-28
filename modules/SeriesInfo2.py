@@ -464,17 +464,17 @@ class SeriesInfo(DatabaseInfoContainer):
         id_conditions = []
         if self.emby_id and hasattr(SeriesModel, 'emby_id'):
             id_conditions.append(func.regex_match(
-                f'(?:^|\D){self.emby_id}(?!\d)', SeriesModel.emby_id,
+                fr'(?:^|\D){self.emby_id}(?!\d)', SeriesModel.emby_id,
             ))
         if self.imdb_id and hasattr(SeriesModel, 'imdb_id'):
             id_conditions.append(SeriesModel.imdb_id==self.imdb_id)
         if self.jellyfin_id and hasattr(SeriesModel, 'jellyfin_id'):
             id_conditions.append(func.regex_match(
-                f'(?:^|\D){self.jellyfin_id}(?!\d)', SeriesModel.jellyfin_id
+                fr'(?:^|\D){self.jellyfin_id}(?!\d)', SeriesModel.jellyfin_id
             ))
         if self.sonarr_id and hasattr(SeriesModel, 'sonarr_id'):
             id_conditions.append(func.regex_match(
-                f'(?:^|\D){self.sonarr_id}(?!\d)', SeriesModel.sonarr_id
+                fr'(?:^|\D){self.sonarr_id}(?!\d)', SeriesModel.sonarr_id
             ))
         if self.tmdb_id and hasattr(SeriesModel, 'tmdb_id'):
             id_conditions.append(SeriesModel.tmdb_id==self.tmdb_id)
