@@ -639,10 +639,17 @@
               <div class="ui field">
                 <label>Enable Specials</label>
                 <div data-value="sync_specials" class="ui compact selection clearable dropdown">
+                  {% if series.sync_specials is none %}
                   <input name="sync_specials" type="hidden">
+                  {% else %}
+                  <input name="sync_specials" type="hidden" value="{{ series.sync_specials }}">
+                  {% endif %}
                   <i class="dropdown icon"></i>
                   <div class="default text">Default</div>
-                  <div class="menu"><!-- Added asynchronously --></div>
+                  <div class="menu">
+                    <div class="item" data-value="True">True</div>
+                    <div class="item" data-value="False">False</div>
+                  </div>
                 </div>
                 <p class="help">Whether to include Episodes from Season 0.</p>
               </div>
@@ -650,10 +657,17 @@
               <div class="ui field">
                 <label>Ignore Localized Images</label>
                 <div data-value="skip_localized_images" class="ui compact selection clearable dropdown">
+                  {% if series.skip_localized_images is none %}
                   <input name="skip_localized_images" type="hidden">
+                  {% else %}
+                  <input name="skip_localized_images" type="hidden" value="{{ series.skip_localized_images }}">
+                  {% endif %}
                   <i class="dropdown icon"></i>
                   <div class="default text">Default</div>
-                  <div class="menu"><!-- Added asynchronously --></div>
+                  <div class="menu">
+                    <div class="item" data-value="True">True</div>
+                    <div class="item" data-value="False">False</div>
+                  </div>
                 </div>
                 <p class="help">Whether to ignore images with assigned Languages (i.e. images with text).</p>
               </div>
@@ -747,9 +761,24 @@
                     <label>Watched Episode Style</label>
                     <div data-value="watched-style" class="ui long selection clearable dropdown">
                       <span class="default text">Default</span>
+                      {% if series.watched_style is none %}
                       <input name="watched_style" type="hidden">
+                      {% else %}
+                      <input name="watched_style" type="hidden" value="{{ series.watched_style }}">
+                      {% endif %}
                       <i class="dropdown icon"></i>
-                      <div class="menu"><!-- Added asynchronously --></div>
+                      <div class="menu">
+                        <div class="header">Art</div>
+                        <div class="item" data-value="art">Art</div>
+                        <div class="item" data-value="art blur">Blurred Art</div>
+                        <div class="item" data-value="art grayscale">Grayscale Art</div>
+                        <div class="item" data-value="art blur grayscale">Blurred Grayscale Art</div>
+                        <div class="header">Unique</div>
+                        <div class="item" data-value="unique">Unique</div>
+                        <div class="item" data-value="blur unique">Blurred Unique</div>
+                        <div class="item" data-value="grayscale unique">Grayscale Uniue</div>
+                        <div class="item" data-value="blur grayscale unique">Blurred Grayscale Uniue</div>
+                      </div>
                     </div>
                   </div>
     
@@ -757,9 +786,24 @@
                     <label>Unwatched Episode Style</label>
                     <div data-value="unwatched-style" class="ui long selection clearable dropdown">
                       <span class="default text">Default</span>
+                      {% if series.unwatched_style is none %}
                       <input name="unwatched_style" type="hidden">
+                      {% else %}
+                      <input name="unwatched_style" type="hidden" value="{{ series.unwatched_style }}">
+                      {% endif %}
                       <i class="dropdown icon"></i>
-                      <div class="menu"><!-- Added asynchronously --></div>
+                      <div class="menu">
+                        <div class="header">Art</div>
+                        <div class="item" data-value="art">Art</div>
+                        <div class="item" data-value="art blur">Blurred Art</div>
+                        <div class="item" data-value="art grayscale">Grayscale Art</div>
+                        <div class="item" data-value="art blur grayscale">Blurred Grayscale Art</div>
+                        <div class="header">Unique</div>
+                        <div class="item" data-value="unique">Unique</div>
+                        <div class="item" data-value="blur unique">Blurred Unique</div>
+                        <div class="item" data-value="grayscale unique">Grayscale Uniue</div>
+                        <div class="item" data-value="blur grayscale unique">Blurred Grayscale Uniue</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -877,10 +921,17 @@
                 <div class="ui field">
                   <label>Hide Season Titles</label>
                   <div data-value="hide_season_text" class="ui compact selection clearable dropdown">
+                    {% if series.hide_season_text is none %}
                     <input name="hide_season_text" type="hidden">
+                    {% else %}
+                    <input name="hide_season_text" type="hidden" value="{{ series.hide_season_text }}">
+                    {% endif %}
                     <i class="dropdown icon"></i>
                     <div class="default text">Default</div>
-                    <div class="menu"></div>
+                    <div class="menu">
+                      <div class="item" data-value="True">True</div>
+                      <div class="item" data-value="False">False</div>
+                    </div>
                   </div>
                   <p class="help">Remove the season text - e.g. "Season 1"</p>
                 </div>
@@ -923,7 +974,11 @@
                 <div class="ui field">
                   <label>Hide Episode Text</label>
                   <div data-value="hide_episode_text" class="ui compact selection clearable dropdown">
+                    {% if series.hide_episode_text is none %}
                     <input name="hide_episode_text" type="hidden">
+                    {% else %}
+                    <input name="hide_episode_text" type="hidden" value="{{ series.hide_episode_text }}">
+                    {% endif %}
                     <i class="dropdown icon"></i>
                     <div class="default text">Default</div>
                     <div class="menu">
@@ -1161,7 +1216,7 @@
             </span>
             {% else %}
             <span data-tooltip="Source Images are downloaded automatically when Title Cards are created" data-position="right center">
-              <i class="tiny blue question circle outline icon"></i>
+              <i class="small blue question circle outline icon"></i>
             </span>
             {% endif %}
           </h2>

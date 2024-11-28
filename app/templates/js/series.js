@@ -306,16 +306,6 @@ async function initializeSeriesConfig() {
       };
     }),
   });
-  // Special syncing
-  initializeNullableBoolean({
-    dropdownElement: $('#series-config-form .dropdown[data-value="sync_specials"]'),
-    value: '{{series.sync_specials}}',
-  });
-  // Skip localized images
-  initializeNullableBoolean({
-    dropdownElement: $('#series-config-form .dropdown[data-value="skip_localized_images"]'),
-    value: '{{series.skip_localized_images}}',
-  });
   // Template
   $('#card-config-form .dropdown[data-value="template_ids"]').dropdown({
     values: getActiveTemplates({{series.template_ids}}, availableTemplates),
@@ -329,34 +319,6 @@ async function initializeSeriesConfig() {
     dropdownArgs: {
       placeholder: 'Default',
     }
-  });
-  // Styles
-  $('#card-config-form .dropdown[data-value="watched-style"]').dropdown({
-    placeholder: 'Default',
-    values: [
-      {name: 'Art Variations', type: 'header'},
-      ...allStyles.filter(({style_type}) => style_type === 'art').map(({name, value}) => {
-        return {name: name, value: value, selected: value === '{{series.watched_style}}'};
-      }),
-      {name: 'Unique Variations', type: 'header'},
-      ...allStyles.filter(({style_type}) => style_type === 'unique').map(({name, value}) => {
-        return {name: name, value: value, selected: value === '{{series.watched_style}}'};
-      }),
-    ],
-  });
-  // Unwatched style
-  $('#card-config-form .dropdown[data-value="unwatched-style"]').dropdown({
-    placeholder: 'Default',
-    values: [
-      {name: 'Art Variations', type: 'header'},
-      ...allStyles.filter(({style_type}) => style_type === 'art').map(({name, value}) => {
-        return {name: name, value: value, selected: value === '{{series.unwatched_style}}'};
-      }),
-      {name: 'Unique Variations', type: 'header'},
-      ...allStyles.filter(({style_type}) => style_type === 'unique').map(({name, value}) => {
-        return {name: name, value: value, selected: value === '{{series.unwatched_style}}'};
-      }),
-    ]
   });
   // Fonts
   $('#card-config-form .dropdown[data-value="fonts"]').dropdown({
@@ -374,17 +336,6 @@ async function initializeSeriesConfig() {
   $('#card-config-form input[name="font_color"]').on('input', function () {
     document.querySelector('#card-config-form .field[data-value="font_color"] .color.circle').style.setProperty('--color', $(this).val());
   });
-  // Font card case
-  // Hide season text
-  initializeNullableBoolean({
-    dropdownElement: $('#card-config-form .dropdown[data-value="hide_season_text"]'),
-    value: '{{series.hide_season_text}}',
-  });
-  // Hide episode text
-  initializeNullableBoolean({
-    dropdownElement: $('#card-config-form .dropdown[data-value="hide_episode_text"]'),
-    value: '{{series.hide_episode_text}}',
-  });
   // Translations
   const allTranslations = await fetch('/api/available/translations').then(resp => resp.json());
   {% if series.translations is not none %}
@@ -395,7 +346,6 @@ async function initializeSeriesConfig() {
       translationSegment.append(newTranslation);
       $(`#card-config-form .dropdown[data-value="language_code"]`).last().dropdown({
         values: [
-          {name: 'Language', type: 'header'},
           ...allTranslations.map(({language_code, language}) => {
             return {name: language, value: language_code, selected: translation.language_code === language_code};
           })
@@ -408,7 +358,6 @@ async function initializeSeriesConfig() {
       $(`#card-config-form .dropdown[data-value="data_key"]`).last().dropdown({
         allowAdditions: true,
         values: [
-          {name: 'Key', type: 'header'},
           {name: 'Preferred title', text: 'the preferred title', value: 'preferred_title', selected: translation.data_key === 'preferred_title'},
           {name: 'Kanji', text: 'kanji', value: 'kanji', selected: translation.data_key === 'kanji'},
           ...extraValue,
@@ -452,7 +401,6 @@ async function initializeSeriesConfig() {
     // Language code dropdown
     $(`#card-config-form .dropdown[data-value="language_code"]`).last().dropdown({
       values: [
-        {name: 'Language', type: 'header'},
         ...allTranslations.map(({language_code, language}) => {
           return {name: language, value: language_code};
         })
@@ -462,7 +410,6 @@ async function initializeSeriesConfig() {
     $(`#card-config-form .dropdown[data-value="data_key"]`).last().dropdown({
       allowAdditions: true,
       values: [
-        {name: 'Key', type: 'header'},
         {name: 'Preferred title', text: 'the preferred title', value: 'preferred_title'},
         {name: 'Kanji', text: 'kanji', value: 'kanji'},
       ]
