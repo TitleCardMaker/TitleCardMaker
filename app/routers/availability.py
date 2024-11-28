@@ -75,6 +75,11 @@ VARIABLE_OVERRIDES = [
             'Override the specific logo file. This is relative to the Series '
             'source directory.'
         ),
+    ),
+    Extra(
+        name='Custom Field', identifier='custom_field',
+        description='Any arbitrary data not captured by other extras',
+        tooltip='This data will appear under the variable name {custom_field}',
     )
 ]
 

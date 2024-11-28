@@ -329,13 +329,11 @@ function updatePagination(args) {
 
 function initializeNullableBoolean(args) {
   const {dropdownElement, value} = args;
-  const isTrue = (value === true) || (value === 'True');
-  const isFalse = (value === false) || (value === 'False');
   dropdownElement.dropdown({
     placeholder: 'Default',
     values: [
-      {name: 'True', value: 'True', selected: isTrue},
-      {name: 'False', value: 'False', selected: isFalse},
+      {name: 'True', value: 'True', selected: (value === true) || (value === 'True')},
+      {name: 'False', value: 'False', selected: (value === false) || (value === 'False')},
     ],
   });
 }
