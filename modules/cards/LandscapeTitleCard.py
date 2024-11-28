@@ -160,7 +160,7 @@ class LandscapeTitleCard(BaseCardType):
         'font_size',
         'font_vertical_shift',
         'add_bounding_box',
-        'box_adjustments'
+        'box_adjustments',
         'box_color',
         'box_width',
         'darken',
