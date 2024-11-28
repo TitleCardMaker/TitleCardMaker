@@ -21,7 +21,7 @@ but features a white border and a different default font.
 
 ??? note "Labeled Card Elements"
 
-    ![Labeled White Border Card Elements](./assets/white_border-labeled.webp)
+    ![Labeled White Border Card Elements](./assets/white_border/labeled.webp)
 
 ## Border Color
 

@@ -150,8 +150,8 @@ class LandscapeTitleCard(BaseCardType):
 
     __slots__ = (
         'source_file',
-        'output_file'
-         'title_text',
+        'output_file',
+        'title_text',
         'font_color',
         'font_file',
         'font_interline_spacing',
