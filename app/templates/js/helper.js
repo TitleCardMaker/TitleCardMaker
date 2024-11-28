@@ -804,9 +804,6 @@ async function initializeExtras(
       // For color fields, add live color indicator
       if (extra.name.endsWith('Color')) {
         newInput.querySelector('label').innerHTML = `${extra.name}<span data-name="${extra.name}" class="inline color circle" style="--default-color: ${def}"></span>`;
-        newInput.querySelector('input').oninput = function() {
-          $(this).closest('.field').find('label > .color.circle').css('--color', $(this).val())
-        };
       } else {
         newInput.querySelector('label').innerText = extra.name;
       }
@@ -815,15 +812,15 @@ async function initializeExtras(
       newInput.querySelector('input').placeholder = def;
       newInput.querySelector('.help').innerHTML = `<b>${extra.description}</b><br>`
         + (extra.tooltip
-            ? extra.tooltip
-                .replaceAll('<v>', '<span class="ui blue text inverted">')
-                .replaceAll('</v>', '</span>')
-                .replaceAll(
-                  /<c>(.*?)<\/c>/g,
-                  '<code class="color">$1<span style="--color: $1" class="color circle"></span></code>'
-                )
-            : ''
-          );
+          ? extra.tooltip
+              .replaceAll('<v>', '<span class="ui blue text inverted">')
+              .replaceAll('</v>', '</span>')
+              .replaceAll(
+                /<c>(.*?)<\/c>/g,
+                '<code class="color">$1<span style="--color: $1" class="color circle"></span></code>'
+              )
+          : ''
+        );
 
       // Fill out input if part of active extras
       if ((isGlobal && activeExtras.hasOwnProperty(card_type) && activeExtras[card_type][extra.identifier])
@@ -845,13 +842,6 @@ async function initializeExtras(
         newTab.appendChild(newFields);
       }
       newTab.lastChild.appendChild(newInput);
-    });
-  }
-
-  // Change all inputs with the same name when any input is changed
-  if (!isGlobal) {
-    $(`${sectionQuerySelector}`).on('change', 'input', function() {
-      $(`${sectionQuerySelector} input[name="${$(this).attr('name')}"]`).val($(this).val());
     });
   }
 

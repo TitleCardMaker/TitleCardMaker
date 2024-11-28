@@ -17,27 +17,6 @@
   <link rel="stylesheet" type="text/css" href="/templates/css/series.css?v={{preferences.current_version}}"/>
 
   <!-- Templates -->
-  <template id="extra-template">
-    <div class="ui field">
-      <div class="ui left labeled action input">
-        <div class="ui uninvertible dropdown long search scrolling label" data-value="extra_keys">
-          <input type="hidden" name="extra_keys">
-          <div class="default text">Extra</div>
-          <i class="dropdown icon"></i>
-          <div class="menu"></div>
-        </div>
-        <div class="ui icon input">
-          <input name="extra_values" type="text" placeholder="Extra Value..">
-          <i class="question circle outline link icon"></i>
-          <div class="ui fixed wide uninvertible popup">
-            <div class="header"></div>
-            <div class="description"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </template>
-
   <template id="episode-row">
     <tr class="center aligned"> 
       <td data-column="create" class="selectable">
@@ -393,7 +372,7 @@
   <template id="extra-input-template">
     <div class="field">
       <label>{label}</label>
-      <input type="text">
+      <input oninput="updateColorBubble(this);" onchange="updateLinkedFields(this);" type="text">
       <p class="help">{tooltip}</p>
     </div>
   </template>
