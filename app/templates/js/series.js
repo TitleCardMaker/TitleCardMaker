@@ -1231,24 +1231,28 @@ async function initAll() {
       font_stroke_width: {
         optional: true,
         rules: [{type: 'number'}],
-      }, font_interline_spacing: {
+      },
+      font_interline_spacing: {
         optional: true,
         rules: [{type: 'number', value: 'integer'}],
-      }, font_vertical_shift: {
+      },
+      font_vertical_shift: {
         optional: true,
         rules: [{type: 'number', value: 'integer'}],
       },
       season_title_ranges: {
         optional: true,
         rules: [{type: 'regExp', value: /^(\d+-\d+)|^(\d+)|^(s\d+e\d+-s\d+e\d+)|^$/i}]
-      }, season_title_values: {
+      },
+      season_title_values: {
         depends: 'season_title_ranges',
         // rules: [{type: 'minLength[1]'}],
-      }, data_key: {
-        optional: true,
-        depends: 'language_code',
-        rules: [{type: 'regExp', value: /^$|^[a-z]+[^ ]*$/i}],
       },
+      // data_key: {
+      //   optional: true,
+      //   depends: 'language_code',
+      //   rules: [{type: 'regExp', value: /^$|^[a-z]+[^ ]*$/i}],
+      // },
     },
   });
 
@@ -1257,11 +1261,8 @@ async function initAll() {
     on: 'blur',
     inline: true,
     fields: {
-      translation_key: {
-        rules: [{type: 'regExp', value: /^[a-z]+[^ ]*$/i}],
-      }, translation_value: {
-        rules: [{type: 'minLength[1]'}],
-      },
+      translation_key: { rules: [{type: 'regExp', value: /^[a-z]+[^ ]*$/i}] },
+      translation_value: { rules: [{type: 'minLength[1]'}], },
     }
   });
 
