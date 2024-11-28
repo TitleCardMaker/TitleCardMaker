@@ -437,9 +437,13 @@ class SeriesInfo(DatabaseInfoContainer):
             otherwise.
         """
 
-        matching_names = map(self.get_matching_title, names)
-
-        return any(name == self.match_name for name in matching_names)
+        return (
+            any(name in (self.full_name, self.name) for name in names)
+            or any(
+                name == self.match_name
+                for name in map(self.get_matching_title, names)
+            )
+        )
 
 
     def filter_conditions(self,
