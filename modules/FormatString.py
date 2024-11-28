@@ -146,7 +146,7 @@ __BUILTIN_VARIABLES: dict[str, str] = {
     'NEWLINE': '\n',
     'BACKSLASH': '\\'
 }
-_BUILTINS = __BUILTIN_FUNCTIONS | __BUILTIN_VARIABLES
+_BUILTINS = __BUILTIN_FUNCTIONS | __BUILTIN_VARIABLES | {'dict': dict}
 
 
 class FormatString:
