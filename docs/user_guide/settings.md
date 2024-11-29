@@ -78,7 +78,7 @@ below.
         | Season Folder Format        | Season {season_number}                                       |
         | Multi-Library File Naming   | :fontawesome-regular-circle-xmark:{.red}                     |
 
-## Episode Data
+## Series and Episode Data
 ### Episode Data Source
 
 <!-- md:overwritable Series, Template -->
@@ -120,7 +120,7 @@ _in order_ until a source image is found.
     much wider variety of image availability, and is typically much higher
     quality than the auto-scraped images from your Media Server.
 
-### Sync Specials
+### Enable Specials
 
 <!-- md:overwritable Series, Template -->
 
@@ -142,7 +142,29 @@ Whether to delete Episodes (from TCM) which are not present in the assigned
 Episode Data Source. When an Episode is deleted, the associated Title Card file
 is also deleted.
 
----
+### Delete Un-Synced Series
+
+Whether to delete any Series which are no longer actively Synced to TCM. If
+enabled, TCM will remove any Series and Title Cards (including those which are
+manually added not via Syncing) which do not appear in _any_ Sync source. It
+will not unload any Cards which have been loaded into your server(s).
+
+!!! warning "Potentially Destructive Setting"
+
+    Be careful when enabling this setting as TCM may delete all or many of your
+    Series if you have not properly set up your Syncs, especially if you are
+    actively adding/removing Syncs.
+
+### Source Image Deletion
+
+Whether to delete Source Images when a Series is deleted from TitleCardMaker.
+
+If enabled, any Series that are deleted (manually or
+[automatically](#delete-un-synced-series)) will have their entire source
+directory cleared - including Source Images, posters, logos, mask files, and
+backdrop art.
+
+--------------------------------------------------------------------------------
 
 ## Title Cards
 ### Default Card Type
@@ -273,8 +295,8 @@ increased for the opposite effect.
 ??? warning "16:9 Aspect Ratio"
 
     TCM will not stop you from setting a non-standard (non-16:9) aspect ratio,
-    but your created Title Cards __will__ be cropped when loaded into your Media
-    Server.
+    however, your created Title Cards may be cropped when loaded into your Media
+    Server(s).
 
 ### Card Quality
 
@@ -284,9 +306,9 @@ increased for the opposite effect.
     [Card Extension](#card-extension) of `jpg`, `jpeg`, or `png`.
 
 The compression level to apply when creating Title Cards. The minimum quality,
-1, will result in extremely low quality (highly compressed) Cards; and the
+1, will result in __extremely__ low quality (highly compressed) Cards; and the
 highest quality, 100, will result in the best quality (but least-compressed)
-Cards. The recommended value is between 92 and 95.
+Cards. The recommended value is between 85 and 95.
 
 ??? tip "Advanced Details"
 
@@ -309,8 +331,9 @@ usually manifests as all Title Cards failing to be created.
 ## Root Folders
 
 The root folders listed here serve as the primary asset directories for both
-Title Card and Source images. If using Docker, it is importan that both of these
-directories are accessible _outside_ of the Container.
+Title Card and Source images. If using Docker, it is important that both of
+these directories are accessible _outside_ of the Container in order to prevent
+data loss.
 
 ### Card Directory
 
@@ -373,15 +396,7 @@ created for it, under which Source Images (and logos) will be added.
         all associated source images (and logos) under the `./config/source/
         Breaking Bad (2008)/` directory.
 
-### Source Image Deletion
-
-Whether to delete Source Images when a Series is deleted from TitleCardMaker.
-
-If enabled, any Series that are deleted (manually or automatically) will have
-their entire source directory cleared - including Source Images, posters, logos,
-and backdrop art.
-
----
+--------------------------------------------------------------------------------
 
 ## File Naming
 
@@ -463,7 +478,7 @@ list of the available variables is listed [here](./variables.md).
     specify the format as:
 
     ```
-    {''}
+    {}
     ```
 
 ### Season Folder Format
@@ -480,7 +495,7 @@ variable data, see a complete list of the available variables is listed
     specify the format as:
 
     ```
-    {''}
+    {}
     ```
 
 ### Multi-Library File Naming
@@ -560,6 +575,8 @@ below.
 
     ![](../assets/home_poster_light.webp#only-light){.no-lightbox}
     ![](../assets/home_poster_dark.webp#only-dark){.no-lightbox}
+
+This setting can also be toggled on the home page itself.
 
 ### Simplified Episode Data Tables
 
