@@ -308,7 +308,8 @@ async function initializeSeriesConfig() {
   });
   // Template
   $('#card-config-form .dropdown[data-value="template_ids"]').dropdown({
-    values: getActiveTemplates({{series.template_ids}}, availableTemplates),
+    placeholder: 'Default',
+    values: getActiveTemplates({{ series.template_ids }}, availableTemplates),
   });
   // Card types
   loadCardTypes({
