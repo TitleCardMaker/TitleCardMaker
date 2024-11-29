@@ -1671,8 +1671,12 @@ function queryBlueprints() {
 function exportBlueprint() {
   $.ajax({
     type: 'GET',
-    url: '/api/blueprints/export/series/{{series.id}}/zip',
+    url: '/api/blueprints/export/series/{{ series.id }}/zip',
     xhrFields: {responseType: 'blob'},
+    /**
+     * 
+     * @param {Blob} zipBlob Blob of the zip file for this Series' Blueprint.
+     */
     success: zipBlob => {
       // Download zip file
       downloadFileBlob(`${series_full_name} Blueprint.zip`, zipBlob);
@@ -1685,13 +1689,13 @@ function exportBlueprint() {
 
       // Get database ID string for this Series
       let databaseIds = [];
-      if ('{{series.imdb_id}}' !== 'None') { databaseIds.push('imdb:{{series.imdb_id}}'); }
-      if ('{{series.tmdb_id}}' !== 'None') { databaseIds.push('tmdb:{{series.tmdb_id}}'); }
-      if ('{{series.tvdb_id}}' !== 'None') { databaseIds.push('tvdb:{{series.tvdb_id}}'); }
+      if ('{{ series.imdb_id }}' !== 'None') { databaseIds.push('imdb:{{ series.imdb_id }}'); }
+      if ('{{ series.tmdb_id }}' !== 'None') { databaseIds.push('tmdb:{{ series.tmdb_id }}'); }
+      if ('{{ series.tvdb_id }}' !== 'None') { databaseIds.push('tvdb:{{ series.tvdb_id }}'); }
       const idStr = databaseIds.join(',');
 
       // Get URL to pre-fill Blueprint form
-      let url = `series_year={{series.year}}&database_ids=${(idStr)}`
+      let url = `series_year={{ series.year }}&database_ids=${(idStr)}`
         + `&series_name=${encodeURIComponent(series_name)}`
         + `&title=[Blueprint] ${encodeURIComponent(series_name)}`
       ;
@@ -1705,7 +1709,7 @@ function exportBlueprint() {
       );
     },
     error: response => showErrorToast({title: 'Error Exporting Blueprint', response}),
-  })
+  });
 }
 
 /**
