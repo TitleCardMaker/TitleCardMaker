@@ -37,6 +37,18 @@ class TemporaryZip:
         context_id = name or generate_context_id()
         self.dir = zip_dir / context_id
         self.dir.mkdir(exist_ok=True, parents=True)
+        self.__files = 0
+
+
+    def __bool__(self) -> bool:
+        """
+        Whether this zip folder has files or not.
+
+        Returns:
+            True if this zip has had files added to it, False otherwise.
+        """
+
+        return self.__files > 0
 
 
     def __delete_zip(self,
@@ -92,6 +104,7 @@ class TemporaryZip:
 
         copy_file(file, self.dir / (filename or file.name))
         log.debug(f'Copied "{file}" into zip directory')
+        self.__files += 1
 
 
     def zip(self, *, log: Logger = log) -> Path:
