@@ -80,11 +80,10 @@ function updateScheduledTasks() {
       url: `/api/schedule/update/${taskId}`,
       data: JSON.stringify(updateObject),
       contentType: 'application/json',
-      success: () => showInfoToast(`Rescheduled Task ${taskId}`),
       error: response => showErrorToast({title: 'Error Recheduling Task', response}),
-      complete: () => initAll(),
     });
   });
+  setTimeout(() => {showInfoToast('Saved Schedules'); initAll()}, 1500);
 }
 
 /**
