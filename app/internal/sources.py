@@ -507,3 +507,17 @@ def get_source_image(episode: Episode) -> SourceImage:
         }
 
     return source # type: ignore
+
+
+def get_series_mask_images(series: Series) -> list[Path]:
+    """
+    Get a list of all mask images for the given Series.
+
+    Args:
+        series: Series whose mask source images to return.
+
+    Returns:
+        List of paths to mask images.
+    """
+
+    return list(series.source_directory.glob('*mask.png'))

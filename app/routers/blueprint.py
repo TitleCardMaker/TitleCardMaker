@@ -34,6 +34,7 @@ from app.internal.blueprint import (
 )
 from app.internal.episodes import get_all_episode_data
 from app.internal.series import add_series
+from app.internal.sources import get_series_mask_images
 from app.models.blueprint import Blueprint, BlueprintSeries
 from app.models.card import Card
 from app.models.episode import Episode as EpisodeModel
@@ -63,6 +64,7 @@ def export_series_blueprint(
         series_id: int,
         include_global_defaults: bool = Query(default=True),
         include_episode_overrides: bool = Query(default=True),
+        mask_images: bool = Query(default=True),
         db: Session = Depends(get_database),
     ) -> ExportBlueprint:
     """
@@ -76,6 +78,8 @@ def export_series_blueprint(
     - include_episode_overrides: Whether to include Episode-level
     overrides in the exported Blueprint. If True, then any Episode Font
     and Template assignments are also included.
+    - mask_images: Whether to include a list of mask images in the
+    export.
     """
 
     # Query for this Series, raise 404 if DNE
@@ -90,7 +94,11 @@ def export_series_blueprint(
         ]
 
     return generate_series_blueprint(
-        series, episode_data, include_global_defaults, include_episode_overrides
+        series,
+        episode_data,
+        include_global_defaults,
+        include_episode_overrides,
+        mask_images,
     )
 
 
@@ -135,6 +143,7 @@ async def export_series_blueprint_as_zip(
         series_id: int,
         include_global_defaults: bool = Query(default=True),
         include_episode_overrides: bool = Query(default=True),
+        mask_images: bool = Query(default=True),
         db: Session = Depends(get_database),
         preferences: Preferences = Depends(get_preferences),
     ) -> FileResponse:
@@ -148,6 +157,8 @@ async def export_series_blueprint_as_zip(
     - include_episode_overrides: Whether to include Episode-level
     overrides in the exported Blueprint. If True, then any Episode Font
     and Template assignments are also included.
+    - mask_images: Whether to include a list of mask images in the
+    export.
     """
 
     # Get contextual logger
@@ -159,16 +170,19 @@ async def export_series_blueprint_as_zip(
     # Get raw Episode data
     episode_data = []
     if include_episode_overrides:
-        episode_data = get_all_episode_data(
-            series, raise_exc=False, log=request.state.log,
-        )
         # Get just the EpisodeInfo objects
-        episode_data = [data[0] for data in episode_data]
+        episode_data = [
+            episode_info for episode_info, _ in
+            get_all_episode_data(series, raise_exc=False, log=log)
+        ]
 
     # Generate Blueprint
     blueprint = generate_series_blueprint(
-        series, episode_data, include_global_defaults,
+        series,
+        episode_data,
+        include_global_defaults,
         include_episode_overrides,
+        mask_images,
     )
 
     # Get list of Font files for this Series' Blueprint
@@ -220,6 +234,16 @@ async def export_series_blueprint_as_zip(
         log.debug(f'Copied "{card_file}" into zip directory')
     else:
         tzip.add_file(card_file, f'preview{card_file.suffix}', log=log)
+
+    # Zip mask images if indicated
+    if mask_images:
+        mask_tzip = TemporaryZip(
+            preferences.TEMPORARY_DIRECTORY, background_tasks, name='sources'
+        )
+        for file in get_series_mask_images(series):
+            mask_tzip.add_file(file, log=log)
+        if mask_tzip:
+            tzip.add_file(mask_tzip.zip(log=log), log=log)
 
     # Write Blueprint as JSON into zip directory
     with (tzip.dir / 'blueprint.json').open('w') as file_handle:
@@ -492,7 +516,7 @@ def import_series_blueprint_(
     import_blueprint(
         db,
         get_series(db, series_id, raise_exc=True),
-        blueprint,
+        blueprint, # type: ignore
         log=request.state.log
     )
 

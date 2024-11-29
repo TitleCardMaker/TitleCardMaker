@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_preferences
 from app.internal.cards import refresh_remote_card_types
+from app.internal.sources import get_series_mask_images
 from app.models.blueprint import Blueprint, BlueprintSeries
 from app.models.episode import Episode
 from app.models.font import Font
@@ -43,6 +44,7 @@ def generate_series_blueprint(
         raw_episode_data: list[EpisodeInfo],
         include_global_defaults: bool,
         include_episode_overrides: bool,
+        mask_images: bool,
     ) -> ExportBlueprint:
     """
     Generate the Blueprint for the given Series. This Blueprint can be
@@ -51,12 +53,14 @@ def generate_series_blueprint(
 
     Args:
         series: Series to generate the Blueprint of.
+        raw_episode_data: List of episode data to include in the export.
         include_global_defaults: Whether to write global settings if the
             Series has no corresponding override, primarily for the
             card type.
         include_episode_overrides: Whether to include Episode-level
             overrides in the exported Blueprint. If True, then any
             Episode Font and Template assignments are also included.
+        mask_images: Whether to include mask images in the export.
 
     Returns:
         Blueprint that can be used to recreate the Series configuration.
@@ -87,6 +91,12 @@ def generate_series_blueprint(
     else:
         export_obj['series'] = series.export_properties
     export_obj['series'] =  TieredSettings.filter(export_obj['series'])
+
+    # Add Series Source Images
+    if mask_images:
+        export_obj['series']['source_files'] = [
+            file.name for file in get_series_mask_images(series)
+        ]
 
     # Get Episode titles for comparison
     episode_titles: dict[str, str] = {
