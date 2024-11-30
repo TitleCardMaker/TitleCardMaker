@@ -811,7 +811,7 @@ class MusicTitleCard(BaseCardType):
             f'-draw "roundrectangle {start.x},{start.y} {end.x},{end.y} 25,25"',
             f'-alpha off',
             f'-write mpr:mask',
-            f'+delete \)',
+            fr'+delete \)',
             f'-mask mpr:mask',
             f'' if self.blur else f'-blur {self.GLASS_BLUR_PROFILE}',
             f'+mask',
@@ -922,14 +922,14 @@ class MusicTitleCard(BaseCardType):
             control_commands += [
                 f'-fill "{self.control_colors.shuffle}"',
                 f'-draw "translate {x:+.0f},{y:+.0f} scale {scale},{scale}',
-                f'path \'{self._SHUFFLE_SVG}\'"',
+                fr'path \'{self._SHUFFLE_SVG}\'"',
             ]
         if self.control_colors.previous.lower() not in ('transparent', 'none'):
             x, y = x_mid - 100, y_mid - 22
             control_commands += [
                 f'-fill "{self.control_colors.previous}"',
                 f'-draw "translate {x:+.0f},{y:+.0f} scale {scale},{scale}',
-                f'path \'{self._PREVIOUS_SVG}\'"',
+                fr'path \'{self._PREVIOUS_SVG}\'"',
             ]
         if self.control_colors.action.lower() not in ('transparent', 'none'):
             if self.pause_or_play == 'pause':
@@ -937,30 +937,30 @@ class MusicTitleCard(BaseCardType):
                 control_commands += [
                     f'-fill "{self.control_colors.action}"',
                     f'-draw "translate {x:+.0f},{y:+.0f} scale {scale},{scale}',
-                    f'path \'{self._PAUSE_SVG}\'"',
+                    fr'path \'{self._PAUSE_SVG}\'"',
                 ]
             else:
                 x, y = x_mid, y_mid - 51
                 control_commands += [
                     f'-fill "{self.control_colors.action}"',
                     f'-draw "translate {x:+.0f},{y:+.0f} scale {scale},{scale}',
-                    f'path \'{self._PLAY_SVG}\'"',
+                    fr'path \'{self._PLAY_SVG}\'"',
                 ]
         if self.control_colors.next.lower() not in ('transparent', 'none'):
             x, y = x_mid + 139, y_mid - 23
             control_commands += [
                 f'-fill "{self.control_colors.next}"',
                 f'-draw "translate {x:+.0f},{y:+.0f} scale {scale},{scale}',
-                f'path \'{self._NEXT_SVG}\'"',
+                fr'path \'{self._NEXT_SVG}\'"',
             ]
         if self.control_colors.repeat.lower() not in ('transparent', 'none'):
             x, y = x_mid + 210, y_mid - 8
             control_commands += [
                 f'-fill "{self.control_colors.repeat}"',
                 f'-draw "translate {x:+.0f},{y:+.0f} scale {scale},{scale}',
-                f'path \'{self._REPEAT_SVG_1}\'"',
+                fr'path \'{self._REPEAT_SVG_1}\'"',
                 f'-draw "translate {x:+.0f},{y:+.0f} scale {scale},{scale}',
-                f'path \'{self._REPEAT_SVG_2}\'"',
+                fr'path \'{self._REPEAT_SVG_2}\'"',
             ]
 
         return control_commands
@@ -996,7 +996,7 @@ class MusicTitleCard(BaseCardType):
             f'-stroke "{self.heart_stroke_color}"',
             f'-strokewidth 2',
             f'-draw "translate {x-7:+.0f},{y+8:+.0f} scale 1.75,1.75',
-            f'path \'{self._HEART_SVG}\'"',
+            fr'path \'{self._HEART_SVG}\'"',
         ]
 
 
@@ -1017,12 +1017,13 @@ class MusicTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'control_colors' in extras:
-                del extras['control_colors']
-            if 'episode_text_color' in extras:
-                del extras['episode_text_color']
-            if 'timeline_color' in extras:
-                del extras['timeline_color']
+            for extra in (
+                'control_colors',
+                'episode_text_color',
+                'timeline_color',
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -1071,9 +1072,10 @@ class MusicTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return (custom_episode_map
-                or episode_text_format.upper() != \
-                    MusicTitleCard.EPISODE_TEXT_FORMAT.upper())
+        return (
+            custom_episode_map
+            or episode_text_format != MusicTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     @staticmethod

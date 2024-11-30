@@ -2,7 +2,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
-    BaseCardType, ImageMagickCommands, Extra, CardTypeDescription
+    BaseCardType,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
 )
 from modules.Title import SplitCharacteristics
 
@@ -189,8 +192,8 @@ class OlivierTitleCard(BaseCardType):
             return []
 
         return [
-            f'\( "{self.GRADIENT.resolve()}"',
-            f'-rotate 90 \)',
+            fr'\( "{self.GRADIENT.resolve()}"',
+            fr'-rotate 90 \)',
             f'-geometry -{(self.WIDTH - self.HEIGHT) / 2}+0',
             f'-composite',
         ]
@@ -207,7 +210,7 @@ class OlivierTitleCard(BaseCardType):
         vertical_shift = 785 + self.font_vertical_shift
 
         return [
-            f'\( -font "{self.font_file}"',
+            fr'\( -font "{self.font_file}"',
             f'-gravity northwest',
             f'-pointsize {font_size}',
             f'-kerning {kerning}',
@@ -216,11 +219,11 @@ class OlivierTitleCard(BaseCardType):
             f'-fill "{self.stroke_color}"',
             f'-stroke "{self.stroke_color}"',
             f'-strokewidth {stroke_width}',
-            f'-annotate +320+{vertical_shift} "{self.title_text}" \)',
-            f'\( -fill "{self.font_color}"',
+            fr'-annotate +320+{vertical_shift} "{self.title_text}" \)',
+            fr'\( -fill "{self.font_color}"',
             f'-stroke "{self.font_color}"',
             f'-strokewidth 0',
-            f'-annotate +320+{vertical_shift} "{self.title_text}" \)',
+            fr'-annotate +320+{vertical_shift} "{self.title_text}" \)',
         ]
 
 
@@ -313,15 +316,14 @@ class OlivierTitleCard(BaseCardType):
 
         # Generic font, reset custom episode text color and stroke color
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] =\
-                    OlivierTitleCard.EPISODE_TEXT_COLOR
-            if 'episode_text_font_size' in extras:
-                extras['episode_text_font_size'] = 1.0
-            if 'episode_text_vertical_shift' in extras:
-                extras['episode_text_vertical_shift'] = 0
-            if 'stroke_color' in extras:
-                extras['stroke_color'] = 'black'
+            for extra in (
+                'episode_text_color',
+                'episode_text_font_size',
+                'episode_text_vertical_shift',
+                'stroke_color',
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -370,10 +372,7 @@ class OlivierTitleCard(BaseCardType):
             False otherwise.
         """
 
-        return (
-            episode_text_format.upper() != \
-                OlivierTitleCard.EPISODE_TEXT_FORMAT.upper()
-        )
+        return episode_text_format !=  OlivierTitleCard.EPISODE_TEXT_FORMAT
 
 
     def create(self) -> None:

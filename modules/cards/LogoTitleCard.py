@@ -2,7 +2,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
-    BaseCardType, ImageMagickCommands, Extra, CardTypeDescription
+    BaseCardType,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
 )
 from modules.Title import SplitCharacteristics
 
@@ -178,7 +181,7 @@ class LogoTitleCard(BaseCardType):
             title_text: str,
             season_text: str,
             episode_text: str,
-            source_file: Path = ...,
+            source_file: Path,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
             font_color: str = TITLE_COLOR,
@@ -269,10 +272,10 @@ class LogoTitleCard(BaseCardType):
 
         return [
             f'-gravity north',
-            f'\( "{self.logo.resolve()}"',
+            fr'\( "{self.logo.resolve()}"',
             f'-resize x{max_height}',
-            f'-resize {max_width}x{max_height}\>',
-            f'\) -geometry +0{offset:+}',
+            fr'-resize {max_width}x{max_height}\>',
+            fr'\) -geometry +0{offset:+}',
             f'-composite',
         ]
 
@@ -340,12 +343,12 @@ class LogoTitleCard(BaseCardType):
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
             # Combine season+episode text into one "image"
-            f'+smush 25 \)',
+            fr'+smush 25 \)',
             # Add season+episode text "image" to source image
             f'-geometry +0{y:+}',
             f'-composite',
             # Primary text
-            f'\( -fill "{self.episode_text_color}"',
+            fr'\( -fill "{self.episode_text_color}"',
             f'-stroke "{self.episode_text_color}"',
             f'-strokewidth 0.75',
             # Add season text
@@ -354,7 +357,7 @@ class LogoTitleCard(BaseCardType):
             # Add episode text
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
-            f'+smush 30 \)',
+            fr'+smush 30 \)',
             # Add text to source image
             f'-geometry +0{y:+}',
             f'-composite',
@@ -413,13 +416,13 @@ class LogoTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] =\
-                    LogoTitleCard.SERIES_COUNT_TEXT_COLOR
-            if 'episode_text_vertical_shift' in extras:
-                extras['episode_text_vertical_shift'] = 0
-            if 'stroke_color' in extras:
-                extras['stroke_color'] = 'black'
+            for extra in (
+                'episode_text_color',
+                'episode_text_vertical_shift',
+                'stroke_color'
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -465,10 +468,10 @@ class LogoTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = LogoTitleCard.EPISODE_TEXT_FORMAT.upper()
-
-        return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+        return (
+            custom_episode_map
+            or episode_text_format != LogoTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:

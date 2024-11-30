@@ -124,12 +124,26 @@ class DividerTitleCard(BaseCardType):
     ARCHIVE_NAME: str = 'Divider Style'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_color',
-        'font_file', 'font_interline_spacing', 'font_interword_spacing',
-        'font_kerning', 'font_size', 'font_stroke_width', 'stroke_color',
-        'title_text_position', 'text_position', 'font_vertical_shift',
-        'divider_color', 'text_gravity',
+        'divider_color',
+        'episode_text',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_stroke_width',
+        'hide_season_text',
+        'hide_episode_text',
+        'output_file',
+        'season_text',
+        'source_file',
+        'stroke_color',
+        'text_position',
+        'font_vertical_shift',
+        'text_gravity',
+        'title_text',
+        'title_text_position',
     )
 
     def __init__(self,
@@ -297,13 +311,13 @@ class DividerTitleCard(BaseCardType):
         """
 
         # No need for divider, use blank command
-        if (len(self.title_text) == 0
+        if (not self.title_text
             or (self.hide_season_text and self.hide_episode_text)):
             return []
 
         return [
-            f'\( -size 7x{divider_height-25}',
-            f'xc:"{color}" \)',
+            fr'\( -size 7x{divider_height-25}',
+            fr'xc:"{color}" \)',
             f'+size',
             f'-gravity center',
             f'+smush 25',
@@ -365,10 +379,11 @@ class DividerTitleCard(BaseCardType):
 
         # Generic font, reset stroke color
         if not custom_font:
-            if 'divider_color' in extras:
-                extras['divider_color'] = DividerTitleCard.TITLE_COLOR
-            if 'stroke_color' in extras:
-                extras['stroke_color'] = 'black'
+            for extra in (
+                'divider_color',
+                'stroke_color',
+            ):
+                del extras[extra]
 
 
     @staticmethod
@@ -458,23 +473,23 @@ class DividerTitleCard(BaseCardType):
             f'-strokewidth {stroke_width}',
             f'-interline-spacing {interline_spacing}',
             f'-interword-spacing {self.font_interword_spacing}',
-            f'\( -stroke "{self.stroke_color}"',
+            fr'\( -stroke "{self.stroke_color}"',
             *self.text_command(divider_height, is_stroke_text=True),
             # Combine text images
             f'+smush 25',
             # Add border so the blurred text doesn't get sharply cut off
             f'-border 50x{50+self.font_vertical_shift}',
-            f'-blur 0x5 \)',
+            fr'-blur 0x5 \)',
             # Overlay blurred text in correct position
             f'-gravity {gravity}',
             f'-composite',
             # Add title text
-            f'\( -fill "{self.font_color}"',
+            fr'\( -fill "{self.font_color}"',
             # Use basically transparent color so text spacing matches
             f'-stroke "rgba(1, 1, 1, 0.01)"',
             *self.text_command(divider_height, is_stroke_text=False),
             f'+smush 25',
-            f'-border 50x{50+self.font_vertical_shift} \)',
+            fr'-border 50x{50+self.font_vertical_shift} \)',
             # Overlay title text in correct position
             f'-gravity {gravity}',
             f'-composite',

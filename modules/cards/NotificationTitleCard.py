@@ -246,15 +246,15 @@ class NotificationTitleCard(BaseCardType):
         y = self._TITLE_TEXT_Y_OFFSET + self.font_vertical_shift
 
         return [
-            fr'-gravity {gravity}',
-            fr'-font "{self.font_file}"',
-            fr'-fill "{self.font_color}"',
-            fr'-pointsize {80 * self.font_size}',
-            fr'-interline-spacing {-10 + self.font_interline_spacing:+}',
-            fr'-interword-spacing {self.font_interword_spacing}',
-            fr'-kerning {1 * self.font_kerning}',
-            fr'-annotate {self._TEXT_X_OFFSET:+}{y:+}',
-            fr'"{self.title_text}"',
+            f'-gravity {gravity}',
+            f'-font "{self.font_file}"',
+            f'-fill "{self.font_color}"',
+            f'-pointsize {80 * self.font_size}',
+            f'-interline-spacing {-10 + self.font_interline_spacing:+}',
+            f'-interword-spacing {self.font_interword_spacing}',
+            f'-kerning {1 * self.font_kerning}',
+            f'-annotate {self._TEXT_X_OFFSET:+}{y:+}',
+            f'"{self.title_text}"',
         ]
 
 
@@ -274,21 +274,21 @@ class NotificationTitleCard(BaseCardType):
         elif self.hide_episode_text:
             text = self.season_text
         else:
-            text = fr'{self.season_text} {self.separator} {self.episode_text}'
+            text = f'{self.season_text} {self.separator} {self.episode_text}'
 
         gravity = 'southwest' if self.position == 'left' else 'southeast'
         y = self._INDEX_TEXT_Y_OFFSET + self.episode_text_vertical_shift
 
         return [
-            fr'-gravity {gravity}',
-            fr'-interline-spacing -10',
-            fr'-interword-spacing 0',
-            fr'-kerning 1',
-            fr'-pointsize {40 * self.episode_text_font_size}',
-            fr'-fill "{self.episode_text_color}"',
-            fr'-font "{self.TITLE_FONT}"',
-            fr'-annotate {self._TEXT_X_OFFSET:+}{y:+}',
-            fr'"{text}"',
+            f'-gravity {gravity}',
+            f'-interline-spacing -10',
+            f'-interword-spacing 0',
+            f'-kerning 1',
+            f'-pointsize {40 * self.episode_text_font_size}',
+            f'-fill "{self.episode_text_color}"',
+            f'-font "{self.TITLE_FONT}"',
+            f'-annotate {self._TEXT_X_OFFSET:+}{y:+}',
+            f'"{text}"',
         ]
 
 
@@ -374,22 +374,22 @@ class NotificationTitleCard(BaseCardType):
         return [
             # Duplicate image to blur rectangle in the given bounds
             fr'\( -clone 0',
-            fr'-fill white',
-            fr'-colorize 100',
-            fr'-fill black',
+            f'-fill white',
+            f'-colorize 100',
+            f'-fill black',
             glass.draw(),
-            fr'-alpha off',
-            fr'-write mpr:mask',
+            f'-alpha off',
+            f'-write mpr:mask',
             fr'+delete \)',
-            fr'-mask mpr:mask',
+            f'-mask mpr:mask',
             # Do not blur if whole image is being blurred
-            fr'' if self.blur else fr'-blur {self._GLASS_BLUR_PROFILE}',
-            fr'+mask',
+            f'' if self.blur else f'-blur {self._GLASS_BLUR_PROFILE}',
+            f'+mask',
             # Draw glass shape
-            fr'-fill "{self.glass_color}"',
+            f'-fill "{self.glass_color}"',
             glass.draw(),
             # Draw edge
-            fr'-fill "{self.edge_color}"',
+            f'-fill "{self.edge_color}"',
             edge.draw(),
         ]
 
@@ -411,15 +411,14 @@ class NotificationTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'edge_color' in extras:
-                extras['edge_color'] = NotificationTitleCard.EDGE_COLOR
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] = \
-                NotificationTitleCard.EPISODE_TEXT_COLOR
-            if 'episode_text_font_size' in extras:
-                extras['episode_text_font_size'] = 1.0
-            if 'episode_text_vertical_shift' in extras:
-                extras['episode_text_vertical_shift'] = 0
+            for extra in (
+                'edge_color',
+                'episode_text_color',
+                'episode_text_font_size',
+                'episode_text_vertical_shift',
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -468,17 +467,18 @@ class NotificationTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return (custom_episode_map
-                or episode_text_format.upper() != \
-                    NotificationTitleCard.EPISODE_TEXT_FORMAT.upper())
+        return (
+            custom_episode_map
+            or episode_text_format != NotificationTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
         self.image_magick.run([
-            fr'convert "{self.source_file.resolve()}"',
-            fr'-density 100',
+            f'convert "{self.source_file.resolve()}"',
+            f'-density 100',
             # Resize and apply styles to source image
             *self.resize_and_style,
             # Add background player glass
@@ -504,5 +504,5 @@ class NotificationTitleCard(BaseCardType):
             *self.add_overlay_mask(self.source_file),
             # Create card
             *self.resize_output,
-            fr'"{self.output_file.resolve()}"',
+            f'"{self.output_file.resolve()}"',
         ])

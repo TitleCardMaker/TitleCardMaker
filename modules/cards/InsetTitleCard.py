@@ -119,12 +119,26 @@ class InsetTitleCard(BaseCardType):
     ARCHIVE_NAME: str = 'Inset Style'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_color',
-        'font_file', 'font_interline_spacing', 'font_interword_spacing',
-        'font_kerning', 'font_size', 'font_vertical_shift',
-        'episode_text_color', 'episode_text_font_size', 'omit_gradient',
-        'separator', 'transparency', '_title_height',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_font_size',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'hide_season_text',
+        'hide_episode_text',
+        'omit_gradient',
+        'output_file',
+        'season_text',
+        'separator',
+        'source_file',
+        'title_text',
+        'transparency',
+        '_title_height',
     )
 
     def __init__(self, *,
@@ -198,14 +212,14 @@ class InsetTitleCard(BaseCardType):
         size = 250 * self.font_size
 
         return [
-            f'\( -background none',
+            fr'\( -background none',
             f'-pointsize {size}',
             f'-font "{self.font_file}"',
             f'-interline-spacing {self.font_interline_spacing}',
             f'-interword-spacing {self.font_interword_spacing}',
             f'-kerning {self.font_kerning}',
             f'-fill "{self.font_color}"',
-            f'label:"{self.title_text}" \)',
+            fr'label:"{self.title_text}" \)',
             f'-gravity south',
         ]
 
@@ -254,13 +268,13 @@ class InsetTitleCard(BaseCardType):
         size = 75 * self.episode_text_font_size # 1-3-1/4 font size base
 
         index_text_commands = [
-            f'\( -background none',
+            fr'\( -background none',
             f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
             f'+interline-spacing',
             f'-fill "{self.episode_text_color}"',
             f'-pointsize {size}',
             f'-gravity south',
-            f'label:"{index_text}" \)',
+            fr'label:"{index_text}" \)',
         ]
         index_width, index_height = self.image_magick.get_text_dimensions(
             index_text_commands
@@ -272,7 +286,7 @@ class InsetTitleCard(BaseCardType):
 
         return [
             # Copy source image
-            f'\( "{self.source_file.resolve()}"',
+            fr'\( "{self.source_file.resolve()}"',
             # Make source transparent (according to transparency)
             f'-alpha set',
             f'-channel A',
@@ -290,7 +304,7 @@ class InsetTitleCard(BaseCardType):
             # Blur edges so cropping is not so sharp
             f'-blur 0x7',
             f'-gravity south',
-            f'\) -geometry +0+{crop_y-10:.0f}',
+            fr'\) -geometry +0+{crop_y-10:.0f}',
             f'-composite',
             # Add index text with a drop shadow
             *self.add_drop_shadow(
@@ -329,10 +343,9 @@ class InsetTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] = InsetTitleCard.EPISODE_TEXT_COLOR
-            if 'episode_text_font_size' in extras:
-                extras['episode_text_fon_size'] = 1.0
+            for extra in ('episode_text_color', 'episode_text_font_size'):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -385,10 +398,10 @@ class InsetTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = InsetTitleCard.EPISODE_TEXT_FORMAT.upper()
-
-        return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+        return (
+            custom_episode_map
+            or episode_text_format != InsetTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:

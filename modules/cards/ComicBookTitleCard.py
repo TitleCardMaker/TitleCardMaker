@@ -1,6 +1,6 @@
 from math import cos, sin, pi as PI
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal, Union
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class SvgRectangle:
     """Class that defines a movable SVG rectangle."""
 
-    def __init__(self, width: Union[int, float], height: Union[int, float]) -> None:
+    def __init__(self, width: int | float, height: int | float) -> None:
         """
         Initialize this Rectangle object for a rectangle of the given
         dimensions.
@@ -87,11 +87,11 @@ class SvgRectangle:
         return [
             f'-draw "translate {self.center.as_svg}',
             f'rotate {self.rotation}',
-            f'path \'M {start_position.as_svg}',
+            fr'path \'M {start_position.as_svg}',
             f'l {self.width} 0',
             f'l 0 {self.height}',
             f'l {-self.width} 0',
-            f'l 0 {-self.height}\' "',
+            fr'l 0 {-self.height}\' "',
         ]
 
 
@@ -620,15 +620,14 @@ class ComicBookTitleCard(BaseCardType):
 
         # Generic font, reset episode text and box colors
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] = 'black'
-            if 'text_box_fill_color' in extras:
-                extras['text_box_fill_color'] = 'white'
-            if 'text_box_edge_color' in extras:
-                extras['text_box_edge_color'] = 'white'
-            if 'border_fill_color' in extras:
-                extras['border_fill_color'] = \
-                    ComicBookTitleCard.BANNER_FILL_COLOR
+            for extra in (
+                'episode_text_color',
+                'text_box_fill_color',
+                'text_box_edge_color',
+                'border_fill_color',
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -651,7 +650,8 @@ class ComicBookTitleCard(BaseCardType):
             or ('text_box_fill_color' in extras
                 and extras['text_box_fill_color'] != 'white')
             or ('banner_fill_color' in extras
-                and extras['banner_fill_color'] != ComicBookTitleCard.BANNER_FILL_COLOR)
+                and extras['banner_fill_color'] != \
+                    ComicBookTitleCard.BANNER_FILL_COLOR)
         )
 
         return (custom_extras
@@ -682,16 +682,16 @@ class ComicBookTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = ComicBookTitleCard.EPISODE_TEXT_FORMAT.upper()
-
-        return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+        return (
+            custom_episode_map
+            or episode_text_format != ComicBookTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
-        command = ' '.join([
+        self.image_magick.run([
             f'convert "{self.source_file.resolve()}"',
             # Resize and apply styles to source image
             *self.resize_and_style,
@@ -710,5 +710,3 @@ class ComicBookTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
-
-        self.image_magick.run(command)

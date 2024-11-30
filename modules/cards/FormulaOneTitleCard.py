@@ -2,7 +2,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
-    BaseCardType, CardTypeDescription, Extra, ImageMagickCommands, TextCase,
+    BaseCardType,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
+    TextCase,
 )
 from modules.Debug import log # noqa: F401
 from modules.Title import SplitCharacteristics
@@ -163,11 +167,25 @@ class FormulaOneTitleCard(BaseCardType):
 
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_color',
-        'font_interline_spacing', 'font_interword_spacing', 'font_file',
-        'font_kerning', 'font_size', 'font_vertical_shift', 'country',
-        'episode_text_color', 'episode_text_font_size', 'race', 'year',
+        'country',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_font_size',
+        'font_color',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_file',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'hide_season_text',
+        'hide_episode_text',
+        'output_file',
+        'race',
+        'season_text',
+        'source_file',
+        'title_text',
+        'year',
     )
 
 
@@ -244,9 +262,9 @@ class FormulaOneTitleCard(BaseCardType):
         return [
             # Create dark overlay
             f'-gravity center',
-            f'\( -size {self.TITLE_CARD_SIZE}',
+            fr'\( -size {self.TITLE_CARD_SIZE}',
             f'xc:"{self.DARKEN_COLOR}"',
-            f'\) -composite',
+            fr'\) -composite',
             # Add frame
             f'"{self.FRAME.resolve()}"',
             f'-composite',
@@ -289,7 +307,7 @@ class FormulaOneTitleCard(BaseCardType):
         """Subcommands required to add the title text."""
 
         # No title text, return empty commands
-        if len(self.title_text) == 0:
+        if not self.title_text:
             return []
 
         # Base commands before text size modification
@@ -380,10 +398,9 @@ class FormulaOneTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] = FormulaOneTitleCard.EPISODE_TEXT_COLOR
-            if 'episode_text_font_size' in extras:
-                extras['episode_text_font_size'] = 1.0
+            for extra in ('episode_text_color', 'episode_text_font_size'):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -402,7 +419,8 @@ class FormulaOneTitleCard(BaseCardType):
 
         custom_extras = (
             ('episode_text_color' in extras
-                and extras['episode_text_color'] != FormulaOneTitleCard.EPISODE_TEXT_COLOR)
+                and extras['episode_text_color'] != \
+                    FormulaOneTitleCard.EPISODE_TEXT_COLOR)
             or ('episode_text_font_size' in extras
                 and extras['episode_text_font_size'] != 1.0)
         )
@@ -431,9 +449,10 @@ class FormulaOneTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return (custom_episode_map
-                or episode_text_format.upper() != \
-                    FormulaOneTitleCard.EPISODE_TEXT_FORMAT.upper())
+        return (
+            custom_episode_map
+            or episode_text_format != FormulaOneTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:

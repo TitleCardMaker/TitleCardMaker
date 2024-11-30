@@ -62,7 +62,7 @@ class Offset:
         return f'{self.x:+}{self.y:+}'
 
 
-    def __add__(self, other: 'Offset') -> None:
+    def __add__(self, other: 'Offset') -> 'Offset':
         """
         Add an offset to this object, returning a new object.
 
@@ -290,12 +290,24 @@ class RomanNumeralTitleCard(BaseCardType):
     SEASON_TEXT_PLACEMENT_ATTEMPTS = 5
 
     __slots__ = (
-        'output_file', 'title_text', 'season_text', 'hide_season_text',
-        'hide_episode_text', 'font_color', 'font_file', 'offset',
-        'font_interline_spacing', 'font_interword_spacing', 'font_size',
-        'background', 'roman_numeral_color', 'roman_numeral',
-        '_roman_text_scalar', '__roman_numeral_lines', 'rotation',
+        'background',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_size',
+        'hide_season_text',
+        'hide_episode_text',
+        'offset',
+        'output_file',
+        'roman_numeral_color',
+        'roman_numeral',
+        'rotation',
+        '_roman_text_scalar',
+        '__roman_numeral_lines',
+        'season_text',
         'season_text_color',
+        'title_text',
     )
 
     def __init__(self, *,
@@ -347,7 +359,8 @@ class RomanNumeralTitleCard(BaseCardType):
         self.hide_episode_text = hide_episode_text
 
         # Rotation and offset attributes to be determined later
-        self.rotation, self.offset = None, None
+        self.rotation: str | None = None
+        self.offset: Offset | None = None
 
 
     def __assign_roman_numeral(self, number: int) -> None:
@@ -450,8 +463,8 @@ class RomanNumeralTitleCard(BaseCardType):
 
 
     def create_season_text_command(self,
-            rotation: str,
-            offset: str | Offset,
+            rotation: str | None,
+            offset: str | Offset | None,
         ) -> ImageMagickCommands:
         """
         Generate the ImageMagick commands necessary to create season
@@ -701,14 +714,13 @@ class RomanNumeralTitleCard(BaseCardType):
 
         # Generic font, reset roman numeral color and background
         if not custom_font:
-            if 'background' in extras:
-                extras['background'] = RomanNumeralTitleCard.BACKGROUND_COLOR
-            if 'roman_numeral_color' in extras:
-                extras['roman_numeral_color'] =\
-                    RomanNumeralTitleCard.ROMAN_NUMERAL_TEXT_COLOR
-            if 'season_text_color' in extras:
-                extras['season_text_color'] =\
-                    RomanNumeralTitleCard.SEASON_TEXT_COLOR
+            for extra in (
+                'background',
+                'roman_numeral_color',
+                'season_text_color'
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -764,9 +776,11 @@ class RomanNumeralTitleCard(BaseCardType):
             False otherwise.
         """
 
-        return (custom_episode_map
-                or episode_text_format not in \
-                    RomanNumeralTitleCard.GENERIC_EPISODE_TEXT_FORMATS)
+        return (
+            custom_episode_map
+            or episode_text_format not in \
+                RomanNumeralTitleCard.GENERIC_EPISODE_TEXT_FORMATS
+        )
 
 
     def create(self):

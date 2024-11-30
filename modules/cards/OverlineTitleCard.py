@@ -2,8 +2,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
-    BaseCardType, CardTypeDescription, Coordinate, Extra, ImageMagickCommands,
-    Rectangle, TextCase,
+    BaseCardType,
+    CardTypeDescription,
+    Coordinate,
+    Extra,
+    ImageMagickCommands,
+    Rectangle,
+    TextCase,
 )
 from modules.ImageMagickInterface import Dimensions
 from modules.Title import SplitCharacteristics
@@ -405,11 +410,9 @@ class OverlineTitleCard(BaseCardType):
 
         # Generic font, reset episode text and box colors
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] =\
-                    OverlineTitleCard.EPISODE_TEXT_COLOR
-            if 'line_color' in extras:
-                extras['line_color'] = OverlineTitleCard.TITLE_COLOR
+            for extra in ('episode_text_color', 'line_color'):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -428,7 +431,8 @@ class OverlineTitleCard(BaseCardType):
 
         custom_extras = (
             ('episode_text_color' in extras
-                and extras['episode_text_color'] != OverlineTitleCard.EPISODE_TEXT_COLOR)
+                and extras['episode_text_color'] != \
+                    OverlineTitleCard.EPISODE_TEXT_COLOR)
             or ('line_color' in extras
                 and extras['line_color'] != OverlineTitleCard.TITLE_COLOR)
         )
@@ -461,10 +465,10 @@ class OverlineTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = OverlineTitleCard.EPISODE_TEXT_FORMAT.upper()
-
-        return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+        return (
+            custom_episode_map
+            or episode_text_format != OverlineTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:

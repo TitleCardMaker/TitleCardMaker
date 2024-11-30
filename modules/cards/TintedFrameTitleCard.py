@@ -400,15 +400,15 @@ class TintedFrameTitleCard(BaseCardType):
 
         return [
             # Blur entire image
-            fr'-blur 0x20',
+            f'-blur 0x20',
             # Crop out center area of the source image
-            fr'-gravity center',
+            f'-gravity center',
             fr'\( "{self.source_file.resolve()}"',
             *self.resize_and_style,
-            fr'-crop {crop_width}x{crop_height}+0+0',
+            f'-crop {crop_width}x{crop_height}+0+0',
             fr'+repage \)',
             # Overlay unblurred center area
-            fr'-composite',
+            f'-composite',
         ]
 
 
@@ -429,14 +429,14 @@ class TintedFrameTitleCard(BaseCardType):
 
         return self.add_drop_shadow(
             [
-                fr'-background transparent',
-                fr'-font "{self.font_file}"',
-                fr'-pointsize {100 * self.font_size}',
-                fr'-kerning {1 * self.font_kerning}',
-                fr'-interline-spacing {self.font_interline_spacing}',
-                fr'-interword-spacing {self.font_interword_spacing}',
-                fr'-fill "{self.font_color}"',
-                fr'label:"{self.title_text}"',
+                f'-background transparent',
+                f'-font "{self.font_file}"',
+                f'-pointsize {100 * self.font_size}',
+                f'-kerning {1 * self.font_kerning}',
+                f'-interline-spacing {self.font_interline_spacing}',
+                f'-interword-spacing {self.font_interword_spacing}',
+                f'-fill "{self.font_color}"',
+                f'label:"{self.title_text}"',
             ],
             Shadow(opacity=85, sigma=3, x=8, y=8),
             x=self.title_horizontal_shift, y=vertical_shift,
@@ -519,8 +519,8 @@ class TintedFrameTitleCard(BaseCardType):
         if self.middle_element == 'logo':
             # Constrain by width and height
             resize_command = [
-                fr'-resize x{logo_height}',
-                fr'-resize {2500 * self.logo_size}x{logo_height}\>',
+                f'-resize x{logo_height}',
+                f'-resize {2500 * self.logo_size}x{logo_height}\>',
             ]
         else:
             resize_command = [f'-resize x{logo_height}']
@@ -744,20 +744,16 @@ class TintedFrameTitleCard(BaseCardType):
 
         # Generic font, reset episode text and box colors
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] =\
-                    TintedFrameTitleCard.EPISODE_TEXT_COLOR
-            if 'episode_text_font' in extras:
-                extras['episode_text_font'] =\
-                    TintedFrameTitleCard.EPISODE_TEXT_FONT
-            if 'episode_text_font_size' in extras:
-                extras['episode_text_font_size'] = 1.0
-            if 'episode_text_vertical_shift' in extras:
-                extras['episode_text_vertical_shift'] = 0
-            if 'frame_color' in extras:
-                extras['frame_color'] = TintedFrameTitleCard.TITLE_COLOR
-            if 'shadow_color' in extras:
-                extras['shadow_color'] = TintedFrameTitleCard.SHADOW_COLOR
+            for extra in (
+                'episode_text_color',
+                'episode_text_font',
+                'episode_text_font_size',
+                'episode_text_vertical_shift',
+                'frame_color',
+                'shadow_color',
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -776,9 +772,11 @@ class TintedFrameTitleCard(BaseCardType):
 
         custom_extras = (
             ('episode_text_color' in extras
-                and extras['episode_text_color'] != TintedFrameTitleCard.EPISODE_TEXT_COLOR)
+                and extras['episode_text_color'] != \
+                    TintedFrameTitleCard.EPISODE_TEXT_COLOR)
             or ('episode_text_font' in extras
-                and extras['episode_text_font'] != TintedFrameTitleCard.EPISODE_TEXT_FONT)
+                and extras['episode_text_font'] != \
+                    TintedFrameTitleCard.EPISODE_TEXT_FONT)
             or ('episode_text_font_size' in extras
                 and extras['episode_text_font_size'] != 1.0)
             or ('episode_text_vertical_shift' in extras
@@ -817,8 +815,10 @@ class TintedFrameTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return (custom_episode_map
-                or episode_text_format != TintedFrameTitleCard.EPISODE_TEXT_FORMAT)
+        return (
+            custom_episode_map
+            or episode_text_format != TintedFrameTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:

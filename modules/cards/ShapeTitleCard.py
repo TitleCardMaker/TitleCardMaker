@@ -258,15 +258,36 @@ class ShapeTitleCard(BaseCardType):
     GRADIENT = REF_DIRECTORY.parent / 'overline' / 'small_gradient.png'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'hide_season_text', 'font_color', 'font_interline_spacing',
-        'font_interword_spacing', 'font_file', 'font_kerning', 'font_size',
-        'font_stroke_width', 'font_vertical_shift', 'season_text_color',
-        'season_text_font_size', 'hide_shape', 'italicize_season_text',
-        'omit_gradient', 'season_text_position', 'shape', 'shape_color',
-        'shape_inset', 'length', 'shape_stroke_color',
-        'shape_stroke_width', 'shape_width', 'stroke_color', 'text_position',
-        '__title_width', '__title_height',
+        'font_color',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_file',
+        'font_kerning',
+        'font_size',
+        'font_stroke_width',
+        'font_vertical_shift',
+        'hide_season_text',
+        'hide_shape',
+        'italicize_season_text',
+        'length',
+        'omit_gradient',
+        'output_file',
+        'season_text',
+        'season_text_color',
+        'season_text_font_size',
+        'season_text_position',
+        'shape',
+        'shape_color',
+        'shape_inset',
+        'shape_stroke_color',
+        'shape_stroke_width',
+        'shape_width',
+        'source_file',
+        'stroke_color',
+        'text_position',
+        'title_text',
+        '__title_width',
+        '__title_height',
     )
 
 
@@ -423,8 +444,8 @@ class ShapeTitleCard(BaseCardType):
             geometry = f'+{(self.WIDTH - self.HEIGHT) / 2}+0'
 
         return [
-            f'\( "{self.GRADIENT.resolve()}"',
-            f'-rotate {rotation} \)',
+            fr'\( "{self.GRADIENT.resolve()}"',
+            fr'-rotate {rotation} \)',
             f'-geometry {geometry}',
             f'-composite',
         ]
@@ -801,14 +822,14 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on left corner
-            f'path \'M 0,-{radius}',
+            fr'path \'M 0,-{radius}',
             # Draw top arc
             f'a {radius},{radius} 0 0 1 {x:+.1f},-{y:.1f}',
             # Move back to left corner
             f'M 0,-{radius}',
             # Draw bottom arc
             f'a {radius},{radius} 0 0 0 {x:+.1f},+{y:.1f}',
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -831,14 +852,14 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on left corner
-            f'path \'M 0,-{radius}',
+            fr'path \'M 0,-{radius}',
             # Draw top arc
             f'a {radius},{radius} 0 0 0 -{x:.1f},-{y:.1f}',
             # Move back to left corner
             f'M 0,-{radius}',
             # Draw bottom arc
             f'a {radius},{radius} 0 0 1 -{x:.1f},+{y:.1f}',
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -853,7 +874,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on left corner
-            f'path \'M 0,-{self.length}',
+            fr'path \'M 0,-{self.length}',
             # Draw up to top corner
             f'l {self.length},-{self.length}',
             # Draw down to right corner; x/y is cut off by text
@@ -864,7 +885,7 @@ class ShapeTitleCard(BaseCardType):
             f'l {self.length},{self.length}',
             # Draw up to right corner; x/y is cut off by text
             f'l {self._line_length},-{self._line_length}',
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -879,7 +900,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from right side (y based on text position)
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on right corner
-            f'path \'M 0,-{self.length}',
+            fr'path \'M 0,-{self.length}',
             # Draw up to top corner
             f'l -{self.length},-{self.length}',
             # Draw down to left corner; x/y is cut off by text
@@ -890,7 +911,7 @@ class ShapeTitleCard(BaseCardType):
             f'l -{self.length},{self.length}',
             # Draw up to left corner; x/y is cut off by text
             f'l -{self._line_length},-{self._line_length}',
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -908,7 +929,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on lower left corner
-            f'path \'M 0,0',
+            fr'path \'M 0,0',
             # Draw up to top left corner
             f'l 0,-{self.length * 2}',
             # Draw to the top right corner
@@ -921,7 +942,7 @@ class ShapeTitleCard(BaseCardType):
             f'l {self.length * 2},0',
             # Draw up to right middle; y is cut off by text
             f'l 0,-{self._line_length}',
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -939,7 +960,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on lower left corner
-            f'path \'M 0,0',
+            fr'path \'M 0,0',
             # Draw up to top right corner
             f'l 0,-{self.length * 2}',
             # Draw to the top left corner
@@ -952,7 +973,7 @@ class ShapeTitleCard(BaseCardType):
             f'l -{self.length * 2},0',
             # Draw up to left middle; y is cut off by text
             f'l 0,-{self._line_length}',
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -987,7 +1008,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on top left corner
-            f'path \'M 0,-{height}',
+            fr'path \'M 0,-{height}',
             # Draw to the top right corner
             f'l +{self.length * 2},0',
             # Draw down to the bottom middle; y is cut off
@@ -998,7 +1019,7 @@ class ShapeTitleCard(BaseCardType):
             f'l {self.length},{height}',
             # Draw up to the top right; y is cut off
             f'l {bottom_x:+.1f},-{bottom_y:.1f}',
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -1033,7 +1054,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from right side (y based on text position)
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on top right corner
-            f'path \'M 0,-{height}',
+            fr'path \'M 0,-{height}',
             # Draw to the top left corner
             f'l -{self.length * 2},0',
             # Draw down to the bottom middle; y is cut off
@@ -1044,7 +1065,7 @@ class ShapeTitleCard(BaseCardType):
             f'l -{self.length},+{height}',
             # Draw up to the top left; y is cut off
             f'l -{bottom_x:.1f},-{bottom_y:.1f}',
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -1079,7 +1100,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on bottom left corner
-            f'path \'M 0,0',
+            fr'path \'M 0,0',
             # Draw to the bottom right corner
             f'l +{self.length * 2},0',
             # Draw up to the bottom middle; y is cut off
@@ -1090,7 +1111,7 @@ class ShapeTitleCard(BaseCardType):
             f'l {self.length},-{height}',
             # Draw down to the bottom right; y is cut off
             f'l +{top_x:.1f},+{top_y:.1f}'
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -1125,7 +1146,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from right side
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on bottom right corner
-            f'path \'M 0,0',
+            fr'path \'M 0,0',
             # Draw to the bottom left corner
             f'l -{self.length * 2},0',
             # Draw up to the bottom middle; y is cut off
@@ -1136,7 +1157,7 @@ class ShapeTitleCard(BaseCardType):
             f'l -{self.length},-{height}',
             # Draw down to the bottom left; y is cut off
             f'l -{top_x:.1f},+{top_y:.1f}',
-            f'\'"'
+            fr'\'"'
         ]
 
 
@@ -1228,14 +1249,14 @@ class ShapeTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'season_text_color' in extras:
-                extras['season_text_color'] = ShapeTitleCard.EPISODE_TEXT_COLOR
-            if 'season_text_font_size' in extras:
-                extras['season_text_font_size'] = 1.0
-            if 'shape_color' in extras:
-                extras['shape_color'] = ShapeTitleCard.SHAPE_COLOR
-            if 'stroke_color' in extras:
-                extras['stroke_color'] = 'black'
+            for extra in (
+                'season_text_color',
+                'season_text_font_size',
+                'shape_color',
+                'stroke_color',
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -1254,7 +1275,8 @@ class ShapeTitleCard(BaseCardType):
 
         custom_extras = (
             ('season_text_color' in extras
-             and extras['season_text_color'] != ShapeTitleCard.EPISODE_TEXT_COLOR)
+             and extras['season_text_color'] != \
+                ShapeTitleCard.EPISODE_TEXT_COLOR)
             or ('season_text_font_size' in extras
                 and extras['season_text_font_size'] != 1.0)
             or ('shape_color' in extras
@@ -1285,8 +1307,7 @@ class ShapeTitleCard(BaseCardType):
 
         return (
             custom_episode_map
-            or episode_text_format.upper() != \
-                ShapeTitleCard.EPISODE_TEXT_FORMAT.upper()
+            or episode_text_format != ShapeTitleCard.EPISODE_TEXT_FORMAT
         )
 
 

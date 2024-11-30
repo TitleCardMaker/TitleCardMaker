@@ -83,24 +83,24 @@ class SvgCircle:
         if self.percentage <= 0.5:
             return [
                 # Start path
-                f'path \'',
+                fr'path \'',
                 positioning,
                 # Draw arc
                 f'a {self.radius},{self.radius} 0 0 1 {x:+.1f},{y:+.1f}',
                 # End path
-                f'\'',
+                fr'\'',
             ]
 
         return [
             # Start path
-            f'path \'',
+            fr'path \'',
             positioning,
             # Draw full arc half
             f'a {self.radius},{self.radius} 0 0 1 {0:+.1f},{2 * self.radius}',
             # Draw partial arc
             f'a {self.radius},{self.radius} 0 0 1 {x:+.1f},{y:+.1f}',
             # End path
-            f'\'',
+            fr'\'',
         ]
 
 
@@ -356,8 +356,8 @@ class GraphTitleCard(BaseCardType):
             geometry = f'+{(self.WIDTH - self.HEIGHT) / 2}+0'
 
         return [
-            f'\( "{self.GRADIENT.resolve()}"',
-            f'-rotate {rotation} \)',
+            fr'\( "{self.GRADIENT.resolve()}"',
+            fr'-rotate {rotation} \)',
             f'-geometry {geometry}',
             f'-composite',
         ]
@@ -620,11 +620,9 @@ class GraphTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'graph_background_color' in extras:
-                extras['graph_background_color'] =\
-                    GraphTitleCard.BACKGROUND_GRAPH_COLOR
-            if 'graph_color' in extras:
-                extras['graph_color'] = GraphTitleCard.GRAPH_COLOR
+            for extra in ('graph_background_color', 'graph_color'):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -643,7 +641,8 @@ class GraphTitleCard(BaseCardType):
 
         custom_extras = (
             ('graph_background_color' in extras
-                and extras['graph_background_color'] != GraphTitleCard.BACKGROUND_GRAPH_COLOR)
+                and extras['graph_background_color'] != \
+                    GraphTitleCard.BACKGROUND_GRAPH_COLOR)
             or ('graph_color' in extras
                 and extras['graph_color'] != GraphTitleCard.GRAPH_COLOR)
         )
@@ -668,16 +667,16 @@ class GraphTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = GraphTitleCard.EPISODE_TEXT_FORMAT.upper()
-
-        return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+        return (
+            custom_episode_map
+            or episode_text_format != GraphTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
-        command = ' '.join([
+        self.image_magick.run([
             f'convert "{self.source_file.resolve()}"',
             f'-density 100',
             # Resize and apply styles to source image
@@ -697,5 +696,3 @@ class GraphTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
-
-        self.image_magick.run(command)

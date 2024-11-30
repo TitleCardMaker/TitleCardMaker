@@ -1,9 +1,12 @@
 from pathlib import Path
 from random import random
-from typing import Literal, Optional, TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING
 
 from modules.BaseCardType import (
-    BaseCardType, CardTypeDescription, Extra, ImageMagickCommands,
+    BaseCardType,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
 )
 from modules.Title import SplitCharacteristics
 
@@ -204,7 +207,7 @@ class NegativeSpaceTitleCard(BaseCardType):
 
 
     def title_text_commands(self,
-            color: Optional[str] = None,
+            color: str | None = None,
         ) -> ImageMagickCommands:
         """
         Get the subcommand for adding the title text to the source
@@ -256,9 +259,7 @@ class NegativeSpaceTitleCard(BaseCardType):
         ]
 
 
-    def numeral_commands(self,
-            color: Optional[str] = None,
-        ) -> ImageMagickCommands:
+    def numeral_commands(self, color: str | None = None) -> ImageMagickCommands:
         """
         Get the subcommand for adding the numeral text to the source
         image.
@@ -344,16 +345,16 @@ class NegativeSpaceTitleCard(BaseCardType):
             f'-size "{self.TITLE_CARD_SIZE}"',
             # First image is the filled number mask where white is the
             # episode number, and the background is black
-            f'\(',
+            fr'\(',
             f'xc:black',
             *self.numeral_commands('white'),
-            f'\)',
+            fr'\)',
             # Second image is the filled title mask where black is the
             # title text, and the background is white
-            f'\(',
+            fr'\(',
             f'xc:white',
             *self.title_text_commands('black'),
-            f'\)',
+            fr'\)',
             # Create difference composite mask of the two images
             f'-compose difference',
             f'-composite',
@@ -381,7 +382,15 @@ class NegativeSpaceTitleCard(BaseCardType):
 
         # Generic font, reset episode text and box colors
         if not custom_font:
-            ...
+            for extra in (
+                'episode_text_color',
+                'episode_text_font_size',
+                'episode_text_horizontal_offset',
+                'episode_text_vertical_offset',
+                'title_text_horizontal_offset',
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -454,11 +463,11 @@ class NegativeSpaceTitleCard(BaseCardType):
             # Layer 0 is the text
             f'"{text_image.resolve()}"',
             # Layer 1 is the source image
-            f'\(',
+            fr'\(',
             f'"{self.source_file.resolve()}"',
             # Resize and apply styles to source image
             *self.resize_and_style,
-            f'\)',
+            fr'\)',
             # Layer 2 is the mask
             f'"{difference_mask.resolve()}"',
             # Use masked alpha composition to combine images

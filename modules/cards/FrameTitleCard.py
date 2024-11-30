@@ -219,13 +219,13 @@ class FrameTitleCard(BaseCardType):
 
             return [
                 # Align text and image based on positioning
-                f'-gravity {gravity} \(',
+                fr'-gravity {gravity} \(',
                 # Add index texts
                 *self._index_font_attributes,
                 f'label:"{self.season_text}"' if not self.hide_season else '',
                 f'label:"{self.episode_text}"' if not self.hide_episode else '',
                 # Smush vertically
-                f'-smush 25 \)',
+                fr'-smush 25 \)',
                 # Overlay on left/right of the title text
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
@@ -238,9 +238,9 @@ class FrameTitleCard(BaseCardType):
         season_command = []
         if not self.hide_season:
             season_command = [
-                f'-gravity east \(',
+                fr'-gravity east \(',
                 *self._index_font_attributes,
-                f'label:"{self.season_text}" \)',
+                fr'label:"{self.season_text}" \)',
                 f'-gravity east',
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
@@ -250,9 +250,9 @@ class FrameTitleCard(BaseCardType):
         episode_command = []
         if not self.hide_episode:
             episode_command = [
-                f'-gravity west \(',
+                fr'-gravity west \(',
                 *self._index_font_attributes,
-                f'label:"{self.episode_text}" \)',
+                fr'label:"{self.episode_text}" \)',
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
             ]
@@ -282,8 +282,9 @@ class FrameTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] = FrameTitleCard.EPISODE_TEXT_COLOR
+            for extra in ('episode_text_color', ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -302,7 +303,8 @@ class FrameTitleCard(BaseCardType):
 
         custom_extras = (
             ('episode_text_color' in extras
-                and extras['episode_text_color'] != FrameTitleCard.EPISODE_TEXT_COLOR)
+                and extras['episode_text_color'] != \
+                    FrameTitleCard.EPISODE_TEXT_COLOR)
         )
 
         return (custom_extras
@@ -333,10 +335,10 @@ class FrameTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = FrameTitleCard.EPISODE_TEXT_FORMAT.upper()
-
-        return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+        return (
+            custom_episode_map
+            or episode_text_format != FrameTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:
@@ -347,7 +349,7 @@ class FrameTitleCard(BaseCardType):
             *self.style,
             # Resize to fit within frame
             f'-resize 2915x',
-            f'-resize x1275\<',
+            fr'-resize x1275\<',
             # Increase contrast of source image
             f'-modulate 100,125',
         ]

@@ -78,10 +78,19 @@ class FadeTitleCard(BaseCardType):
     __OVERLAY = REF_DIRECTORY / 'gradient_fade.png'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'index_text', 'font_file',
-        'font_size', 'font_color', 'font_interline_spacing',
-        'font_interword_spacing', 'font_kerning', 'font_vertical_shift', 'logo',
         'episode_text_color',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_size',
+        'font_kerning',
+        'font_vertical_shift',
+        'index_text',
+        'logo',
+        'output_file',
+        'source_file',
+        'title_text',
     )
 
     def __init__(self, *,
@@ -153,9 +162,9 @@ class FadeTitleCard(BaseCardType):
             return []
 
         return [
-            f'\( "{self.logo.resolve()}"',
+            fr'\( "{self.logo.resolve()}"',
             f'-resize 900x',
-            f'-resize x500\> \)',
+            fr'-resize x500\> \)',
             f'-gravity west -geometry +100-550',
             f'-composite',
         ]
@@ -253,9 +262,10 @@ class FadeTitleCard(BaseCardType):
             False otherwise.
         """
 
-        standard_etf = FadeTitleCard.EPISODE_TEXT_FORMAT
-
-        return (custom_episode_map or (episode_text_format != standard_etf))
+        return (
+            custom_episode_map
+            or (episode_text_format != FadeTitleCard.EPISODE_TEXT_FORMAT)
+        )
 
 
     def create(self) -> None:
@@ -267,10 +277,10 @@ class FadeTitleCard(BaseCardType):
             f'-size "{self.TITLE_CARD_SIZE}"',
             f'xc:None',
             # Resize source to subsection of card
-            f'\( "{self.source_file.resolve()}"',
+            fr'\( "{self.source_file.resolve()}"',
             f'-resize x1525',
             *self.style,
-            f'\)',
+            fr'\)',
             # Compose source onto proper place on canvas (100px from right)
             f'-gravity east',
             f'-geometry +100+0',

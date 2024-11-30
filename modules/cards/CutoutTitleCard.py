@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -124,11 +124,22 @@ class CutoutTitleCard(BaseCardType):
     NUMBER_BLUR_PROFILE = '0x10'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'episode_text',
-        'font_color', 'font_file', 'font_interline_spacing',
-        'font_interword_spacing', 'font_kerning', 'font_size',
-        'font_vertical_shift', 'overlay_color', 'blur_edges',
-        'number_blur_profile', 'overlay_transparency', 'cutout_vertical_shift',
+        'blur_edges',
+        'cutout_vertical_shift',
+        'episode_text',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'number_blur_profile',
+        'output_file',
+        'overlay_color',
+        'overlay_transparency',
+        'source_file',
+        'title_text',
         '__text_mask',
     )
 
@@ -292,10 +303,10 @@ class CutoutTitleCard(BaseCardType):
 
         # No cutout shift, can generate mask on-the-fly
         return [
-            f'\(',
+            fr'\(',
             *text_commands,
             blur,
-            f'\)'
+            fr'\)'
         ]
 
 
@@ -309,7 +320,7 @@ class CutoutTitleCard(BaseCardType):
 
         return [
             # Add source image
-            f'\( "{self.source_file.resolve()}"',
+            fr'\( "{self.source_file.resolve()}"',
             # Scale the alpha channel by the given transparency
             f'-alpha set',
             f'-channel A',
@@ -317,7 +328,7 @@ class CutoutTitleCard(BaseCardType):
             f'+channel',
             # Apply styling
             *self.resize_and_style,
-            f'\)',
+            fr'\)',
             # Add semi-transparent source on top of composition
             f'-composite',
         ]
@@ -363,8 +374,7 @@ class CutoutTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return episode_text_format.upper() != \
-            CutoutTitleCard.EPISODE_TEXT_FORMAT.upper()
+        return episode_text_format != CutoutTitleCard.EPISODE_TEXT_FORMAT
 
 
     def create(self) -> None:
@@ -377,12 +387,12 @@ class CutoutTitleCard(BaseCardType):
             f'convert',
             f'-set colorspace sRGB',
             # Create solid-color overlay
-            f'\( -size "{self.TITLE_CARD_SIZE}"',
+            fr'\( -size "{self.TITLE_CARD_SIZE}"',
             f'xc:"{self.overlay_color}" \)',
             # Resize and optionally blur source image
-            f'\( "{self.source_file.resolve()}"',
+            fr'\( "{self.source_file.resolve()}"',
             *self.resize_and_style,
-            f'\)',
+            fr'\)',
             # Create/add cutout of episode text
             *self.episode_text_mask,
             # Use masked alpha composition to combine images

@@ -334,8 +334,8 @@ class CalligraphyTitleCard(BaseCardType):
         if self.randomize_texture:
             random_height = (random() + 1.0) * self.HEIGHT
             texture_command = [
-                f'\( "{self.TEXTURE_IMAGE.resolve()}"',
-                f'-resize x{random_height} \)',
+                fr'\( "{self.TEXTURE_IMAGE.resolve()}"',
+                fr'-resize x{random_height} \)',
             ]
 
         return [
@@ -461,12 +461,13 @@ class CalligraphyTitleCard(BaseCardType):
 
         # Generic font, reset episode color
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] = CalligraphyTitleCard.TITLE_COLOR
-            if 'episode_text_font_size' in extras:
-                extras['episode_text_font_size'] = 1.0
-            if 'shadow_color' in extras:
-                extras['shadow_color'] = 'black'
+            for extra in (
+                'episode_text_color',
+                'episode_text_font_size',
+                'shadow_color'
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -520,10 +521,10 @@ class CalligraphyTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = CalligraphyTitleCard.EPISODE_TEXT_FORMAT.upper()
-
-        return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+        return (
+            custom_episode_map
+            or episode_text_format != CalligraphyTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:

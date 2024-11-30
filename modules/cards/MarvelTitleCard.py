@@ -157,13 +157,29 @@ class MarvelTitleCard(BaseCardType):
     DEFAULT_TEXT_BOX_HEIGHT = 200
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_file',
-        'font_size', 'font_color', 'font_interline_spacing',
-        'font_interword_spacing', 'font_kerning', 'font_vertical_shift',
-        'border_color', 'border_size', 'episode_text_color', 'fit_text',
-        'episode_text_position', 'hide_border', 'text_box_color',
-        'text_box_height', 'font_size_modifier',
+        'border_color',
+        'border_size',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_position',
+        'fit_text',
+        'font_file',
+        'font_size',
+        'font_color',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_vertical_shift',
+        'hide_border',
+        'hide_season_text',
+        'hide_episode_text',
+        'output_file',
+        'season_text',
+        'source_file',
+        'title_text',
+        'text_box_color',
+        'text_box_height',
+        'font_size_modifier',
     )
 
     def __init__(self, *,
@@ -235,7 +251,7 @@ class MarvelTitleCard(BaseCardType):
         """Subcommand for adding title text to the source image."""
 
         # No title text, or not being shown
-        if len(self.title_text) == 0:
+        if not self.title_text:
             return []
 
         # Font characteristics
@@ -470,14 +486,13 @@ class MarvelTitleCard(BaseCardType):
 
         # Generic font, reset episode text and box colors
         if not custom_font:
-            if 'border_color' in extras:
-                extras['border_color'] = MarvelTitleCard.DEFAULT_BORDER_COLOR
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] =\
-                    MarvelTitleCard.EPISODE_TEXT_COLOR
-            if 'text_box_color' in extras:
-                extras['text_box_color'] =\
-                    MarvelTitleCard.DEFAULT_TEXT_BOX_COLOR
+            for extra in (
+                'border_color',
+                'episode_text_color',
+                'text_box_color'
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -534,9 +549,10 @@ class MarvelTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return (custom_episode_map
-                or episode_text_format.upper() != \
-                    MarvelTitleCard.EPISODE_TEXT_FORMAT.upper())
+        return (
+            custom_episode_map
+            or episode_text_format != MarvelTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:

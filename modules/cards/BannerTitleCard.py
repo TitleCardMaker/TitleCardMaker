@@ -206,8 +206,8 @@ class BannerTitleCard(BaseCardType):
         height = self.HEIGHT - self.banner_height
 
         return [
-            fr'-fill "{self.banner_color}"',
-            fr'-draw "rectangle 0,{self.HEIGHT} {self.WIDTH},{height}"',
+            f'-fill "{self.banner_color}"',
+            f'-draw "rectangle 0,{self.HEIGHT} {self.WIDTH},{height}"',
         ]
 
 
@@ -225,21 +225,21 @@ class BannerTitleCard(BaseCardType):
         elif self.hide_episode_text:
             index_text = self.season_text
         else:
-            index_text = fr'{self.season_text}\n{self.episode_text}'
+            index_text = f'{self.season_text}\n{self.episode_text}'
 
         # Determine placement
         x = self.x_offset
         y = self.HEIGHT - self.banner_height - 43
 
         return [
-            fr'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
-            fr'-fill "{self.alternate_color}"',
-            fr'-pointsize {95 * self.episode_text_font_size:.0f}',
-            fr'-gravity northwest',
-            fr'-interline-spacing -65',
-            fr'-interword-spacing 20',
-            fr'-annotate {x:+.0f}{y:+.0f}',
-            fr'"{index_text}"',
+            f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
+            f'-fill "{self.alternate_color}"',
+            f'-pointsize {95 * self.episode_text_font_size:.0f}',
+            f'-gravity northwest',
+            f'-interline-spacing -65',
+            f'-interword-spacing 20',
+            f'-annotate {x:+.0f}{y:+.0f}',
+            f'"{index_text}"',
         ]
 
 
@@ -266,7 +266,7 @@ class BannerTitleCard(BaseCardType):
 
         # Return width of the longest text
         modified_commands = self.index_text_commands
-        modified_commands[-1] = fr'"{text}"'
+        modified_commands[-1] = f'"{text}"'
 
         return self.image_magick.get_text_dimensions(modified_commands)[0]
 
@@ -287,12 +287,12 @@ class BannerTitleCard(BaseCardType):
 
         # Base font commands for top and bottom text
         base_commands = [
-            fr'-font "{self.font_file}"',
-            fr'-fill {self.font_color}',
-            fr'-interline-spacing {interline_spacing:+}',
-            fr'-interword-spacing {interword_spacing:+}',
-            fr'-kerning {kerning:.0f}',
-            fr'-pointsize {size:.0f}',
+            f'-font "{self.font_file}"',
+            f'-fill {self.font_color}',
+            f'-interline-spacing {interline_spacing:+}',
+            f'-interword-spacing {interword_spacing:+}',
+            f'-kerning {kerning:.0f}',
+            f'-pointsize {size:.0f}',
         ]
 
         # Determine the width of the title text
@@ -300,7 +300,7 @@ class BannerTitleCard(BaseCardType):
         top_text_commands = [
             fr'\( -background none',
             *base_commands,
-            fr'-gravity southwest',
+            f'-gravity southwest',
             fr'label:"{self.top_title_text}" \)',
         ]
         top_width, _ = self.image_magick.get_text_dimensions(top_text_commands)
@@ -309,10 +309,10 @@ class BannerTitleCard(BaseCardType):
         if self.bottom_title_text:
             bottom_text_commands = [
                 *base_commands,
-                fr'-fill "{self.alternate_color}"',
-                fr'-gravity northwest',
-                fr'-annotate +0+0',
-                fr'"{self.bottom_title_text}"',
+                f'-fill "{self.alternate_color}"',
+                f'-gravity northwest',
+                f'-annotate +0+0',
+                f'"{self.bottom_title_text}"',
             ]
 
             # Positioning the bottom line of text 300px within from end of top
@@ -332,7 +332,7 @@ class BannerTitleCard(BaseCardType):
             # If would overlap from right edge, move left
             if bottom_x + bottom_width > self.WIDTH - self.x_offset:
                 bottom_x = self.WIDTH - self.x_offset - bottom_width
-            bottom_text_commands[-2] = fr'-annotate +{bottom_x}+{bottom_y}'
+            bottom_text_commands[-2] = f'-annotate +{bottom_x}+{bottom_y}'
         else:
             bottom_text_commands = []
 
@@ -367,14 +367,14 @@ class BannerTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'alternate_color' in extras:
-                extras['alternate_color'] = BannerTitleCard.EPISODE_TEXT_COLOR
-            if 'banner_color' in extras:
-                extras['banner_color'] = BannerTitleCard.TITLE_COLOR
-            if 'episode_text_font_size' in extras:
-                extras['episode_text_font_size'] = 1.0
-            if 'x_offset' in extras:
-                extras['x_offset'] = BannerTitleCard.X_OFFSET
+            for extra in (
+                'alternate_color',
+                'banner_color',
+                'episode_text_font_size',
+                'x_offset'
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -440,7 +440,7 @@ class BannerTitleCard(BaseCardType):
         """Create this object's defined Title Card."""
 
         self.image_magick.run([
-            fr'convert "{self.source_file.resolve()}"',
+            f'convert "{self.source_file.resolve()}"',
             # Resize and apply styles to source image
             *self.resize_and_style,
             # Add text and banner
@@ -450,5 +450,5 @@ class BannerTitleCard(BaseCardType):
             *self.add_overlay_mask(self.source_file),
             # Create card
             *self.resize_output,
-            fr'"{self.output_file.resolve()}"',
+            f'"{self.output_file.resolve()}"',
         ])

@@ -280,15 +280,14 @@ class WhiteBorderTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'border_color' in extras:
-                extras['border_color'] = 'white'
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] =\
-                    WhiteBorderTitleCard.EPISODE_TEXT_COLOR
-            if 'episode_text_font_size' in extras:
-                extras['episode_text_font_size'] = 1.0
-            if 'stroke_color' in extras:
-                extras['stroke_color'] = WhiteBorderTitleCard.STROKE_COLOR
+            for extra in (
+                'border_color',
+                'episode_text_color',
+                'episode_text_font_size',
+                'stroke_color',
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -336,9 +335,10 @@ class WhiteBorderTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return (custom_episode_map
-                or episode_text_format.upper() != \
-                    WhiteBorderTitleCard.EPISODE_TEXT_FORMAT.upper())
+        return (
+            custom_episode_map
+            or episode_text_format != WhiteBorderTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:

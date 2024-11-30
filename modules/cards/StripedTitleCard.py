@@ -418,13 +418,30 @@ class StripedTitleCard(BaseCardType):
 
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_color',
-        'font_interline_spacing', 'font_interword_spacing', 'font_file',
-        'font_kerning', 'font_size', 'font_vertical_shift', 'angle',
-        'episode_text_color', 'episode_text_font_size', 'inset',
-        'inter_shape_spacing', 'overlay_color', 'polygon_distribution',
-        'separator', 'text_position', 'episode_text_vertical_shift',
+        'angle',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_font_size',
+        'episode_text_vertical_shift',
+        'font_color',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_file',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'hide_season_text',
+        'hide_episode_text',
+        'inset',
+        'inter_shape_spacing',
+        'output_file',
+        'overlay_color',
+        'polygon_distribution',
+        'season_text',
+        'separator',
+        'source_file',
+        'text_position',
+        'title_text',
     )
 
 
@@ -767,9 +784,10 @@ class StripedTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return (custom_episode_map
-                or episode_text_format.upper() != \
-                    StripedTitleCard.EPISODE_TEXT_FORMAT.upper())
+        return (
+            custom_episode_map
+            or episode_text_format != StripedTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     @staticmethod

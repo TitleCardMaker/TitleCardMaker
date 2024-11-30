@@ -142,12 +142,25 @@ class TintedGlassTitleCard(BaseCardType):
     DEFAULT_ROUNDING_RADIUS = 40
 
     __slots__ = (
-        'source', 'output_file', 'title_text', '__line_count', 'episode_text',
-        'hide_episode_text', 'font_file', 'font_size', 'font_color',
-        'font_interline_spacing', 'font_interword_spacing', 'font_kerning',
-        'font_vertical_shift', 'episode_text_color', 'episode_text_position',
-        'box_adjustments', 'glass_color', 'rounding_radius',
+        'box_adjustments',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_position',
+        'font_file',
+        'font_size',
+        'font_color',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_vertical_shift',
+        'glass_color',
+        'hide_episode_text',
+        'output_file',
+        'rounding_radius',
+        'source',
+        'title_text',
         'vertical_adjustment',
+        '__line_count',
     )
 
     def __init__(self,
@@ -228,14 +241,14 @@ class TintedGlassTitleCard(BaseCardType):
 
         return [
             # Blur rectangle in the given bounds
-            f'\( -clone 0',
+            fr'\( -clone 0',
             f'-fill white',
             f'-colorize 100',
             f'-fill black',
             f'-draw "roundrectangle {draw_coords}"',
             f'-alpha off',
             f'-write mpr:mask',
-            f'+delete \)',
+            fr'+delete \)',
             f'-mask mpr:mask',
             f'-blur {self.TEXT_BLUR_PROFILE}' if not self.blur else '',
             f'+mask',
@@ -400,12 +413,13 @@ class TintedGlassTitleCard(BaseCardType):
         """
 
         if not custom_font:
-            if 'box_adjustments' in extras:
-                del extras['box_adjustments']
-            if 'episode_text_color' in extras:
-                del extras['episode_text_color']
-            if 'glass_color' in extras:
-                extras['glass_color'] = TintedGlassTitleCard.DARKEN_COLOR
+            for extra in (
+                'box_adjustments',
+                'episode_text_color',
+                'glass_color',
+            ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -465,8 +479,10 @@ class TintedGlassTitleCard(BaseCardType):
             'S{season_number} E{episode_number}'
         )
 
-        return (custom_episode_map
-                or episode_text_format not in standard_etfs)
+        return (
+            custom_episode_map
+            or episode_text_format not in standard_etfs
+        )
 
 
     def create(self):

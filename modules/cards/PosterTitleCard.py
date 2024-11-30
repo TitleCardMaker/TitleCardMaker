@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from modules.BaseCardType import BaseCardType, Extra, CardTypeDescription
 from modules.Title import SplitCharacteristics
@@ -74,9 +74,17 @@ class PosterTitleCard(BaseCardType):
     __GRADIENT_OVERLAY = REF_DIRECTORY / 'stars-overlay.png'
 
     __slots__ = (
-        'source_file', 'output_file', 'logo', 'title_text', 'episode_text',
-        'font_color', 'font_file', 'font_interline_spacing',
-        'font_interword_spacing', 'font_size', 'episode_text_color',
+        'episode_text',
+        'episode_text_color',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_size',
+        'logo',
+        'output_file',
+        'source_file',
+        'title_text',
     )
 
 
@@ -140,9 +148,9 @@ class PosterTitleCard(BaseCardType):
 
         # Generic font, reset custom episode text color
         if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] =\
-                    PosterTitleCard.EPISODE_TEXT_COLOR
+            for extra in ('episode_text_color', ):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -207,9 +215,9 @@ class PosterTitleCard(BaseCardType):
         else:
             logo_command = [
                 f'-gravity north',
-                f'\( "{self.logo.resolve()}"',
+                fr'\( "{self.logo.resolve()}"',
                 f'-resize x450',
-                f'-resize 1775x450\> \)',
+                fr'-resize 1775x450\> \)',
                 f'-geometry +649+50',
                 f'-composite',
             ]
@@ -218,7 +226,7 @@ class PosterTitleCard(BaseCardType):
             title_offset = (450 / 2) - (50 / 2)
 
         # Single command to create card
-        command = ' '.join([
+        self.image_magick.run([
             f'convert',
             # Resize poster
             f'"{self.source_file.resolve()}"',
@@ -249,5 +257,3 @@ class PosterTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
-
-        self.image_magick.run(command)

@@ -323,9 +323,9 @@ class ScoreTitleCard(BaseCardType):
 
         return [
             fr'\( "{self._GRADIENT_IMAGE.resolve()}"',
-            fr'-gravity center',
+            f'-gravity center',
             fr'-rotate {rotation} \)',
-            fr'-composite',
+            f'-composite',
         ]
 
 
@@ -358,29 +358,29 @@ class ScoreTitleCard(BaseCardType):
         prefix_cmds = []
         if prefix:
             prefix_cmds = [
-                fr'-fill "{text_color}"',
-                fr'-pointsize {text_size:.1f}',
-                fr'-gravity center',
-                fr'label:"{prefix}"',
+                f'-fill "{text_color}"',
+                f'-pointsize {text_size:.1f}',
+                f'-gravity center',
+                f'label:"{prefix}"',
             ]
 
         # Commands to draw the number text
         number_cmds = [
-            fr'-fill "{number_color}"',
-            fr'-pointsize {number_size:.1f}',
-            fr'-gravity center',
-            fr'label:"{number}"',
+            f'-fill "{number_color}"',
+            f'-pointsize {number_size:.1f}',
+            f'-gravity center',
+            f'label:"{number}"',
         ]
 
         return self.add_drop_shadow(
             [
                 fr'\( -background transparent',
-                fr'-font "{self.EPISODE_TEXT_FONT}"',
+                f'-font "{self.EPISODE_TEXT_FONT}"',
                 *(prefix_cmds if self.label_placement == 'above' else number_cmds),
                 *(number_cmds if self.label_placement == 'above' else prefix_cmds),
                 # Combine two text images (vertically)
-                fr'-gravity center',
-                fr'-smush 15' if prefix else fr'',
+                f'-gravity center',
+                f'-smush 15' if prefix else '',
                 fr'\)',
             ],
             Shadow(opacity=90, sigma=2, x=7, y=7),
@@ -418,29 +418,29 @@ class ScoreTitleCard(BaseCardType):
         prefix_cmds = []
         if prefix:
             prefix_cmds = [
-                fr'-fill "{text_color}"',
-                fr'-pointsize {text_size:.1f}',
-                fr'-gravity center',
-                fr'label:"{prefix}"',
+                f'-fill "{text_color}"',
+                f'-pointsize {text_size:.1f}',
+                f'-gravity center',
+                f'label:"{prefix}"',
             ]
 
         # Commands to draw the number text
         number_cmds = [
-            fr'-fill "{number_color}"',
-            fr'-pointsize {number_size:.1f}',
-            fr'-gravity center',
-            fr'label:"{number}"',
+            f'-fill "{number_color}"',
+            f'-pointsize {number_size:.1f}',
+            f'-gravity center',
+            f'label:"{number}"',
         ]
 
         return self.add_drop_shadow(
             [
                 fr'\( -background transparent',
-                fr'-font "{self.EPISODE_TEXT_FONT}"',
+                f'-font "{self.EPISODE_TEXT_FONT}"',
                 *(prefix_cmds if self.label_placement == 'above' else number_cmds),
                 *(number_cmds if self.label_placement == 'above' else prefix_cmds),
                 # Combine two text images (vertically)
-                fr'-gravity center',
-                fr'-smush 15' if prefix else fr'',
+                f'-gravity center',
+                f'-smush 15' if prefix else '',
                 fr'\)',
             ],
             Shadow(opacity=90, sigma=2, x=7, y=7),
@@ -496,11 +496,11 @@ class ScoreTitleCard(BaseCardType):
                 fr'\(',
                 *self._season_text_commands,
                 *self._episode_text_commands,
-                fr'-gravity west',
+                f'-gravity west',
                 fr'+smush 65 \)',
-                fr'-gravity {gravity_prefix}west',
-                fr'-geometry {x:+}{y:+}',
-                fr'-composite',
+                f'-gravity {gravity_prefix}west',
+                f'-geometry {x:+}{y:+}',
+                f'-composite',
             ]
 
         # Right style is [ title / season / episode ]
@@ -508,11 +508,11 @@ class ScoreTitleCard(BaseCardType):
             fr'\(',
             *self._season_text_commands,
             *self._episode_text_commands,
-            fr'-gravity east',
+            f'-gravity east',
             fr'+smush 65 \)',
-            fr'-gravity {gravity_prefix}east',
-            fr'-geometry {x:+}{y:+}',
-            fr'-composite',
+            f'-gravity {gravity_prefix}east',
+            f'-geometry {x:+}{y:+}',
+            f'-composite',
         ]
 
 
@@ -658,9 +658,9 @@ class ScoreTitleCard(BaseCardType):
         """Create this object's defined Title Card."""
 
         self.image_magick.run([
-            fr'convert',
+            f'convert',
             # Resize and style source image
-            fr'"{self.source_file.resolve()}"',
+            f'"{self.source_file.resolve()}"',
             *self.resize_and_style,
             # Overlay gradient
             *self.gradient_command,
@@ -670,5 +670,5 @@ class ScoreTitleCard(BaseCardType):
             *self.add_overlay_mask(self.source_file),
             # Create card
             *self.resize_output,
-            fr'"{self.output_file.resolve()}"',
+            f'"{self.output_file.resolve()}"',
         ])
