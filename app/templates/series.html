@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <title>{{series.name}} - TitleCardMaker</title>
+  <title>{{ series.name }} - TitleCardMaker</title>
 
   {% include "./html_boilerplate.html" %}
   <!-- Include 2.9.3 so event timelines load -->
@@ -413,20 +413,20 @@
             {% endif %}
           </a>
         </span>
-        <a class="item" onclick="processSeries();">
+        <a class="item" data-action="process-series" onclick="processSeries();">
           <i class="images outline icon"></i>
           Create Title Cards
         </a>
         {% for library in series.libraries %}
         <div class="ui dropdown item">
-          {{library.name}}｜<span data-interface-type="{{library.interface}}" data-value="interface-type">{{library.interface}}</span>
+          {{ library.name }}｜<span data-interface-type="{{ library.interface }}" data-value="interface-type">{{ library.interface }}</span>
           <i class="dropdown icon"></i>
           <div class="menu">
-            <a class="item" onclick="loadCards({{library.interface_id}}, `{{library.name}}`, false);">
+            <a class="item" data-interface-id="{{ library.interface_id }}" data-library-name="{{ library.name }}" data-force="false" onclick="loadCards({{library.interface_id}}, `{{library.name}}`, false);">
               <i class="hdd outline icon"></i>
               Load Cards
             </a>
-            <a class="item" onclick="loadCards({{library.interface_id}}, `{{library.name}}`, true);">
+            <a class="item" data-interface-id="{{ library.interface_id }}" data-library-name="{{ library.name }}" data-force="true" onclick="loadCards({{library.interface_id}}, `{{library.name}}`, true);">
               <i class="orange hdd outline icon"></i>
               Force Reload Cards
             </a>
@@ -493,8 +493,8 @@
             </div>
             <div class="ui invisible segment">
               <h2 class="ui header">
-                <span contenteditable="">{{series.name}}</span>
-                <div class="sub header">{{series.year}}</div>
+                <span contenteditable="">{{ series.name }}</span>
+                <div class="sub header">{{ series.year }}</div>
                 <div id="card-progress" class="ui bottom attached progress">
                   <div class="green bar"></div>
                   <div class="red bar"></div>
@@ -679,12 +679,12 @@
                 <div class="ui left icon fluid input">
                   {% if series.directory is none %}
                   {% if '/' in preferences.card_directory|string %}
-                  <input name="directory" type="text" placeholder="{{preferences.card_directory}}/{{series.path_safe_name}}">
+                  <input name="directory" type="text" placeholder="{{ preferences.card_directory }}/{{ series.path_safe_name }}">
                   {% else %}
-                  <input name="directory" type="text" placeholder="{{preferences.card_directory}}\{{series.path_safe_name}}">
+                  <input name="directory" type="text" placeholder="{{ preferences.card_directory }}\{{ series.path_safe_name }}">
                   {% endif %}
                   {% else %}
-                  <input name="directory" type="text" value="{{series.directory}}">
+                  <input name="directory" type="text" value="{{ series.directory }}">
                   {% endif %}
                   <i class="folder icon"></i>
                 </div>
@@ -696,7 +696,7 @@
                 {% if series.card_filename_format is none %}
                 <input name="card_filename_format" type="text" placeholder="Default">
                 {% else %}
-                <input name="card_filename_format" type="text" value="{{series.card_filename_format}}">
+                <input name="card_filename_format" type="text" value="{{ series.card_filename_format }}">
                 {% endif %}
                 <p class="help">Format of how to name this Series' Title Cards.</p>
               </div>
@@ -1040,7 +1040,7 @@
             <i class="search icon"></i>
             Search
           </button>
-          <button data-action="export" onclick="exportBlueprint();" class="ui green tertiary button" data-tooltip="Export a zip file with this Series' Blueprint">
+          <button data-action="export" onclick="exportBlueprint();" class="ui green tertiary button">
             <i class="file export icon"></i>
             Export
           </button>
@@ -1182,17 +1182,17 @@
         <div class="ui bottom attached tab segment" data-tab="files">
           <h2 class="ui dividing header">Title Cards</h2>
 
-          <button onclick="getCardData(undefined, true);" class="ui blue tertiary button">
+          <button class="ui blue tertiary button" data-action="refresh-cards" onclick="getCardData(undefined, true);" >
             <i class="redo icon"></i>
             Refresh
           </button>
 
-          <button onclick="showCardUpload();" class="ui green tertiary button">
+          <button class="ui green tertiary button" onclick="showCardUpload();">
             <i class="upload icon"></i>
             Upload
           </button>
 
-          <button onclick="$('#import-mediux-modal').modal('show');" class="ui mediux tertiary button">
+          <button class="ui mediux tertiary button" onclick="$('#import-mediux-modal').modal('show');">
             <i class="code icon"></i>
             MediUX Import
           </button>
@@ -1252,14 +1252,14 @@
 
           <div class="ui visible floating info message">
             <i class="info circle icon"></i>
-            Source images are located within <span class="ui blue text">{{series.source_directory}}</span>
+            Source images are located within <span class="ui blue text">{{ series.source_directory }}</span>
           </div>
 
           <!-- Logo -->
           <h2 class="ui dividing header">Logo</h2>
 
           <div class="ui tertiary buttons">
-            <div class="ui blue tertiary button" onclick="browseLogos(null);">
+            <div class="ui blue tertiary button" data-action="browse-series-logo" onclick="browseLogos(null);">
               <i data-action="browse" class="border all icon"></i>
               Browse
             </div>
@@ -1334,7 +1334,7 @@
             The Backdrop is automatically used as the source image for any <b>Art</b> styles.
           </div>
 
-          <div class="ui blue tertiary button" onclick="browseBackdrops(null);">
+          <div class="ui blue tertiary button" data-action="browse-series-backdrop" onclick="browseBackdrops(null);">
             <i data-action="browse" class="border all icon"></i>
             Browse
           </div>
@@ -1349,7 +1349,7 @@
           </div>
           <div class="color palette" id="backdrop-palette"></div>
 
-          <img id="backdrop" class="ui rounded image" src="/source/{{series.path_safe_name}}/backdrop.jpg" loading="lazy" onerror="this.style.display='none';">
+          <img id="backdrop" class="ui rounded image" src="/source/{{ series.path_safe_name }}/backdrop.jpg" loading="lazy" onerror="this.style.display='none';">
 
           {% if series.use_per_season_assets %}
           <div class="ui large list">
@@ -1404,7 +1404,7 @@
             <div id-type="Emby ID" class="field">
               {% if series.emby_id %}
               <label>Emby</label>
-              <input name="emby_id" type="text" placeholder="None" value="{{series.emby_id}}">
+              <input name="emby_id" type="text" placeholder="None" value="{{ series.emby_id }}">
               {% else %}
               <label>Emby</label>
               <input name="emby_id" type="text" placeholder="None">
@@ -1415,8 +1415,8 @@
 
             <div id-type="IMDb" class="field">
               {% if series.imdb_id %}
-              <label>IMDb <a href="https://www.imdb.com/title/{{series.imdb_id}}" target="_blank"><i class="external alternate small icon"></i></a></label>
-              <input name="imdb_id" type="text" placeholder="None" value="{{series.imdb_id}}">
+              <label>IMDb <a href="https://www.imdb.com/title/{{ series.imdb_id }}" target="_blank"><i class="external alternate small icon"></i></a></label>
+              <input name="imdb_id" type="text" placeholder="None" value="{{ series.imdb_id }}">
               {% else %}
               <label>IMDb</label>
               <input name="imdb_id" type="text" placeholder="None">
@@ -1427,7 +1427,7 @@
             <div id-type="Jellyfin" class="field">
               {% if series.jellyfin_id %}
               <label>Jellyfin</label>
-              <input name="jellyfin_id" type="text" placeholder="None" value="{{series.jellyfin_id}}">
+              <input name="jellyfin_id" type="text" placeholder="None" value="{{ series.jellyfin_id }}">
               {% else %}
               <label>Jellyfin</label>
               <input name="jellyfin_id" type="text" placeholder="None">
@@ -1440,7 +1440,7 @@
             <div id-type="Sonarr" class="field">
               {% if series.sonarr_id %}
               <label>Sonarr</label>
-              <input name="sonarr_id" type="text" placeholder="None" value="{{series.sonarr_id}}">
+              <input name="sonarr_id" type="text" placeholder="None" value="{{ series.sonarr_id }}">
               {% else %}
               <label>Sonarr</label>
               <input name="sonarr_id" type="text" placeholder="None">
@@ -1451,8 +1451,8 @@
 
             <div id-type="TMDb" class="field">
               {% if series.tmdb_id %}
-              <label>TMDb <a href="https://www.themoviedb.org/tv/{{series.tmdb_id}}" target="_blank"><i class="external alternate small icon"></i></a></label>
-              <input name="tmdb_id" type="text" placeholder="None" value="{{series.tmdb_id}}">
+              <label>TMDb <a href="https://www.themoviedb.org/tv/{{ series.tmdb_id }}" target="_blank"><i class="external alternate small icon"></i></a></label>
+              <input name="tmdb_id" type="text" placeholder="None" value="{{ series.tmdb_id }}">
               {% else %}
               <label>TMDb</label>
               <input name="tmdb_id" type="text" placeholder="None">
@@ -1461,8 +1461,8 @@
 
             <div id-type="TVDb" class="field">
               {% if series.tvdb_id %}
-              <label>TVDb <a href="https://www.thetvdb.com/dereferrer/series/{{series.tvdb_id}}" target="_blank"><i class="external alternate small icon"></i></a></label>
-              <input name="tvdb_id" type="text" placeholder="None" value="{{series.tvdb_id}}">
+              <label>TVDb <a href="https://www.thetvdb.com/dereferrer/series/{{ series.tvdb_id }}" target="_blank"><i class="external alternate small icon"></i></a></label>
+              <input name="tvdb_id" type="text" placeholder="None" value="{{ series.tvdb_id }}">
               {% else %}
               <label>TVDb</label>
               <input name="tvdb_id" type="text" placeholder="None">
@@ -1473,7 +1473,7 @@
             <div id-type="TVRage" class="field">
               <label>TVRage</label>
               {% if series.tvrage_id %}
-              <input name="tvrage_id" type="text" placeholder="None" value="{{series.tvrage_id}}">
+              <input name="tvrage_id" type="text" placeholder="None" value="{{ series.tvrage_id }}">
               {% else %}
               <input name="tvrage_id" type="text" placeholder="None">
               {% endif %}
@@ -1549,7 +1549,7 @@
     <div id="delete-series-modal" class="ui basic modal">
       <div class="ui icon header">
         <i class="trash icon"></i>
-        Delete "{{series.name}}"?
+        Delete "{{ series.name }}"?
       </div>
       <div class="center aligned content">
         <p>This action cannot be undone.</p>
