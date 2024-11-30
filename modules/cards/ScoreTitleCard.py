@@ -360,6 +360,7 @@ class ScoreTitleCard(BaseCardType):
             prefix_cmds = [
                 fr'-fill "{text_color}"',
                 fr'-pointsize {text_size:.1f}',
+                fr'-gravity center',
                 fr'label:"{prefix}"',
             ]
 
@@ -367,6 +368,7 @@ class ScoreTitleCard(BaseCardType):
         number_cmds = [
             fr'-fill "{number_color}"',
             fr'-pointsize {number_size:.1f}',
+            fr'-gravity center',
             fr'label:"{number}"',
         ]
 
@@ -418,6 +420,7 @@ class ScoreTitleCard(BaseCardType):
             prefix_cmds = [
                 fr'-fill "{text_color}"',
                 fr'-pointsize {text_size:.1f}',
+                fr'-gravity center',
                 fr'label:"{prefix}"',
             ]
 
@@ -425,6 +428,7 @@ class ScoreTitleCard(BaseCardType):
         number_cmds = [
             fr'-fill "{number_color}"',
             fr'-pointsize {number_size:.1f}',
+            fr'-gravity center',
             fr'label:"{number}"',
         ]
 
