@@ -1775,6 +1775,10 @@ function exportBlueprint() {
  * @param {string} url - URL (or Base64 encoded bytes) to download.
  */
 function selectTmdbImage(episodeId, url) {
+  // Show loading icon
+  const labelIcon = document.querySelector(`#browse-tmdb-modal .image[data-url="${url}"] .label i`);
+  labelIcon.style.display = '';
+
   // Create pseudo form for this URL
   const form = new FormData();
   form.set('url', url);
@@ -1786,12 +1790,14 @@ function selectTmdbImage(episodeId, url) {
     cache: false,
     contentType: false,
     processData: false,
+    /** Source Image downloaded, display toast and re-query data */
     success: () => {
       showInfoToast('Updated Source Image');
       getSourceFileData();
       getCardData();
     },
     error: response => showErrorToast({title: 'Error Updating Source Image', response}),
+    complete: () => labelIcon.style.display = 'none',
   });
 }
 
@@ -1872,6 +1878,7 @@ function downloadSeriesBackdrop(url, seasonNumber=null) {
 function browseSourceImages(episodeId, cardElementId, episodeIds) {
   const $icon = $(`#${cardElementId} .icon[data-action="browse"]`);
   setLoadingIcon($icon);
+  document.querySelector('#browse-tmdb-modal .header span').innerHTML = 'Source Images <div class="ui active inline small loader"></div>'
 
   $.ajax({
     type: 'GET',
@@ -1887,9 +1894,9 @@ function browseSourceImages(episodeId, cardElementId, episodeIds) {
       const episode = $(`#${cardElementId} [data-column="episode_number"]`).text();
       if (season === '' || episode === '') {
         const label = $(`#${cardElementId} [data-value="index"]`).text();
-        $('#browse-tmdb-modal .header span').text(`Source Images - ${label}`);
+        document.querySelector('#browse-tmdb-modal .header span').innerText = `Source Images - ${label}`;
       } else {
-        $('#browse-tmdb-modal .header span').text(`Source Images - Season ${season} Episode ${episode}`);
+        document.querySelector('#browse-tmdb-modal .header span').innerText = `Source Images - Season ${season} Episode ${episode}`;
       }
 
       // Create image elements
@@ -1899,10 +1906,10 @@ function browseSourceImages(episodeId, cardElementId, episodeIds) {
         const color = {'Emby': 'green', 'Jellyfin': 'purple', 'Plex': 'yellow', 'TMDb': 'blue'}[interface_type];
 
         // Return image
-        return `<a class="ui image" onclick="selectTmdbImage(${episodeId}, '${url || data}')">`
-          + `<div class="ui ${color} ${location} ribbon label">`
+        return `<a class="ui image" data-url="${url}" onclick="selectTmdbImage(${episodeId}, '${url || data}')">`
+          + `<div class="ui ${color} ${location} ribbon right icon label">`
           + (interface_type == 'TMDb' ? `${width}x${height}` : interface_type)
-          + `</div><img src="${url || data}"/></a>`;
+          + `<i class="spinner loading icon" style="display: none"></i></div><img src="${url || data}"/></a>`;
       });
 
       // Add to the modal
@@ -1910,14 +1917,14 @@ function browseSourceImages(episodeId, cardElementId, episodeIds) {
 
       // Update next/previous links
       const previousEpisodeId = episodeIds[episodeIds.indexOf(episodeId) - 1];
-      $('#browse-tmdb-modal [data-action="previous-episode"]')[0].onclick =
+      document.querySelector('#browse-tmdb-modal [data-action="previous-episode"]').onclick =
         (previousEpisodeId
         ? () => browseSourceImages(previousEpisodeId, getSourceImageElementId(previousEpisodeId), episodeIds)
         : () => showInfoToast('No previous Episode on current Page'))
       ;
 
       const nextEpisodeId = episodeIds[episodeIds.indexOf(episodeId) + 1];
-      $('#browse-tmdb-modal [data-action="next-episode"]')[0].onclick =
+      document.querySelector('#browse-tmdb-modal [data-action="next-episode"]').onclick =
         (nextEpisodeId
         ? () => browseSourceImages(nextEpisodeId, getSourceImageElementId(nextEpisodeId), episodeIds)
         : () => showInfoToast('No next Episode on current Page'))
@@ -2491,7 +2498,7 @@ let pendingFiles = [];
 function showCardUpload() {
   $('#upload-cards-modal table').css('display', 'none');
   $('#upload-cards-modal table tbody tr').remove();
-  $('#upload-cards-modal').modal('show');
+  $('#upload-cards-modal').modal({blurring: true}).modal('show');
   pendingFiles = [];
 }
 
@@ -2614,6 +2621,15 @@ function uploadCards(setTextless=false) {
     return;
   }
 
+  // Mark icon as loading
+  let $icon;
+  if (setTextless) {
+    $icon = $('#upload-cards-modal .button[data-action="upload-textless"] .icon');
+  } else {
+    $icon = $('#upload-cards-modal .button[data-action="upload"] .icon');
+  }
+  setLoadingIcon($icon);
+
   // Add files to FormData object
   const f = new FormData();
   pendingFiles.forEach(file => f.append('cards', file));
@@ -2631,6 +2647,7 @@ function uploadCards(setTextless=false) {
     error: response => showErrorToast({title: 'Error Uploading Cards', response}),
     /** Re-query statistics, card data, and file data */
     complete: () => {
+      removeLoadingIcon($icon);
       getStatistics();
       getCardData();
       getSourceFileData();

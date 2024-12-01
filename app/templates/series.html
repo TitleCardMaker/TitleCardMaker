@@ -1729,12 +1729,13 @@
 
       <div class="center aligned actions">
         <button class="ui cancel button">Cancel</button>
-        <button class="ui teal button" onclick="uploadCards(true);">Upload as Textless</button>
-        <button form="episode-extras-form" class="ui animated primary button" onclick="uploadCards(false);">
-          <div class="visible content">Upload</div>
-          <div class="hidden content">
-            <i class="right arrow icon"></i>
-          </div>
+        <button class="ui teal button" data-action="upload-textless" onclick="uploadCards(true);">
+          <i class="paste icon"></i>
+          Upload as Textless
+        </button>
+        <button class="ui primary button" data-action="upload" onclick="uploadCards(false);">
+          <i class="upload icon"></i>
+          Upload
         </button>
       </div>
     </div>
