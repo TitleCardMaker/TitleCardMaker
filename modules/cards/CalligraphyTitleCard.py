@@ -360,7 +360,7 @@ class CalligraphyTitleCard(BaseCardType):
         base_command = [
             f'"{self.logo_file.resolve()}"',
             f'-resize 2800x',
-            f'-resize x{logo_height}\>',
+            fr'-resize x{logo_height}\>',
         ]
 
         return self.add_drop_shadow(base_command, '95x10+0+35', 0, 0)

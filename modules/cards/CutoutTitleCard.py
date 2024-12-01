@@ -388,7 +388,7 @@ class CutoutTitleCard(BaseCardType):
             f'-set colorspace sRGB',
             # Create solid-color overlay
             fr'\( -size "{self.TITLE_CARD_SIZE}"',
-            f'xc:"{self.overlay_color}" \)',
+            fr'xc:"{self.overlay_color}" \)',
             # Resize and optionally blur source image
             fr'\( "{self.source_file.resolve()}"',
             *self.resize_and_style,

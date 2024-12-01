@@ -739,10 +739,10 @@ class MusicTitleCard(BaseCardType):
         # Base commands to add and resize the image
         base_commands = [
             f'-gravity south',
-            f'\( "{self.album_cover.resolve()}"',
+            fr'\( "{self.album_cover.resolve()}"',
             f'-resize {dimensions.width}x',
-            f'-resize x{dimensions.height}\>',
-            f'\)',
+            fr'-resize x{dimensions.height}\>',
+            fr'\)',
         ]
 
         # ABoth artwork and poster can have rounded corners, and use drop shadow
@@ -753,7 +753,7 @@ class MusicTitleCard(BaseCardType):
                     self.album_cover, base_commands, dimensions, radius=25,
                 )
                 self.__cleanup.append(rounded_file)
-                base_commands[1] = f'\( "{rounded_file.resolve()}"'
+                base_commands[1] = fr'\( "{rounded_file.resolve()}"'
 
             return self.add_drop_shadow(
                 base_commands,
@@ -804,7 +804,7 @@ class MusicTitleCard(BaseCardType):
 
         return [
             # Blur rectangle in the given bounds
-            f'\( -clone 0',
+            fr'\( -clone 0',
             f'-fill white',
             f'-colorize 100',
             f'-fill black',

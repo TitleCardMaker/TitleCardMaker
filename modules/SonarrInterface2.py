@@ -442,7 +442,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
 
 
     def set_episode_ids(self,
-            library_name: str,
+            library_name: Any,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
             *,

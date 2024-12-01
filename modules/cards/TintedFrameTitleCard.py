@@ -520,7 +520,7 @@ class TintedFrameTitleCard(BaseCardType):
             # Constrain by width and height
             resize_command = [
                 f'-resize x{logo_height}',
-                f'-resize {2500 * self.logo_size}x{logo_height}\>',
+                fr'-resize {2500 * self.logo_size}x{logo_height}\>',
             ]
         else:
             resize_command = [f'-resize x{logo_height}']
