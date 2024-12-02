@@ -925,7 +925,6 @@ async function getEpisodeData(page=1) {
     row.querySelector('td[data-column="title"]').dataset.sortValue = episode.title;
     row.querySelector('td[data-column="match_title"]').innerHTML = getIcon(episode.match_title, true);
     row.querySelector('td[data-column="auto_split_title"]').innerHTML = getIcon(episode.auto_split_title, true);
-    row.querySelector('input[name="template_ids"]').value = episode.template_ids?.join(',') || '';
     row.querySelector('input[name="font_id"]').value = episode.font_id || '';
     // Card type
     row.querySelector('td[data-column="hide_season_text"]').innerHTML = getIcon(episode.hide_season_text, true);
@@ -933,6 +932,7 @@ async function getEpisodeData(page=1) {
     row.querySelector('td[data-column="hide_episode_text"]').innerHTML = getIcon(episode.hide_episode_text, true);
     row.querySelector('input[name="episode_text"]').value = episode.episode_text;
     if (!simplified_data_table) {
+      row.querySelector('input[name="template_ids"]').value = episode.template_ids?.join(',') || '';
       row.querySelector('input[name="unwatched_style"]').value = episode.unwatched_style || '';
       row.querySelector('input[name="watched_style"]').value = episode.unwatched_style || '';
       row.querySelector('input[name="font_color"]').value = episode.font_color;
