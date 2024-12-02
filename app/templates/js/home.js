@@ -781,48 +781,48 @@ function deleteFilter(deleteButton) {
 }
 
 const filterSettings = [
-  // name                       value                    type
-  ['Card Directory',            'directory',              'nullable string' ],
-  ['Series Name',               'name',                   'string'          ],
-  ['Series Year',               'year',                   'numeric'         ],
-  ['Monitored Status',          'monitored',              'boolean'         ],
-  ['Series ID',                 'id',                     'numeric'         ],
-  ['Sync ID',                   'sync_id',                'nullable numeric'],
-  ['Font ID',                   'font_id',                'nullable numeric'],
-  ['Episode Data Source ID',    'data_source_id',         'nullable numeric'],
-  ['List of Libraries',         'libraries',              'list'            ],
-  ['Has Missing Title Cards',   'missing_cards',          'boolean',        ],
-  ['Card Filename Format',      'card_filename_format',   'nullable string' ],
-  ['Enable Specials',           'sync_specials',          'nullable boolean'],
-  ['Localized Image Rejection', 'skip_localized_images',  'nullable boolean'],
-  ['List of Translations',      'translations',           'list'            ],
-  ['Match Titles',              'match_titles',           'boolean'         ],
+  //      name                        value                     type
   ['Auto-Split Titles',         'auto_split_titles',      'boolean'         ],
-  ['Per-Season Assets',         'use_per_season_assets',  'boolean'         ],
-  ['Image Source Priority',     'image_source_priority',  'list'            ],
+  ['Card Filename Format',      'card_filename_format',   'nullable string' ],
+  ['Card Type',                 'card_type',              'nullable string' ],
+  ['Episode Data Source ID',    'data_source_id',         'nullable numeric'],
+  ['Card Directory',            'directory',              'nullable string' ],
   ['Emby Database ID',          'emby_id',                'nullable string' ],
+  ['Episode Text Format',       'episode_text_format',    'nullable string' ],
+  ['Extras',                    'extras',                 'nullable list'   ],
+  ['Hide Episode Text',         'hide_episode_text',      'nullable boolean'],
+  ['Hide Season Text',          'hide_season_text',       'nullable boolean'],
+  ['Series ID',                 'id',                     'numeric'         ],
+  ['Image Source Priority',     'image_source_priority',  'list'            ],
   ['IMDb Database ID',          'imdb_id',                'nullable string' ],
-  ['Jellyfin Database ID',      'jellyfin_id',            'nullable string' ],
-  ['Sonarr Database ID',        'sonarr_id',              'nullable string' ],
-  ['TMDb Database ID',          'tmdb_id',                'nullable numeric'],
-  ['TVDb Database ID',          'tvdb_id',                'nullable numeric'],
-  ['TVRage Database ID',        'tvrage_id',              'nullable string' ],
   ['Font Color',                'font_color',             'nullable string' ],
-  ['Font Title Case',           'font_title_case',        'nullable string' ],
-  ['Font Size',                 'font_size',              'nullable numeric'],
-  ['Font Kerning',              'font_kerning',           'nullable numeric'],
-  ['Font Stroke Width',         'font_stroke_width',      'nullable numeric'],
+  ['Font ID',                   'font_id',                'nullable numeric'],
   ['Font Interline Spacing',    'font_interline_spacing', 'nullable numeric'],
   ['Font Interword Spacing',    'font_interword_spacing', 'nullable numeric'],
+  ['Font Kerning',              'font_kerning',           'nullable numeric'],
+  ['Font Size',                 'font_size',              'nullable numeric'],
+  ['Font Stroke Width',         'font_stroke_width',      'nullable numeric'],
+  ['Font Title Case',           'font_title_case',        'nullable string' ],
   ['Font Vertical Shift',       'font_vertical_shift',    'nullable numeric'],
-  ['Card Type',                 'card_type',              'nullable string' ],
-  ['Hide Season Text',          'hide_season_text',       'nullable boolean'],
+  ['Jellyfin Database ID',      'jellyfin_id',            'nullable string' ],
+  ['List of Libraries',         'libraries',              'list'            ],
+  ['Match Titles',              'match_titles',           'boolean'         ],
+  ['Has Missing Title Cards',   'missing_cards',          'boolean',        ],
+  ['Monitored Status',          'monitored',              'boolean'         ],
+  ['Series Name',               'name',                   'string'          ],
   ['Season Title List',         'season_titles',          'nullable list'   ],
-  ['Hide Episode Text',         'hide_episode_text',      'nullable boolean'],
-  ['Episode Text Format',       'episode_text_format',    'nullable string' ],
+  ['Localized Image Rejection', 'skip_localized_images',  'nullable boolean'],
+  ['Sonarr Database ID',        'sonarr_id',              'nullable string' ],
+  ['Sync ID',                   'sync_id',                'nullable numeric'],
+  ['Enable Specials',           'sync_specials',          'nullable boolean'],
+  ['TMDb Database ID',          'tmdb_id',                'nullable numeric'],
+  ['List of Translations',      'translations',           'list'            ],
+  ['TVDb Database ID',          'tvdb_id',                'nullable numeric'],
+  ['TVRage Database ID',        'tvrage_id',              'nullable string' ],
   ['Unwatched Card Style',      'unwatched_style',        'nullable string' ],
+  ['Per-Season Assets',         'use_per_season_assets',  'boolean'         ],
   ['Watched Card Style',        'watched_style',          'nullable string' ],
-  ['Extras',                    'extras',                 'nullable list'   ],
+  ['Series Year',               'year',                   'numeric'         ],
 ].sort((a, b) => a[0].localeCompare(b[0])).map(setting => {
   return { name: setting[0], value: setting[1], type: setting[2] };
 });
@@ -961,7 +961,8 @@ function initializeFilterTemplate() {
       newFields.querySelector('.field[data-label="field"] div.dropdown > input').value = condition.field;
 
       // Initialize condition items
-      const fieldType = filterSettings.find(filter => filter.value === condition.field).type;
+      const fieldType = filterSettings.find(filter => filter.value === condition.field)?.type;
+      if (!fieldType) { return; }
       filterChoices[fieldType].forEach(choice => {
         addDropdownItem(
           newFields.querySelector('.field[data-label="condition"] div.dropdown .menu'),
