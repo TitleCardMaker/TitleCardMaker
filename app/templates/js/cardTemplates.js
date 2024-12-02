@@ -2,6 +2,7 @@
 import {
   AvailableFont,
   EpisodeDataSourceToggle,
+  ImageSourceToggle,
   PreviewTitleCard,
   SeriesPage,
   Style,
@@ -186,6 +187,9 @@ function updateTemplate(templateId) {
     episode_text_format: $(`#template-id${templateId} input[name="episode_text_format"]`).val() || null,
     skip_localized_images: $(`#template-id${templateId} input[name="skip_localized_images"]`).val() || null,
     data_source_id: $(`#template-id${templateId} input[name="data_source_id"]`).val() || null,
+    image_source_priority: parseList(
+        document.querySelector(`#template-id${templateId} input[name="image_source_priority"]`).value.split(',').filter(id => id != '')
+      ),
     sync_specials: $(`#template-id${templateId} input[name="sync_specials"]`).val() || null,
     translations: parseList(
         Array.from(document.querySelectorAll(`#template-id${templateId} input[name="language_code"]`)).map((input, index) => {
@@ -255,15 +259,17 @@ async function getAllTemplates() {
   const templatePromise = fetch('/api/templates/all').then(resp => resp.json());
 
   // Query all "available" data used to populate dropdowns in the HTML template
-  /** @type {[AvailableFont[], EpisodeDataSourceToggle[], TemplateFilter[], Translation[]]} */
+  /** @type {[AvailableFont[], EpisodeDataSourceToggle[], ImageSourceToggle[], TemplateFilter[], Translation[]]} */
   const [
     allFonts,
     allEpisodeDataSources,
+    allImageSources,
     allFilterOptions,
     allTranslations,
   ] = await Promise.all([
     fetch('/api/available/fonts').then(resp => resp.json()),
     fetch('/api/settings/episode-data-source').then(resp => resp.json()),
+    fetch('/api/settings/image-source-priority').then(resp => resp.json()),
     fetch('/api/available/template-filters').then(resp => resp.json()),
     fetch('/api/available/translations').then(resp => resp.json()),
   ]);
@@ -292,6 +298,9 @@ async function getAllTemplates() {
   allEpisodeDataSources.forEach(source => {
     addDropdownItem(dataSourceIdMenu, {innerText: source.name, value: source.interface_id});
   });
+  // Image Source Priorities
+  const ispMenu = htmlTemplate.querySelector('.dropdown[data-value="image_source_priority"] .menu');
+  allImageSources.forEach(source => addDropdownItem(ispMenu, {innerText: source.name, value: source.interface_id}));
   // Translation languages
   const translationMenu = translationTemplate.querySelector('.dropdown[data-value="language_code"] .menu');
   allTranslations.forEach(translation => {
@@ -396,7 +405,7 @@ async function getAllTemplates() {
       const value = templateObj.skip_localized_images ? 'True' : 'False';
       base.querySelector('.dropdown[data-value="skip_localized_images"] > input').value = value;
     }
-    // Episode data source set later
+    // Episode data source
     if (templateObj.data_source_id !== null) {
       base.querySelector('.dropdown[data-value="data_source_id"] > input').value = templateObj.data_source_id;
     }
@@ -405,7 +414,10 @@ async function getAllTemplates() {
       const value = templateObj.sync_specials ? 'True' : 'False';
       base.querySelector('.dropdown[data-value="sync_specials"] > input').value = value;
     }
-    // Image source priority set later
+    // Image source priority
+    if (templateObj.image_source_priority !== null) {
+      base.querySelector('.dropdown[data-value="image_source_priority"] > input').value = templateObj.image_source_priority;
+    }
     // Translations
     if (templateObj.translations !== null && templateObj.translations.length > 0) {
       const translationSegment = base.querySelector('[data-value="translations"]');

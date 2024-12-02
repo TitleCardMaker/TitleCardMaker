@@ -259,7 +259,29 @@
 
               <h4 class="ui horizontal middle aligned divider header">Non-Card Settings</h4>
 
-              <div class="ui three fields">
+              <div class="ui two fields">
+                <div class="field">
+                  <label>Episode Data Source</label>
+                  <div class="ui selection clearable dropdown" data-value="data_source_id">
+                    <input name="data_source_id" type="hidden">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">Global Default</div>
+                    <div class="menu"><!-- Added asynchronously --></div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>Image Source Priority</label>
+                  <div class="ui selection clearable multiple dropdown" data-value="image_source_priority">
+                    <input name="image_source_priority" type="hidden">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">Global Default</div>
+                    <div class="menu"><!-- Added asynchronously --></div>
+                  </div>
+                </div>
+              </div>
+  
+              <div class="ui two fields">
                 <div class="ui field">
                   <label>Ignored Localized Images</label>
                   <div data-value="skip_localized_images" class="ui selection clearable dropdown">
@@ -272,17 +294,7 @@
                     </div>
                   </div>
                 </div>
-  
-                <div class="field">
-                  <label>Episode Data Source</label>
-                  <div class="ui selection clearable dropdown" data-value="data_source_id">
-                    <input name="data_source_id" type="hidden">
-                    <i class="dropdown icon"></i>
-                    <div class="default text">Global Default</div>
-                    <div class="menu"><!-- Added asynchronously --></div>
-                  </div>
-                </div>
-  
+
                 <div class="ui field">
                   <label>Enable Specials</label>
                   <div data-value="sync_specials" class="ui selection clearable dropdown">
