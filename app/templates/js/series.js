@@ -192,6 +192,9 @@ function removeLoadingIcon($icon) {
  * deleted.
  */
 function deleteCard(cardId, onComplete) {
+  const $icon = $(`#card${cardId}-popup .header .icon`);
+  setLoadingIcon($icon);
+
   $.ajax({
     type: 'DELETE',
     url: `/api/cards/card/${cardId}`,
@@ -1100,7 +1103,7 @@ function getCardData(
           );
         }
         preview.querySelector('.popup [data-action="delete"]').onclick = () => deleteCard(card.id);
-        preview.querySelector('.popup [data-action="reload"]').onclick = () => loadEpisodeCards(card.episode_id);
+        preview.querySelector('.popup [data-action="reload"]').onclick = () => loadCard(card.id);
         preview.querySelector('.popup [data-action="manually-reload"]').onclick = () => openManualCardLoadModal(card.id);
 
         // If library unique mode is enabled, add the library name to the text (if present)
@@ -2134,18 +2137,28 @@ function loadCards(interfaceId, libraryName, reload=false) {
  * @param {number} cardId ID of the Card to load.
  */
 function loadCard(cardId) {
+  const $icon = $(`#card${cardId}-popup .header .icon`);
+  setLoadingIcon($icon);
+
   $.ajax({
     type: 'PUT',
     url: `/api/cards/card/${cardId}/load`,
     /** Card reloaded. Change the loaded icon and update the tooltip text. */
     success: () => {
+      removeLoadingIcon($icon); // Cannot do in oncomplete since the icon is modified
       showInfoToast('Loaded Title Card');
       $(`#card${cardId}-popup .header i`)
         .toggleClass('red times circle', false)
         .toggleClass('green check square outline', true);
-      document.querySelector(`#card${cardId}-popup .header [data-value="unloaded"]`).dataset.tooltip = 'Card is loaded';
+      const unloadedIcon = document.querySelector(`#card${cardId}-popup .header [data-value="unloaded"]`);
+      if (unloadedIcon) {
+        unloadedIcon.dataset.tooltip = 'Card is loaded';
+      }
     },
-    error: response => showErrorToast({title: 'Error Loading Title Card', response}),
+    error: response => {
+      removeLoadingIcon($icon);
+      showErrorToast({title: 'Error Loading Title Card', response});
+    },
   });
 }
 
