@@ -246,7 +246,7 @@ function updateGlobalSettings() {
   // Parse extras
   const extras = {};
   $('section[aria-label="extras"] .tab').each(function() {
-    const cardType = $(this).attr('data-tab'); // Current card type
+    const cardType = $(this).attr('data-tab').replace('_', '/'); // Current card type
     const currentExtras = {}; // Currently non-blank extras
 
     // Parse all non-blank extras for this type
