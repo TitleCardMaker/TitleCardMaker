@@ -41,19 +41,27 @@
       <td data-column="auto_split_title" data-type="boolean" class="center aligned collapsing"><!-- Icon --></td>
       {% if not preferences.simplified_data_table %}
       <td data-column="templates" class="center aligned collapsing">
-        <div data-value="template_ids" class="ui inline clearable scrolling multiple dropdown">
+        <div data-value="template_ids" class="ui inline clearable search tiny scrolling multiple dropdown">
           <input name="template_ids" type="hidden">
-          <i class="dropdown icon"></i>
-          <div class="default text">Default</div>
-          <div class="menu"><!-- Submenu --></div>
+          <!-- <i class="dropdown icon"></i> -->
+          <div class="default text" style="overflow: revert;">Default</div>
+          <div class="menu">
+            {% for template in available_templates %}
+              <div class="item" data-value="{{ template.id }}">{{ template.name }}</div>
+            {% endfor %}
+          </div>
         </div>
       </td>
       <td data-column="font_id" class="center aligned collapsing">
-        <div data-value="font_id" class="ui inline clearable dropdown">
+        <div data-value="font_id" class="ui inline clearable search scrolling dropdown">
           <input name="font_id" type="hidden">
           <i class="dropdown icon"></i>
           <div class="default text">Default</div>
-          <div class="menu"><!-- Submenu --></div>
+          <div class="menu">
+            {% for font in available_fonts %}
+              <div class="item" data-value="{{ font.id }}">{{ font.name }}</div>
+            {% endfor %}
+          </div>
         </div>
       </td>
       <td data-column="card_type" class="center aligned collapsing">
@@ -83,7 +91,18 @@
           <input name="unwatched_style" type="hidden">
           <i class="dropdown icon"></i>
           <div class="default text">Default</div>
-          <div class="menu"><!-- Submenu --></div>
+          <div class="menu">
+            <div class="header">Art</div>
+            <div class="item" data-value="art">Art</div>
+            <div class="item" data-value="art blur">Blurred Art</div>
+            <div class="item" data-value="art grayscale">Grayscale Art</div>
+            <div class="item" data-value="art blur grayscale">Blurred Grayscale Art</div>
+            <div class="header">Unique</div>
+            <div class="item" data-value="unique">Unique</div>
+            <div class="item" data-value="blur unique">Blurred Unique</div>
+            <div class="item" data-value="grayscale unique">Grayscale Unique</div>
+            <div class="item" data-value="blur grayscale unique">Blurred Grayscale Unique</div>
+          </div>
         </div>
       </td>
       <td data-column="watched_style" class="center aligned collapsing">
@@ -91,7 +110,18 @@
           <input name="watched_style" type="hidden">
           <i class="dropdown icon"></i>
           <div class="default text">Default</div>
-          <div class="menu"><!-- Submenu --></div>
+          <div class="menu">
+            <div class="header">Art</div>
+            <div class="item" data-value="art">Art</div>
+            <div class="item" data-value="art blur">Blurred Art</div>
+            <div class="item" data-value="art grayscale">Grayscale Art</div>
+            <div class="item" data-value="art blur grayscale">Blurred Grayscale Art</div>
+            <div class="header">Unique</div>
+            <div class="item" data-value="unique">Unique</div>
+            <div class="item" data-value="blur unique">Blurred Unique</div>
+            <div class="item" data-value="grayscale unique">Grayscale Unique</div>
+            <div class="item" data-value="blur grayscale unique">Blurred Grayscale Unique</div>
+          </div>
         </div>
       </td>
       <td data-column="font_color" class="center aligned collapsing">
@@ -576,37 +606,61 @@
             </div>
             {% endif %}
 
-            <div class="ui two fields">
+            <div class="ui three fields">
               <!-- Libraries -->
               <div class="ui field">
                 <label>Libraries</label>
-                <div data-value="libraries" class="ui compact multiple selection dropdown">
+                <div data-value="libraries" class="ui multiple selection dropdown">
                   <input name="libraries" type="hidden">
                   <i class="dropdown icon"></i>
                   <div class="default text">None</div>
                   <div class="menu"><!-- Added asynchronousely --></div>
                 </div>
-                <p class="help">
-                  Libraries to load Title Cards into.
-                  <br>
-                  Queried and loaded in order.
-                </p>
+                <p class="help">Libraries to load Title Cards into. These are queried and loaded in order.</p>
               </div>
   
               <!-- Episode Data Source -->
               <div class="field">
                 <label>Episode Data Source</label>
-                <div data-value="data_source_id" class="ui compact selection clearable dropdown">
+                <div data-value="data_source_id" class="ui selection clearable dropdown">
+                  {% if series.data_source_id is none %}
                   <input name="data_source_id" type="hidden">
+                  {% else %}
+                  <input name="data_source_id" type="hidden" value="{{ series.data_source_id }}">
+                  {% endif %}
                   <i class="dropdown icon"></i>
-                  <div class="default text"></div>
-                  <div class="menu"><!-- Added asynchronously --></div>
+                  <div class="default text">Default</div>
+                  <div class="menu">
+                    {% for connection in all_connections | sort(attribute='name') %}
+                      <div class="item" data-value="{{ connection.id }}">{{ connection.name }}</div>
+                    {% endfor %}
+                  </div>
                 </div>
                 <p class="help">Where to get Episode data from.</p>
               </div>
+
+              <!-- Image source priority -->
+              <div class="ui field">
+                <label>Image Source Priority</label>
+                <div data-value="image_source_priority" class="ui multiple selection dropdown">
+                  {% if series.image_source_priority is none %}
+                  <input name="image_source_priority" type="hidden">
+                  {% else %}
+                  <input name="image_source_priority" type="hidden" value="{{ series.image_source_priority | join(',') }}">
+                  {% endif %}
+                  <i class="dropdown icon"></i>
+                  <div class="default text">Default</div>
+                  <div class="menu">
+                    {% for connection in all_connections | sort(attribute='name') %}
+                      <div class="item" data-value="{{ connection.id }}">{{ connection.name }}</div>
+                    {% endfor %}
+                  </div>
+                </div>
+                <p class="help">Order of Connections to try and images from.</p>
+              </div>
             </div>
 
-            <div class="ui two fields">
+            <div class="ui three fields">
               <div class="ui left aligned checkbox field">
                 <label>Match Titles</label>
                 {% if series.match_titles %}
@@ -627,22 +681,23 @@
                 {% endif %}
                 <p class="help">Whether to automatically split the title text into separate lines.</p>
               </div>
+
+              <div class="ui left aligned checkbox field">
+                <label>Use Per-Season Assets</label>
+                {% if series.use_per_season_assets %}
+                <input name="use_per_season_assets" type="checkbox" checked="">
+                {% else %}
+                <input name="use_per_season_assets" type="checkbox">
+                {% endif %}
+                <p class="help">Whether to utilize manually added backdrops and logos unique to each season.</p>
+              </div>
             </div>
 
-            <div class="ui left aligned checkbox field">
-              <label>Use Per-Season Assets</label>
-              {% if series.use_per_season_assets %}
-              <input name="use_per_season_assets" type="checkbox" checked="">
-              {% else %}
-              <input name="use_per_season_assets" type="checkbox">
-              {% endif %}
-              <p class="help">Whether to utilize manually added backdrops and logos unique to each season.</p>
-            </div>
 
             <div class="ui two fields">
               <div class="ui field">
                 <label>Enable Specials</label>
-                <div data-value="sync_specials" class="ui compact selection clearable dropdown">
+                <div data-value="sync_specials" class="ui selection clearable dropdown">
                   {% if series.sync_specials is none %}
                   <input name="sync_specials" type="hidden">
                   {% else %}
@@ -660,7 +715,7 @@
   
               <div class="ui field">
                 <label>Ignore Localized Images</label>
-                <div data-value="skip_localized_images" class="ui compact selection clearable dropdown">
+                <div data-value="skip_localized_images" class="ui selection clearable dropdown">
                   {% if series.skip_localized_images is none %}
                   <input name="skip_localized_images" type="hidden">
                   {% else %}
@@ -726,12 +781,20 @@
                 <div class="field">
                   <label>Templates</label>
                   <div data-value="template_ids" class="ui long clearable search selection multiple dropdown">
+                    {% if series.template_ids is none %}
                     <input name="template_ids" type="hidden">
+                    {% else %}
+                    <input name="template_ids" type="hidden" value="{{ series.template_ids | join(',') }}">
+                    {% endif %}
                     <i class="dropdown icon"></i>
                     <div class="default text">None</div>
-                    <div class="menu"><!-- Added asynchronously --></div>
+                    <div class="menu">
+                      {% for template in available_templates %}
+                        <div class="item" data-value="{{ template.id }}">{{ template.name }}</div>
+                      {% endfor %}
+                    </div>
                   </div>
-                  <p class="help">Templates are evaluated in the order they are specified.</p>
+                  <p class="help">Templates are evaluated in order.</p>
                 </div>
 
                 <div class="ui divider"></div>
@@ -749,12 +812,26 @@
                   </div>
 
                   <div class="field">
-                    <label>Font <a data-value="font-link"><i class="external alternate small icon"></i></a></label>
+                    <label>
+                      {% if series.font_id is none %}
+                      Font
+                      {% else %}
+                      Font <a data-value="font-link" href="/fonts#font-id{{ series.font_id }}"><i class="external alternate small link icon"></i></a>
+                      {% endif %}
+                    </label>
                     <div data-value="fonts" class="ui very long clearable selection search dropdown">
+                      {% if series.font_id is none %}
                       <input name="font_id" type="hidden">
+                      {% else %}
+                      <input name="font_id" type="hidden" value="{{ series.font_id }}">
+                      {% endif %}
                       <i class="dropdown icon"></i>
                       <div class="default text">Default</div>
-                      <div class="menu"><!-- Added asynchronously --></div>
+                      <div class="menu">
+                        {% for font in available_fonts %}
+                          <div class="item" data-value="{{ font.id }}">{{ font.name }}</div>
+                        {% endfor %}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -975,33 +1052,36 @@
                 </div>
 
                 <!-- Hide episode text -->
-                <div class="ui field">
-                  <label>Hide Episode Text</label>
-                  <div data-value="hide_episode_text" class="ui compact selection clearable dropdown">
-                    {% if series.hide_episode_text is none %}
-                    <input name="hide_episode_text" type="hidden">
-                    {% else %}
-                    <input name="hide_episode_text" type="hidden" value="{{ series.hide_episode_text }}">
-                    {% endif %}
-                    <i class="dropdown icon"></i>
-                    <div class="default text">Default</div>
-                    <div class="menu">
-                      <div class="item">True</div>
-                      <div class="item">False</div>
+                <div class="fields">
+                  <div class="four wide field">
+                    <label>Hide Episode Text</label>
+                    <div data-value="hide_episode_text" class="ui selection clearable dropdown">
+                      {% if series.hide_episode_text is none %}
+                      <input name="hide_episode_text" type="hidden">
+                      {% else %}
+                      <input name="hide_episode_text" type="hidden" value="{{ series.hide_episode_text }}">
+                      {% endif %}
+                      <i class="dropdown icon"></i>
+                      <div class="default text">Default</div>
+                      <div class="menu">
+                        <div class="item">True</div>
+                        <div class="item">False</div>
+                      </div>
                     </div>
+                    <p class="help">Remove the episode text - e.g. "Episode 1"</p>
                   </div>
-                  <p class="help">Remove the episode text - e.g. "Episode 1"</p>
+
+                  <!-- Episode text format -->
+                  <div class="twelve wide field">
+                    <label>Episode Text Format</label>
+                    {% if series.episode_text_format is none %}
+                    <input name="episode_text_format" type="text" placeholder="Card Default">
+                    {% else %}
+                    <input name="episode_text_format" type="text" placeholder="Card Default" value="{{ series.episode_text_format }}">
+                    {% endif %}
+                  </div>
                 </div>
   
-                <!-- Episode text format -->
-                <div class="field">
-                  <label>Episode Text Format</label>
-                  {% if series.episode_text_format is none %}
-                  <input name="episode_text_format" type="text" placeholder="Card Default">
-                  {% else %}
-                  <input name="episode_text_format" type="text" placeholder="Card Default" value="{{ series.episode_text_format }}">
-                  {% endif %}
-                </div>
 
                 <h4 class="ui horizontal middle aligned divider header">Translations and Extras</h4>
 

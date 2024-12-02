@@ -1,12 +1,28 @@
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
 {% if False %}
 import {
-  AnyConnection, AvailableFont, AvailableTemplate, Blueprint, Episode,
-  EpisodeOverviewPage, EpisodePage, ExternalSourceImage, LogEntryPage,
-  MediaServerLibrary, RemoteBlueprint, RemoteBlueprintSet, RemoteEpisodeData,
-  Series, Statistic, StyleOption, SourceImagePage, TitleCardPage, UpdateEpisode,
+  AnyConnection,
+  AvailableFont,
+  AvailableTemplate,
+  Blueprint,
+  Episode,
+  EpisodeOverviewPage,
+  EpisodePage,
+  ExternalSourceImage,
+  LogEntryPage,
+  MediaServerLibrary,
+  RemoteBlueprint,
+  RemoteBlueprintSet,
+  RemoteEpisodeData,
+  Series,
+  Statistic,
+  StyleOption,
+  SourceImagePage,
+  TitleCardPage,
+  UpdateEpisode,
 } from './.types.js';
 {% endif %}
 
@@ -36,11 +52,11 @@ const allStyles = [
   { name: 'Blurred Grayscale Unique', value: 'blur grayscale unique', style_type: 'unique' },
 ];
 /** @type {AvailableTemplate[]} List of all available Template metadata */
-const availableTemplates = {{available_templates|tojson}};
+// const availableTemplates = {{available_templates|tojson}};
 /** @type {AvailableFont[]} List of all available Font metadata */
-const availableFonts = {{available_fonts|tojson}};
+// const availableFonts = {{available_fonts|tojson}};
 /** @type {EpisodeDataSourceToggle} Which data sources are enabled*/
-const episodeDataSources = {{episode_data_sources|tojson}};
+// const episodeDataSources = {{episode_data_sources|tojson}};
 /** @type {AnyConnection[]} All globally defined and enabled Connections */
 const allConnections = {{all_connections|tojson}};
 /** @type {number} Page size for the title card previews */
@@ -50,14 +66,14 @@ const sourceImagePreviewPageSize = {{ (preferences.source_preview_page_dimension
 
 /**
  * Get the DOM element ID of the Episode with the given ID.
- * @param {number} episode_id - ID of the Episode.
+ * @param {number} episode_id ID of the Episode.
  * @returns {string} Element ID of the row for this Episode.
  */
 const getEpisodeElementId = (episode_id) => `episode-id${episode_id}`;
 
 /**
  * Get the DOM element ID of the Episode with the given ID.
- * @param {number} episode_id - ID of the Episode.
+ * @param {number} episode_id ID of the Episode.
  * @returns {string} Element ID of the source image for this Episode.
  */
 const getSourceImageElementId = (episode_id) => `file-episode${episode_id}`;
@@ -193,7 +209,7 @@ function deleteCard(cardId, onComplete) {
  * Submit an API request to create the Title Card for the Episode with the given
  * ID. If successful, the card data of the current page is reloaded and the
  * Episode's row marking is removed.
- * @param {number} episodeId - ID of the Episode whose Card is being created.
+ * @param {number} episodeId ID of the Episode whose Card is being created.
  */
 function createEpisodeCard(episodeId) {
   const episodeElementId = getEpisodeElementId(episodeId);
@@ -333,22 +349,6 @@ async function initializeSeriesConfig() {
     error: response => showErrorToast({title: 'Error Querying Libraries', response}),
   });
 
-  // Episode data sources
-  $('.dropdown[data-value="data_source_id"]').dropdown({
-    placeholder: 'Default',
-    values: episodeDataSources.map(({name, interface_id}) => {
-      return {
-        name,
-        value: interface_id,
-        selected: `${interface_id}` === '{{series.data_source_id}}'
-      };
-    }),
-  });
-  // Template
-  $('#card-config-form .dropdown[data-value="template_ids"]').dropdown({
-    placeholder: 'Default',
-    values: getActiveTemplates({{ series.template_ids }}, availableTemplates),
-  });
   // Card types
   loadCardTypes({
     element: '#card-config-form .dropdown[data-value="card-types"]',
@@ -359,18 +359,6 @@ async function initializeSeriesConfig() {
       placeholder: 'Default',
     }
   });
-  // Fonts
-  $('#card-config-form .dropdown[data-value="fonts"]').dropdown({
-    placeholder: 'Default',
-    values: availableFonts.map(({id, name}) => {
-      return {name, value: id, selected: `${id}` === '{{series.font_id}}'};
-    }),
-  });
-  if ('{{series.font_id}}' === 'None') {
-    $('.field a[data-value="font-link"]').remove();
-  } else {
-    $('.field a[data-value="font-link"]')[0].href = `/fonts#font-id{{series.font_id}}`;
-  }
   // Font color
   $('#card-config-form input[name="font_color"]').on('input', function () {
     document.querySelector('#card-config-form .field[data-value="font_color"] .color.circle').style.setProperty('--color', $(this).val());
@@ -423,7 +411,7 @@ async function initializeSeriesConfig() {
     3,
   );
   // Add season title on button press
-  $('#card-config-form .button[data-value="addTitle"]').on('click', () => {
+  document.querySelector('#card-config-form .button[data-value="addTitle"]').onclick = () => {
     const newRange = document.createElement('input');
     newRange.name = 'season_title_ranges'; newRange.type = 'text';
     newRange.setAttribute('data-value', 'season-titles');
@@ -431,10 +419,10 @@ async function initializeSeriesConfig() {
     newTitle.name = 'season_title_values'; newTitle.type = 'text';
     $('#card-config-form .field[data-value="season-title-range"]').append(newRange);
     $('#card-config-form .field[data-value="season-title-value"]').append(newTitle);
-  });
+  };
 
   // Add translation on button press
-  $(`#card-config-form .button[data-add-field="translation"]`).on('click', () => {
+  document.querySelector(`#card-config-form .button[data-add-field="translation"]`).onclick = () => {
     const newTranslation = document.querySelector('#translation-template').content.cloneNode(true);
     $(`#card-config-form [data-value="translations"]`).append(newTranslation);
     // Language code dropdown
@@ -453,7 +441,7 @@ async function initializeSeriesConfig() {
         {name: 'Kanji', text: 'kanji', value: 'kanji'},
       ]
     });
-  });
+  };
   refreshTheme();
 }
 
@@ -746,7 +734,6 @@ function deleteSourceImage(episodeId) {
       getCardData();
     },
     error: response => showErrorToast({title: 'Error Deleting Source Image', response}),
-    // complete: () => removeLoadingIcon($icon),
   });
 }
 
@@ -935,16 +922,16 @@ async function getEpisodeData(page=1) {
     row.querySelector('td[data-column="title"]').dataset.sortValue = episode.title;
     row.querySelector('td[data-column="match_title"]').innerHTML = getIcon(episode.match_title, true);
     row.querySelector('td[data-column="auto_split_title"]').innerHTML = getIcon(episode.auto_split_title, true);
-    // Template ID
-    // Font ID
+    row.querySelector('input[name="template_ids"]').value = episode.template_ids?.join(',') || '';
+    row.querySelector('input[name="font_id"]').value = episode.font_id || '';
     // Card type
     row.querySelector('td[data-column="hide_season_text"]').innerHTML = getIcon(episode.hide_season_text, true);
     row.querySelector('input[name="season_text"]').value = episode.season_text;
     row.querySelector('td[data-column="hide_episode_text"]').innerHTML = getIcon(episode.hide_episode_text, true);
     row.querySelector('input[name="episode_text"]').value = episode.episode_text;
     if (!simplified_data_table) {
-      // Unwatched style
-      // Watched style
+      row.querySelector('input[name="unwatched_style"]').value = episode.unwatched_style || '';
+      row.querySelector('input[name="watched_style"]').value = episode.unwatched_style || '';
       row.querySelector('input[name="font_color"]').value = episode.font_color;
       row.querySelector('input[name="font_size"]').value = episode.font_size === null ? episode.font_size : Math.round(episode.font_size * 100);
       row.querySelector('input[name="font_kerning"]').value = episode.font_kerning === null ? episode.font_kerning : Math.round(episode.font_kerning * 100);
@@ -974,19 +961,9 @@ async function getEpisodeData(page=1) {
   });
   episodeTable.replaceChildren(...rows);
 
-  // Initialize dropdowns, assign form submit API request
+  // Initialize card type dropdowns
   await getAllCardTypes();
   episodeData.items.forEach(episode => {
-    // Templates
-    $(`#${getEpisodeElementId(episode.id)} .dropdown[data-value="template_ids"]`).dropdown({
-      values: getActiveTemplates(episode.template_ids, availableTemplates),
-    });
-    // Fonts
-    $(`#${getEpisodeElementId(episode.id)} .dropdown[data-value="font_id"]`).dropdown({
-      values: availableFonts.map(({id, name}) => {
-        return {name: name, value: id, selected: episode.font_id === id};
-      })
-    });
     // Card type
     loadCardTypes({
       element: `#${getEpisodeElementId(episode.id)} .dropdown[data-value="card_type"]`,
@@ -994,35 +971,8 @@ async function getEpisodeData(page=1) {
       showExcluded: false,
       dropdownArgs: {}
     });
-    // Unwatched style
-    $(`#${getEpisodeElementId(episode.id)} .dropdown[data-value="unwatched_style"]`).dropdown({
-      placeholder: 'Default',
-      values: [
-        {name: 'Art Variations', type: 'header'},
-        ...allStyles.filter(({style_type}) => style_type === 'art').map(({name, value}) => {
-          return {name: name, value: value, selected: value === episode.unwatched_style};
-        }),
-        {name: 'Unique Variations', type: 'header'},
-        ...allStyles.filter(({style_type}) => style_type === 'unique').map(({name, value}) => {
-          return {name: name, value: value, selected: value === episode.unwatched_style};
-        }),
-      ],
-    });
-    // Watched style
-    $(`#${getEpisodeElementId(episode.id)} .dropdown[data-value="watched_style"]`).dropdown({
-      placeholder: 'Default',
-      values: [
-        {name: 'Art Variations', type: 'header'},
-        ...allStyles.filter(({style_type}) => style_type === 'art').map(({name, value}) => {
-          return {name: name, value: value, selected: value === episode.watched_style};
-        }),
-        {name: 'Unique Variations', type: 'header'},
-        ...allStyles.filter(({style_type}) => style_type === 'unique').map(({name, value}) => {
-          return {name: name, value: value, selected: value === episode.watched_style};
-        }),
-      ],
-    });
   });
+  $('#episode-data-table .ui.dropdown').dropdown();
   $('.sortable.table').tablesort()
   initStyles();
 
@@ -2287,6 +2237,7 @@ function updateSeries(formName) {
   }
   // Parse options data
   else if (formName === 'options') {
+    const isp = document.querySelector('#series-config-form input[name="image_source_priority"]').value;
     data = {
       libraries: $('#series-config-form input[name="libraries"]').val()
         ? $('#series-config-form input[name="libraries"]').val().split(',').map(libraryStr => {
@@ -2298,24 +2249,25 @@ function updateSeries(formName) {
             };
           })
         : [],
-      data_source_id: $('#series-config-form input[name="data_source_id"]').val() || null,
+      data_source_id: document.querySelector('#series-config-form input[name="data_source_id"]').value || null,
+      image_source_priority: isp === '' ? null : isp.split(','),
       match_titles: $('#series-config-form input[name="match_titles"]').is(':checked'),
       auto_split_title: $('#series-config-form input[name="auto_split_title"]').is(':checked'),
       use_per_season_assets: $('#series-config-form input[name="use_per_season_assets"]').is(':checked'),
-      sync_specials: $('#series-config-form input[name="sync_specials"]').val() || null,
-      skip_localized_images: $('#series-config-form input[name="skip_localized_images"]').val() || null,
-      directory: $('#series-config-form input[name="directory"]').val() || null,
-      card_filename_format: $('#series-config-form input[name="card_filename_format"]').val() || null,
+      sync_specials: document.querySelector('#series-config-form input[name="sync_specials"]').value || null,
+      skip_localized_images: document.querySelector('#series-config-form input[name="skip_localized_images"]').value || null,
+      directory: document.querySelector('#series-config-form input[name="directory"]').value || null,
+      card_filename_format: document.querySelector('#series-config-form input[name="card_filename_format"]').value || null,
     };
   } else if (formName === 'ids') {
     data = {
-      emby_id: $('#series-ids-form input[name="emby_id"]').val() || null,
-      imdb_id: $('#series-ids-form input[name="imdb_id"]').val() || null,
-      jellyfin_id: $('#series-ids-form input[name="jellyfin_id"]').val() || null,
-      sonarr_id: $('#series-ids-form input[name="sonarr_id"]').val() || null,
-      tmdb_id: $('#series-ids-form input[name="tmdb_id"]').val() || null,
-      tvdb_id: $('#series-ids-form input[name="tvdb_id"]').val() || null,
-      tvrage_id: $('#series-ids-form input[name="tvrage_id"]').val() || null,
+      emby_id: document.querySelector('#series-ids-form input[name="emby_id"]').value || null,
+      imdb_id: document.querySelector('#series-ids-form input[name="imdb_id"]').value || null,
+      jellyfin_id: document.querySelector('#series-ids-form input[name="jellyfin_id"]').value || null,
+      sonarr_id: document.querySelector('#series-ids-form input[name="sonarr_id"]').value || null,
+      tmdb_id: document.querySelector('#series-ids-form input[name="tmdb_id"]').value || null,
+      tvdb_id: document.querySelector('#series-ids-form input[name="tvdb_id"]').value || null,
+      tvrage_id: document.querySelector('#series-ids-form input[name="tvrage_id"]').value || null,
     };
   }
 
