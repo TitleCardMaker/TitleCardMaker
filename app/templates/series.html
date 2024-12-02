@@ -372,7 +372,11 @@
   <template id="extra-input-template">
     <div class="field">
       <label>{label}</label>
-      <input oninput="updateColorBubble(this);" onchange="updateLinkedFields(this);" type="text">
+      <!-- <input oninput="updateColorBubble(this);" onchange="updateLinkedFields(this);" type="text"> -->
+      <div class="ui right labeled input">
+        <input oninput="updateColorBubble(this);" onchange="updateLinkedFields(this);" type="text">
+        <div class="ui basic label"></div>
+      </div>
       <p class="help">{tooltip}</p>
     </div>
   </template>

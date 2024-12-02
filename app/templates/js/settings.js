@@ -83,7 +83,7 @@ function getImageSourcePriority() {
     url: '/api/settings/image-source-priority',
     /**
      * Image source priority returned.
-     * @param {ImageSourceToggle} sources - Globally enabled image sources.
+     * @param {ImageSourceToggle[]} sources - Globally enabled image sources.
      */
     success: sources => {
       $('.dropdown[data-value="image_source_priority"]').dropdown({

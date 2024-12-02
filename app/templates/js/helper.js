@@ -240,8 +240,8 @@ function createPageElement(pageNumber, pageText, active = false, navigateFunctio
   element.innerText = pageText;
   if (pageNumber !== undefined) {
     element.onclick = () => {
-      // Add a looping animation to show element has been clicked
-      element.classList.add('transition', 'looping', 'pulsating', 'blue');
+      // Change text to a loading icon
+      element.innerHTML = '<i class="spinner loading icon"></i>';
       // Call navigate function on this page number
       navigateFunction(pageNumber);
     }
@@ -296,10 +296,10 @@ function updatePagination(args) {
 
   // Determine how many links to show on the left and right of the active page
   let links = [],
-      leftLinksBounds = Math.min(page-1, (amountVisible - 1) / 2),
-      rightLinksBounds = Math.min(pages-page, (amountVisible - 1) / 2);
+    leftLinksBounds = Math.min(page-1, (amountVisible - 1) / 2),
+    rightLinksBounds = Math.min(pages-page, (amountVisible - 1) / 2);
   let leftLinks = Math.floor(Math.min(page-1, leftLinksBounds + ((amountVisible-1) / 2) - rightLinksBounds)),
-      rightLinks = Math.floor(Math.min(pages, rightLinksBounds + ((amountVisible-1) / 2) - leftLinksBounds));
+    rightLinks = Math.floor(Math.min(pages, rightLinksBounds + ((amountVisible-1) / 2) - leftLinksBounds));
 
   // Create previous pages
   for (let pageNum = page - leftLinks; pageNum < page; pageNum++) {
@@ -324,18 +324,8 @@ function updatePagination(args) {
     }
   }
 
-  $(`#${paginationElementId}`).append(links);
-}
-
-function initializeNullableBoolean(args) {
-  const {dropdownElement, value} = args;
-  dropdownElement.dropdown({
-    placeholder: 'Default',
-    values: [
-      {name: 'True', value: 'True', selected: (value === true) || (value === 'True')},
-      {name: 'False', value: 'False', selected: (value === false) || (value === 'False')},
-    ],
-  });
+  document.getElementById(paginationElementId).replaceChildren(...links);
+  // $(`#${paginationElementId}`).append(links);
 }
 
 /**
@@ -722,6 +712,16 @@ async function populateExtraTemplate({
         )
       ;
 
+      // Parse unit if possible
+      const unitRegex = /Unit is (\S+)\./;
+      if (extra.tooltip && extra.tooltip.match(unitRegex)) {
+        const unit = extra.tooltip.match(unitRegex)[1];
+        newInput.querySelector('.basic.label').innerText = unit === 'pixels' ? 'px' : unit;
+      } else {
+        newInput.querySelector('.right.labeled').classList.remove('right', 'labeled');
+        newInput.querySelector('.basic.label').remove();
+      }
+
       // Group every (n) fields into a field group
       if (index % groupAmount === 0) {
         const newFields = document.createElement('div');
@@ -819,6 +819,16 @@ async function initializeExtras(
               )
           : ''
         );
+
+      // Parse unit if possible
+      const unitRegex = /Unit is (\S+)\./;
+      if (extra.tooltip && extra.tooltip.match(unitRegex)) {
+        const unit = extra.tooltip.match(unitRegex)[1];
+        newInput.querySelector('.basic.label').innerText = unit === 'pixels' ? 'px' : unit;
+      } else {
+        newInput.querySelector('.right.labeled').classList.remove('right', 'labeled');
+        newInput.querySelector('.basic.label').remove();
+      }
 
       // Fill out input if part of active extras
       if ((isGlobal && activeExtras.hasOwnProperty(card_type) && activeExtras[card_type][extra.identifier])
