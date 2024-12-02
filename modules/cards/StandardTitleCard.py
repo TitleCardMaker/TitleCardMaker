@@ -51,9 +51,9 @@ class StandardTitleCard(BaseCardType):
                 name='Episode Text Vertical Shift',
                 identifier='episode_text_vertical_shift',
                 description=(
-                    'Additional vertical shift to apply to the season and '
-                    'episode text. Default is <v>0</v>.'
+                    'Additional vertical shift to apply to the episode text.'
                 ),
+                tooltip='Default is <v>0</v>. Unit is pixels.',
                 default=0,
             ),
             Extra(

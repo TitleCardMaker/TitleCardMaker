@@ -13,7 +13,6 @@ from sqlalchemy.orm import (
     Query,
     Session,
     load_only,
-    joinedload
 )
 
 from app.database.query import (

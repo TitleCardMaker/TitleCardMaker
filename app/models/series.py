@@ -58,13 +58,15 @@ class Series(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     data_source_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('connection.id'),
-        default=None
+        default=None,
     )
     font_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey('font.id'), default=None
+        ForeignKey('font.id'),
+        default=None,
     )
     sync_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey('sync.id'), default=None
+        ForeignKey('sync.id'),
+        default=None,
     )
 
     cards: Mapped[list['Card']] = relationship(
@@ -101,10 +103,10 @@ class Series(Base):
     year: Mapped[int]
     monitored: Mapped[bool]
     poster_file: Mapped[str] = mapped_column(
-        default=str(INTERNAL_ASSET_DIRECTORY / 'placeholder.jpg')
+        default=str(INTERNAL_ASSET_DIRECTORY / 'placeholder.jpg'),
     )
     poster_url: Mapped[str] = mapped_column(
-        default='/internal_assets/placeholder.jpg'
+        default='/internal_assets/placeholder.jpg',
     )
 
     # Series config arguments
@@ -152,7 +154,7 @@ class Series(Base):
     hide_season_text: Mapped[Optional[bool]]
     season_titles: Mapped[Optional[dict[str, str]]] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
-        default=None
+        default=None,
     )
     hide_episode_text: Mapped[Optional[bool]]
     episode_text_format: Mapped[Optional[str]]
@@ -160,7 +162,7 @@ class Series(Base):
     watched_style: Mapped[Optional[str]]
     extras: Mapped[Optional[dict[str, str]]] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
-        default=None
+        default=None,
     )
 
 
