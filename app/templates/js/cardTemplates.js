@@ -264,13 +264,13 @@ async function getAllTemplates() {
     allFonts,
     allEpisodeDataSources,
     allImageSources,
-    allFilterOptions,
+    // allFilterOptions,
     allTranslations,
   ] = await Promise.all([
     fetch('/api/available/fonts').then(resp => resp.json()),
     fetch('/api/settings/episode-data-source').then(resp => resp.json()),
     fetch('/api/settings/image-source-priority').then(resp => resp.json()),
-    fetch('/api/available/template-filters').then(resp => resp.json()),
+    // fetch('/api/available/template-filters').then(resp => resp.json()),
     fetch('/api/available/translations').then(resp => resp.json()),
   ]);
 
@@ -279,15 +279,15 @@ async function getAllTemplates() {
   const filterTemplate = document.getElementById('filter-template').content;
   const translationTemplate = document.getElementById('translation-template').content;
   // Filters arguments
-  const argumentMenu = filterTemplate.querySelector('.dropdown[data-value="filter-arguments"] .menu');
-  allFilterOptions.arguments.forEach(argument => {
-    addDropdownItem(argumentMenu, {innerText: argument, value: argument});
-  });
-  // Filter operations
-  const operationMenu = filterTemplate.querySelector('.dropdown[data-value="filter-operators"] .menu');
-  allFilterOptions.operations.forEach(operation => {
-    addDropdownItem(operationMenu, {innerText: operation, value: operation});
-  });
+  // const argumentMenu = filterTemplate.querySelector('.dropdown[data-value="filter-arguments"] .menu');
+  // allFilterOptions.arguments.forEach(argument => {
+  //   addDropdownItem(argumentMenu, {innerText: argument, value: argument});
+  // });
+  // // Filter operations
+  // const operationMenu = filterTemplate.querySelector('.dropdown[data-value="filter-operators"] .menu');
+  // allFilterOptions.operations.forEach(operation => {
+  //   addDropdownItem(operationMenu, {innerText: operation, value: operation});
+  // });
   // Fonts
   const fontMenu = htmlTemplate.querySelector('.dropdown[data-value="font_id"] .menu');
   allFonts.forEach(font => {
