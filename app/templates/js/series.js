@@ -51,12 +51,6 @@ const allStyles = [
   { name: 'Grayscale Unique',         value: 'grayscale unique',      style_type: 'unique' },
   { name: 'Blurred Grayscale Unique', value: 'blur grayscale unique', style_type: 'unique' },
 ];
-/** @type {AvailableTemplate[]} List of all available Template metadata */
-// const availableTemplates = {{available_templates|tojson}};
-/** @type {AvailableFont[]} List of all available Font metadata */
-// const availableFonts = {{available_fonts|tojson}};
-/** @type {EpisodeDataSourceToggle} Which data sources are enabled*/
-// const episodeDataSources = {{episode_data_sources|tojson}};
 /** @type {AnyConnection[]} All globally defined and enabled Connections */
 const allConnections = {{all_connections|tojson}};
 /** @type {number} Page size for the title card previews */
@@ -925,7 +919,6 @@ async function getEpisodeData(page=1) {
     row.querySelector('td[data-column="title"]').dataset.sortValue = episode.title;
     row.querySelector('td[data-column="match_title"]').innerHTML = getIcon(episode.match_title, true);
     row.querySelector('td[data-column="auto_split_title"]').innerHTML = getIcon(episode.auto_split_title, true);
-    row.querySelector('input[name="font_id"]').value = episode.font_id || '';
     // Card type
     row.querySelector('td[data-column="hide_season_text"]').innerHTML = getIcon(episode.hide_season_text, true);
     row.querySelector('input[name="season_text"]').value = episode.season_text;
@@ -933,6 +926,7 @@ async function getEpisodeData(page=1) {
     row.querySelector('input[name="episode_text"]').value = episode.episode_text;
     if (!simplified_data_table) {
       row.querySelector('input[name="template_ids"]').value = episode.template_ids?.join(',') || '';
+      row.querySelector('input[name="font_id"]').value = episode.font_id || '';
       row.querySelector('input[name="unwatched_style"]').value = episode.unwatched_style || '';
       row.querySelector('input[name="watched_style"]').value = episode.unwatched_style || '';
       row.querySelector('input[name="font_color"]').value = episode.font_color;
@@ -1128,10 +1122,10 @@ function getCardData(
         previewElement.replaceChildren(...previews);
       } else {
         if (transition && !isSmallScreen()) {
-          $('#card-previews .image').transition({transition: 'fade up', interval: 20});
+          $('#card-previews .image').transition({transition: 'fade up', interval: 18});
           setTimeout(() => {
             previewElement.replaceChildren(...previews);
-            $('#card-previews .image').transition({transition: 'fade down', interval: 20});
+            $('#card-previews .image').transition({transition: 'fade down', interval: 18});
           }, 500);
         } else {
           previewElement.replaceChildren(...previews);
@@ -1150,13 +1144,12 @@ function getCardData(
         pages: cards.pages,
         amountVisible: isSmallScreen() ? 6 : 12,
       });
-
-      // Initialize popups on all images
-      $('#card-previews .image').popup({on: 'click', inline: true});
-
+      
       // Refresh theme, initialize dimmers
       setTimeout(() => {
         refreshTheme();
+        // Initialize popups on all images
+        $('#card-previews .image').popup({on: 'click', inline: true});
         $('#card-previews .image .dimmer').dimmer({transition: 'fade up', on: 'hover'})
       }, 525);
     },
