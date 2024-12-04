@@ -346,6 +346,11 @@ def get_suggested_font_replacements(
         else:
             bad.append(char)
 
+    # Replace \ with post:\ so that manually entered newline characters
+    # are not ignored
+    if '\\' in replacements:
+        replacements['\\'] = 'post:\\'
+
     return FontAnalysis(
         replacements=replacements,
         missing=bad,
