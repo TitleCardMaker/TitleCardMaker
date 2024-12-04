@@ -309,8 +309,8 @@ reference value.
 
     === "Episode Airdate"
 
-        All airdate reference values must be entered as `YYYY-MM-DD` - e.g.
-        `2023-12-30`.
+        All time reference values must be entered as `YYYY-MM-DD` - e.g.
+        `2023-12-30` for December 30th, 2023.
 
         | Operation | Description | Reference Value |
         | --------: | :---------- | :-------------: |
@@ -318,6 +318,16 @@ reference value.
         | is not null | Do not apply to Episodes with airdates | :fontawesome-regular-circle-xmark:{.red} |
         | is before | Only apply to Episodes which aired before the given date | :fontawesome-regular-circle-check:{.green} |
         | is after | Only apply to Episodes which aired after the given date | :fontawesome-regular-circle-check:{.green} |
+
+    === "Current Time"
+
+        All time reference values must be entered as `YYYY-MM-DD` - e.g.
+        `2023-12-30` for December 30th, 2023.
+
+        | Operation | Description | Reference Value |
+        | --------: | :---------- | :-------------: |
+        | is before | Only apply before the given date | :fontawesome-regular-circle-check:{.green} |
+        | is after | Only apply after the given date | :fontawesome-regular-circle-check:{.green} |
 
     === "Episode Extras"
 
