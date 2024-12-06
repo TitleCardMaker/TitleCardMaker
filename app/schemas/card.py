@@ -183,3 +183,12 @@ class TitleCard(Base):
     model_json: dict
     library_name: str | None = None
     loaded: LoadedDetails | None = None
+
+class TitleCardReduced(Base):
+    id: int
+    episode_id: int
+    episode: EpisodeData
+    card_file: str
+    filesize: int
+    library_name: str | None = None
+    loaded: LoadedDetails | None = None

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import not_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 
 from app.database.query import (
     get_card,
@@ -35,7 +35,12 @@ from app.internal.series import (
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.loaded import Loaded
-from app.schemas.card import CardActions, PreviewTitleCard, TitleCard
+from app.schemas.card import (
+    CardActions,
+    PreviewTitleCard,
+    TitleCard,
+    TitleCardReduced
+)
 from app.schemas.episode import Episode as EpisodeSchema, UpdateEpisode
 from app.schemas.font import DefaultFont
 from app.schemas.series import UpdateSeries
@@ -330,19 +335,54 @@ def get_series_cards(
         db: Session = Depends(get_database)
     ) -> Page[TitleCard]: # type: ignore
     """
-    Get all TitleCards for the given Series. Cards are returned in the
+    Get all Title Cards for the given Series. Cards are returned in the
     order of their release (e.g. season number, episode number).
 
     - series_id: ID of the Series to get the cards of.
     """
 
     return paginate(
-        db.query(Card)\
-            .filter_by(series_id=series_id)\
-            .join(Episode)\
-            .order_by(Episode.season_number)\
-            .order_by(Episode.episode_number)\
+        db.query(Card)
+            .filter_by(series_id=series_id)
+            .join(Episode)
+            .order_by(Episode.season_number)
+            .order_by(Episode.episode_number)
             .order_by(Card.library_name)
+    )
+
+
+@card_router.get('/series/{series_id}/reduced', tags=['Series'],
+                 dependencies=[Depends(get_current_user)])
+def get_series_cards_reduced_models(
+        series_id: int,
+        db: Session = Depends(get_database)
+    ) -> Page[TitleCardReduced]: # type: ignore
+    """
+    Get all Title Cards for the given Series. Cards are returned in the
+    order of their release (e.g. season number, episode number). This is
+    a reduced return model.
+
+    - series_id: ID of the Series to get the cards of.
+    """
+
+    return paginate(
+        db.query(Card)
+            .options(
+                load_only(
+                    Card.id,
+                    Card.episode_id,
+                    Card.card_file,
+                    Card.filesize,
+                    Card.library_name,
+                )
+            )
+            .filter_by(series_id=series_id)
+            .join(Episode, Episode.id == Card.episode_id)
+            .order_by(
+                Episode.season_number,
+                Episode.episode_number,
+                Card.library_name
+            )
     )
 
 
