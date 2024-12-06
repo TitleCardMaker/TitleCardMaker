@@ -480,13 +480,13 @@ class EpisodeInfo(DatabaseInfoContainer):
         id_conditions = []
         if self.emby_id:
             id_conditions.append(func.regex_match(
-                f'(?:^|\D){self.emby_id}(?!\d)', EpisodeModel.emby_id,
+                fr'(?:^|\D){self.emby_id}(?!\d)', EpisodeModel.emby_id,
             ))
         if self.imdb_id is not None:
             id_conditions.append(EpisodeModel.imdb_id==self.imdb_id)
         if self.jellyfin_id:
             id_conditions.append(func.regex_match(
-                f'(?:^|\D){self.jellyfin_id}(?!\d)', EpisodeModel.jellyfin_id,
+                fr'(?:^|\D){self.jellyfin_id}(?!\d)', EpisodeModel.jellyfin_id,
             ))
         if self.tmdb_id is not None:
             id_conditions.append(EpisodeModel.tmdb_id==self.tmdb_id)

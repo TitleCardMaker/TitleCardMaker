@@ -444,8 +444,8 @@ class ShapeTitleCard(BaseCardType):
             geometry = f'+{(self.WIDTH - self.HEIGHT) / 2}+0'
 
         return [
-            fr'\( "{self.GRADIENT.resolve()}"',
-            fr'-rotate {rotation} \)',
+            f'\( "{self.GRADIENT.resolve()}"',
+            f'-rotate {rotation} \)',
             f'-geometry {geometry}',
             f'-composite',
         ]
@@ -822,14 +822,14 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on left corner
-            fr'path \'M 0,-{radius}',
+            f'path \'M 0,-{radius}',
             # Draw top arc
             f'a {radius},{radius} 0 0 1 {x:+.1f},-{y:.1f}',
             # Move back to left corner
             f'M 0,-{radius}',
             # Draw bottom arc
             f'a {radius},{radius} 0 0 0 {x:+.1f},+{y:.1f}',
-            fr'\'"'
+            f'\'"'
         ]
 
 
@@ -852,14 +852,14 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on left corner
-            fr'path \'M 0,-{radius}',
+            f'path \'M 0,-{radius}',
             # Draw top arc
             f'a {radius},{radius} 0 0 0 -{x:.1f},-{y:.1f}',
             # Move back to left corner
             f'M 0,-{radius}',
             # Draw bottom arc
             f'a {radius},{radius} 0 0 1 -{x:.1f},+{y:.1f}',
-            fr'\'"'
+            f'\'"'
         ]
 
 
@@ -874,7 +874,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on left corner
-            fr'path \'M 0,-{self.length}',
+            f'path \'M 0,-{self.length}',
             # Draw up to top corner
             f'l {self.length},-{self.length}',
             # Draw down to right corner; x/y is cut off by text
@@ -885,7 +885,7 @@ class ShapeTitleCard(BaseCardType):
             f'l {self.length},{self.length}',
             # Draw up to right corner; x/y is cut off by text
             f'l {self._line_length},-{self._line_length}',
-            fr'\'"'
+            f'\'"'
         ]
 
 
@@ -900,7 +900,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from right side (y based on text position)
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on right corner
-            fr'path \'M 0,-{self.length}',
+            f'path \'M 0,-{self.length}',
             # Draw up to top corner
             f'l -{self.length},-{self.length}',
             # Draw down to left corner; x/y is cut off by text
@@ -911,7 +911,7 @@ class ShapeTitleCard(BaseCardType):
             f'l -{self.length},{self.length}',
             # Draw up to left corner; x/y is cut off by text
             f'l -{self._line_length},-{self._line_length}',
-            fr'\'"'
+            f'\'"'
         ]
 
 
@@ -929,7 +929,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on lower left corner
-            fr'path \'M 0,0',
+            f'path \'M 0,0',
             # Draw up to top left corner
             f'l 0,-{self.length * 2}',
             # Draw to the top right corner
@@ -942,7 +942,7 @@ class ShapeTitleCard(BaseCardType):
             f'l {self.length * 2},0',
             # Draw up to right middle; y is cut off by text
             f'l 0,-{self._line_length}',
-            fr'\'"'
+            f'\'"'
         ]
 
 
@@ -960,7 +960,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on lower left corner
-            fr'path \'M 0,0',
+            f'path \'M 0,0',
             # Draw up to top right corner
             f'l 0,-{self.length * 2}',
             # Draw to the top left corner
@@ -973,7 +973,7 @@ class ShapeTitleCard(BaseCardType):
             f'l -{self.length * 2},0',
             # Draw up to left middle; y is cut off by text
             f'l 0,-{self._line_length}',
-            fr'\'"'
+            f'\'"'
         ]
 
 
@@ -1008,7 +1008,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on top left corner
-            fr'path \'M 0,-{height}',
+            f'path \'M 0,-{height}',
             # Draw to the top right corner
             f'l +{self.length * 2},0',
             # Draw down to the bottom middle; y is cut off
@@ -1019,7 +1019,7 @@ class ShapeTitleCard(BaseCardType):
             f'l {self.length},{height}',
             # Draw up to the top right; y is cut off
             f'l {bottom_x:+.1f},-{bottom_y:.1f}',
-            fr'\'"'
+            f'\'"'
         ]
 
 
@@ -1054,7 +1054,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from right side (y based on text position)
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on top right corner
-            fr'path \'M 0,-{height}',
+            f'path \'M 0,-{height}',
             # Draw to the top left corner
             f'l -{self.length * 2},0',
             # Draw down to the bottom middle; y is cut off
@@ -1065,7 +1065,7 @@ class ShapeTitleCard(BaseCardType):
             f'l -{self.length},+{height}',
             # Draw up to the top left; y is cut off
             f'l -{bottom_x:.1f},-{bottom_y:.1f}',
-            fr'\'"'
+            f'\'"'
         ]
 
 
@@ -1100,7 +1100,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from left side (y based on text position)
             f'"translate {self.__left_shape_translation}',
             # Begin shape starting on bottom left corner
-            fr'path \'M 0,0',
+            f'path \'M 0,0',
             # Draw to the bottom right corner
             f'l +{self.length * 2},0',
             # Draw up to the bottom middle; y is cut off
@@ -1111,7 +1111,7 @@ class ShapeTitleCard(BaseCardType):
             f'l {self.length},-{height}',
             # Draw down to the bottom right; y is cut off
             f'l +{top_x:.1f},+{top_y:.1f}'
-            fr'\'"'
+            f'\'"'
         ]
 
 
@@ -1146,7 +1146,7 @@ class ShapeTitleCard(BaseCardType):
             # Translate in from right side
             f'"translate {self.__right_shape_translation}',
             # Begin shape starting on bottom right corner
-            fr'path \'M 0,0',
+            f'path \'M 0,0',
             # Draw to the bottom left corner
             f'l -{self.length * 2},0',
             # Draw up to the bottom middle; y is cut off
@@ -1157,7 +1157,7 @@ class ShapeTitleCard(BaseCardType):
             f'l -{self.length},-{height}',
             # Draw down to the bottom left; y is cut off
             f'l -{top_x:.1f},+{top_y:.1f}',
-            fr'\'"'
+            f'\'"'
         ]
 
 

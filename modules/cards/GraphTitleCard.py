@@ -83,24 +83,24 @@ class SvgCircle:
         if self.percentage <= 0.5:
             return [
                 # Start path
-                fr'path \'',
+                f'path \'',
                 positioning,
                 # Draw arc
                 f'a {self.radius},{self.radius} 0 0 1 {x:+.1f},{y:+.1f}',
                 # End path
-                fr'\'',
+                f'\'',
             ]
 
         return [
             # Start path
-            fr'path \'',
+            f'path \'',
             positioning,
             # Draw full arc half
             f'a {self.radius},{self.radius} 0 0 1 {0:+.1f},{2 * self.radius}',
             # Draw partial arc
             f'a {self.radius},{self.radius} 0 0 1 {x:+.1f},{y:+.1f}',
             # End path
-            fr'\'',
+            f'\'',
         ]
 
 
@@ -356,8 +356,8 @@ class GraphTitleCard(BaseCardType):
             geometry = f'+{(self.WIDTH - self.HEIGHT) / 2}+0'
 
         return [
-            fr'\( "{self.GRADIENT.resolve()}"',
-            fr'-rotate {rotation} \)',
+            f'\( "{self.GRADIENT.resolve()}"',
+            f'-rotate {rotation} \)',
             f'-geometry {geometry}',
             f'-composite',
         ]
