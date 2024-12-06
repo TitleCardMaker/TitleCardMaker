@@ -1,13 +1,13 @@
 from math import cos, sin, pi as PI
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Union
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
     Coordinate,
-    ImageMagickCommands,
     Extra,
+    ImageMagickCommands,
     TextCase,
 )
 from modules.Title import SplitCharacteristics
@@ -87,11 +87,11 @@ class SvgRectangle:
         return [
             f'-draw "translate {self.center.as_svg}',
             f'rotate {self.rotation}',
-            fr'path \'M {start_position.as_svg}',
+            f'path \'M {start_position.as_svg}',
             f'l {self.width} 0',
             f'l 0 {self.height}',
             f'l {-self.width} 0',
-            fr'l 0 {-self.height}\' "',
+            f'l 0 {-self.height}\' "',
         ]
 
 
@@ -133,9 +133,15 @@ class ComicBookTitleCard(BaseCardType):
             Extra(
                 name='Title Textbox Fill Color',
                 identifier='text_box_fill_color',
-                description='Fill color of the text box for the title text.',
+                description='Fill color of the text box for the title text',
                 tooltip='Default is <c>white</c>.',
                 default='white',
+            ),
+            Extra(
+                name='Episode Textbox Fill Color',
+                identifier='episode_text_box_fill_color',
+                description='Fill color of the text box for the episode text',
+                tooltip='Default is to match the Title Textbox Fill Color.',
             ),
             Extra(
                 name='Title Textbox Edge Color',
@@ -186,7 +192,8 @@ class ComicBookTitleCard(BaseCardType):
                 ),
                 tooltip=(
                     'Negative values shift the banner up, positive values '
-                    'shift the banner down. Default is 0. Unit is pixels.'
+                    'shift the banner down. Default is <v>0</v>. Unit is '
+                    'pixels.'
                 ),
                 default=0,
             ),
@@ -198,7 +205,8 @@ class ComicBookTitleCard(BaseCardType):
                 ),
                 tooltip=(
                     'Negative values shift the banner up, positive values '
-                    'shift the banner down. Default is 0. Unit is pixels.'
+                    'shift the banner down. Default is <v>0</v>. Unit is '
+                    'pixels.'
                 ),
                 default=0,
             ),
@@ -262,14 +270,32 @@ class ComicBookTitleCard(BaseCardType):
     TITLE_TEXT_VERTICAL_OFFSET = 125
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_color',
-        'font_interline_spacing', 'font_interword_spacing', 'font_file',
-        'font_kerning', 'font_size', 'font_vertical_shift',
-        'episode_text_color', 'index_text_position', 'text_box_fill_color',
-        'text_box_edge_color', 'title_text_rotation_angle',
-        'index_text_rotation_angle', 'banner_fill_color', 'title_banner_shift',
-        'index_banner_shift', 'hide_title_banner', 'hide_index_banner',
+        'banner_fill_color',
+        'episode_text',
+        'episode_text_box_fill_color',
+        'episode_text_color',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'hide_episode_text',
+        'hide_index_banner',
+        'hide_season_text',
+        'hide_title_banner',
+        'index_banner_shift',
+        'index_text_rotation_angle',
+        'index_text_position',
+        'output_file',
+        'text_box_fill_color',
+        'text_box_edge_color',
+        'title_text',
+        'title_text_rotation_angle',
+        'season_text',
+        'source_file',
+        'title_banner_shift',
     )
 
     def __init__(self, *,
@@ -292,6 +318,7 @@ class ComicBookTitleCard(BaseCardType):
             episode_text_color : str = 'black',
             index_text_position: Literal['left', 'middle', 'right'] = 'left',
             text_box_fill_color: str = 'white',
+            episode_text_box_fill_color: str = 'white',
             text_box_edge_color: str | None = None,
             title_text_rotation_angle: float = -4.0,
             index_text_rotation_angle: float = -4.0,
@@ -303,9 +330,7 @@ class ComicBookTitleCard(BaseCardType):
             preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
-        """
-        Construct a new instance of this Card.
-        """
+        """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
         super().__init__(blur, grayscale, preferences=preferences)
@@ -330,17 +355,18 @@ class ComicBookTitleCard(BaseCardType):
         self.font_vertical_shift = font_vertical_shift
 
         # Optional extras
-        self.episode_text_color = episode_text_color
-        self.index_text_position = index_text_position
-        self.text_box_fill_color = text_box_fill_color
-        self.text_box_edge_color = text_box_edge_color
-        self.title_text_rotation_angle = title_text_rotation_angle
-        self.index_text_rotation_angle = index_text_rotation_angle
         self.banner_fill_color = banner_fill_color
-        self.title_banner_shift = title_banner_shift
-        self.index_banner_shift = index_banner_shift
+        self.episode_text_box_fill_color = episode_text_box_fill_color
+        self.episode_text_color = episode_text_color
         self.hide_title_banner = hide_title_banner
         self.hide_index_banner = hide_index_banner
+        self.index_banner_shift = index_banner_shift
+        self.index_text_position = index_text_position
+        self.index_text_rotation_angle = index_text_rotation_angle
+        self.text_box_fill_color = text_box_fill_color
+        self.text_box_edge_color = text_box_edge_color
+        self.title_banner_shift = title_banner_shift
+        self.title_text_rotation_angle = title_text_rotation_angle
 
 
     @property
@@ -560,7 +586,7 @@ class ComicBookTitleCard(BaseCardType):
         if self.hide_index_banner:
             return [
                 f'-gravity center',
-                f'-fill "{self.text_box_fill_color}"',
+                f'-fill "{self.episode_text_box_fill_color}"',
                 f'-stroke "{self.text_box_edge_color}"',
                 f'-strokewidth 5',
                 *index_text_rectangle.draw_commands,

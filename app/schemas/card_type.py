@@ -257,6 +257,7 @@ class ComicBookCardType(BaseCardTypeCustomFontAllText):
     episode_text_color: str = 'black'
     index_text_position: Literal['left', 'middle', 'right'] = 'left'
     text_box_fill_color: str = 'white'
+    episode_text_box_fill_color: str | None = None
     text_box_edge_color: str | None = None
     title_text_rotation_angle: float | RandomAngle = -4.0
     index_text_rotation_angle: float | RandomAngle = -4.0
@@ -292,6 +293,9 @@ class ComicBookCardType(BaseCardTypeCustomFontAllText):
         # None means match font color
         if values['text_box_edge_color'] is None:
             values['text_box_edge_color'] = values['font_color']
+        # None means match title text box fill color
+        if values['episode_text_box_fill_color'] is None:
+            values['episode_text_box_fill_color'] =values['text_box_fill_color']
 
         return values
 
