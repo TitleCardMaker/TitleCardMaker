@@ -175,16 +175,40 @@ class EpisodeInfo(DatabaseInfoContainer):
             )
 
         # ID matches are immediate equality
-        for id_attr in ('emby_id', 'imdb_id', 'jellyfin_id', 'tmdb_id',
-                        'tvdb_id', 'tvrage_id'):
+        for id_attr in (
+                'emby_id',
+                'imdb_id',
+                'jellyfin_id',
+                'tmdb_id',
+                'tvdb_id',
+                'tvrage_id'
+            ):
             if (getattr(self, id_attr) is not None
                 and getattr(self, id_attr) == getattr(other, id_attr)):
                 return True
 
         # Require title match for index equality
         return (
+            # Season number match
             self.season_number == other.season_number
-            and self.episode_number == other.episode_number
+            and (
+                # Episode number match
+                self.episode_number == other.episode_number
+                or (
+                    # Both have absolute numbers that match
+                    (
+                        self.absolute_number is not None
+                        and other.absolute_number is not None
+                        and self.absolute_number == other.absolute_number
+                    )
+                    # One has absolute number that matches the others episode
+                    or (
+                        self.absolute_number == other.episode_number
+                        or self.episode_number == other.absolute_number
+                    )
+                )
+            )
+            # And title match
             and self.full_title.matches(other.full_title)
         )
 
