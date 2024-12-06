@@ -6,7 +6,7 @@ from typing import TypedDict
 from app.schemas.logs import LogLevel
 
 from modules.Debug import (
-    log,
+    log,  # noqa: F401
     DATETIME_FORMAT,
     DATETIME_FORMAT_NO_TZ,
     LOG_FILE
@@ -111,30 +111,35 @@ def read_log_files(
 
     # Read every log file
     for log_file in LOG_FILE.parent.glob(f'{LOG_FILE.stem}*{LOG_FILE.suffix}'):
-        # Skip files last modified before the minimum "after" time or
-        # after the maximum "before" time minus one day since a log
-        # file is cycled after at most 1 days
-        log_mod_time = datetime.fromtimestamp(log_file.stat().st_mtime)
-        if ((after and after > log_mod_time)
-            or (before and before < log_mod_time - timedelta(days=1))):
+        try:
+            # Skip files last modified before the minimum "after" time or
+            # after the maximum "before" time minus one day since a log
+            # file is cycled after at most 1 days
+            log_mod_time = datetime.fromtimestamp(log_file.stat().st_mtime)
+            if ((after and after > log_mod_time)
+                or (before and before < log_mod_time - timedelta(days=1))):
+                continue
+
+            # Check cache for this file
+            if log_file in _LOG_DATA:
+                logs += _LOG_DATA[log_file]
+                continue
+
+            # File is not cached - parse directly
+            file_data: list[RawLogData] = []
+            with log_file.open('r') as file_handle:
+                for line in file_handle.readlines():
+                    if (line_data := parse_line(line, file=log_file)):
+                        file_data.append(line_data)
+
+            # Add to cache IF not the active log file since the active log
+            # is constantly updated
+            if log_file.name != LOG_FILE.name:
+                _LOG_DATA[log_file] = file_data
+            logs += file_data
+        # Sometimes loguru deletes the log file while it is being read,
+        # handle this while parsing
+        except FileNotFoundError:
             continue
-
-        # Check cache for this file
-        if log_file in _LOG_DATA:
-            logs += _LOG_DATA[log_file]
-            continue
-
-        # File is not cached - parse directly
-        file_data: list[RawLogData] = []
-        with log_file.open('r') as file_handle:
-            for line in file_handle.readlines():
-                if (line_data := parse_line(line, file=log_file)):
-                    file_data.append(line_data)
-
-        # Add to cache IF not the active log file since the active log
-        # is constantly updated
-        if log_file.name != LOG_FILE.name:
-            _LOG_DATA[log_file] = file_data
-        logs += file_data
 
     return logs
