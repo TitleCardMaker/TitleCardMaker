@@ -1618,6 +1618,9 @@ function viewBlueprintSets(blueprintId) {
  * DOM.
  */
 function queryBlueprints() {
+  const $icon = $('.segment[data-tab="blueprints"] .button[data-action="search"] .icon');
+  setLoadingIcon($icon);
+
   // Get templates
   const blueprintCards = document.getElementById('blueprint-cards');
   const blueprintTemplate = document.getElementById('blueprint-template');
@@ -1667,6 +1670,7 @@ function queryBlueprints() {
       $('[data-value="file-count"]').popup({inline: true});
     },
     error: response => showErrorToast({title: 'Error Querying Blueprints', response}),
+    complete: () => removeLoadingIcon($icon),
   });
 }
 
@@ -1675,6 +1679,9 @@ function queryBlueprints() {
  * the Blueprint zip file is downloaded.
  */
 function exportBlueprint() {
+  const $icon = $('.segment[data-tab="blueprints"] .button[data-action="export"] .icon');
+  setLoadingIcon($icon);
+
   $.ajax({
     type: 'GET',
     url: '/api/blueprints/export/series/{{ series.id }}/zip',
@@ -1715,6 +1722,7 @@ function exportBlueprint() {
       );
     },
     error: response => showErrorToast({title: 'Error Exporting Blueprint', response}),
+    complete:() => removeLoadingIcon($icon),
   });
 }
 
