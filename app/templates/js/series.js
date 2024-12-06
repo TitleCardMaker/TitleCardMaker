@@ -1054,7 +1054,7 @@ function getCardData(
 
   $.ajax({
     type: 'GET',
-    url: `/api/cards/series/{{ series.id }}?page=${page}&size=${titleCardPreviewPageSize}`,
+    url: `/api/cards/series/{{ series.id }}/reduced?page=${page}&size=${titleCardPreviewPageSize}`,
     /**
      * Cards queried, populate page / table of Card data.
      * @param {TitleCardPage} cards - Current page of Title Card data.
@@ -1062,6 +1062,9 @@ function getCardData(
     success: cards => {
       const previewTemplate = document.getElementById('card-image-template');
       const previews = cards.items.map((card, index) => {
+        // Add file_url value
+        card.file_url = card.card_file.replace(`{{ preferences.card_directory }}`, '/cards');
+
         // Update live preview if first element and updating
         if (updateLivePreview && index === 0) {
           document.getElementById('live-preview').src = `${card.file_url}?${card.filesize}`;
