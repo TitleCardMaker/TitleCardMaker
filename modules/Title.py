@@ -377,7 +377,9 @@ class Title:
         matching_titles = map(_get_title, titles)
 
         if self.__original_title is not None:
-            return any(title in (self.__original_title, self.match_title)
-                       for title in matching_titles)
+            return any(
+                title in (self.__original_title, self.match_title)
+                for title in matching_titles
+            )
 
         return any(title == self.match_title for title in matching_titles)

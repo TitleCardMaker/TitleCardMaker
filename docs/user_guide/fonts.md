@@ -292,7 +292,8 @@ can be blank to indicate the input text should be deleted.
 
     However, because of this, some replacements might appear to "doubled up".
     For example, if a replacement was used to add an extra space between some
-    character, such as `,` to `, `, then TCM will actually add _two_ spaces.
+    character, such as `,` to `, ` (comma with a space), then TCM will actually
+    add _two_ spaces.
 
     This can be avoided by using the `pre:` and `post:` tags described below.
 
@@ -304,22 +305,27 @@ can be blank to indicate the input text should be deleted.
     with with `post:`. TCM will ignore the `pre:` and `post:` text in the
     actual replacement.
 
+??? warning "Replacing Backslashes"
+
+    If you would like to add a replacement for a backslash ++backslash++ (`\`)
+    character, you __need__ to specify this as `post:\`, rather than just `\`.
+    This is because Python represents newline characters - the character which
+    forces the cursor to move to a new line of text - with `\n`. If left as just
+    `\` will cause any manually split titles to be handled incorrectly.
+
+    For more details on pre- and post- splits, see above.
+
 ## Character Replacement Analysis
 
 Under the [Character Replacements](#character-replacements) section of a Font
 is a <span class="example md-button">:fontawesome-solid-wand-magic-sparkles:
-Analyze Font Replacements</span> which can be pressed to prompt TCM to perform
-an automated analysis of the Font and make suggested replacements.
+Analyze Font Replacements</span> button which can be pressed to prompt TCM to
+perform an automated analysis of the Font and make suggested replacements.
 
 During this analysis, TCM will look for any appropriate glyph within the Font
 for all the most commonly used English characters (i.e. A-Z and all standard
-punctuation). If the Font is assigned to a Template, Series, or Episode then
+punctuation). If the Font is assigned to a Template, Series, or Episode[^2] then
 TCM will look at the titles of those assigned elements for characters. 
-
-!!! tip "Analyze the Font _after_ Assignment"
-
-    Because of this, it is recommended to perform the Font analysis _after_
-    assigning the Font to the applicable Template, Series, or Episode.
 
 TCM will then suggest replacements by looking for common character replacements
 (like `&` to `and`, `’` to `'`), the lower or uppercase equivalent (if
@@ -330,6 +336,11 @@ applicable), and finally attempt a Unicode character decomposition.
     Say the Font in question does not have the character `Á` - TCM will look for
     a "common" replacement; then `á`; and finally an `A` or `a` character.
 
-[^1]: Technical term for analyzing some text by loading it into a "fake"
-temporary image of _just_ text and taking measurements of the image space
-required to display the text.
+[^1]:
+    Technical term for analyzing some text by loading it into a "fake" temporary
+    image of _just_ text and taking measurements of the image space required to
+    display the text.
+[^2]:
+    Because of this analysis, it is recommended to perform the Font analysis
+    _after_ you have already assigned the Font to your desired Template(s),
+    Series, or Episodes(s).
