@@ -1089,6 +1089,8 @@ function getCardData(
           preview.querySelector('[data-value="loaded"]').remove();
         }
         // Assign button functionality
+        preview.querySelector('.popup [data-action="delete"]').onclick = () => deleteCard(card.id);
+        preview.querySelector('.popup [data-action="download"]').href = card.file_url;
         preview.querySelector('.popup [data-action="recreate"]').onclick = () => {
           deleteCard(
             card.id,
@@ -1096,7 +1098,6 @@ function getCardData(
             () => createEpisodeCard(card.episode_id),
           );
         }
-        preview.querySelector('.popup [data-action="delete"]').onclick = () => deleteCard(card.id);
         preview.querySelector('.popup [data-action="reload"]').onclick = () => loadCard(card.id);
         preview.querySelector('.popup [data-action="manually-reload"]').onclick = () => openManualCardLoadModal(card.id);
 
