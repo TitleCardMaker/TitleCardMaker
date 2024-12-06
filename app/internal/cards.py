@@ -4,7 +4,7 @@ from typing import Any, cast
 
 from fastapi import HTTPException
 from pydantic import ValidationError
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, func, or_
 from sqlalchemy.exc import OperationalError, PendingRollbackError
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.orm.session import object_session
@@ -158,25 +158,49 @@ def clean_database(*, log: Logger = log) -> None:
                     db.delete(episode)
             db.commit()
 
-            # Delete duplicate Cards
-            for series in db.query(Series).all():
-                episode_ids = db.query(Episode.id)\
-                    .filter_by(series_id=series.id)\
-                    .all()
-
-                for episode_id in episode_ids:
-                    cards = db.query(Card)\
-                        .filter_by(episode_id=episode_id[0])\
-                        .all()
-
-                    if get_preferences().library_unique_cards:
-                        ...
-                    else:
-                        for card in cards[::-1][1:]: # All but the latest Card
-                            log.debug(f'Deleting redundant {card}')
-                            card.file.unlink(missing_ok=True)
-                            db.delete(card)
+            # Delete Episodes which are duplicates
+            subquery = db\
+                .query(
+                    Episode.series_id,
+                    Episode.season_number,
+                    Episode.episode_number,
+                    func.min(Episode.id).label('min_id')
+                )\
+                .group_by(
+                    Episode.series_id,
+                    Episode.season_number,
+                    Episode.episode_number
+                )\
+                .subquery()
+            to_delete = db.query(Episode).filter(
+                Episode.series_id == subquery.c.series_id,
+                Episode.season_number == subquery.c.season_number,
+                Episode.episode_number == subquery.c.episode_number,
+                Episode.id != subquery.c.min_id,
+            )
+            for episode in to_delete.all():
+                log.trace(f'Deleting duplicate Episode {episode}')
+                db.delete(episode)
             db.commit()
+
+            # Delete duplicate Cards
+            if not get_preferences().library_unique_cards:
+                subquery = db\
+                    .query(
+                        Card.episode_id,
+                        func.max(Card.id).label('max_id'),
+                    )\
+                    .group_by(Card.episode_id)\
+                    .subquery()
+                to_delete = db.query(Card).filter(
+                    Card.episode_id == subquery.c.episode_id,
+                    Card.id != subquery.c.max_id,
+                )
+                for card in to_delete.all():
+                    log.debug(f'Deleting redundant {card}')
+                    card.file.unlink(missing_ok=True)
+                    db.delete(card)
+                db.commit()
     except Exception:
         log.exception('Failed to clean the database')
 
