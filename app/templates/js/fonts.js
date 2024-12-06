@@ -5,10 +5,36 @@ import {
 {% endif %}
 
 /**
+ * "Change" the given icon to a loading indication. This is done by inserting an
+ * adjacent spinner icon and hiding the given icon.
+ * @param {JQuery} icon Element of the icon to set as loading,
+ */
+function setLoadingIcon($icon) {
+  $icon.css('display', 'none');
+  $('<i class="spinner loading icon"></i>').insertAfter($icon);
+}
+
+/**
+ * Remove the loading indication from the given icon. This removes the
+ * previously inserted adjacent spinner icon and unhides the given icon.
+ * @param {JQuery} $icon Element of the icon to unset as loading.
+ */
+function removeLoadingIcon($icon) {
+  const $spinnerIcon = $icon.next();
+  if ($spinnerIcon.hasClass('spinner') && $spinnerIcon.hasClass('icon')) {
+    $spinnerIcon.remove();
+  }
+  $icon.css('display', '');
+}
+
+/**
  * Submit an API request to create a new Font. If successful, then all Fonts
  * are reloaded.
  */
 function addFont() {
+  const $icon = $('#create-font .icon');
+  setLoadingIcon($icon);
+
   const data = {name: ' Blank Custom Font'};
   $.ajax({
     type: 'POST',
@@ -25,15 +51,20 @@ function addFont() {
       getAllFonts();
     },
     error: response => showErrorToast({title: 'Error Creating Font', response}),
+    complete: () => removeLoadingIcon($icon),
   });
 }
 
 /**
  * Submit an API request to delete the given Font from the database. If
  * successful, the HTML element for this Font is removed from the page.
- * @param {NamedFont} font - Font to delete.
+ * @param {NamedFont} font Font to delete.
  */
 function deleteFont(font) {
+  const $icon = $(`font-id${font.id} .button[data-action="delete"] .icon`);
+  setLoadingIcon($icon);
+
+  // Submit API request
   $.ajax({
     type: 'DELETE',
     url: `/api/fonts/${font.id}`,
@@ -43,6 +74,7 @@ function deleteFont(font) {
       $(`#font-id${font.id}`).remove();
     },
     error: response => showErrorToast({title: 'Error Deleting Font', response}),
+    complete: () => removeLoadingIcon($icon),
   });
 }
 
@@ -103,6 +135,10 @@ function saveFontForm(fontId, eventTarget) {
   // Validate form, exit if invalid
   if (!$(`#font-id${fontId}`).form('is valid')) { return; }
 
+  // Mark as loading
+  const $icon = $(`#font-id${fontId} .button[data-action="save"] .icon`);
+  setLoadingIcon($icon);
+
   // Construct form
   let form = new FormData(eventTarget);
   let listData = {replacements_in: [], replacements_out: []};
@@ -132,8 +168,13 @@ function saveFontForm(fontId, eventTarget) {
     error: response => showErrorToast({title: 'Error Updating Font', response}),
   });
 
+  // No Font file to upload
+  if (form.get('font_file').size === 0) {
+    removeLoadingIcon($icon);
+    return;
+  }
+
   // Submit separate API request to upload font file
-  if (form.get('font_file').size === 0) { return; }
   let fileForm = new FormData();
   fileForm.append('file', form.get('font_file'));
   $.ajax({
@@ -144,7 +185,10 @@ function saveFontForm(fontId, eventTarget) {
     contentType: false,
     success: () => showInfoToast('Uploaded Font File'),
     error: response => showErrorToast({title: 'Error Uploading Font File', response}),
-    complete: () => $(`#font-id${fontId} .button[data-action="populateReplacements"]`).toggleClass('disabled', false),
+    complete: () => {
+      removeLoadingIcon($icon);
+      $(`#font-id${fontId} .button[data-action="populateReplacements"]`).toggleClass('disabled', false);
+    },
   });
 }
 
@@ -193,6 +237,7 @@ function querySuggestedFontReplacements(fontId, elementId) {
           inElement.appendChild(newInput);
           const newOutput = document.createElement('input');
           newOutput.value = repl_out; newOutput.name = 'replacements_out'; newOutput.type='text';
+          newOutput.placeholder = 'Delete Character';
           outElement.appendChild(newOutput);
         }
       }
@@ -203,7 +248,7 @@ function querySuggestedFontReplacements(fontId, elementId) {
 }
 
 /**
- * 
+ * Submit an API request to transfer the Font references.
  * @param {number} fromId ID of the Font whose assignments are being transferred
  * from.
  * @param {number} toId ID of the Font whose assignments are being transferred
@@ -212,16 +257,23 @@ function querySuggestedFontReplacements(fontId, elementId) {
  * transferring.
  */
 function transferFontReferences(fromId, toId, deleteFrom) {
+  const $icon = $(`font-id${fromId} .button[data-action="transfer"] .icon`);
+  setLoadingIcon($icon);
+
+  // Get args
   const args = new URLSearchParams({
     from: fromId,
     to: toId,
     delete_from: deleteFrom,
-  })
+  });
+
+  // Submit API request
   $.ajax({
     type: 'PUT',
     url: `/api/fonts/transfer?${args.toString()}`,
     /**
-     * 
+     * Font transferred, display a toast and delete the Font from the page if
+     * indicated.
      * @param {NamedFont} font "To" Font after re-assignment.
      */
     success: font => {
@@ -234,6 +286,7 @@ function transferFontReferences(fromId, toId, deleteFrom) {
       }
     },
     error: response => showErrorToast({title: 'Error transferring Font', response}),
+    complete: () => removeLoadingIcon($icon),
   });
 }
 
@@ -303,29 +356,19 @@ function populateFontElement(template, font, activeFontId) {
   const outElement = template.querySelector('.field[data-value="out-replacements"]');
   for (let i = 0; i < font.replacements_in.length; i++) {
     const newInput = document.createElement('input');
-      newInput.name = 'replacements_in'; newInput.type = 'text';
-      newInput.value = font.replacements_in[i];
-      inElement.appendChild(newInput);
-      
-      const newOutput = document.createElement('input');
-      newOutput.name = 'replacements_out'; newOutput.type='text';
-      newOutput.value = font.replacements_out[i];
-      outElement.appendChild(newOutput);
+    newInput.name = 'replacements_in'; newInput.type = 'text';
+    newInput.value = font.replacements_in[i];
+    inElement.appendChild(newInput);
+    
+    const newOutput = document.createElement('input');
+    newOutput.name = 'replacements_out'; newOutput.type='text'; newOutput.placeholder = 'Delete Character';
+    newOutput.value = font.replacements_out[i];
+    outElement.appendChild(newOutput);
   }
 
   // Query suggested font replacements on button click
   template.querySelector('.button[data-action="populateReplacements"]').onclick = () => querySuggestedFontReplacements(font.id, `font-id${font.id}`);
   
-  // Add new input fields on click of addReplacement button
-  template.querySelector('.button[data-action="addReplacement"]').onclick = () => {
-    const blankInput = document.createElement('input');
-    blankInput.name = 'replacements_in'; blankInput.type='text';
-    inElement.appendChild(blankInput);
-    const blankOutput = document.createElement('input');
-    blankOutput.name = 'replacements_out'; blankOutput.type='text';
-    outElement.appendChild(blankOutput);
-  };
-
   // Set submit form event to submit PATCH API request
   template.querySelector('form[data-value="font-form"]').id = `font-id${font.id}`;
   template.querySelector('form[data-value="font-form"]').onsubmit = event => {
@@ -363,6 +406,21 @@ function populateFontElement(template, font, activeFontId) {
   }
 
   return template;
+}
+
+/**
+ * Add blank character replacement input fields for the field closest to the
+ * pressing button.
+ * @param {HTMLButtonElement} buttonElement Button which was pressed.
+ */
+function addBlankReplacement(buttonElement) {
+  const $form = $(buttonElement).closest('form')
+  $form.find('.field[data-value="in-replacements"]').append(
+    $('<input name="replacements_in" type="text" placeholder="Text">')
+  );
+  $form.find('.field[data-value="out-replacements"]').append(
+    $('<input name="replacements_out" type="text" placeholder="Delete Character">')
+  );
 }
 
 /**
@@ -488,6 +546,7 @@ function getAllFonts() {
       // Put new font elements on the page
       document.getElementById('loader')?.remove();
       document.getElementById('fonts').replaceChildren(...fontElements);
+      $('.dropdown[data-value="title_case"]').dropdown();
 
       // Scroll to active Font if indicated
       if (activeFontId) {
@@ -527,16 +586,6 @@ function getAllFonts() {
 
       // Refresh theme for any newly added HTML
       refreshTheme();
-
-      // Apply form validations
-      $('.form[data-value="font-form"]').form({
-        on: 'blur',
-        inline: true,
-        fields: {
-          name: ['minLength[1]'],
-          size: ['integer[1..]'],
-        },
-      });
     },
     error: response => showErrorToast({title: 'Error Loading Fonts', response}),
   });

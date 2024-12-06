@@ -23,7 +23,7 @@
             <form data-value="font-form" class="ui form">
               <div class="field">
                 <label>Name</label>
-                <input name="name" type="text" placeholder="Font #{id}" minlength="1">
+                <input name="name" type="text" placeholder="Font Name" minlength="1">
               </div>
 
               <div class="field">
@@ -47,7 +47,7 @@
 
                 <div class="field">
                   <label>Text Case</label>
-                  <div class="ui clearable selection dropdown">
+                  <div class="ui clearable selection dropdown" data-value="title_case">
                     <input name="title_case" type="hidden">
                     <div class="default text">Default</div>
                     <i class="dropdown icon"></i>
@@ -129,22 +129,21 @@
                   <i class="magic icon"></i>
                   Analyze Font Replacements
                 </div>
-                <div data-action="addReplacement" class="circular ui icon mini button">
+                <div data-action="addReplacement" class="circular ui icon mini button" onclick="addBlankReplacement(this);">
                   <i class="plus square outline icon"></i>
                   Add Replacement
                 </div>
               </div>
 
               <!-- Buttons -->
-              <button class="ui primary animated button" type="submit">
-                <div class="visible content">Save Changes</div>
-                <div class="hidden content">
-                  <i class="right arrow icon"></i>
-                </div>
+              <button class="ui primary icon button" data-action="save" type="submit">
+                <i class="save icon"></i>
+                Save
               </button>
 
-              <button class="ui floating dropdown teal button" data-action="transfer" data-value="font_ids">
-                <span class="text">Transfer Font</span>
+              <button class="ui floating dropdown teal icon button" data-action="transfer" data-value="font_ids">
+                <i class="file import icon"></i>
+                <span class="text">Transfer</span>
                 <div class="menu">
                   <div class="ui icon search input">
                     <i class="search icon"></i>
@@ -154,13 +153,11 @@
                 </div>
               </button>
 
-              <button class="ui negative animated button">
-                <div class="visible content">Delete</div>
-                <div class="hidden content">
-                  <i class="trash icon"></i>
-                </div>
+              <button class="ui negative button" data-action="delete">
+                <i class="trash icon"></i>
+                Delete
               </button>
-              <div class="ui error message"></div>
+
             </form>
           </div>
 
@@ -217,7 +214,10 @@
       <h1 class="ui header">Fonts</h1>
 
       <!-- Add font button -->
-      <button class="ui primary tertiary button" onclick="addFont()">Create New Font</button>
+      <button class="ui primary tertiary icon button" onclick="addFont()" id="create-font">
+        <i class="plus icon"></i>
+        Create New Font
+      </button>
       <div class="ui active centered inline blue elastic loader" id="loader"></div>
 
       <div id="fonts"><!-- Elements added asynchronously --></div>
