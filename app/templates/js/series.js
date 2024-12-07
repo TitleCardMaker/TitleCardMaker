@@ -2279,13 +2279,13 @@ function updateSeries(formName) {
     };
   } else if (formName === 'ids') {
     data = {
-      emby_id: document.querySelector('#series-ids-form input[name="emby_id"]').value || null,
-      imdb_id: document.querySelector('#series-ids-form input[name="imdb_id"]').value || null,
-      jellyfin_id: document.querySelector('#series-ids-form input[name="jellyfin_id"]').value || null,
-      sonarr_id: document.querySelector('#series-ids-form input[name="sonarr_id"]').value || null,
-      tmdb_id: document.querySelector('#series-ids-form input[name="tmdb_id"]').value || null,
-      tvdb_id: document.querySelector('#series-ids-form input[name="tvdb_id"]').value || null,
-      tvrage_id: document.querySelector('#series-ids-form input[name="tvrage_id"]').value || null,
+      emby_id: document.querySelector('#series-ids-form input[name="emby_id"]')?.value || null,
+      imdb_id: document.querySelector('#series-ids-form input[name="imdb_id"]')?.value || null,
+      jellyfin_id: document.querySelector('#series-ids-form input[name="jellyfin_id"]')?.value || null,
+      sonarr_id: document.querySelector('#series-ids-form input[name="sonarr_id"]')?.value || null,
+      tmdb_id: document.querySelector('#series-ids-form input[name="tmdb_id"]')?.value || null,
+      tvdb_id: document.querySelector('#series-ids-form input[name="tvdb_id"]')?.value || null,
+      tvrage_id: document.querySelector('#series-ids-form input[name="tvrage_id"]')?.value || null,
     };
   }
 
