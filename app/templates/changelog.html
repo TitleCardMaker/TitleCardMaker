@@ -11,6 +11,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script>  
   <link rel="stylesheet" type="text/css" href="/templates/css/settings.css?v={{preferences.current_version}}"/>
+  <link rel="stylesheet" type="text/css" href="/templates/css/changelog.css?v={{preferences.current_version}}"/>
 </head>
 
 <body>
@@ -51,10 +52,212 @@
           "v2.0-alpha.12.0",
           "v2.0-alpha.12.1",
           "v2.0-alpha.13.0",
+          "v2.0-alpha.14.0",
         ] %}
         {% for version in versions[::-1] %}
           <a class="ui label" href="#{{version}}">{{version}}</a>
         {% endfor %}
+      </div>
+
+      <h2 id="v2.0-alpha.14.0" class="ui top attached header">
+        v2.0-alpha.14.0
+        <div class="sub header">Released November 29, 2024</div>
+      </h2>
+      <div data-version="v2.0-alpha.14.0" class="ui bottom attached segment">
+        <h3>Major Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Create new Score card type
+            <div class="list">
+              <img width="50%" src="https://titlecardmaker.com/card_types/assets/score.webp" width="50%">
+            </div>
+          </div>
+          <div class="item">Add the ability to define complex filters to the home page - for example:
+            <div class="list">
+              <img width="50%" src="https://github.com/user-attachments/assets/06adae29-b790-40f5-948c-9b3c11a07e16" width="50%">
+            </div>
+          </div>
+          <div class="item">Various significant performance improvements
+            <div class="list">
+              <div class="item">Use reduced SQL queries in various API endpoints</div>
+              <div class="item">Default to not querying the Card and Episode counts of Series on the home page - this results in ~20x speed up of loads (in my testing)
+                <div class="list">
+                  <div class="item">This means <i>by default</i> , the "progress bars" of Card creation will not be displayed on the home page</div>
+                  <div class="item">Add a new "Display Counts" button to the home page tool bar which can enable the "old" style if the performance impact is not important</div>
+                </div>
+              </div>
+              <div class="item">Rewrite the Template page so that the Template elements are interactive <i>much</i> sooner (~15x faster in my limited testing)
+                <div class="list">
+                  <div class="item">Populating dropdown elements in the HTML template using JavaScript (not JQuery)</div>
+                  <div class="item">Only initialize the extra data tabs for Templates which are opened</div>
+                  <div class="item">Make all asynchronous API calls in parallel, rather than sequentially</div>
+                </div>
+              </div>
+              <div class="item">Rewrite portions of the Series page so that elements are initialized via Jinja templates, not JQuery</div>
+            </div>
+          </div>
+          <div class="item">Allow specification of global card-type specific blur profiles (if blurring is enabled)</div>
+          <div class="item">Load same-Series Title Cards <i>together</i> (not separately) in Plex/Tautulli Webhook triggers for seasons and shows</div>
+          <div class="item">Add <b>TCM</b> label using batch edits in Plex</div>
+          <div class="item">Significantly improve Kometa / MediUX YAML importing:
+            <div class="list">
+              <div class="item">Download images in parallel</div>
+              <div class="item">Load cards in batches</div>
+            </div>
+          </div>
+          <div class="item">Various database performance improvements:
+            <div class="list">
+              <div class="item">Add explicit column names for clean, full, and sort names (were previously hybrid properties)</div>
+              <div class="item">Add indices for sort name columns</div>
+              <div class="item">This is implemented as schema <b>2dc1e976a801</b></div>
+            </div>
+          </div>
+          <div class="item">Update to Python 3.13</div>
+          <div class="item">Display loading/progress indication for various interactions on the Series pag</div>
+          <div class="item">Allow overwriting the Image Source Priority setting in Series and Templates within the UI</div>
+        </div>
+        <h3>Major Fixes</h3>
+        <div class="ui ordered list">
+          <div class="item">Properly utilize per-season backdrops in Card creation (pushed as hotfix)</div>
+          <div class="item">Properly fall back to the global Image Source Priority if resolved setting is blank</div>
+          <div class="item">No longer create new Templates with <i>empty</i> (not null) Image Source Priority settings</div>
+          <div class="item">Correctly display existing global card-type Fonts on the Settings page</div>
+          <div class="item">Fix uploading season logo files within the UI</div>
+          <div class="item">Return the watched Source Image details if an unwatched art style is being used <i>but</i> the Episode is watched in all assigned libraries</div>
+          <div class="item">Correctly remove the <b>Overlay</b> label from Plex if Kometa integration is enabled; this was corrected by PlexAPI <b>4.16.0</b> which fixes a bug related to batch label operations</div>
+          <div class="item">Fix individually reloading individual Cards via the UI</div>
+          <div class="item">Fix saving and applying global extras for remote card types</div>
+          <div class="item">Delete duplicate Episodes in the Clean Database task</div>
+        </div>
+        <h3>Minor Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Remove confusing "Found __ via Sonarr, but not in server" log message</div>
+          <div class="item">Stop logging episodes which are not loaded in Plex card loading</div>
+          <div class="item">Add the ability to capture any generic package logging by defining the <b>TCM_PACKAGE_LOGGING</b> environment variable as a comma-separated string of package/logger names - e.g. <b>sqlalchemy,aiohttp.server</b></div>
+          <div class="item">Improve frontend load times for Templates by initializing dropdowns in HTML directly, not via JQuery</div>
+          <div class="item">Use "new" style of Python <b>Union</b> and <b>Optional</b> type annotations</div>
+          <div class="item">Begin preliminary integration to optional background removal services (for in-UI mask image editing and creation)</div>
+          <div class="item">Indicate action icons as clickable on the System page</div>
+          <div class="item">Blur the page content behind all Sync modals</div>
+          <div class="item">Move the "unmonitored series do not download source images" warning on the Series page to the header</div>
+          <div class="item">Do not display individual "rescheduled ___" toasts when modifying Task schedules</div>
+          <div class="item">Include Mask Images in Blueprint exports</div>
+          <div class="item">Add generic <b>custom_field</b> extra to the variable overrides section</div>
+          <div class="item">Add <b>dict</b> as available builtin function/object in format strings</div>
+          <div class="item">Add unit labels to extras which have a unit (usually just pixels)</div>
+          <div class="item">Add a new Template filter argument for the current time - this should allow for automatically updating cards based on the time</div>
+          <div class="item">Add a Download card button to the card popup on the Series page</div>
+        </div>
+        <h3>Minor Fixes</h3>
+        <div class="ui ordered list">
+          <div class="item">Validate raw image content downloaded from MediUX before importing</div>
+          <div class="item">Handle empty (<b>null</b>) episode data and airdate returns from TVDb</div>
+          <div class="item">Create Cards which do not require a Source Image in the Plex/Tautulli webhook endpoints</div>
+          <div class="item">Improve handling of bad card settings in Card creation during webhook triggers</div>
+          <div class="item">Fix YAML setting imports for TMDb and Plex settings</div>
+          <div class="item">Begin using raw (<b>r''</b>) strings in ImageMagick command definitions to stop Python syntax warnings from displaying at runtime</div>
+          <div class="item">Use a simpler (more mobile friendly) style of "loader" on the home page</div>
+          <div class="item">Re-display the loader when navigating between pages of Series on the home page</div>
+          <div class="item">Correct return type for importing blank global options via the API</div>
+          <div class="item">Add placeholder text to the Series' Template dropdown</div>
+          <div class="item">Revise log edits for Episode database ID changes made on unattached Sessions (in background tasks)</div>
+          <div class="item">Properly refresh the Card interaction popup after manually refreshing the Card previews</div>
+          <div class="item">Fix suggested character replacements for <b>\</b> when analyzing Fonts - suggest as <b>post:\</b> so that manually-entered newline characters are not replaced</div>
+          <div class="item">Handle automatically deleted log files (due to rotation policy) when querying log files for specific text</div>
+          <div class="item">Use the same button classes for all Font actions to fix small pixel misalignment on the Transfer Font buttons</div>
+          <div class="item">Use improved Episode equality comparison logic which allows for matching on the absolute episode numbers</div>
+          <div class="item"><div class="ui mini circular green label">v1</div> Fix default frame color for Tinted Frame cards made with the mini maker</div>
+          <div class="item"><div class="ui mini circular green label">v1</div> Add <b>--debug</b> flag to the mini maker card creation to print the ImageMagick command history</div>
+          <div class="item"><div class="ui mini circular green label">v1</div> Improve error logging for non-async runs of TCM</div>
+        </div>
+        <h3>Title Card Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Create Score card type</div>
+          <div class="item">Anime
+            <div class="list">
+              <div class="item">Increase the default kerning of all kanji - this was erroneously changed in a prior version from <b>2</b> to <b>-3</b>, this reverts this</div>
+            </div>
+          </div>
+          <div class="item">Banner
+            <div class="list">
+              <div class="item">Limit the banner height between 0 and 1800 pixels</div>
+              <div class="item">Limit the text offset between 0 and 3200 pixels</div>
+              <div class="item">Rename the "Banner Toggle" extra to "Disable Banner"</div>
+            </div>
+          </div>
+          <div class="item">Banner
+            <div class="list">
+              <div class="item">Add new episode text box fill color extra</div>
+            </div>
+          </div>
+          <div class="item">Landscape
+            <div class="list">
+              <div class="item">Add new darken color extra</div>
+            </div>
+          </div>
+          <div class="item">Notification
+            <div class="list">
+              <div class="item"><div class="ui mini circular green label">v1</div> Change the default separator character for cards made with the mini maker</div>
+            </div>
+          </div>
+          <div class="item">Shape
+            <div class="list">
+              <div class="item">Fix typo in an extra description</div>
+            </div>
+          </div>
+          <div class="item">Star Wars
+            <div class="list">
+              <div class="item">Add support for custom Font kerning adjustements</div>
+            </div>
+          </div>
+          <div class="item">Striped
+            <div class="list">
+              <div class="item">Add episode text vertical shift extra</div>
+            </div>
+          </div>
+          <div class="item">Tinted Frame
+            <div class="list">
+              <div class="item">Add new horizontal shift extras to adjust the title and index/episode text</div>
+            </div>
+          </div>
+        </div>
+        <h3>Documentation Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Various Getting Started page improvements:
+            <div class="list">
+              <div class="item">Remove outdated reference to Template filters</div>
+              <div class="item">Fix typo for an icon on the scheduler page</div>
+              <div class="item">Add a step to the Docker instructions to check the volume mounts are working correctly to prevent accidental data loss</div>
+              <div class="item">Remove <b>docker run</b> command breakdown to avoid confusion</div>
+              <div class="item">Remove the outdated link to the Tautulli Connection setup, as this is now linked on the Plex page</div>
+            </div>
+          </div>
+          <div class="item">Add documentation on the global settings for default templates, global fonts, global extras, and default blur profiles</div>
+          <div class="item">Finish various card type pages:
+            <div class="list">
+              <div class="item"><a href="https://titlecardmaker.com/card_types/anime/" target="_blank">Anime</a></div>
+              <div class="item"><a href="https://titlecardmaker.com/card_types/banner/" target="_blank">Banner</a></div>
+              <div class="item"><a href="https://titlecardmaker.com/card_types/calligraphy/" target="_blank">Calligraphy</a></div>
+              <div class="item"><a href="https://titlecardmaker.com/card_types/score/" target="_blank">Score</a></div>
+              <div class="item"><a href="https://titlecardmaker.com/card_types/white_border/" target="_blank">White Border</a></div>
+            </div>
+          </div>
+          <div class="item">Document global "Delete Un-Synced Series" setting</div>
+          <div class="item">Move global "Source Image Deletion" setting into appropriate section of the Settings page</div>
+          <div class="item"><div class="ui mini circular green label">v1</div> Minor improvements to the sync documentation examples</div>
+        </div>
+        <h3>API Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Add query parameter on whether to refresh all episode IDs in the <b>POST</b> <b>/api/episodes/series/{series_id}/refresh</b> endpoint</div>
+          <div class="item">Create API endpoints for managing mask images
+            <div class="list">
+              <div class="item"><b>PUT</b> <b>/api/sources/episode/{episode_id}/mask</b> to upload a mask to a given Episode</div>
+              <div class="item"><b>DELETE</b> <b>/api/sources/episode/{episode_id}/mask</b> to delete a mask for a given Episode</div>
+            </div>
+          </div>
+          <div class="item">Modify return schema of <b>GET</b> <b>/api/series/all</b> - see new API specification for details</div>
+          <div class="item">Create new <b>GET</b> <b>/api/series/all-extended</b> endpoint to function <i>like</i> the old <b>/api/series/all</b> endpoint</div>
+          <div class="item">Create a new <b>GET</b> <b>/api/cards/series/{series_id}/reduced</b> endpoint to return a reduced Card model which does not contain the JSON definition</div>
+        </div>
       </div>
 
       <h2 id="v2.0-alpha.13.0" class="ui top attached header">
