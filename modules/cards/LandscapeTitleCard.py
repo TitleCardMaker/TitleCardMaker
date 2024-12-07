@@ -220,7 +220,7 @@ class LandscapeTitleCard(BaseCardType):
 
 
     def darken_commands(self,
-            coordinates: BoxCoordinates,
+            coordinates: BoxCoordinates | tuple[int, int, int, int],
         ) -> ImageMagickCommands:
         """
         Subcommand to darken the image if indicated.
@@ -386,10 +386,9 @@ class LandscapeTitleCard(BaseCardType):
 
         # Generic font, reset box adjustments and coloring
         if not custom_font:
-            if 'box_adjustments' in extras:
-                extras['box_adjustments'] = '0 0 0 0'
-            if 'box_color' in extras:
-                extras['box_color'] = LandscapeTitleCard.TITLE_COLOR
+            for extra in ('box_adjustments', 'box_color'):
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -446,8 +445,8 @@ class LandscapeTitleCard(BaseCardType):
     def create(self):
         """Create this object's defined Title Card."""
 
-        # If title is 0-length, just stylize
-        if len(self.title_text) == 0:
+        # If title is blank, just stylize
+        if not self.title_text:
             self.image_magick.run([
                 fr'convert "{self.source_file.resolve()}"',
                 *self.resize_and_style,

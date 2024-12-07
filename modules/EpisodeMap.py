@@ -335,9 +335,11 @@ class EpisodeMap:
         """
 
         # Get target to look through
-        target = {'season_title':   self.__titles,
-                  'source':         self.__sources,
-                  'applies_to':     self.__applies}[which]
+        target = {
+            'season_title': self.__titles,
+            'source': self.__sources,
+            'applies_to': self.__applies
+        }[which]
 
         # Index by season
         if self.__index_by == 'season':

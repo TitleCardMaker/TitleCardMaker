@@ -647,6 +647,7 @@ class ComicBookTitleCard(BaseCardType):
         # Generic font, reset episode text and box colors
         if not custom_font:
             for extra in (
+                'episode_text_box_fill_color',
                 'episode_text_color',
                 'text_box_fill_color',
                 'text_box_edge_color',
