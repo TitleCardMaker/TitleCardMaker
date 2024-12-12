@@ -185,15 +185,36 @@ class AnimeTitleCard(BaseCardType):
     EPISODE_TEXT_COLOR = '#CFCFCF'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_color',
-        'font_file', 'font_kerning', 'font_size', 'font_stroke_width',
-        'font_interline_spacing', 'font_interword_spacing', 'episode_text_size',
-        'font_vertical_shift', 'omit_gradient', 'stroke_color', 'separator',
-        'kanji', 'use_kanji', 'require_kanji', 'kanji_vertical_shift',
-        'episode_text_color', 'kanji_color', 'episode_stroke_color',
-        'kanji_stroke_color', 'kanji_stroke_width', 'kanji_font_size',
+        'episode_stroke_color',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_size',
+        'font_color',
+        'font_file',
+        'font_kerning',
+        'font_size',
+        'font_stroke_width',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_vertical_shift',
+        'hide_season_text',
+        'hide_episode_text',
+        'kanji',
+        'kanji_color',
+        'kanji_font_size',
+        'kanji_stroke_color',
+        'kanji_stroke_width',
+        'kanji_vertical_shift',
+        'omit_gradient',
+        'output_file',
+        'require_kanji',
+        'season_text',
         'season_text_color',
+        'separator',
+        'source_file',
+        'stroke_color',
+        'title_text',
+        'use_kanji',
     )
 
     def __init__(self, *,
@@ -242,10 +263,10 @@ class AnimeTitleCard(BaseCardType):
 
         # Escape title, season, and episode text
         self.title_text = self.image_magick.escape_chars(title_text)
-        self.season_text = self.image_magick.escape_chars(season_text.upper())
-        self.episode_text = self.image_magick.escape_chars(episode_text.upper())
-        self.hide_season_text = hide_season_text or len(season_text) == 0
-        self.hide_episode_text = hide_episode_text or len(episode_text) == 0
+        self.season_text = self.image_magick.escape_chars(season_text)
+        self.episode_text = self.image_magick.escape_chars(episode_text)
+        self.hide_season_text = hide_season_text
+        self.hide_episode_text = hide_episode_text
 
         # Store kanji, set bool for whether to use it or not
         self.kanji = self.image_magick.escape_chars(kanji)
@@ -490,7 +511,8 @@ class AnimeTitleCard(BaseCardType):
                 'kanji_vertical_shift',
                 'stroke_color'
             ):
-                del extras[extra]
+                if extra in extras:
+                    del extras[extra]
 
 
     @staticmethod
@@ -549,9 +571,10 @@ class AnimeTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        return (custom_episode_map
-                or episode_text_format.upper() != \
-                    AnimeTitleCard.EPISODE_TEXT_FORMAT.upper())
+        return (
+            custom_episode_map
+            or episode_text_format != AnimeTitleCard.EPISODE_TEXT_FORMAT
+        )
 
 
     def create(self) -> None:
