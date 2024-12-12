@@ -471,12 +471,12 @@ Unraid users can directly add the container as a "template" within the UI.
     5. At the bottom of the page, click `Add another Path, Port, Variable, Label
     or Device` and enter each of the following (hitting `Add` after each one):
 
-        | Option         | Value                       |
-        | -------------: | :-------------------------- |
-        | Config Type    | `Path`                      |
-        | Name           | `Config`                    |
-        | Container Path | `/config`                   |
-        | Host Path      | _The directory from Step 1_ |
+        | Option         | Value                                                  |
+        | -------------: | :----------------------------------------------------- |
+        | Config Type    | `Path`                                                 |
+        | Name           | `Config`                                               |
+        | Container Path | `/config`                                              |
+        | Host Path      | _The directory from Step 1 of the Docker instructions_ |
 
         | Option         | Value   |
         | -------------: | :------ |
@@ -485,12 +485,12 @@ Unraid users can directly add the container as a "template" within the UI.
         | Container Port | `4242`  |
         | Host Port      | `4242`  |
 
-        | Option      | Value                      |
-        | ----------: | :------------------------- |
-        | Config Type | `Variable`                 |
-        | Name        | `Timezone`                 |
-        | Key         | `TZ`                       |
-        | Value       | _The timezone from Step 1_ |
+        | Option      | Value                                                 |
+        | ----------: | :---------------------------------------------------- |
+        | Config Type | `Variable`                                            |
+        | Name        | `Timezone`                                            |
+        | Key         | `TZ`                                                  |
+        | Value       | _The timezone from Step 1 of the Docker instructions_ |
 
     6. Hit `Apply`.
 
