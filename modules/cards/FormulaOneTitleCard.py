@@ -242,7 +242,7 @@ class FormulaOneTitleCard(BaseCardType):
         # Extras
         if flag is None or not flag.exists():
             self.country = self._COUNTRY_FLAGS.get(
-                country, self.REF_DIRECTORY / 'generic.webp'
+                country.upper(), self.REF_DIRECTORY / 'generic.webp'
             )
         else:
             self.country = flag
