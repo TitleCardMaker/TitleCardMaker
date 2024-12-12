@@ -1,5 +1,6 @@
 from hashlib import md5
 from importlib.util import spec_from_file_location, module_from_spec
+from os import getenv
 import sys
 from typing import Literal
 
@@ -22,7 +23,8 @@ class RemoteCardType:
     """
 
     """Base URL for all remote Card Type files to download"""
-    URL_BASE = (
+    URL_BASE = getenv(
+        'TCM_CARD_TYPE_URL',
         'https://raw.githubusercontent.com/CollinHeist/'
         'TitleCardMaker-CardTypes/web-ui'
     )

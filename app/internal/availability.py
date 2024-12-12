@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from os import getenv
 from json import loads
 
 from fastapi import HTTPException
@@ -11,10 +12,10 @@ from modules.Version import Version
 
 
 # URL for user card types
-USER_CARD_TYPE_URL = (
-    'https://raw.githubusercontent.com/CollinHeist/TitleCardMaker-CardTypes/'
-    'web-ui/cards.json'
-)
+USER_CARD_TYPE_URL = getenv(
+    'TCM_CARD_TYPE_URL',
+    'https://raw.githubusercontent.com/CollinHeist/TitleCardMaker-CardTypes/web-ui'
+) + '/cards.json'
 
 
 def get_latest_version(
