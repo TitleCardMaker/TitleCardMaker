@@ -267,8 +267,9 @@ def refresh_remote_card_types(
 
         # Get reference hash of card
         if not (card_hash := get_remote_card_hash(card_identifier, log=log)):
-            log.error(f'Cannot validate RemoteCardType[{card_identifier}] - '
-                      f'skipping')
+            log.error(
+                f'Cannot validate RemoteCardType[{card_identifier}] - skipping'
+            )
             continue
 
         # Load new type

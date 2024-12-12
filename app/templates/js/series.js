@@ -784,18 +784,19 @@ async function getSourceFileData(page=currentFilePage) {
         if (source.exists) {
           filesize.innerText = formatBytes(source.filesize, 1);
           filesize.dataset.sortValue = source.filesize;
-          // Add mirror API request to mirror icon
           row.querySelector('a[data-action="mirror"]').onclick = () => mirrorSourceImage(source.episode_id);
+          row.querySelector('a[data-action="download"]').href = source.source_url;
           row.querySelector('a[data-action="delete"]').onclick = () => deleteSourceImage(source.episode_id);
         } else {
           filesize.innerText = 'Missing'; filesize.dataset.sortValue = 0;
           width.classList.add('error');
           height.classList.add('error');
           filesize.classList.add('error');
-          row.querySelector('[data-column="mirror"]').classList.add('disabled');
-          row.querySelector('[data-column="mirror"] i').classList.add('disabled');
-          row.querySelector('[data-column="delete"]').classList.add('disabled');
-          row.querySelector('[data-column="delete"] i').classList.add('disabled');
+          ['[data-column="mirror"]', '[data-column="mirror"] i',
+            '[data-column="delete"]', '[data-column="delete"] i',
+            '[data-column="download"]', '[data-column="download"] i',].forEach(query => {
+              row.querySelector(query).classList.add('disabled');
+          });
         }
         // Launch browse modal when clicked
         row.querySelector('a[data-action="browse"]').onclick = () => browseSourceImages(source.episode_id, elementId, episodeIds);
@@ -818,11 +819,10 @@ async function getSourceFileData(page=currentFilePage) {
         image.querySelector('.popup [data-value="season_number"]').innerText = source.season_number;
         image.querySelector('.popup [data-value="episode_number"]').innerText = source.episode_number;
         image.querySelector('.popup [data-action="browse"]').onclick = () => browseSourceImages(source.episode_id, getSourceImageElementId(source.episode_id), episodeIds);
-        // image.querySelector('.popup [data-action="create-mask"]').onclick = () => 
         image.querySelector('.popup [data-action="delete"]').onclick = () => deleteSourceImage(source.episode_id);
+        image.querySelector('.popup [data-action="download"]').href = source.source_url;
         image.querySelector('.popup [data-action="mirror"]').onclick = () => mirrorSourceImage(source.episode_id);
         image.querySelector('.popup [data-action="upload"]').onclick = () => uploadEpisodeSource(source.episode_id);
-        // image.querySelector('.popup [data-action="view-mask"]').onclick = () => 
         sourceImages.push(image);
       });
       document.getElementById('source-image-previews').replaceChildren(...sourceImages);

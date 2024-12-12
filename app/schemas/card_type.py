@@ -362,7 +362,6 @@ class FormulaOneCardType(BaseCardTypeAllText):
                 values['country'] = values['season_text'].upper()
             else:
                 values['country'] = 'GENERIC'
-
         return values
 
     @root_validator(skip_on_failure=True)

@@ -302,6 +302,10 @@
             <i class="trash alternate icon"></i>
             Delete
           </button>
+          <a class="ui uninvertible button" data-action="download" download>
+            <i class="download icon"></i>
+            Download
+          </a>
           <button class="ui uninvertible button" data-action="mirror">
             <i class="exchange alternate icon"></i>
             Mirror
@@ -378,6 +382,9 @@
       </td>
       <td data-column="mirror" class="center aligned collapsing selectable">
         <a data-action="mirror"><i data-action="mirror" class="ui exchange alternate icon"></i></a>
+      </td>
+      <td data-column="download" class="center aligned collapsing selectable">
+        <a data-action="download" download><i data-action="download" class="ui download icon"></i></a>
       </td>
       <td data-column="delete" class="center aligned collapsing selectable">
         <a data-action="delete"><i data-action="delete" class="ui trash alternate icon"></i></a>
@@ -1320,6 +1327,7 @@
                   <th class="collapsing">Browse</th>
                   <th class="collapsing">Upload</th>
                   <th class="collapsing">Mirror</th>
+                  <th class="collapsing">Download</th>
                   <th class="collapsing">Delete</th>
                 </tr>
               </thead>
