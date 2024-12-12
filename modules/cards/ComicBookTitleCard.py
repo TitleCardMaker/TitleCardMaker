@@ -623,7 +623,7 @@ class ComicBookTitleCard(BaseCardType):
             f'-strokewidth 5',
             *index_fill_rectangle.draw_commands,
             # Draw text
-            f'-fill "{self.text_box_fill_color}"',
+            f'-fill "{self.episode_text_box_fill_color}"',
             *index_text_rectangle.draw_commands,
         ]
 
