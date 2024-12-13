@@ -1,16 +1,16 @@
 from pathlib import Path
-from random import choice as random_choice
-from typing import Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
+    Coordinate,
     Extra,
     ImageMagickCommands,
-    Shadow,
+    Rectangle,
 )
 from modules.Debug import log
-from modules.EpisodeInfo2 import EpisodeInfo
+from modules.ImageMagickInterface import Dimensions
 from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
@@ -69,12 +69,15 @@ class CascadeTitleCard(BaseCardType):
 
     """Implementation details"""
     DEFAULT_CASCADE_COUNT: int = 2
+    DEFAULT_CASCASE_CROP: str = '66,33'
     DEFAULT_CASCADE_FILL_COLOR: str = 'transparent'
     DEFAULT_CASCADE_OUTLINE_COLOR: str = 'red'
     DEFAULT_CASCADE_WIDTH: int = 5
 
     __slots__ = (
+        'alt_text',
         'cascade_count',
+        'cascade_cropping',
         'cascade_fill_color',
         'cascade_outline_color',
         'cascade_width',
@@ -94,6 +97,7 @@ class CascadeTitleCard(BaseCardType):
         'season_text',
         'source_file',
         'title_text',
+        '__title_dimensions',
     )
 
 
@@ -118,7 +122,9 @@ class CascadeTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             # Extras
+            alt_text: str | None = None,
             cascade_count: int = DEFAULT_CASCADE_COUNT,
+            cascade_cropping: str = DEFAULT_CASCASE_CROP,
             cascade_fill_color: str = DEFAULT_CASCADE_FILL_COLOR,
             cascade_outline_color: str = DEFAULT_CASCADE_OUTLINE_COLOR,
             cascade_width: int = DEFAULT_CASCADE_WIDTH,
@@ -153,18 +159,55 @@ class CascadeTitleCard(BaseCardType):
         self.font_vertical_shift = 0 + font_vertical_shift
 
         # Extras
+        self.alt_text = alt_text
         self.cascade_count = cascade_count
+        self.cascade_cropping = cascade_cropping
         self.cascade_fill_color = cascade_fill_color
         self.cascade_outline_color = cascade_outline_color
         self.cascade_width = cascade_width
         self.episode_text_color = episode_text_color
         self.episode_text_font_size = episode_text_font_size
+        self.__title_dimensions: Dimensions = Dimensions(0, 0)
+
+
+    @property
+    def glass_commands(self) -> ImageMagickCommands:
+
+        # Center of the rectangle/image
+        center = Coordinate(self.WIDTH / 2, self.HEIGHT / 2)
+
+        width = self.__title_dimensions.width + 50 # 50px side margin
+        height = self.__title_dimensions.height * ((self.cascade_count * 2) + 1) + 50
+
+        rectangle = Rectangle(
+            center - (width / 2, (height / 2) + 75),
+            center + (width / 2, height / 2)
+        )
+
+        return [
+            # Blur rectangle in the given bounds
+            fr'\( -clone 0',
+            f'-fill white',
+            f'-colorize 100',
+            f'-fill black',
+            f'-draw "roundrectangle {rectangle} 25,25"',
+            f'-alpha off',
+            f'-write mpr:mask',
+            fr'+delete \)',
+            f'-mask mpr:mask',
+            f'' if self.blur else f'-blur 0x12',
+            f'+mask',
+            # Draw glass shape
+            f'-fill "rgba(0, 0, 0, 0.3)"',
+            f'-draw "roundrectangle {rectangle} 25,25"',
+        ]
 
 
     @property
     def cascading_text_commands(self) -> ImageMagickCommands:
         """"""
 
+        # No cascading text, return empty commands
         if self.cascade_count <= 0 or not self.title_text:
             return []
 
@@ -182,28 +225,41 @@ class CascadeTitleCard(BaseCardType):
             f'-trim',
             # Repage so that future crops aren't misaligned
             f'+repage',
-            fr'\)'
+            fr'\)',
         ]
 
         # Add each cascade effect
-        cascade_spacing = 150
+        crop_heights = [float(c) for c in self.cascade_cropping.split(',')]
         for cascade_index in range(self.cascade_count):
+            # Get crop amount for this cascade, defaulting to the last
+            # one specified OR 50% if one was not specified
+            try:
+                crop = crop_heights[cascade_index]
+            except IndexError:
+                crop = crop_heights[-1] or 50
+
+            # Offset to the center of the cropped image. Formula was
+            # derived where 100% crop would result in 0px offset, and a
+            # 50% crop would result in a half-height offset
+            dy = self.__title_dimensions.height * (0.5 - (crop / 100 / 2)) \
+                + (self.__title_dimensions.height * (cascade_index + 1))
+
             # Add top cascade
             commands.extend([
                 # Add a new image to the stack
                 fr'\(',
                 # Clone the reference outline image
                 f'-clone 1',
-                # Crop the top half of the reference image
+                # Crop the top part of the reference image
                 f'-gravity north',
-                f'-crop 0x50%',
+                f'-crop 0x{crop}%',
                 # On the first cascade, clone the base iamge, all other
                 # passes just grab the most recent cascade on the stack
                 f'-clone {0 if cascade_index == 0 else (cascade_index * 2) + 1}',
                 # Swap so that the text image is composed atop the reference
                 f'+swap',
                 f'-gravity center',
-                f'-geometry +0-{cascade_spacing * (cascade_index + 1)}',        # TODO Make this based on text height
+                f'-geometry +0-{dy}',
                 f'-composite',
                 fr'\)',
             ])
@@ -214,18 +270,22 @@ class CascadeTitleCard(BaseCardType):
                 fr'\(',
                 # Clone the reference outline image
                 f'-clone 1',
-                # Crop the bottom half of the reference image
+                # Crop the bottom part of the reference image
                 f'-gravity south',
-                f'-crop 0x50%',
+                f'-crop 0x{crop}%',
                 # Always clone the most recent cascade on the stack
                 f'-clone {(cascade_index + 1) * 2}',
                 # Swap so that the text image is composed atop the reference
                 f'+swap',
                 f'-gravity center',
-                f'-geometry +0+{cascade_spacing * (cascade_index + 1)}',        # TODO Make this a variable
+                f'-geometry +0+{dy}',
                 f'-composite',
                 fr'\)',
             ])
+
+        # TODO: handle multi-line text by only cascading the first and last line
+        # of text. This will require two reference images on the stack, and 
+        # some redoing of the image height calculations..
 
         # Delete the original base image (as its now merged in the last
         # cascade on the stack), and the reference cascade image
@@ -233,6 +293,31 @@ class CascadeTitleCard(BaseCardType):
         commands.append('-delete ' + ','.join(map(str, stack_ids)))
 
         return commands
+
+
+    @property
+    def alt_text_commands(self) -> ImageMagickCommands:
+        """
+
+        """
+
+        # No alt text, return empty commands
+        if not self.alt_text:
+            return []
+
+        # Position the alt text on the left side of the width
+        dx = (self.WIDTH - self.__title_dimensions.width) / 2 - 8 # 8px margin
+        dy = self.__title_dimensions.height * (self.cascade_count + 0.5) + 50
+
+        size = 40 * self.episode_text_font_size
+
+        return [
+            f'-font "{self.TITLE_FONT}"',
+            f'-fill "{self.episode_text_color}"',
+            f'-pointsize {size}',
+            f'-gravity west',
+            f'-annotate +{dx}-{dy} "{self.alt_text}"',
+        ]
 
 
     @property
@@ -245,7 +330,26 @@ class CascadeTitleCard(BaseCardType):
         if self.hide_season_text and self.hide_episode_text:
             return []
 
-        ...
+        # Determine index text
+        if self.hide_season_text:
+            index_text = self.episode_text
+        elif self.hide_episode_text:
+            index_text = self.season_text
+        else:
+            index_text = f'{self.season_text} {self.episode_text}'
+
+        # Position the alt text on the left side of the text
+        dx = (self.WIDTH - self.__title_dimensions.width) / 2 + 8 # 8px margin
+        dy = self.__title_dimensions.height * (self.cascade_count + 0.5) + 50
+        size = 40 * self.episode_text_font_size
+
+        return [
+            f'-font "{self.TITLE_FONT}"',
+            f'-fill "{self.episode_text_color}"',
+            f'-pointsize {size}',
+            f'-gravity east',
+            f'-annotate +{dx}-{dy} "{index_text}"',
+        ]
 
 
     @property
@@ -365,17 +469,26 @@ class CascadeTitleCard(BaseCardType):
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
+        # Pre-compute the dimensions of the title text as it is used
+        # in many commands
+        self.__title_dimensions = self.image_magick.get_text_label_dimensions(
+            self.title_text_commands[1:-4],
+            density=100,
+        )
+
         self.image_magick.run([
             f'convert "{self.source_file.resolve()}"',
             f'-density 100',
+            # Apply styling
             *self.resize_and_style,
-
+            # Add all card components
+            *self.glass_commands,
+            *self.alt_text_commands,
+            *self.index_text_commands,
             *self.title_text_commands,
             *self.cascading_text_commands,
-
             # Attempt to overlay mask
             *self.add_overlay_mask(self.source_file),
-
             # Create card
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
