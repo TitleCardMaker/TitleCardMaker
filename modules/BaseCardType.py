@@ -78,6 +78,26 @@ class Coordinate:
         return Coordinate(self.x + other[0], self.y + other[1])
 
 
+    def __sub__(self,
+            other: 'Coordinate | tuple[float, float]',
+        ) -> 'Coordinate':
+        """
+        Subtract the given coordinates to this object, returning a new
+        combination of the two.
+
+        Args:
+            other: The Coordinate to subtract.
+
+        Returns:
+            Newly constructed Coordinate object of these coordinates.
+        """
+
+        if isinstance(other, Coordinate):
+            return Coordinate(self.x - other.x, self.y - other.y)
+
+        return Coordinate(self.x - other[0], self.y - other[1])
+
+
     def __iadd__(self,
             other: 'Coordinate | tuple[float, float]',
         ) -> 'Coordinate':
