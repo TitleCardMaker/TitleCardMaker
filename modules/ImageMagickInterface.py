@@ -154,7 +154,7 @@ class ImageMagickInterface:
 
         # Un-escape \( and \) into ( and )
         if os_name == 'nt':
-            command = command.replace('\(', '(').replace('\)', ')')
+            command = command.replace(r'\(', '(').replace(r'\)', ')')
 
         # If a docker image ID is specified, execute the command in that
         # container otherwise, execute on the host machine (no docker wrapper)
@@ -254,6 +254,40 @@ class ImageMagickInterface:
         return Dimensions(*map(float, im_get(image)))
 
 
+    def get_text_label_dimensions(self,
+            text_command: list[str],
+            /,
+            *,
+            density: int | None = None,
+        ) -> Dimensions:
+        """
+        Get the dimensions of the text created by the given `label:`
+        ImageMagick command.
+
+        Args:
+            text_command: ImageMagick commands that generate text to
+                measure.
+
+        Returns:
+            Tuple of the width and height of the image.
+        """
+
+        # No text commands, dimensions are 0x0
+        if not text_command:
+            return Dimensions(0, 0)
+
+        output = self.run_get_output(' '.join([
+            f'convert',
+            f'-density {density}' if density else '',
+            *text_command,
+            f'-trim',
+            f'-format "%w,%h"',
+            f'info:',
+        ]))
+
+        return Dimensions(*map(int, output.split(',')))
+
+
     def get_text_dimensions(self,
             text_command: list[str],
             *,
@@ -261,7 +295,6 @@ class ImageMagickInterface:
             interline_spacing: int = 0,
             line_count: int = 1,
             width: Literal['sum', 'max'] = 'max',
-            height: Literal['sum', 'max'] = 'sum',
         ) -> Dimensions:
         """
         Get the dimensions of the text produced by the given text
@@ -282,8 +315,10 @@ class ImageMagickInterface:
             text_command: ImageMagick commands that produce text(s) to
                 measure.
             density: Density of the image.
+            interline_spacing: Custom interline spacing applied to the
+                text. This offsets the height for multi-line text.
+            line_count: How many lines of text there are.
             width: How to process the width of the produced text(s).
-            height: How to process the height of the produced text(s).
 
         Returns:
             Dimensions namedtuple.
@@ -455,20 +490,20 @@ class ImageMagickInterface:
             dimensions = self.get_image_dimensions(image)
 
         temp_image = self.get_random_filename(image)
-        self.run(' '.join([
+        self.run([
             f'convert',
             f'-background none',
             *commands,
             f'-matte',
-            f'\( -size {dimensions.width}x{dimensions.height}',
+            fr'\( -size {dimensions.width}x{dimensions.height}',
             f'xc:none',
             f'-draw "roundrectangle',
             f'0,0 {dimensions.width:.0f},{dimensions.height:.0f}',
             f'{radius:.0f},{radius:.0f}"',
-            f'\)',
+            fr'\)',
             f'-compose DstIn',
             f'-composite',
             f'"{temp_image.resolve()}"',
-        ]))
+        ])
 
         return temp_image
