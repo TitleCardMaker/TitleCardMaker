@@ -362,9 +362,7 @@ class TintedGlassTitleCard(BaseCardType):
             f'-annotate {position} "{self.episode_text}"',
         ]
 
-        width, height = self.image_magick.get_text_dimensions(
-            command, width='max', height='sum'
-        )
+        width, height = self.image_magick.get_text_dimensions(command)
 
         # Center positioning requires padding adjustment
         x_start, x_end = 0, 0

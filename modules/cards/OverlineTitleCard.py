@@ -479,10 +479,10 @@ class OverlineTitleCard(BaseCardType):
 
         # Get the dimensions of the title and index text
         title_text_dimensions = self.image_magick.get_text_dimensions(
-            self.title_text_commands, width='max', height='sum',
+            self.title_text_commands,
         )
         index_text_dimensions = self.image_magick.get_text_dimensions(
-            self.index_text_commands, width='max', height='sum',
+            self.index_text_commands,
         )
 
         self.image_magick.run([

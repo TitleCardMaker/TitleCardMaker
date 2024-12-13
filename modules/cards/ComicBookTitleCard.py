@@ -413,7 +413,6 @@ class ComicBookTitleCard(BaseCardType):
             self.title_text_commands,
             interline_spacing=self.font_interline_spacing,
             line_count=len(self.title_text.splitlines()),
-            width='max',
         )
 
         # Create the rectangle that will border the title text
@@ -539,7 +538,6 @@ class ComicBookTitleCard(BaseCardType):
         # Get dimensions of the index text
         index_width, index_height = self.image_magick.get_text_dimensions(
             self.index_text_commands,
-            width='max',
         )
 
         # Create the rectangle that will border the index text

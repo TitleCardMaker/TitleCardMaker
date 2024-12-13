@@ -286,7 +286,6 @@ class LandscapeTitleCard(BaseCardType):
             text_command,
             interline_spacing=interline_spacing,
             line_count=len(self.title_text.splitlines()),
-            width='max', height='sum'
         )
 
         # Get start coordinates of the bounding box

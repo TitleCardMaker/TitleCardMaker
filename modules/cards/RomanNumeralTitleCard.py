@@ -647,7 +647,6 @@ class RomanNumeralTitleCard(BaseCardType):
             # Get dimensions of season text
             season_width, season_height = self.image_magick.get_text_dimensions(
                 self.create_season_text_command(rotation, offset),
-                width='max', height='sum'
             )
 
             # Modify dimensions or add margin based on rotation of text

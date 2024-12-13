@@ -279,7 +279,6 @@ class DividerTitleCard(BaseCardType):
                 ],
                 interline_spacing=self.font_interline_spacing,
                 line_count=index_text_line_count,
-                width='max', height='sum',
             )[1],
             # Height of the title text
             self.image_magick.get_text_dimensions(
@@ -290,7 +289,6 @@ class DividerTitleCard(BaseCardType):
                 ],
                 interline_spacing=self.font_interline_spacing,
                 line_count=len(self.title_text.splitlines()),
-                width='max', height='sum'
             )[1]
         )
 

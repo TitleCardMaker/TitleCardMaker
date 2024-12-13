@@ -395,7 +395,7 @@ class AnimeTitleCard(BaseCardType):
             ],
             interline_spacing=self.font_interline_spacing,
             line_count=len(self.title_text.splitlines()),
-            width='max', height='sum'
+            width='max',
         )
         kanji_offset = base_offset + title_height + self.kanji_vertical_shift
 
