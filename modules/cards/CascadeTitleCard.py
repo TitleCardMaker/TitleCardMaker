@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from modules.BaseCardType import (
     BaseCardType,
@@ -51,6 +51,7 @@ class CascadeTitleCard(BaseCardType):
     }
 
     """Characteristics of the default title font"""
+    _ITALIC_TITLE_FONT = REF_DIRECTORY / 'SpockEssAlt1-It.ttf'
     TITLE_FONT: str = str((REF_DIRECTORY / 'SpockEssAlt1.ttf').resolve())
     TITLE_COLOR: str = 'white'
     DEFAULT_FONT_CASE = 'upper'
@@ -73,6 +74,8 @@ class CascadeTitleCard(BaseCardType):
     DEFAULT_CASCADE_FILL_COLOR: str = 'transparent'
     DEFAULT_CASCADE_OUTLINE_COLOR: str = 'red'
     DEFAULT_CASCADE_WIDTH: int = 5
+    DEFAULT_GLASS_COLOR: str = 'rgba(0,0,0,0.3)'
+    DEFAULT_GLASS_EDGE_COLOR: str = 'rgba(12,12,12,0.4)'
 
     __slots__ = (
         'alt_text',
@@ -81,6 +84,7 @@ class CascadeTitleCard(BaseCardType):
         'cascade_fill_color',
         'cascade_outline_color',
         'cascade_width',
+        'enable_glass',
         'episode_text',
         'episode_text_color',
         'episode_text_font_size',
@@ -91,13 +95,19 @@ class CascadeTitleCard(BaseCardType):
         'font_kerning',
         'font_size',
         'font_vertical_shift',
+        'glass_color',
+        'glass_edge_color',
         'hide_episode_text',
         'hide_season_text',
+        'italicize_title_text',
         'output_file',
         'season_text',
         'source_file',
         'title_text',
+        '__bottom_dimensions',
+        '__multiline_mode',
         '__title_dimensions',
+        '__top_dimensions',
     )
 
 
@@ -128,9 +138,12 @@ class CascadeTitleCard(BaseCardType):
             cascade_fill_color: str = DEFAULT_CASCADE_FILL_COLOR,
             cascade_outline_color: str = DEFAULT_CASCADE_OUTLINE_COLOR,
             cascade_width: int = DEFAULT_CASCADE_WIDTH,
+            enable_glass: bool = True,
             episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
             italicize_title_text: bool = False,
+            glass_color: str = DEFAULT_GLASS_COLOR,
+            glass_edge_color: str = DEFAULT_GLASS_EDGE_COLOR,
             preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
@@ -165,23 +178,47 @@ class CascadeTitleCard(BaseCardType):
         self.cascade_fill_color = cascade_fill_color
         self.cascade_outline_color = cascade_outline_color
         self.cascade_width = cascade_width
+        self.enable_glass = enable_glass
         self.episode_text_color = episode_text_color
         self.episode_text_font_size = episode_text_font_size
-        self.__title_dimensions: Dimensions = Dimensions(0, 0)
+        self.glass_color = glass_color
+        self.glass_edge_color = glass_edge_color
+        self.italicize_title_text = italicize_title_text
+        self.__multiline_mode = len(title_text.splitlines()) > 1
+        self.__bottom_dimensions = Dimensions(0, 0)
+        self.__top_dimensions = Dimensions(0, 0)
+        self.__title_dimensions = Dimensions(0, 0)
 
 
     @property
     def glass_commands(self) -> ImageMagickCommands:
+        """"""
+
+        # Glass disabled, return empty commands
+        if not self.enable_glass:
+            return []
 
         # Center of the rectangle/image
         center = Coordinate(self.WIDTH / 2, self.HEIGHT / 2)
 
-        width = self.__title_dimensions.width + 50 # 50px side margin
-        height = self.__title_dimensions.height * ((self.cascade_count * 2) + 1) + 50
+        width = self.__title_dimensions.width + 50
+        height = (
+            # Height of the title itself
+            self.__title_dimensions.height
+            # Combined height of both cascades
+            + (self.__top_dimensions.height * self.cascade_count)
+            + (self.__bottom_dimensions.height * self.cascade_count)
+            # Margin
+            + 50
+        )
 
         rectangle = Rectangle(
             center - (width / 2, (height / 2) + 75),
             center + (width / 2, height / 2)
+        )
+        line = Rectangle(
+            Coordinate(924  + 25, 1225 - 1),
+            Coordinate(2276 - 25, 1225 + 1)
         )
 
         return [
@@ -198,8 +235,10 @@ class CascadeTitleCard(BaseCardType):
             f'' if self.blur else f'-blur 0x12',
             f'+mask',
             # Draw glass shape
-            f'-fill "rgba(0, 0, 0, 0.3)"',
+            f'-fill "{self.glass_color}"',
+            f'-stroke "{self.glass_edge_color}" -strokewidth 2',
             f'-draw "roundrectangle {rectangle} 25,25"',
+            # f'-fill white -strokewidth 3 {line.draw()}',
         ]
 
 
@@ -211,22 +250,42 @@ class CascadeTitleCard(BaseCardType):
         if self.cascade_count <= 0 or not self.title_text:
             return []
 
-        # Create the 1st image in the image stack as the reference
-        # cascade image for later copying and cropping. This NEEDS to be
-        # deleted from the final image
+        # Both text modes need a reference image for the top line
         commands = [
             fr'\(',
             f'-background none',
             f'-fill "{self.cascade_fill_color}"',
             f'-stroke "{self.cascade_outline_color}"',
             f'-strokewidth {self.cascade_width}',
-            f'label:"{self.title_text}"',
+            f'label:"{self.title_text.splitlines()[0]}"',
             # Remove any white space padding
             f'-trim',
             # Repage so that future crops aren't misaligned
             f'+repage',
             fr'\)',
         ]
+        # Multiple lines of text: Create two reference images; one for
+        # the top line of text, the other for the last. These need to be
+        # deleted from the final image by deleting indices 1 and 2.
+        if self.__multiline_mode:
+            commands.extend([
+                fr'\(',
+                f'-background none',
+                f'-fill "{self.cascade_fill_color}"',
+                f'-stroke "{self.cascade_outline_color}"',
+                f'-strokewidth {self.cascade_width}',
+                f'label:"{self.title_text.splitlines()[-1]}"',
+                # Remove any white space padding
+                f'-trim',
+                # Repage so that future crops aren't misaligned
+                f'+repage',
+                fr'\)',
+            ])
+        # Single line of text: Create one reference image as the entire
+        # title text. This needs to be deleted from the final image by
+        # deleting index 1.
+        else:
+            pass
 
         # Add each cascade effect
         crop_heights = [float(c) for c in self.cascade_cropping.split(',')]
@@ -241,55 +300,69 @@ class CascadeTitleCard(BaseCardType):
             # Offset to the center of the cropped image. Formula was
             # derived where 100% crop would result in 0px offset, and a
             # 50% crop would result in a half-height offset
-            dy = self.__title_dimensions.height * (0.5 - (crop / 100 / 2)) \
-                + (self.__title_dimensions.height * (cascade_index + 1))
+            top_dy = (
+                (
+                    (self.__title_dimensions.height / 2)
+                    - (self.__top_dimensions.height * (crop / 100 / 2))
+                )
+                + self.__top_dimensions.height * (cascade_index + 1)
+            )
+            bottom_dy = (
+                (
+                    (self.__title_dimensions.height / 2)
+                    - (self.__bottom_dimensions.height * (crop / 100 / 2))
+                )
+                + self.__bottom_dimensions.height * (cascade_index + 1)
+            )
 
             # Add top cascade
+            top_reference_id = 1
             commands.extend([
                 # Add a new image to the stack
                 fr'\(',
                 # Clone the reference outline image
-                f'-clone 1',
+                f'-clone {top_reference_id}',
                 # Crop the top part of the reference image
                 f'-gravity north',
                 f'-crop 0x{crop}%',
-                # On the first cascade, clone the base iamge, all other
+                # On the first cascade, clone the base image, all other
                 # passes just grab the most recent cascade on the stack
-                f'-clone {0 if cascade_index == 0 else (cascade_index * 2) + 1}',
+                f'-clone 0' if cascade_index == 0 else f'+clone',
+                # f'-clone {0 if cascade_index == 0 else (cascade_index * 2) + 1}',
                 # Swap so that the text image is composed atop the reference
                 f'+swap',
                 f'-gravity center',
-                f'-geometry +0-{dy}',
+                f'-geometry +0-{top_dy}',
                 f'-composite',
                 fr'\)',
             ])
 
             # Add bottom cascase
+            bottom_reference_id = 2 if self.__multiline_mode else 1
             commands.extend([
                 # Add a new image to the stack
                 fr'\(',
                 # Clone the reference outline image
-                f'-clone 1',
+                f'-clone {bottom_reference_id}',
                 # Crop the bottom part of the reference image
                 f'-gravity south',
                 f'-crop 0x{crop}%',
                 # Always clone the most recent cascade on the stack
-                f'-clone {(cascade_index + 1) * 2}',
+                f'+clone',
+                # f'-clone {(cascade_index + 1) * 2}',
                 # Swap so that the text image is composed atop the reference
                 f'+swap',
                 f'-gravity center',
-                f'-geometry +0+{dy}',
+                f'-geometry +0+{bottom_dy}',
                 f'-composite',
                 fr'\)',
             ])
 
-        # TODO: handle multi-line text by only cascading the first and last line
-        # of text. This will require two reference images on the stack, and 
-        # some redoing of the image height calculations..
-
         # Delete the original base image (as its now merged in the last
-        # cascade on the stack), and the reference cascade image
-        stack_ids = range((self.cascade_count * 2) + 1)
+        # cascade on the stack), and the reference cascade image(s)
+        stack_ids = range(
+            (self.cascade_count * 2) + (2 if self.__multiline_mode else 1)
+        )
         commands.append('-delete ' + ','.join(map(str, stack_ids)))
 
         return commands
@@ -307,7 +380,14 @@ class CascadeTitleCard(BaseCardType):
 
         # Position the alt text on the left side of the width
         dx = (self.WIDTH - self.__title_dimensions.width) / 2 - 8 # 8px margin
-        dy = self.__title_dimensions.height * (self.cascade_count + 0.5) + 50
+        dy = (
+            # Half of the lines of text are above the center point
+            (self.__title_dimensions.height / 2)
+            # Add height of all cascades 
+            + (self.__top_dimensions.height * self.cascade_count)
+            # 50 px margin
+            + 50
+        )
 
         size = 40 * self.episode_text_font_size
 
@@ -338,9 +418,16 @@ class CascadeTitleCard(BaseCardType):
         else:
             index_text = f'{self.season_text} {self.episode_text}'
 
-        # Position the alt text on the left side of the text
-        dx = (self.WIDTH - self.__title_dimensions.width) / 2 + 8 # 8px margin
-        dy = self.__title_dimensions.height * (self.cascade_count + 0.5) + 50
+        # Position the index text on the right side of the text
+        dx = (self.WIDTH - self.__title_dimensions.width) / 2 + 8
+        dy = (
+            # Height of the top half of the title
+            (self.__title_dimensions.height / 2)
+            # Height of the top cascades
+            + (self.__top_dimensions.height * self.cascade_count)
+            # Margin
+            + 50
+        )
         size = 40 * self.episode_text_font_size
 
         return [
@@ -352,34 +439,53 @@ class CascadeTitleCard(BaseCardType):
         ]
 
 
-    @property
-    def title_text_commands(self) -> ImageMagickCommands:
+    def get_title_text_commands(self,
+            which: Literal['all', 'top', 'bottom'],
+        ) -> ImageMagickCommands:
         """
         Subcommands to add the title text to the image. This will always
         merge the title text into the 0th image in the image stack.
+
+        Args:
+            which: Which text to create in the commands. Top/bottom will
+                only added the first or last line of text, and all will
+                display all lines.
         """
 
         # No title text, return blank commands
         if not self.title_text:
             return []
  
+        # Determine text to add to the image
+        if which == 'all':
+            text = self.title_text
+        elif which == 'bottom':
+            text = self.title_text.splitlines()[-1]
+        else:
+            text = self.title_text.splitlines()[0]
+
+        # Font characteristics
         interline_spacing = self.font_interline_spacing
         interword_spacing = 30 + self.font_interword_spacing
         kerning = 1 * self.font_kerning
         size = 120 * self.font_size
         y_pos = 0 + self.font_vertical_shift
+        if self.italicize_title_text:
+            file = str(self._ITALIC_TITLE_FONT.resolve())
+        else:
+            file = self.font_file
 
         return [
             fr'\(',
             f'-background none',
             f'-fill "{self.font_color}"',
-            f'-font "{self.font_file}"',
+            f'-font "{file}"',
             f'-interline-spacing {interline_spacing}',
             f'-interword-spacing {interword_spacing}',
             f'-kerning {kerning}',
             f'-pointsize {size}',
             f'-gravity center',
-            f'label:"{self.title_text}"',
+            f'label:"{text}"',
             # Remove any white space padding
             f'-trim',
             fr'\)',
@@ -469,12 +575,24 @@ class CascadeTitleCard(BaseCardType):
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
-        # Pre-compute the dimensions of the title text as it is used
-        # in many commands
+        # Pre-compute the dimensions of the title text as it is used in
+        # multiple commands
         self.__title_dimensions = self.image_magick.get_text_label_dimensions(
-            self.title_text_commands[1:-4],
+            self.get_title_text_commands('all')[1:-4],
             density=100,
         )
+        if self.__multiline_mode:
+            self.__top_dimensions = self.image_magick.get_text_label_dimensions(
+                self.get_title_text_commands('top')[1:-4],
+                density=100,
+            )
+            self.__bottom_dimensions = self.image_magick.get_text_label_dimensions(
+                self.get_title_text_commands('bottom')[1:-4],
+                density=100,
+            )
+        else:
+            self.__top_dimensions = self.__title_dimensions
+            self.__bottom_dimensions = self.__title_dimensions
 
         self.image_magick.run([
             f'convert "{self.source_file.resolve()}"',
@@ -485,7 +603,7 @@ class CascadeTitleCard(BaseCardType):
             *self.glass_commands,
             *self.alt_text_commands,
             *self.index_text_commands,
-            *self.title_text_commands,
+            *self.get_title_text_commands('all'),
             *self.cascading_text_commands,
             # Attempt to overlay mask
             *self.add_overlay_mask(self.source_file),
