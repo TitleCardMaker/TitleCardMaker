@@ -1,10 +1,12 @@
 /* Limit super long messages to 3 lines */
 #log-data td[data-value="message"] {
   overflow-y: auto;
-  display: -webkit-box;
+  display: block;
+  max-height: calc(1.8em * 5);
+  /* display: -webkit-box;
   line-clamp: 5; 
   -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
+  -webkit-box-orient: vertical; */
 }
 
 /* Formatting for code (traceback) messages */
@@ -14,8 +16,11 @@
   /* Preserve spaces so traceback boxes and lines are kept */
   white-space: preserve;
   /* Show up to 10 lines, not 5 */
-  line-clamp: 10;
-  -webkit-line-clamp: 10;
+  /* line-clamp: 10; */
+  /* -webkit-line-clamp: 10; */
+  max-height: calc(1.8em * 10);
+  /* Block so that clamped text still renders */
+  display: block;
 }
 
 /* Center align table on mobile */
