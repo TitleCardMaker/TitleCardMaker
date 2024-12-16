@@ -536,6 +536,8 @@ def resolve_card_settings(
         episode_font_dict,
         episode.get_card_properties(library),
     )
+    if 'absolute_number' not in card_settings:
+        card_settings['absolute_number'] = None
 
     # Resolve all extras
     card_extras = TieredSettings.new_settings(
