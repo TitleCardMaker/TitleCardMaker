@@ -57,6 +57,8 @@ const allConnections = {{all_connections|tojson}};
 const titleCardPreviewPageSize = isSmallScreen() ? 3 : {{ (preferences.title_card_preview_page_dimensions.split('x')[0]|int) * (preferences.title_card_preview_page_dimensions.split('x')[1]|int) }};
 /** @type {number} Page size for source image previews */
 const sourceImagePreviewPageSize = {{ (preferences.source_preview_page_dimensions.split('x')[0]|int) * (preferences.source_preview_page_dimensions.split('x')[1]|int) }};
+/** @type {AvailableTemplate[]} */
+const allTemplates = {{ available_templates | tojson }};
 
 /**
  * Get the DOM element ID of the Episode with the given ID.
@@ -127,7 +129,7 @@ function getUpdateEpisodeObject(episodeId, excludeBlank=false) {
   const episodeInputs = $(`#${getEpisodeElementId(episodeId)} input`);
   // Construct updateEpisode object
   let updateEpisode = {},
-      template_ids = [];
+    template_ids = [];
   Object.entries(episodeInputs).forEach(([index, input]) => {
     if (input.name !== undefined) {
       // Handle Templates
@@ -344,6 +346,12 @@ async function initializeSeriesConfig() {
       });
     },
     error: response => showErrorToast({title: 'Error Querying Libraries', response}),
+  });
+
+  // Template IDs
+  $('#card-config-form .ui.dropdown[data-value="template_ids"]').dropdown({
+    placeholder: 'None',
+    values: getActiveTemplates({{ series.template_ids }}, allTemplates),
   });
 
   // Card types

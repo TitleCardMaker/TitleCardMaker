@@ -792,18 +792,10 @@
                 <div class="field">
                   <label>Templates</label>
                   <div data-value="template_ids" class="ui long clearable search selection multiple dropdown">
-                    {% if series.template_ids is none %}
                     <input name="template_ids" type="hidden">
-                    {% else %}
-                    <input name="template_ids" type="hidden" value="{{ series.template_ids | join(',') }}">
-                    {% endif %}
                     <i class="dropdown icon"></i>
                     <div class="default text">None</div>
-                    <div class="menu">
-                      {% for template in available_templates %}
-                        <div class="item" data-value="{{ template.id }}">{{ template.name }}</div>
-                      {% endfor %}
-                    </div>
+                    <div class="menu"><!-- Added asynchronously --></div>
                   </div>
                   <p class="help">Templates are evaluated in order.</p>
                 </div>
