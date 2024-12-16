@@ -229,6 +229,8 @@ function updateTemplate(templateId) {
   });
 }
 
+let htmlTemplatesInitialized = false;
+
 /**
  * Add a dropdown item (or header) to the dropdown.
  * @param {HTMLDivElement} element Dropdown menu which the item should be added
@@ -259,61 +261,52 @@ async function getAllTemplates() {
   const templatePromise = fetch('/api/templates/all').then(resp => resp.json());
 
   // Query all "available" data used to populate dropdowns in the HTML template
-  /** @type {[AvailableFont[], EpisodeDataSourceToggle[], ImageSourceToggle[], TemplateFilter[], Translation[]]} */
-  const [
-    allFonts,
-    allEpisodeDataSources,
-    allImageSources,
-    // allFilterOptions,
-    allTranslations,
-  ] = await Promise.all([
-    fetch('/api/available/fonts').then(resp => resp.json()),
-    fetch('/api/settings/episode-data-source').then(resp => resp.json()),
-    fetch('/api/settings/image-source-priority').then(resp => resp.json()),
-    // fetch('/api/available/template-filters').then(resp => resp.json()),
-    fetch('/api/available/translations').then(resp => resp.json()),
-  ]);
-
-  // ----------------------- Add selectable items to the HTML template dropdowns
-  const htmlTemplate = document.querySelector('#template').content;
-  const filterTemplate = document.getElementById('filter-template').content;
-  const translationTemplate = document.getElementById('translation-template').content;
-  // Filters arguments
-  // const argumentMenu = filterTemplate.querySelector('.dropdown[data-value="filter-arguments"] .menu');
-  // allFilterOptions.arguments.forEach(argument => {
-  //   addDropdownItem(argumentMenu, {innerText: argument, value: argument});
-  // });
-  // // Filter operations
-  // const operationMenu = filterTemplate.querySelector('.dropdown[data-value="filter-operators"] .menu');
-  // allFilterOptions.operations.forEach(operation => {
-  //   addDropdownItem(operationMenu, {innerText: operation, value: operation});
-  // });
-  // Fonts
-  const fontMenu = htmlTemplate.querySelector('.dropdown[data-value="font_id"] .menu');
-  allFonts.forEach(font => {
-    addDropdownItem(fontMenu, {innerText: font.name, value: font.id});
-  });
-  // Data source IDs
-  const dataSourceIdMenu = htmlTemplate.querySelector('.dropdown[data-value="data_source_id"] .menu');
-  allEpisodeDataSources.forEach(source => {
-    addDropdownItem(dataSourceIdMenu, {innerText: source.name, value: source.interface_id});
-  });
-  // Image Source Priorities
-  const ispMenu = htmlTemplate.querySelector('.dropdown[data-value="image_source_priority"] .menu');
-  allImageSources.forEach(source => addDropdownItem(ispMenu, {innerText: source.name, value: source.interface_id}));
-  // Translation languages
-  const translationMenu = translationTemplate.querySelector('.dropdown[data-value="language_code"] .menu');
-  allTranslations.forEach(translation => {
-    addDropdownItem(translationMenu, {innerText: translation.language, value: translation.language_code});
-  });
-  // ---------------------------------------------------------------------------
-
-  // Populate extras
-  await populateExtraTemplate({
-    extraTemplateSection: htmlTemplate.querySelector('section[aria-label="extras"]'),
-    inputTemplateElement: document.getElementById('extra-template'),
-    groupAmount: 3,
-  })
+  if (!htmlTemplatesInitialized) {
+    /** @type {[AvailableFont[], EpisodeDataSourceToggle[], ImageSourceToggle[], TemplateFilter[], Translation[]]} */
+    const [
+      allFonts,
+      allEpisodeDataSources,
+      allImageSources,
+      // allFilterOptions,
+      allTranslations,
+    ] = await Promise.all([
+      fetch('/api/available/fonts').then(resp => resp.json()),
+      fetch('/api/settings/episode-data-source').then(resp => resp.json()),
+      fetch('/api/settings/image-source-priority').then(resp => resp.json()),
+      // fetch('/api/available/template-filters').then(resp => resp.json()),
+      fetch('/api/available/translations').then(resp => resp.json()),
+    ]);
+  
+    // ----------------------- Add selectable items to the HTML template dropdowns
+    const htmlTemplate = document.querySelector('#template').content;
+    const translationTemplate = document.getElementById('translation-template').content;
+    // Fonts
+    const fontMenu = htmlTemplate.querySelector('.dropdown[data-value="font_id"] .menu');
+    allFonts.forEach(font => {
+      addDropdownItem(fontMenu, {innerText: font.name, value: font.id});
+    });
+    // Data source IDs
+    const dataSourceIdMenu = htmlTemplate.querySelector('.dropdown[data-value="data_source_id"] .menu');
+    allEpisodeDataSources.forEach(source => {
+      addDropdownItem(dataSourceIdMenu, {innerText: source.name, value: source.interface_id});
+    });
+    // Image Source Priorities
+    const ispMenu = htmlTemplate.querySelector('.dropdown[data-value="image_source_priority"] .menu');
+    allImageSources.forEach(source => addDropdownItem(ispMenu, {innerText: source.name, value: source.interface_id}));
+    // Translation languages
+    const translationMenu = translationTemplate.querySelector('.dropdown[data-value="language_code"] .menu');
+    allTranslations.forEach(translation => {
+      addDropdownItem(translationMenu, {innerText: translation.language, value: translation.language_code});
+    });
+    // ---------------------------------------------------------------------------
+    // Populate extras
+    await populateExtraTemplate({
+      extraTemplateSection: htmlTemplate.querySelector('section[aria-label="extras"]'),
+      inputTemplateElement: document.getElementById('extra-template'),
+      groupAmount: 3,
+    });
+    htmlTemplatesInitialized = true;
+  }
 
   /** @type {TemplatePage} Finish Template data query */
   const allTemplates = await templatePromise;
