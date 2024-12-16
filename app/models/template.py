@@ -342,8 +342,7 @@ class Template(Base):
         # Evaluate each condition of this Template's filter
         for condition in self.filters:
             # If operation and argument are valid, evalute condition
-            operation = condition['operation']
-            argument = condition['argument']
+            operation, argument = condition['operation'], condition['argument']
             if operation in OPERATIONS and argument in ARGUMENTS:
                 # Attempt to treat reference as FormatString
                 if (reference := condition['reference']) is not None:
@@ -365,8 +364,9 @@ class Template(Base):
                         return False
                 # Evaluation raised an error, log and return False
                 except Exception:
-                    log.exception(f'{episode} Condition evaluation raised an '
-                                  f'error')
+                    log.exception(
+                        f'{episode} Condition evaluation raised an error'
+                    )
                     return False
             # Operation or Argument are invalid, log and skip
             else:

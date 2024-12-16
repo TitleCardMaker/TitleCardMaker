@@ -132,7 +132,8 @@ function queryForLogs(page=1) {
   // Create query param string
   const queryString = [...form.entries()]
     .map(x => `${encodeURIComponent(x[0])}=${encodeURIComponent(x[1])}`)
-    .join('&');
+    .join('&')
+  ;
 
   // Submit API request
   $.ajax({
@@ -140,7 +141,7 @@ function queryForLogs(page=1) {
     url: `/api/logs/query?page=${page}&shallow=false&${queryString}`,
     /**
      * Logs queries successfully, add rows for each log message to the DOM.
-     * @param {LogEntryPage} messages - Log messages to update the table with.
+     * @param {LogEntryPage} messages Log messages to update the table with.
      */
     success: messages => {
       const rows = messages.items.map(message => {
@@ -223,7 +224,7 @@ function queryLogFiles() {
     url: '/api/logs/files',
     /**
      * Log files queried, add to page.
-     * @param {string[]} files - List of file URLs.
+     * @param {string[]} files List of file URLs.
      */
     success: files => {
       /** @type {[HTMLElement, Date]} Sorted array of elements to add to page */
@@ -273,13 +274,13 @@ function queryLogErrors() {
     const diffInSeconds = Math.floor((now - date) / 1000);
 
     const units = [
-        { name: 'year',   seconds: 31536000 },
-        { name: 'month',  seconds: 2592000 },
-        { name: 'week',   seconds: 604800 },
-        { name: 'day',    seconds: 86400 },
-        { name: 'hour',   seconds: 3600 },
-        { name: 'minute', seconds: 60 },
-        { name: 'second', seconds: 1 }
+      { name: 'year',   seconds: 31536000 },
+      { name: 'month',  seconds: 2592000  },
+      { name: 'week',   seconds: 604800   },
+      { name: 'day',    seconds: 86400    },
+      { name: 'hour',   seconds: 3600     },
+      { name: 'minute', seconds: 60       },
+      { name: 'second', seconds: 1        }
     ];
 
     for (const unit of units) {

@@ -424,8 +424,6 @@ def title_card(
         extras: list[Any],
     ) -> None:
 
-    import modules.global_objects as global_objects
-
     # Parse arbitrary extras
     arbitrary_data = {}
     if len(extras) % 2 == 0 and len(extras) > 1:

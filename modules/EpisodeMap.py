@@ -292,12 +292,14 @@ class EpisodeMap:
             raise ValueError('Must provide season_number or episode_info')
 
         # Get episode's season number if not provided directly
-        if season_number is None:
+        if episode_info and season_number is None:
             season_number = episode_info.season_number
 
         # Call default function if provided
-        if default is not None:
-            return default(episode_info=episode_info)
+        if episode_info and default is not None:
+            return default(
+                episode_info=episode_info
+            ).format(**episode_info.characteristics)
 
         return 'Specials' if season_number == 0 else f'Season {season_number}'
 
