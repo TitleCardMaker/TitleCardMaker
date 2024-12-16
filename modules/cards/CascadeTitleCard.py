@@ -69,6 +69,7 @@ class CascadeTitleCard(BaseCardType):
     ARCHIVE_NAME: str = 'Cascade Style'
 
     """Implementation details"""
+    DEFAULT_CASCADE_ALPHAS: str = '66,33'
     DEFAULT_CASCADE_COUNT: int = 2
     DEFAULT_CASCASE_CROP: str = '66,33'
     DEFAULT_CASCADE_FILL_COLOR: str = 'transparent'
@@ -79,6 +80,7 @@ class CascadeTitleCard(BaseCardType):
 
     __slots__ = (
         'alt_text',
+        'cascade_alphas',
         'cascade_count',
         'cascade_cropping',
         'cascade_fill_color',
@@ -133,6 +135,7 @@ class CascadeTitleCard(BaseCardType):
             grayscale: bool = False,
             # Extras
             alt_text: str | None = None,
+            cascade_alphas: str = DEFAULT_CASCADE_ALPHAS,
             cascade_count: int = DEFAULT_CASCADE_COUNT,
             cascade_cropping: str = DEFAULT_CASCASE_CROP,
             cascade_fill_color: str = DEFAULT_CASCADE_FILL_COLOR,
@@ -173,7 +176,8 @@ class CascadeTitleCard(BaseCardType):
 
         # Extras
         self.alt_text = alt_text
-        self.cascade_count = cascade_count
+        self.cascade_alphas = cascade_alphas
+        self.cascade_count = int(cascade_count)
         self.cascade_cropping = cascade_cropping
         self.cascade_fill_color = cascade_fill_color
         self.cascade_outline_color = cascade_outline_color
@@ -192,15 +196,19 @@ class CascadeTitleCard(BaseCardType):
 
     @property
     def glass_commands(self) -> ImageMagickCommands:
-        """"""
+        """
+        Subcommands to draw the background glass to the image. This adds
+        the rectangle to the 0th image in the stack.
+        """
 
         # Glass disabled, return empty commands
-        if not self.enable_glass:
+        if not self.enable_glass or not self.title_text:
             return []
 
         # Center of the rectangle/image
         center = Coordinate(self.WIDTH / 2, self.HEIGHT / 2)
 
+        # Determine effective dimensions of the cascading text elements
         width = self.__title_dimensions.width + 50
         height = (
             # Height of the title itself
@@ -215,10 +223,6 @@ class CascadeTitleCard(BaseCardType):
         rectangle = Rectangle(
             center - (width / 2, (height / 2) + 75),
             center + (width / 2, height / 2)
-        )
-        line = Rectangle(
-            Coordinate(924  + 25, 1225 - 1),
-            Coordinate(2276 - 25, 1225 + 1)
         )
 
         return [
@@ -238,13 +242,12 @@ class CascadeTitleCard(BaseCardType):
             f'-fill "{self.glass_color}"',
             f'-stroke "{self.glass_edge_color}" -strokewidth 2',
             f'-draw "roundrectangle {rectangle} 25,25"',
-            # f'-fill white -strokewidth 3 {line.draw()}',
         ]
 
 
     @property
     def cascading_text_commands(self) -> ImageMagickCommands:
-        """"""
+        """Subcommands to add the cascading text to the image."""
 
         # No cascading text, return empty commands
         if self.cascade_count <= 0 or not self.title_text:
@@ -288,13 +291,16 @@ class CascadeTitleCard(BaseCardType):
             pass
 
         # Add each cascade effect
+        alphas = [float(a) / 100 for a in self.cascade_alphas.split(',')]
         crop_heights = [float(c) for c in self.cascade_cropping.split(',')]
         for cascade_index in range(self.cascade_count):
             # Get crop amount for this cascade, defaulting to the last
             # one specified OR 50% if one was not specified
             try:
+                alpha = alphas[cascade_index]
                 crop = crop_heights[cascade_index]
             except IndexError:
+                alpha = alphas[-1] or str(100 / (2 ** (cascade_index + 1)))
                 crop = crop_heights[-1] or 50
 
             # Offset to the center of the cropped image. Formula was
@@ -325,6 +331,10 @@ class CascadeTitleCard(BaseCardType):
                 # Crop the top part of the reference image
                 f'-gravity north',
                 f'-crop 0x{crop}%',
+                # Apply alpha modifier to cloned image
+                f'-channel A',
+                f'-evaluate multiply {alpha}',
+                f'+channel',
                 # On the first cascade, clone the base image, all other
                 # passes just grab the most recent cascade on the stack
                 f'-clone 0' if cascade_index == 0 else f'+clone',
@@ -347,6 +357,10 @@ class CascadeTitleCard(BaseCardType):
                 # Crop the bottom part of the reference image
                 f'-gravity south',
                 f'-crop 0x{crop}%',
+                # Apply alpha modifier to cloned image
+                f'-channel A',
+                f'-evaluate multiply {alpha}',
+                f'+channel',
                 # Always clone the most recent cascade on the stack
                 f'+clone',
                 # f'-clone {(cascade_index + 1) * 2}',
@@ -371,7 +385,8 @@ class CascadeTitleCard(BaseCardType):
     @property
     def alt_text_commands(self) -> ImageMagickCommands:
         """
-
+        Subcommands to add the alternate text to the image. This adds
+        the text to the 0th image of the stack.
         """
 
         # No alt text, return empty commands
@@ -443,13 +458,17 @@ class CascadeTitleCard(BaseCardType):
             which: Literal['all', 'top', 'bottom'],
         ) -> ImageMagickCommands:
         """
-        Subcommands to add the title text to the image. This will always
-        merge the title text into the 0th image in the image stack.
+        Get the subcommands to add the title text to the image. This
+        will always merge the title text into the 0th image in the image
+        stack.
 
         Args:
             which: Which text to create in the commands. Top/bottom will
                 only added the first or last line of text, and all will
                 display all lines.
+
+        Returns:
+            List of ImageMagick commands.
         """
 
         # No title text, return blank commands
@@ -594,6 +613,7 @@ class CascadeTitleCard(BaseCardType):
             self.__top_dimensions = self.__title_dimensions
             self.__bottom_dimensions = self.__title_dimensions
 
+        # Create the Title Card
         self.image_magick.run([
             f'convert "{self.source_file.resolve()}"',
             f'-density 100',
@@ -601,8 +621,8 @@ class CascadeTitleCard(BaseCardType):
             *self.resize_and_style,
             # Add all card components
             *self.glass_commands,
-            *self.alt_text_commands,
             *self.index_text_commands,
+            *self.alt_text_commands,
             *self.get_title_text_commands('all'),
             *self.cascading_text_commands,
             # Attempt to overlay mask
