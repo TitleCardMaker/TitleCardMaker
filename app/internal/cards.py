@@ -633,7 +633,7 @@ def resolve_card_settings(
     # Add season title specification
     season_title_ranges = SeasonTitleRanges(
         card_settings.get('season_titles', {}),
-        fallback=getattr(CardClass, 'SEASON_TEXT_FORMATTER', None),
+        fallback=getattr(CardClass, 'season_text_formatter', None),
         log=log,
     )
     card_settings['season_title'] = season_title_ranges.get_season_text(
@@ -741,7 +741,7 @@ def resolve_card_settings(
     card_settings['card_file'] =CleanPath(card_settings['card_file']).sanitize()
 
     # Perform any card-class specific format string evaluations
-    card_settings = CardClass.resolve_format_strings(**card_settings)
+    card_settings = CardClass.resolve_format_strings(card_settings)
 
     return card_settings
 

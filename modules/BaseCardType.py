@@ -559,7 +559,7 @@ class BaseCardType(ImageMaker):
 
 
     @staticmethod
-    def resolve_format_strings(**data) -> dict:
+    def resolve_format_strings(data: dict) -> dict:
         """
         Resolve any class-specific format strings. If a subclass does
         not implement this, the data is returned unmodified.
