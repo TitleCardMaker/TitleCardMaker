@@ -78,11 +78,9 @@ class StarWarsTitleCard(BaseCardType):
     __STAR_GRADIENT_IMAGE = REF_DIRECTORY / 'star_gradient.png'
 
     __slots__ = (
-        'source_file',
-        'output_file',
-        'title_text',
         'episode_text',
-        'hide_episode_text',
+        'episode_text_color',
+        'episode_prefix',
         'font_color',
         'font_file',
         'font_interline_spacing',
@@ -90,11 +88,13 @@ class StarWarsTitleCard(BaseCardType):
         'font_kerning',
         'font_size',
         'font_vertical_shift',
-        'episode_text_color',
-        'episode_prefix',
+        'hide_episode_text',
+        'output_file',
+        'source_file',
+        'title_text',
     )
 
-    def __init__(self,
+    def __init__(self, *,
             source_file: Path,
             card_file: Path,
             title_text: str,

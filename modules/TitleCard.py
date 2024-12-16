@@ -186,7 +186,7 @@ class TitleCard:
                 'title_text': self.converted_title,
                 'season_text': profile.get_season_text(
                     self.episode.episode_info,
-                    getattr(self.episode.card_class, 'SEASON_TEXT_FORMATTER', None),
+                    getattr(self.episode.card_class, 'season_text_formatter', None),
                 ),
                 'episode_text': profile.get_episode_text(self.episode),
                 'hide_season_text': profile.hide_season_title,

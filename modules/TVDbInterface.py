@@ -756,7 +756,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Get associated image for this Episode
         url = f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/extended'
-        if (not isinstance(episode_data := self.get(url), 'dict')
+        if (not isinstance(episode_data := self.get(url), dict)
             or not isinstance(image_data := episode_data.get('data', {}), dict)):
             log.warning(f'Cannot find {series_info} {episode_info} on TVDb')
             return None
