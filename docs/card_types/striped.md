@@ -91,7 +91,7 @@ This pattern will always fill the width of the card.
 Specifying a definition _like_ `random[100,200]` will instruct TCM to randomly
 select stripes of the listed width in the specified ratio. For example,
 `random[100,200]` will result in random stripes of either 100 or 200 pixels
-wide. Repition is allowed. These must be comma-separated positive values.
+wide. Repitition is allowed. These must be comma-separated positive values.
 
 ??? example "Examples"
 
@@ -111,8 +111,8 @@ Specifying a definition _like_ `random[10-20,200-250]` will instruct TCM to
 randomly select stripes of random widths from the specified ranges in the
 specified ratios. For example: `random[10-20,200-250]` will result in random
 stripes of widths between 10 and 20 pixels _or_ 200 and 250 pixels (in equal
-likelihood). Repition is allowed. These must be comma-separated positive values
-in which the second value is equal to or greater than the first.
+likelihood). Repitition is allowed. These must be comma-separated positive
+values in which the second value is equal to or greater than the first.
 
 ??? example "Examples"
 
