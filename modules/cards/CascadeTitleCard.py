@@ -10,12 +10,98 @@ from modules.BaseCardType import (
     Rectangle,
 )
 from modules.Debug import log
+from modules.EpisodeInfo2 import EpisodeInfo
 from modules.ImageMagickInterface import Dimensions
 from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
     from modules.Font import Font
+
+
+class SequenceGenerator:
+    """
+    A sequence definition which defines some iterative logic for
+    stepping through a set of numbers. These can take multiple forms,
+    for example:
+    
+    >>> SequenceGenerator('80,60,40')
+    [80, 60, 40, 40, ...] # 40 repeats forever
+
+    >>> SequenceGenerator('80,-10')
+    [80, 70, 60, ...] # Yields in decrements of 10 forever
+
+    The operators that are supported are: `+`, `-`, `/`, and `*`.
+
+    >>> SequenceGenerator('100,40,/2')
+    [100, 40, 20, 10, ...] # Yields halved values forever
+    """
+
+    def __init__(self, sequence: str, /) -> None:
+        """
+        Initialize this object with the given sequence.
+
+        Args:
+            sequence: Definiton of this sequence to generate.
+        """
+
+        self._values = sequence.split(',')
+        self._index = 0
+
+        self.__operator: str | None = None
+        self.__step: float | None = None
+        self.__value = 100
+
+
+    def __iter__(self) -> 'SequenceGenerator':
+        """Begin iteration through this object."""
+
+        self._index = 0
+        self.__operator = None
+        self.__step = None
+        self.__value = 0
+
+        return self
+
+
+    def __next__(self):
+        """
+        Get the next value in the sequence. This applies the iterative
+        sequence logic in this object's definition.        
+        """
+
+        # Iterated values still available
+        if self._index < len(self._values):
+            value = self._values[self._index]
+
+            # Element is not a step modifier
+            if value[0].isdigit():
+                self.__operator, self.__step = None, None
+                self._index += 1
+                self.__value = float(value)
+                return self.__value
+
+            # Parse operator and step value
+            self.__operator, self.__step = value[0], float(value[1:])
+
+        # Modify last value based on last operator and step
+        if self.__operator and self.__step:
+            if self.__operator == '+':
+                self.__value += self.__step
+            elif self.__operator == '-':
+                self.__value -= self.__step
+            elif self.__operator == '/':
+                self.__value /= self.__step
+            elif self.__operator == '*':
+                self.__value *= self.__step
+
+            self._index += 1
+            return self.__value
+
+        # End of the sequence, return last value
+        self._index += 1
+        self.__value = float(self._values[-1])
+        return self.__value
 
 
 class CascadeTitleCard(BaseCardType):
@@ -58,7 +144,7 @@ class CascadeTitleCard(BaseCardType):
     FONT_REPLACEMENTS: dict[str, str] = {}
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_FORMAT = 'EPISODE {episode_number}'
+    EPISODE_TEXT_FORMAT = 'E{episode_number}'
     EPISODE_TEXT_COLOR = TITLE_COLOR
     EPISODE_TEXT_FONT = TITLE_FONT
 
@@ -69,9 +155,9 @@ class CascadeTitleCard(BaseCardType):
     ARCHIVE_NAME: str = 'Cascade Style'
 
     """Implementation details"""
-    DEFAULT_CASCADE_ALPHAS: str = '66,33'
+    DEFAULT_CASCADE_ALPHAS: str = '66,/2'
     DEFAULT_CASCADE_COUNT: int = 2
-    DEFAULT_CASCASE_CROP: str = '66,33'
+    DEFAULT_CASCASE_CROP: str = '66,/2'
     DEFAULT_CASCADE_FILL_COLOR: str = 'transparent'
     DEFAULT_CASCADE_OUTLINE_COLOR: str = 'red'
     DEFAULT_CASCADE_WIDTH: int = 5
@@ -111,6 +197,29 @@ class CascadeTitleCard(BaseCardType):
         '__title_dimensions',
         '__top_dimensions',
     )
+
+
+    @staticmethod
+    def resolve_format_strings(data: dict) -> dict:
+        """Resolve the class-specific alt text format string."""
+        log.debug(f'{data=}')
+        return data
+
+
+    @staticmethod
+    def season_text_formatter(episode_info: EpisodeInfo) -> str:
+        """
+        Fallback season title formatter.
+
+        Args:
+            episode_info: Info of the Episode whose season text is being
+                determined.
+
+        Returns:
+            `S{x}` for the given season number.
+        """
+
+        return f'S{episode_info.season_number}'
 
 
     def __init__(self, *,
@@ -176,9 +285,9 @@ class CascadeTitleCard(BaseCardType):
 
         # Extras
         self.alt_text = alt_text
-        self.cascade_alphas = cascade_alphas
+        self.cascade_alphas = SequenceGenerator(cascade_alphas)
         self.cascade_count = int(cascade_count)
-        self.cascade_cropping = cascade_cropping
+        self.cascade_cropping = SequenceGenerator(cascade_cropping)
         self.cascade_fill_color = cascade_fill_color
         self.cascade_outline_color = cascade_outline_color
         self.cascade_width = cascade_width
@@ -291,21 +400,15 @@ class CascadeTitleCard(BaseCardType):
             pass
 
         # Add each cascade effect
-        alphas = [float(a) / 100 for a in self.cascade_alphas.split(',')]
-        crop_heights = [float(c) for c in self.cascade_cropping.split(',')]
-        for cascade_index in range(self.cascade_count):
-            # Get crop amount for this cascade, defaulting to the last
-            # one specified OR 50% if one was not specified
-            try:
-                alpha = alphas[cascade_index]
-                crop = crop_heights[cascade_index]
-            except IndexError:
-                alpha = alphas[-1] or str(100 / (2 ** (cascade_index + 1)))
-                crop = crop_heights[-1] or 50
-
+        for alpha, crop, cascade_index in zip(
+                self.cascade_alphas,
+                self.cascade_cropping,
+                range(self.cascade_count)
+            ):
             # Offset to the center of the cropped image. Formula was
             # derived where 100% crop would result in 0px offset, and a
             # 50% crop would result in a half-height offset
+            alpha /= 100.0
             top_dy = (
                 (
                     (self.__title_dimensions.height / 2)
