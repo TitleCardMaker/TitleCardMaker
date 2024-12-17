@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import PositiveFloat, conint, constr, FilePath, root_validator
+
+from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -11,6 +14,7 @@ from modules.BaseCardType import (
 )
 from modules.Debug import log
 from modules.EpisodeInfo2 import EpisodeInfo
+from modules.FormatString import FormatString
 from modules.ImageMagickInterface import Dimensions
 from modules.Title import SplitCharacteristics
 
@@ -31,10 +35,10 @@ class SequenceGenerator:
     >>> SequenceGenerator('80,-10')
     [80, 70, 60, ...] # Yields in decrements of 10 forever
 
-    The operators that are supported are: `+`, `-`, `/`, and `*`.
-
     >>> SequenceGenerator('100,40,/2')
     [100, 40, 20, 10, ...] # Yields halved values forever
+
+    The operators that are supported are: `+`, `-`, `/`, and `*`.
     """
 
     def __init__(self, sequence: str, /) -> None:
@@ -51,6 +55,9 @@ class SequenceGenerator:
         self.__operator: str | None = None
         self.__step: float | None = None
         self.__value = 100
+
+        if len(self._values) == 0:
+            raise ValueError
 
 
     def __iter__(self) -> 'SequenceGenerator':
@@ -85,7 +92,7 @@ class SequenceGenerator:
             self.__operator, self.__step = value[0], float(value[1:])
 
         # Modify last value based on last operator and step
-        if self.__operator and self.__step:
+        if self.__operator and self.__step is not None:
             if self.__operator == '+':
                 self.__value += self.__step
             elif self.__operator == '-':
@@ -94,6 +101,8 @@ class SequenceGenerator:
                 self.__value /= self.__step
             elif self.__operator == '*':
                 self.__value *= self.__step
+            else:
+                raise ValueError
 
             self._index += 1
             return self.__value
@@ -102,6 +111,46 @@ class SequenceGenerator:
         self._index += 1
         self.__value = float(self._values[-1])
         return self.__value
+
+
+    @classmethod
+    def validate_sequence(cls,
+            sequence: str,
+            /,
+            length: int,
+            bounds: tuple[int | float, int | float] = (0, 100),
+        ) -> None:
+        """
+        Validate the given sequence string. This ensures the sequences
+        yields at least `length` many items which are bound within
+        `bounds` (inclusive).
+
+        Args:
+            sequence: Strip being validated.
+            length: Minimum number of items the sequence must yield.
+            bounds: The top and bottom boundaries for all items.
+
+        Raises:
+            ValueError if the given sequence produces any out-of-bounds
+                elements.
+            Other exceptions may be raised in an invalid sequence is
+            provided.
+        """
+
+        # Empty sequence, always valid
+        if length <= 0:
+            return None
+
+        # Attempt to iterate through the sequence the specified times
+        seq = cls(sequence)
+
+        for index, value in zip(range(length), seq):
+            if not bounds[0] <= value <= bounds[1]:
+                raise ValueError(
+                    f'Sequence element {index} ({value}) is out of bounds {bounds}'
+                )
+
+        return None
 
 
 class CascadeTitleCard(BaseCardType):
@@ -119,7 +168,125 @@ class CascadeTitleCard(BaseCardType):
         supports_custom_fonts=True,
         supports_custom_seasons=True,
         supported_extras=[
-            
+            Extra(
+                name='Alternate Text Format',
+                identifier='alt_text',
+                description='Text to display above the title',
+                tooltip=(
+                    'Can be literal text (.e.g <v>My Series</v>), or a format '
+                    'string (e.g. <v>{series_name}</v>) to dynamically adjust '
+                    'the text. Set as empty quotes to remove. Default is '
+                    '<v>{series_name.upper()}</v>.'
+                ),
+                default='{series_name.upper()}',
+            ),
+            Extra(
+                name='Alterate Text Color',
+                identifier='alt_text_color',
+                description='Color of the alterate text',
+                tooltip='Defaults to the Episode Text Color.',
+            ),
+            Extra(
+                name='Cascade Text Count',
+                identifier='cascade_count',
+                description='How many cascades of text to create',
+                tooltip=(
+                    'Number between <v>0</v> and <v>25</v>. Default is '
+                    '<v>2</v>.'
+                ),
+                default=2,
+            ),
+            Extra(
+                name='Cascade Transparencies',
+                identifier='cascade_alphas',
+                description='How transparent to make the cascading text',
+                tooltip=(
+                    'See <a href="" target="_blank">the documentation</a> for '
+                    'details. Default is <v>66,/2</v>.'
+                ),
+                default='66,/2',
+            ),
+            Extra(
+                name='Cascade Cropping',
+                identifier='cascade_cropping',
+                description='How much to crop out of the cascading text',
+                tooltip=(
+                    'See <a href="" target="_blank">the documentation</a> for '
+                    'details. Default is <v>66,/2</v>.'
+                ),
+                default='66,/2',
+            ),
+            Extra(
+                name='Cascade Text Fill Color',
+                identifier='cascade_fill_color',
+                description='Color to fill the cascading text with',
+                tooltip='Default is <c>transparent</c>.',
+                default='transparent',
+            ),
+            Extra(
+                name='Cascade Text Outline Color',
+                identifier='cascade_outline_color',
+                description='Color to outline the cascading text with',
+                tooltip='Default is <c>red</c>.',
+                default='red',
+            ),
+            Extra(
+                name='Cascade Text Outline Width',
+                identifier='cascade_width',
+                description='How wide to make the outline of the cascade text',
+                tooltip=(
+                    'Number between <v>0</v> and <v>50</v>. Default is '
+                    '<v>5</v>. Unit is pixels.'
+                ),
+                default=5,
+            ),
+            Extra(
+                name='Episode Text Color',
+                identifier='episode_text_color',
+                description='Color of the season and episode text',
+                tooltip='Default is to match the Font color.',
+            ),
+            Extra(
+                name='Episode Text Font Size',
+                identifier='episode_text_font_size',
+                description='Size adjustment for the season and episode text',
+                tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
+                default=1.0,
+            ),
+            Extra(
+                name='Glass Toggle',
+                identifier='enable_glass',
+                description='Whether to draw background glass behind all text',
+                tooltip=(
+                    'Either <v>True</v> or <v>False</v> to disable the glass. '
+                    'Default is <v>True</v>.'
+                ),
+                default='True',
+            ),
+            Extra(
+                name='Glass Color',
+                identifier='glass_color',
+                description='Color of the background glass',
+                tooltip='Default is <c>rgba(0,0,0,0.3)</c>.',
+                default='rgba(0,0,0,0.3)',
+            ),
+            Extra(
+                name='Glass Edge Color',
+                identifier='glass_edge_color',
+                description='Color of the edge of the background glass',
+                tooltip='Default is <c>rgba(12,12,12,0.4)</c>.',
+                default='rgba(12,12,12,0.4)',
+            ),
+            Extra(
+                name='Italicize Title Text',
+                identifier='italicize_title_text',
+                description='Whether to italicize the title text',
+                tooltip=(
+                    'Either <v>True</v> or <v>False</v>. Only works when using '
+                    'the default Font. Default is <v>False</v>.'
+                ),
+                default='False',
+            ),
         ],
         description=[
             
@@ -166,6 +333,7 @@ class CascadeTitleCard(BaseCardType):
 
     __slots__ = (
         'alt_text',
+        'alt_text_color',
         'cascade_alphas',
         'cascade_count',
         'cascade_cropping',
@@ -197,13 +365,6 @@ class CascadeTitleCard(BaseCardType):
         '__title_dimensions',
         '__top_dimensions',
     )
-
-
-    @staticmethod
-    def resolve_format_strings(data: dict) -> dict:
-        """Resolve the class-specific alt text format string."""
-        log.debug(f'{data=}')
-        return data
 
 
     @staticmethod
@@ -244,6 +405,7 @@ class CascadeTitleCard(BaseCardType):
             grayscale: bool = False,
             # Extras
             alt_text: str | None = None,
+            alt_text_color: str = EPISODE_TEXT_COLOR,
             cascade_alphas: str = DEFAULT_CASCADE_ALPHAS,
             cascade_count: int = DEFAULT_CASCADE_COUNT,
             cascade_cropping: str = DEFAULT_CASCASE_CROP,
@@ -285,6 +447,7 @@ class CascadeTitleCard(BaseCardType):
 
         # Extras
         self.alt_text = alt_text
+        self.alt_text_color = alt_text_color
         self.cascade_alphas = SequenceGenerator(cascade_alphas)
         self.cascade_count = int(cascade_count)
         self.cascade_cropping = SequenceGenerator(cascade_cropping)
@@ -511,7 +674,7 @@ class CascadeTitleCard(BaseCardType):
 
         return [
             f'-font "{self.TITLE_FONT}"',
-            f'-fill "{self.episode_text_color}"',
+            f'-fill "{self.alt_text_color}"',
             f'-pointsize {size}',
             f'-gravity west',
             f'-annotate +{dx}-{dy} "{self.alt_text}"',
@@ -734,3 +897,85 @@ class CascadeTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # pyright: reportInvalidTypeForm=false
+    class CardModel(BaseCardTypeAllText):
+        font_color: str = CascadeTitleCard.TITLE_COLOR
+        font_file: FilePath = CascadeTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_kerning: float = 1.0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        alt_text: str | None = '{series_name}'
+        alt_text_color: str | None = None
+        cascade_count: conint(ge=0, le=25) = CascadeTitleCard.DEFAULT_CASCADE_COUNT
+        cascade_alphas: str = CascadeTitleCard.DEFAULT_CASCADE_ALPHAS
+        cascade_cropping: str = CascadeTitleCard.DEFAULT_CASCASE_CROP
+        cascade_fill_color: str = CascadeTitleCard.DEFAULT_CASCADE_FILL_COLOR
+        cascade_outline_color: str = CascadeTitleCard.DEFAULT_CASCADE_OUTLINE_COLOR
+        cascade_width: conint(ge=0, le=50) = CascadeTitleCard.DEFAULT_CASCADE_WIDTH
+        episode_text_color: str | None = None
+        episode_text_font_size: PositiveFloat = 1.0
+        enable_glass: bool = True
+        glass_color: str = CascadeTitleCard.DEFAULT_GLASS_COLOR
+        glass_edge_color: str = CascadeTitleCard.DEFAULT_GLASS_EDGE_COLOR
+        italicize_title_text: bool = False
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['episode_text_color'] is None:
+                values['episode_text_color'] = values['font_color']
+            if values['alt_text_color'] is None:
+                values['alt_text_color'] = values['episode_text_color']
+
+            return values
+
+        @root_validator(skip_on_failure=True, pre=True)
+        def finalize_format_strings(cls, values: dict) -> dict:
+            """
+            Finalize the alternate text format string using all
+            available data
+            """
+
+            alt_text = values.get('alt_text', '{series_name.upper()}')
+            if alt_text is not None:
+                values['alt_text'] = FormatString(alt_text, data=values).result
+
+            return values
+
+        @root_validator(skip_on_failure=True)
+        def validate_sequence_strings(cls, values: dict) -> dict:
+            """
+            Validate the cascade sequence strings are valid for at least
+            the specified cascade count.
+            """
+
+            try:
+                SequenceGenerator.validate_sequence(
+                    values['cascade_alphas'],
+                    length=values['cascade_count'],
+                )
+            except Exception as exc:
+                raise ValueError(
+                    f'Cascade Transparency sequence is invalid ({exc})'
+                )
+            try:
+                SequenceGenerator.validate_sequence(
+                    values['cascade_cropping'],
+                    length=values['cascade_count'],
+                )
+            except Exception as exc:
+                raise ValueError(
+                    f'Cascade Cropping sequence is invalid ({exc})'
+                )
+
+            return values
+
+    return CardModel

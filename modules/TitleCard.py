@@ -16,6 +16,7 @@ from modules.Title import SplitCharacteristics
 from modules.cards.AnimeTitleCard import AnimeTitleCard
 from modules.cards.BannerTitleCard import BannerTitleCard
 from modules.cards.CalligraphyTitleCard import CalligraphyTitleCard
+from modules.cards.CascadeTitleCard import CascadeTitleCard
 from modules.cards.ComicBookTitleCard import ComicBookTitleCard
 from modules.cards.CutoutTitleCard import CutoutTitleCard
 from modules.cards.DividerTitleCard import DividerTitleCard
@@ -85,6 +86,7 @@ class TitleCard:
         'banner': BannerTitleCard,
         'blurred border': TintedFrameTitleCard,
         'calligraphy': CalligraphyTitleCard,
+        'cascade': CascadeTitleCard,
         'comic book': ComicBookTitleCard,
         'cutout': CutoutTitleCard,
         'divider': DividerTitleCard,
