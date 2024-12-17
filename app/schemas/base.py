@@ -1,7 +1,9 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 from typing import Literal, Union
+# pyright: reportInvalidTypeForm=false
+from pathlib import Path
 
-from pydantic import BaseModel, constr, root_validator
+from pydantic import BaseModel, FilePath, PositiveFloat, constr, root_validator
 
 
 # Default value to use for arguments in Update objects that accept None
@@ -18,6 +20,63 @@ MediaServer = Literal['Emby', 'Jellyfin', 'Plex']
 class Base(BaseModel):
     class Config:
         orm_mode = True
+
+# Base class for all card type validators
+class BaseCardModel(Base):
+    """
+    Base class for all card type validators which accept a source, and
+    Card file; and support blurred and grayscale styling.
+    """
+    source_file: FilePath
+    card_file: Path
+    blur: bool = False
+    grayscale: bool = False
+
+class BaseCardTypeAllText(BaseCardModel):
+    """
+    Base class for all card type validators which have title, season,
+    and episode text.
+    """
+    title_text: str
+    season_text: constr(to_upper=True)
+    episode_text: constr(to_upper=True)
+    hide_season_text: bool = False
+    hide_episode_text: bool = False
+
+    @root_validator(skip_on_failure=True)
+    def toggle_text_hiding(cls, values: dict) -> dict:
+        values['hide_season_text'] |= (len(values['season_text']) == 0)
+        values['hide_episode_text'] |= (len(values['episode_text']) == 0)
+
+        return values
+
+class BaseCardTypeCustomFontAllText(BaseCardTypeAllText):
+    """
+    Base class for all card type validators which have title, season,
+    and episode text; as well as all title Font customizations.
+    """
+    font_color: str
+    font_file: FilePath
+    font_interline_spacing: int = 0
+    font_interword_spacing: int = 0
+    font_kerning: float = 1.0
+    font_size: PositiveFloat = 1.0
+    font_stroke_width: float = 1.0
+    font_vertical_shift: int = 0
+
+class BaseCardTypeCustomFontNoText(BaseCardModel):
+    """
+    Base class for all card type validators which have no text
+    attributes, but has all font customizations.
+    """
+    font_color: str
+    font_file: FilePath
+    font_interline_spacing: int = 0
+    font_interword_spacing: int = 0
+    font_kerning: float = 1.0
+    font_size: PositiveFloat = 1.0
+    font_stroke_width: float = 1.0
+    font_vertical_shift: int = 0
 
 # Base class for all "update" models
 class UpdateBase(Base):
