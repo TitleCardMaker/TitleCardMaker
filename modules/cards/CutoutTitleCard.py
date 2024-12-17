@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, confloat, constr
+
+from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -410,3 +413,25 @@ class CutoutTitleCard(BaseCardType):
         ])
 
         self.image_magick.delete_intermediate_images(self.__text_mask)
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # pyright: reportInvalidTypeForm=false
+    class CutoutCardModel(BaseCardModel):
+        title_text: str
+        episode_text: constr(to_upper=True)
+        font_color: str = CutoutTitleCard.TITLE_COLOR
+        font_file: FilePath = CutoutTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        blur_edges: bool = False
+        blur_profile: constr(regex=r'^\d+x\d+$') = CutoutTitleCard.BLUR_PROFILE
+        cutout_vertical_shift: int = 0
+        overlay_color: str = 'black'
+        overlay_transparency: confloat(ge=0.0, le=1.0) = 0.0
+
+    return CutoutCardModel

@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import FilePath, root_validator
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -497,3 +500,29 @@ class DividerTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class DividerCardModel(BaseCardTypeCustomFontAllText):
+        season_text: str
+        episode_text: str
+        font_color: str = DividerTitleCard.TITLE_COLOR
+        font_file: FilePath = DividerTitleCard.TITLE_FONT # type: ignore
+        stroke_color: str = 'black'
+        divider_color: str | None = None
+        text_gravity: TextGravity | None = None
+        title_text_position: TitleTextPosition = 'left'
+        text_position: TextPosition = 'lower right'
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['divider_color'] is None:
+                values['divider_color'] = values['font_color']
+
+            return values
+
+    return DividerCardModel

@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, root_validator
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -133,7 +136,7 @@ class AnimeTitleCard(BaseCardType):
                 name='Kanji Stroke Width',
                 identifier='kanji_stroke_width',
                 description='Stroke width used on the Kanji text',
-                tooltip='Number. Defaults to <v>1.0</v>.',
+                tooltip='Number greater than <v>0</v>. Defaults to <v>1.0</v>.',
                 default=1.0,
             ),
             Extra(
@@ -610,3 +613,45 @@ class AnimeTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class AnimeCardModel(BaseCardTypeCustomFontAllText):
+        font_color: str = AnimeTitleCard.TITLE_COLOR
+        font_file: FilePath = AnimeTitleCard.TITLE_FONT # type: ignore
+        kanji: str | None = None
+        require_kanji: bool = False
+        kanji_color: str | None = AnimeTitleCard.TITLE_COLOR
+        kanji_font_size: PositiveFloat = 1.0
+        kanji_stroke_color: str | None = None
+        kanji_stroke_width: PositiveFloat = 1.0
+        kanji_vertical_shift: int = 0
+        separator: str = '·'
+        omit_gradient: bool = False
+        episode_stroke_color: str = AnimeTitleCard.EPISODE_STROKE_COLOR
+        episode_text_color: str = AnimeTitleCard.EPISODE_TEXT_COLOR
+        episode_text_font_size: PositiveFloat = 1.0
+        season_text_color: str | None = None
+        stroke_color: str = 'black'
+
+        @root_validator(skip_on_failure=True)
+        def validate_kanji(cls, values: dict) -> dict:
+            """Validate that kanji has been provided if it is required"""
+
+            if values['require_kanji'] and not values['kanji']:
+                raise ValueError('Kanji is required, but not specified')
+
+            return values
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_values(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['kanji_stroke_color'] is None:
+                values['kanji_stroke_color'] = values['stroke_color']
+
+            return values
+
+    return AnimeCardModel

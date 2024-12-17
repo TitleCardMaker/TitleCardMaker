@@ -1,7 +1,12 @@
 from collections import namedtuple
 from pathlib import Path
+from re import match as re_match
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import FilePath, conint, constr, root_validator, validator
+
+from app.schemas.base import Base
+from app.schemas.base import BaseCardTypeCustomFontNoText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -511,3 +516,43 @@ class TintedGlassTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'
+    BoxAdjustments = constr(regex=BoxAdjustmentRegex)
+
+    # pyright: reportInvalidTypeForm=false
+    class TintedGlassCardModel(BaseCardTypeCustomFontNoText):
+        title_text: str
+        episode_text: constr(to_upper=True)
+        hide_episode_text: bool = False
+        font_color: str = TintedGlassTitleCard.TITLE_COLOR
+        font_file: FilePath = TintedGlassTitleCard.TITLE_FONT # type: ignore
+        box_adjustments: BoxAdjustments = (0, 0, 0, 0)
+        episode_text_color: str = TintedGlassTitleCard.EPISODE_TEXT_COLOR
+        episode_text_position: Position = 'center'
+        glass_color: str = TintedGlassTitleCard.DARKEN_COLOR
+        rounding_radius: conint(
+            ge=1,
+            le=150
+        ) = TintedGlassTitleCard.DEFAULT_ROUNDING_RADIUS
+        vertical_adjustment: int = 0
+
+        @validator('box_adjustments')
+        def parse_box_adjustments(cls, val: str) -> tuple[int, int, int, int]:
+            """Convert box adjustment strings to a tuple of integers"""
+
+            return tuple(map(int, re_match(BoxAdjustmentRegex, val).groups())) # type: ignore
+
+        @root_validator(skip_on_failure=True)
+        def toggle_text_hiding(cls, values: dict) -> dict:
+            """Set the hide episode text flag if the episode text is blank."""
+
+            values['hide_episode_text'] |= (len(values['episode_text']) == 0)
+
+            return values
+
+    return TintedGlassCardModel

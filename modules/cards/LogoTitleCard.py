@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, root_validator
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -333,7 +336,7 @@ class LogoTitleCard(BaseCardType):
             f'-pointsize 67.75',
             f'-interword-spacing 14.5',
             # Black stroke behind primary text
-            f'\( -fill black',
+            fr'\( -fill black',
             f'-stroke black',
             f'-strokewidth 6',
             # Add season text
@@ -535,3 +538,42 @@ class LogoTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class CardModel(BaseCardTypeCustomFontAllText):
+        source_file: Path | None = None # type: ignore
+        logo_file: FilePath
+        font_color: str = LogoTitleCard.TITLE_COLOR
+        font_file: Path = LogoTitleCard.TITLE_FONT # type: ignore
+        background: str = 'black'
+        blur_only_image: bool = False
+        episode_text_color: str = LogoTitleCard.SERIES_COUNT_TEXT_COLOR
+        episode_text_vertical_shift: int = 0
+        logo_size: PositiveFloat = 1.0
+        logo_vertical_shift: int = 0
+        omit_gradient: bool = True
+        separator: str = '•'
+        stroke_color: str = 'black'
+        use_background_image: bool = False
+
+        @root_validator(skip_on_failure=True, allow_reuse=True)
+        def validate_source_file(cls, values: dict) -> dict:
+            """
+            Validate that a source file is provided if one is required.
+            """
+
+            if (values['use_background_image'] and (
+                not values['source_file']
+                or not values['source_file'].exists()
+            )):
+                raise ValueError(
+                    f'Source file ({values["source_file"]}) indicated and does '
+                    f'not exist'
+                )
+
+            return values
+
+    return CardModel

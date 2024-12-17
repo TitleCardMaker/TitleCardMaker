@@ -1,7 +1,19 @@
 from math import cos, sin, pi
 from pathlib import Path
+from re import compile as re_compile
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import (
+    FilePath,
+    PositiveFloat,
+    PositiveInt,
+    confloat,
+    conint,
+    constr,
+    root_validator
+)
+
+from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -356,8 +368,8 @@ class GraphTitleCard(BaseCardType):
             geometry = f'+{(self.WIDTH - self.HEIGHT) / 2}+0'
 
         return [
-            f'\( "{self.GRADIENT.resolve()}"',
-            f'-rotate {rotation} \)',
+            fr'\( "{self.GRADIENT.resolve()}"',
+            fr'-rotate {rotation} \)',
             f'-geometry {geometry}',
             f'-composite',
         ]
@@ -696,3 +708,56 @@ class GraphTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # Regex to match the episode text formatted as a fraction
+    graph_episode_text_regex = re_compile(r'^(\d+)\s*\/\s*(\d+)$')
+
+    # pyright: reportInvalidTypeForm=false
+    class GraphCardModel(BaseCardModel):
+        title_text: str
+        episode_text: constr(to_upper=True)
+        hide_episode_text: bool = False
+        font_color: str
+        font_file: FilePath
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_kerning: float = 1.0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        graph_text_font_size: PositiveFloat | None = None
+        grayscale: bool = False
+        graph_background_color: str = GraphTitleCard.BACKGROUND_GRAPH_COLOR
+        graph_color: str = GraphTitleCard.GRAPH_COLOR
+        graph_inset: conint(ge=0, le=1800) = GraphTitleCard.GRAPH_INSET
+        graph_radius: conint(ge=50, le=900) = GraphTitleCard.GRAPH_RADIUS
+        graph_width: PositiveInt = GraphTitleCard.GRAPH_WIDTH
+        fill_scale: confloat(gt=0.0, le=1.0) = GraphTitleCard.GRAPH_FILL_SCALE
+        omit_gradient: bool = False
+        percentage: confloat(ge=0.0, le=1.0) = 0.75
+        text_position: TextPosition = 'lower left'
+
+        @root_validator(skip_on_failure=True)
+        def validate_extras(cls, values: dict) -> dict:
+            # Toggle text hiding
+            values['hide_episode_text'] |= (len(values['episode_text']) == 0)
+
+            # Ensure graph width is less than radius
+            if values.get('graph_width', 0) > values.get('graph_radius', 0):
+                values['graph_width'] = values['graph_radius']
+
+            # Scale episode text size by radius if not provided
+            if values.get('graph_text_font_size', None) is None:
+                values['graph_text_font_size'] = \
+                    values['graph_radius'] / GraphTitleCard.GRAPH_RADIUS
+
+            # Episode text formatted as {nom} / {den}; calculate percentage
+            if (_match := graph_episode_text_regex.match(values['episode_text'])):
+                values['percentage'] = int(_match[1]) / int(_match[2])
+
+            return values
+
+    return GraphCardModel

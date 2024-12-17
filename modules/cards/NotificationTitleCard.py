@@ -1,6 +1,17 @@
 from pathlib import Path
+from re import match as re_match
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import (
+    FilePath,
+    PositiveFloat,
+    conint,
+    constr,
+    root_validator,
+    validator,
+)
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -17,7 +28,7 @@ if TYPE_CHECKING:
     from app.models.preferences import Preferences
     from modules.Font import Font
 
-type Position = Literal['left', 'right']
+Position = Literal['left', 'right']
 
 
 class NotificationTitleCard(BaseCardType):
@@ -506,3 +517,45 @@ class NotificationTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'
+    BoxAdjustments = constr(regex=BoxAdjustmentRegex)
+
+    # pyright: reportInvalidTypeForm=false
+    class NotificationCardModel(BaseCardTypeCustomFontAllText):
+        season_text: str
+        episode_text: str
+        font_color: str = NotificationTitleCard.TITLE_COLOR
+        font_file: FilePath = NotificationTitleCard.TITLE_FONT # type: ignore
+        box_adjustments: BoxAdjustments = (0, 0, 0, 0)
+        edge_color: str | None = None
+        edge_width: conint(ge=0) = NotificationTitleCard.EDGE_WIDTH
+        episode_text_color: str | None = None
+        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_vertical_shift: int = 0
+        glass_color: str = NotificationTitleCard.GLASS_COLOR
+        position: Position = 'right'
+        separator: str = '-'
+
+        @validator('box_adjustments')
+        def parse_box_adjustments(cls, val: str) -> tuple[int, int, int, int]:
+            """Convert box adjustment strings to a tuple of integers"""
+
+            return tuple(map(int, re_match(BoxAdjustmentRegex, val).groups())) # type: ignore
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['edge_color'] is None:
+                values['edge_color'] = values['font_color']
+            if values['episode_text_color'] is None:
+                values['episode_text_color'] = values['font_color']
+
+            return values
+
+    return NotificationCardModel

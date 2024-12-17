@@ -1,6 +1,16 @@
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import (
+    FilePath,
+    PositiveFloat,
+    PositiveInt,
+    constr,
+    root_validator
+)
+
+from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -475,3 +485,58 @@ class FormulaOneTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # pyright: reportInvalidTypeForm=false
+    class FormulaOneCardModel(BaseCardTypeAllText):
+        airdate: datetime | None = None
+        font_color: str = FormulaOneTitleCard.TITLE_COLOR
+        font_file: FilePath = FormulaOneTitleCard.TITLE_FONT # type: ignore
+        font_size: PositiveFloat = 1.0
+        country: Country | None = None
+        episode_text_color: str = FormulaOneTitleCard.EPISODE_TEXT_COLOR
+        episode_text_font_size: PositiveFloat = 1.0
+        flag: Path | None = None
+        frame_year: PositiveInt | None = None
+        race: constr(min_length=1, to_upper=True) = 'GRAND PRIX'
+
+        @root_validator(skip_on_failure=True)
+        def parse_country(cls, values: dict) -> dict:
+            """Parse the country from the season text, if none was provided"""
+
+            if values['country'] is None:
+                if values['season_text'].upper() in FormulaOneTitleCard._COUNTRY_FLAGS:
+                    values['country'] = values['season_text'].upper()
+                else:
+                    values['country'] = 'GENERIC'
+            return values
+
+        @root_validator(skip_on_failure=True)
+        def validate_flag(cls, values: dict) -> dict:
+            """Validate any custom flag files exist"""
+
+            if values['flag'] is not None:
+                if not values['flag'].exists():
+                    raise ValueError('Specified Flag file does not exist')
+
+            return values
+
+        @root_validator(skip_on_failure=True)
+        def validate_frame_year(cls, values: dict) -> dict:
+            """
+            Parse the frame year from the airdate of the episode, if
+            none was provided.
+            """
+
+            if values['frame_year'] is None:
+                if values.get('airdate'):
+                    values['frame_year'] = values['airdate'].year
+                else:
+                    values['frame_year'] = 2024
+
+            return values
+
+    return FormulaOneCardModel

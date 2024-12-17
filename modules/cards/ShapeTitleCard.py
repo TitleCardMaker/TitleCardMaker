@@ -8,6 +8,17 @@ from typing import (
     get_args as get_type_args
 )
 
+from pydantic import (
+    FilePath,
+    PositiveFloat,
+    PositiveInt,
+    confloat,
+    conint,
+    constr,
+    root_validator,
+)
+
+from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
     Coordinate,
@@ -444,8 +455,8 @@ class ShapeTitleCard(BaseCardType):
             geometry = f'+{(self.WIDTH - self.HEIGHT) / 2}+0'
 
         return [
-            f'\( "{self.GRADIENT.resolve()}"',
-            f'-rotate {rotation} \)',
+            fr'\( "{self.GRADIENT.resolve()}"',
+            fr'-rotate {rotation} \)',
             f'-geometry {geometry}',
             f'-composite',
         ]
@@ -1333,3 +1344,60 @@ class ShapeTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    RandomShape = constr(regex=RandomShapeRegex)
+
+    # pyright: reportInvalidTypeForm=false
+    class ShapeCardModel(BaseCardTypeAllText):
+        season_text: str
+        episode_text: str
+        font_color: str = ShapeTitleCard.TITLE_COLOR
+        font_file: FilePath = ShapeTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_kerning: float = 1.0
+        font_size: PositiveFloat = 1.0
+        font_stroke_width: float = 1.0
+        font_vertical_shift: int = 0
+        hide_shape: bool = False
+        italicize_season_text: bool = False
+        omit_gradient: bool = False
+        season_text_color: str | None = None
+        season_text_font_size: PositiveFloat = 1.0
+        season_text_position: SeasonTextPosition = 'below'
+        shape: Shape | Literal['random'] | RandomShape = ShapeTitleCard.DEFAULT_SHAPE
+        shape_color: str = ShapeTitleCard.SHAPE_COLOR
+        shape_inset: conint(ge=0, le=1800) = ShapeTitleCard.SHAPE_INSET
+        shape_size: confloat(gt=0.3) = 1.0
+        shape_stroke_color: str = ShapeTitleCard.SHAPE_STROKE_COLOR
+        shape_stroke_width: confloat(ge=0) = 0.0
+        shape_width: PositiveInt = ShapeTitleCard.SHAPE_WIDTH
+        stroke_color: str = 'black'
+        text_position: TextPosition = 'lower left'
+
+        @root_validator(skip_on_failure=True)
+        def format_title_text(cls, values: dict) -> dict:
+            """
+            Add the episode text to the beginning of the title text.
+            """
+
+            # Add episode text before title text if not hiding
+            if values.get('hide_episode_text', False) is not True:
+                values['title_text'] = f'{values["episode_text"]} {values["title_text"]}'
+
+            return values
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['season_text_color'] is None:
+                values['season_text_color'] = values['shape_color']
+
+            return values
+
+    return ShapeCardModel

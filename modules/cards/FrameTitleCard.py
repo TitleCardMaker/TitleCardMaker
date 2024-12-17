@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import FilePath
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -371,3 +374,15 @@ class FrameTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class FrameCardModel(BaseCardTypeCustomFontAllText):
+        font_color: str = FrameTitleCard.TITLE_COLOR
+        font_file: FilePath = FrameTitleCard.TITLE_FONT # type: ignore
+        episode_text_color: str = FrameTitleCard.EPISODE_TEXT_COLOR
+        episode_text_position: Position = 'surround'
+
+    return FrameCardModel

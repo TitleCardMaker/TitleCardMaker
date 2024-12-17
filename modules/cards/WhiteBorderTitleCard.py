@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -383,3 +386,19 @@ class WhiteBorderTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class WhiteBorderCardType(BaseCardTypeCustomFontAllText):
+        font_color: str = WhiteBorderTitleCard.TITLE_COLOR
+        font_file: FilePath = WhiteBorderTitleCard.TITLE_FONT # type: ignore
+        omit_gradient: bool = False
+        separator: str = '•'
+        border_color: str = 'white'
+        stroke_color: str = WhiteBorderTitleCard.STROKE_COLOR
+        episode_text_color: str = WhiteBorderTitleCard.TITLE_COLOR
+        episode_text_font_size: PositiveFloat = 1.0
+
+    return WhiteBorderCardType

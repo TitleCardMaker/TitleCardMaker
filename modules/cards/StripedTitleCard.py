@@ -3,8 +3,11 @@ from math import tan, pi as PI
 from pathlib import Path
 from random import choice as random_choice, randint
 from re import IGNORECASE, compile as re_compile
-from typing import TYPE_CHECKING, Literal, Sequence
+from typing import TYPE_CHECKING, Literal, Sequence, Union
 
+from pydantic import FilePath, PositiveFloat, confloat, conint, constr, validator
+
+from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -20,6 +23,8 @@ if TYPE_CHECKING:
     from app.models.preferences import Preferences
     from modules.Font import Font
 
+
+STRIPE_DOC_LINK = 'https://titlecardmaker.com/card_types/striped/#definition'
 
 TextPosition = Literal['upper left', 'upper right', 'lower left', 'lower right']
 
@@ -343,8 +348,8 @@ class StripedTitleCard(BaseCardType):
                 identifier='polygons',
                 description='Format for the size and order of the stripes',
                 tooltip=(
-                    'See <a href="https://titlecardmaker.com/card_types/striped/#definition">'
-                    'the documentation</a> for details. Default is '
+                    f'See <a href="{STRIPE_DOC_LINK}" target="_blank">the '
+                    'documentation</a> for details. Default is '
                     '<v>random[ssmmmlll]</v>.'
                 ),
                 default='random[ssmmmlll]',
@@ -853,3 +858,72 @@ class StripedTitleCard(BaseCardType):
         ])
 
         self.image_magick.delete_intermediate_images(mask)
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # Regex to match all supported types of polygon definitions
+    PolygonDefintion = Union[
+        constr(strip_whitespace=True, to_lower=True, regex=r'^random\[[sml]+\]$'),
+        constr(strip_whitespace=True, to_lower=True, regex=r'^random\[(\d+,?)+\]$'),
+        constr(strip_whitespace=True, to_lower=True, regex=r'^random\[(\d+-\d+,?)+\]$'),
+        constr(strip_whitespace=True, to_lower=True, regex=r'^[sml]+\+?$'),
+        constr(strip_whitespace=True, to_lower=True, regex=r'^(\d+,?)+\+?$'),
+        constr(strip_whitespace=True, to_lower=True, regex=r'^(\d+-\d+,?)+\+?$'),
+    ]
+
+    # pyright: reportInvalidTypeForm=false
+    class StripedCardModel(BaseCardTypeAllText):
+        season_text: str
+        episode_text: str
+        font_color: str = StripedTitleCard.TITLE_COLOR
+        font_file: FilePath = StripedTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_kerning: float = 1.0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        angle: confloat(le=135, ge=45) = StripedTitleCard.DEFAULT_ANGLE
+        episode_text_color: str = StripedTitleCard.EPISODE_TEXT_COLOR
+        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_vertical_shift: conint(ge=-1800, le=1800) = 0
+        inset: conint(ge=0, le=1600) = StripedTitleCard.DEFAULT_INSET
+        inter_stripe_spacing: conint(
+            ge=0,
+            le=800
+        ) = StripedTitleCard.DEFAULT_INTER_STRIPE_SPACING
+        overlay_color: str = StripedTitleCard.DEFAULT_OVERLAY_COLOR
+        polygons: PolygonDefintion = StripedTitleCard.DEFAULT_POLYGON_STRING
+        separator: str = ' - '
+        text_position: TextPosition = StripedTitleCard.DEFAULT_TEXT_POSITION
+
+        @validator('polygons')
+        def validate_size_boundaries(cls, val: str) -> str:
+            """
+            Validate the polygon definition does not provide any invalid
+            size boundaries.
+            """
+
+            # Remove random[] part of string for parsing
+            temp = val
+            if 'random[' in val:
+                temp = val.split('random[')[1].split(']')[0]
+
+            # Parse size range individually
+            for range_ in temp.removesuffix('+').split(','):
+                # Skip non-range definitions
+                if '-' not in range_:
+                    continue
+
+                # Verify lower bound is below upper
+                lower, upper = tuple(map(int, range_.split('-', maxsplit=1)))
+                if not lower <= upper:
+                    raise ValueError(
+                        f'Lower bound of size boundary ({lower}) must be below '
+                        f'upper bound ({upper})'
+                    )
+
+            return val
+
+    return StripedCardModel

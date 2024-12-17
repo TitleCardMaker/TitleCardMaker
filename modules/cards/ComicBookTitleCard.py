@@ -1,7 +1,12 @@
 from math import cos, sin, pi as PI
 from pathlib import Path
+from random import uniform
+from re import match as re_match
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import FilePath, constr, root_validator, validator
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -735,3 +740,64 @@ class ComicBookTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    RandomAngleRegex = r'random\[([+-]?\d+.?\d*),\s*([+-]?\d+.?\d*)\]'
+    RandomAngle = constr(regex=RandomAngleRegex)
+
+    # pyright: reportInvalidTypeForm=false
+    class ComicBookCardModel(BaseCardTypeCustomFontAllText):
+        font_color: str = ComicBookTitleCard.TITLE_COLOR
+        font_file: FilePath = ComicBookTitleCard.TITLE_FONT # type: ignore
+        episode_text_color: str = 'black'
+        index_text_position: Literal['left', 'middle', 'right'] = 'left'
+        text_box_fill_color: str = 'white'
+        episode_text_box_fill_color: str | None = None
+        text_box_edge_color: str | None = None
+        title_text_rotation_angle: float | RandomAngle = -4.0
+        index_text_rotation_angle: float | RandomAngle = -4.0
+        banner_fill_color: str = ComicBookTitleCard.BANNER_FILL_COLOR
+        title_banner_shift: int = 0
+        index_banner_shift: int = 0
+        hide_title_banner: bool = False
+        hide_index_banner: bool = False
+
+        @validator('title_text_rotation_angle', 'index_text_rotation_angle')
+        def validate_random_angle(cls, val: str | float) -> float:
+            """
+            Validate the rotation angles. This verifies the randomized angles
+            are valid, generates them if necessary, and limits all angles
+            between 0 and 360 degrees.
+            """
+
+            # If angle is a random range string, replace with random value in range
+            if isinstance(val, str):
+                # Get bounds from the random range string
+                lower, upper = map(
+                    float,
+                    re_match(RandomAngleRegex, val).groups() # type: ignore
+                )
+
+                # Lower bound cannot be above upper bound
+                if lower >= upper:
+                    raise ValueError(f'Lower bound must be below upper bound')
+
+                return uniform(lower, upper) % 360
+
+            return val % 360
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['text_box_edge_color'] is None:
+                values['text_box_edge_color'] = values['font_color']
+            if values['episode_text_box_fill_color'] is None:
+                values['episode_text_box_fill_color'] = values['text_box_fill_color']
+
+            return values
+
+    return ComicBookCardModel

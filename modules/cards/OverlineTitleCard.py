@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import FilePath, PositiveFloat, PositiveInt, root_validator
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -16,6 +19,8 @@ from modules.Title import SplitCharacteristics
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
     from modules.Font import Font
+
+LinePosition = Literal['top', 'bottom']
 
 
 class OverlineTitleCard(BaseCardType):
@@ -176,7 +181,7 @@ class OverlineTitleCard(BaseCardType):
             episode_text_font_size: float = 1.0,
             hide_line: bool = False,
             line_color: str = TITLE_COLOR,
-            line_position: Literal['top', 'bottom'] = 'top',
+            line_position: LinePosition = 'top',
             line_width: int = LINE_THICKNESS,
             omit_gradient: bool = False,
             separator: str = '-',
@@ -502,3 +507,35 @@ class OverlineTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class OverlineCardModel(BaseCardTypeCustomFontAllText):
+        font_color: str = OverlineTitleCard.TITLE_COLOR
+        font_file: FilePath = OverlineTitleCard.TITLE_FONT # type: ignore
+        episode_text_color: str | None = None
+        episode_text_font_size: PositiveFloat = 1.0
+        hide_line: bool = False
+        line_color: str | None = None
+        line_position: LinePosition = 'top'
+        line_width: PositiveInt = OverlineTitleCard.LINE_THICKNESS
+        omit_gradient: bool = False
+        separator: str = '-'
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['episode_text_color'] is None:
+                values['episode_text_color'] = values['font_color']
+            if values['line_color'] is None:
+                if values['episode_text_color'] is None:
+                    values['line_color'] = values['font_color']
+                else:
+                    values['line_color'] = values['episode_text_color']
+
+            return values
+
+    return OverlineCardModel

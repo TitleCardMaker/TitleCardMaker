@@ -1,7 +1,11 @@
 from collections import namedtuple
 from pathlib import Path
+from re import match as re_match
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import FilePath, PositiveFloat, PositiveInt, constr, root_validator, validator
+
+from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
     BaseCardType, ImageMagickCommands, Extra, CardTypeDescription, Shadow
 )
@@ -13,7 +17,7 @@ if TYPE_CHECKING:
     from modules.Font import Font
 
 
-type DarkenOption = Literal['all', 'box'] | bool
+DarkenOption = Literal['all', 'box'] | bool
 BoxCoordinates = namedtuple('BoxCoordinates', ('x0', 'y0', 'x1', 'y1'))
 
 
@@ -474,3 +478,43 @@ class LandscapeTitleCard(BaseCardType):
             fr'"{self.output_file.resolve()}"',
         ])
         return None
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'
+    BoxAdjustments = constr(regex=BoxAdjustmentRegex)
+
+    # pyright: reportInvalidTypeForm=false
+    class LandscapeCardModel(BaseCardModel):
+        title_text: str
+        font_color: str = LandscapeTitleCard.TITLE_COLOR
+        font_file: FilePath = LandscapeTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_kerning: float = 1.0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        add_bounding_box: bool = True
+        box_adjustments: BoxAdjustments = (0, 0, 0, 0)
+        box_color: str | None = None
+        box_width: PositiveInt = LandscapeTitleCard.BOX_WIDTH
+        darken: DarkenOption = 'box'
+
+        @validator('box_adjustments')
+        def parse_box_adjustments(cls, val: str) -> tuple[int, int, int, int]:
+            """Convert box adjustment strings to a tuple of integers"""
+
+            return tuple(map(int, re_match(BoxAdjustmentRegex, val).groups())) # type: ignore
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['box_color'] is None:
+                values['box_color'] = values['font_color']
+
+            return values
+
+    return LandscapeCardModel

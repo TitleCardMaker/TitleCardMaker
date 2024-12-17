@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, constr, root_validator
+
+from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, Extra, CardTypeDescription
 from modules.Title import SplitCharacteristics
 
@@ -257,3 +260,39 @@ class PosterTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+    
+    # pyright: reportInvalidTypeForm=false
+    class CardModel(BaseCardModel):
+        title_text: str
+        episode_text: constr(to_upper=True)
+        hide_episode_text: bool = False
+        font_color: str = PosterTitleCard.TITLE_COLOR
+        font_file: FilePath = PosterTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_size: PositiveFloat = 1.0
+        logo_file: Path | None = None
+        episode_text_color: str | None = None
+
+        @root_validator(skip_on_failure=True, allow_reuse=True)
+        def toggle_text_hiding(cls, values: dict) -> dict:
+            """Set the hide episode text flag if the episode text is blank"""
+
+            values['hide_episode_text'] |= (len(values['episode_text']) == 0)
+
+            return values
+
+        @root_validator(skip_on_failure=True, allow_reuse=True)
+        def assign_episode_text_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['episode_text_color'] is None:
+                values['episode_text_color'] = values['font_color']
+
+            return values
+
+    return CardModel

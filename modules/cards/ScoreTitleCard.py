@@ -2,6 +2,9 @@ from pathlib import Path
 from random import choice as random_choice
 from typing import Literal, TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, constr, root_validator
+
+from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -672,3 +675,43 @@ class ScoreTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    ColorPair = constr(regex=r'^\S+( \S+)?$', strip_whitespace=True)
+
+    # pyright: reportInvalidTypeForm=false
+    class ScoreCardModel(BaseCardTypeAllText):
+        font_color: str = ScoreTitleCard.TITLE_COLOR
+        font_file: FilePath = ScoreTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_kerning: float = 1.0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        episode_text_color: ColorPair | None = None
+        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_horizontal_offset: int = 0
+        episode_text_vertical_offset: int = 0
+        season_text_color: ColorPair | None = None
+        stroke_color: str = ScoreTitleCard.STROKE_COLOR
+        title_text_horizontal_offset: int = 0
+        label_placement: LabelPlacement = 'above'
+        omit_gradient: bool = False
+        placement: Placement = 'bottom'
+        variation: Variation = 'surround'
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['episode_text_color'] is None:
+                values['episode_text_color'] = values['font_color']
+            if values['season_text_color'] is None:
+                values['season_text_color'] = values['episode_text_color']
+
+            return values
+
+    return ScoreCardModel

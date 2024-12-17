@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, CardTypeDescription, TextCase
 from modules.Debug import log # noqa: F401
 from modules.Title import SplitCharacteristics
@@ -143,3 +144,12 @@ class TextlessTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class TextlessCardModel(BaseCardModel):
+        source_file: Path # Optional source file for importing w/o sources
+
+    return TextlessCardModel

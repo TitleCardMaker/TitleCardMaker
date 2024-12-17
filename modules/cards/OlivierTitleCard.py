@@ -1,6 +1,10 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, constr, root_validator
+
+from app.schemas.base import Base
+from app.schemas.base import BaseCardTypeCustomFontNoText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -393,3 +397,32 @@ class OlivierTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # pyright: reportInvalidTypeForm=false
+    class CardModel(BaseCardTypeCustomFontNoText):
+        title_text: str
+        episode_text: constr(to_upper=True)
+        hide_episode_text: bool = False
+        font_color: str = OlivierTitleCard.TITLE_COLOR
+        font_file: FilePath = OlivierTitleCard.TITLE_FONT # type: ignore
+        episode_text_color: str = OlivierTitleCard.EPISODE_TEXT_COLOR
+        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_vertical_shift: int = 0
+        omit_gradient: bool = True
+        stroke_color: str = OlivierTitleCard.STROKE_COLOR
+
+        @root_validator(skip_on_failure=True, allow_reuse=True)
+        def toggle_text_hiding(cls, values: dict) -> dict:
+            """
+            Set the hide episode text flag if the episode text is blank.
+            """
+
+            values['hide_episode_text'] |= (len(values['episode_text']) == 0)
+
+            return values
+
+    return CardModel

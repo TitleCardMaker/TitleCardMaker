@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import FilePath, PositiveInt
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -17,6 +20,8 @@ if TYPE_CHECKING:
     from app.models.preferences import Preferences
     from modules.Font import Font
 
+
+EpisodeTextLocation = Literal['compact', 'fixed']
 
 class MarvelTitleCard(BaseCardType):
     """
@@ -202,7 +207,7 @@ class MarvelTitleCard(BaseCardType):
             border_color: str = DEFAULT_BORDER_COLOR,
             border_size: int = DEFAULT_BORDER_SIZE,
             episode_text_color: str = EPISODE_TEXT_COLOR,
-            episode_text_location: Literal['compact', 'fixed'] = 'fixed',
+            episode_text_location: EpisodeTextLocation = 'fixed',
             fit_text: bool = True,
             hide_border: bool = False,
             text_box_color: str = DEFAULT_TEXT_BOX_COLOR,
@@ -594,3 +599,21 @@ class MarvelTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class MarvelCardModel(BaseCardTypeCustomFontAllText):
+        font_file: FilePath = MarvelTitleCard.TITLE_FONT # type: ignore
+        font_color: str = MarvelTitleCard.TITLE_COLOR
+        border_color: str = MarvelTitleCard.DEFAULT_BORDER_COLOR
+        border_size: PositiveInt = MarvelTitleCard.DEFAULT_BORDER_SIZE
+        episode_text_color: str = MarvelTitleCard.EPISODE_TEXT_COLOR
+        episode_text_location: EpisodeTextLocation = 'fixed'
+        fit_text: bool = True
+        hide_border: bool = False
+        text_box_color: str = MarvelTitleCard.DEFAULT_TEXT_BOX_COLOR
+        text_box_height: PositiveInt = MarvelTitleCard.DEFAULT_TEXT_BOX_HEIGHT
+
+    return MarvelCardModel

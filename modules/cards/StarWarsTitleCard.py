@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, constr, root_validator
+
+from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -299,3 +302,31 @@ class StarWarsTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # pyright: reportInvalidTypeForm=false
+    class StarWarsCardModel(BaseCardModel):
+        title_text: str
+        episode_text: constr(to_upper=True)
+        hide_episode_text: bool = False
+        font_color: str = StarWarsTitleCard.TITLE_COLOR
+        font_file: FilePath = StarWarsTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_kerning: float = 1.0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        episode_text_color: str = StarWarsTitleCard.EPISODE_TEXT_COLOR
+
+        @root_validator(skip_on_failure=True)
+        def toggle_text_hiding(cls, values: dict) -> dict:
+            """Set the hide episode text flag if the episode text is blank"""
+
+            values['hide_episode_text'] |= (len(values['episode_text']) == 0)
+
+            return values
+
+    return StarWarsCardModel

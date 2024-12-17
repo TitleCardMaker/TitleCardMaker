@@ -453,7 +453,7 @@ class CascadeTitleCard(BaseCardType):
         self.cascade_cropping = SequenceGenerator(cascade_cropping)
         self.cascade_fill_color = cascade_fill_color
         self.cascade_outline_color = cascade_outline_color
-        self.cascade_width = cascade_width
+        self.cascade_width = int(cascade_width)
         self.enable_glass = enable_glass
         self.episode_text_color = episode_text_color
         self.episode_text_font_size = episode_text_font_size

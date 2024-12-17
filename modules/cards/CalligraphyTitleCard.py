@@ -1,7 +1,10 @@
 from pathlib import Path
 from random import random
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, root_validator
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -559,3 +562,35 @@ class CalligraphyTitleCard(BaseCardType):
         ])
 
         self.image_magick.run(command)
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class CalligraphyCardModel(BaseCardTypeCustomFontAllText):
+        season_text: str
+        episode_text: str
+        font_color: str = CalligraphyTitleCard.TITLE_COLOR
+        font_file: FilePath = CalligraphyTitleCard.TITLE_FONT # type: ignore
+        logo_file: Path
+        watched: bool = False
+        add_texture: bool = True
+        deep_blur_if_unwatched: bool = True
+        episode_text_color: str | None = None
+        episode_text_font_size: PositiveFloat = 1.0
+        logo_size: PositiveFloat = 1.0
+        offset_titles: bool = True
+        randomize_texture: bool = True
+        separator: str = '-'
+        shadow_color: str = 'black'
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['episode_text_color'] is None:
+                values['episode_text_color'] = values['font_color']
+
+            return values
+
+    return CalligraphyCardModel

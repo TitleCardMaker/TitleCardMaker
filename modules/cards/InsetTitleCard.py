@@ -1,6 +1,9 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, confloat
+
+from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -15,14 +18,6 @@ from modules.Title import SplitCharacteristics
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
     from modules.Font import Font
-
-
-type TextPosition = Literal[
-    'upper left', 'upper right',
-    'left', 'right',
-    'lower left', 'lower right',
-]
-type SeasonTextPosition = Literal['above', 'below']
 
 
 class InsetTitleCard(BaseCardType):
@@ -427,3 +422,24 @@ class InsetTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # pyright: reportInvalidTypeForm=false
+    class InsetCardModel(BaseCardTypeAllText):
+        font_color: str = InsetTitleCard.TITLE_COLOR
+        font_file: FilePath = InsetTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_kerning: float = 1.0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        episode_text_color: str = InsetTitleCard.EPISODE_TEXT_COLOR
+        episode_text_font_size: PositiveFloat = 1.0
+        omit_gradient: bool = False
+        separator: str = '-'
+        transparency: confloat(ge=0.0, le=1.0) = 1.0
+
+    return InsetCardModel

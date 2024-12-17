@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, conint, root_validator
+
+from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -452,3 +455,34 @@ class BannerTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # pyright: reportInvalidTypeForm=false
+    class BannerCardModel(BaseCardTypeAllText):
+        font_color: str = BannerTitleCard.TITLE_COLOR
+        font_file: FilePath = BannerTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_kerning: float = 1.0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        alternate_color: str = BannerTitleCard.EPISODE_TEXT_COLOR
+        banner_color: str | None = None
+        banner_height: conint(ge=0, le=1800) = BannerTitleCard.BANNER_HEIGHT
+        episode_text_font_size: PositiveFloat = 1.0
+        hide_banner: bool = False
+        x_offset: conint(ge=0, le=3200) = BannerTitleCard.X_OFFSET
+
+        @root_validator(skip_on_failure=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['banner_color'] is None:
+                values['banner_color'] = values['font_color']
+
+            return values
+        
+    return BannerCardModel

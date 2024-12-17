@@ -2,6 +2,9 @@ from pathlib import Path
 from random import random
 from typing import Literal, TYPE_CHECKING
 
+from pydantic import FilePath, PositiveFloat, constr, root_validator
+
+from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -128,23 +131,23 @@ class NegativeSpaceTitleCard(BaseCardType):
     DEFAULT_TEXT_SIDE: TextSide = 'left'
 
     __slots__ = (
-        'source_file',
-        'output_file',
-        'title_text',
-        'episode_text',
-        'hide_episode_text',
-        'font_file',
-        'font_size',
         'font_color',
+        'font_file',
         'font_interline_spacing',
         'font_interword_spacing',
         'font_kerning',
+        'font_size',
         'font_vertical_shift',
+        'episode_text',
         'episode_text_color',
         'episode_text_font_size',
         'episode_text_horizontal_offset',
         'episode_text_vertical_offset',
+        'hide_episode_text',
+        'output_file',
+        'source_file',
         'text_side',
+        'title_text',
         'title_text_horizontal_offset',
     )
 
@@ -482,3 +485,46 @@ class NegativeSpaceTitleCard(BaseCardType):
         self.image_magick.delete_intermediate_images(
             text_image, difference_mask
         )
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # pyright: reportInvalidTypeForm=false
+    class CardModel(BaseCardModel):
+        title_text: str
+        episode_text: constr(to_upper=True)
+        hide_episode_text: bool = False
+        font_color: str = NegativeSpaceTitleCard.TITLE_COLOR
+        font_file: FilePath = NegativeSpaceTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        episode_text_color: str | None = None
+        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_horizontal_offset: int = 0
+        episode_text_vertical_offset: int = 0
+        text_side: TextSide | Literal['random'] = NegativeSpaceTitleCard.DEFAULT_TEXT_SIDE
+        title_text_horizontal_offset: int = 0
+
+        @root_validator(skip_on_failure=True, allow_reuse=True)
+        def toggle_text_hiding(cls, values: dict) -> dict:
+            """
+            Set the hide episode text flag if the episode text is empty.
+            """
+
+            values['hide_episode_text'] |= (len(values['episode_text']) == 0)
+
+            return values
+
+        @root_validator(skip_on_failure=True, allow_reuse=True)
+        def assign_unassigned_color(cls, values: dict) -> dict:
+            """Assign any unassigned colors to their default values."""
+
+            if values['episode_text_color'] is None:
+                values['episode_text_color'] = values['font_color']
+
+            return values
+
+    return CardModel

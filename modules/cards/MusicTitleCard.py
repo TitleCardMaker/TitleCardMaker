@@ -1,7 +1,20 @@
 from pathlib import Path
 from random import random
+from re import match as re_match
 from typing import TYPE_CHECKING, Literal, NamedTuple
 
+from pydantic import (
+    FilePath,
+    PositiveFloat,
+    PositiveInt,
+    confloat,
+    conint,
+    constr,
+    root_validator,
+    validator,
+)
+
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -15,6 +28,7 @@ from modules.BaseCardType import (
 )
 from modules.Debug import log # noqa: F401
 from modules.EpisodeInfo2 import EpisodeInfo
+from modules.FormatString import FormatString
 from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
@@ -363,9 +377,9 @@ class MusicTitleCard(BaseCardType):
         'round_corners',
         'season_text',
         'source_file',
-        'title_text',
         'subtitle',
         'timeline_color',
+        'title_text',
         '__album_dimensions',
         '__cleanup',
         '__episode_x',
@@ -1172,3 +1186,135 @@ class MusicTitleCard(BaseCardType):
         ])
 
         self.image_magick.delete_intermediate_images(*self.__cleanup)
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # Regex for individually coloring the controls
+    ControlColorRegex = r'^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$'
+    ColorControls = constr(regex=ControlColorRegex)
+
+    # pyright: reportInvalidTypeForm=false
+    class CardModel(BaseCardTypeCustomFontAllText):
+        font_file: FilePath = MusicTitleCard.TITLE_FONT # type: ignore
+        font_color: str = MusicTitleCard.TITLE_COLOR
+        add_controls: bool = False
+        album_cover: FilePath | None = None
+        album_size: PositiveFloat = 1.0
+        control_colors: ColorControls = MusicTitleCard.DEFAULT_CONTROL_COLORS
+        draw_heart: bool = False
+        episode_text_color: str = MusicTitleCard.EPISODE_TEXT_COLOR
+        percentage: confloat(ge=0.0, le=1.0) | str | Literal['random'] = 'random'
+        heart_color: str = 'transparent'
+        heart_stroke_color: str = 'white'
+        pause_or_play: PlayerAction = MusicTitleCard.DEFAULT_PLAYER_ACTION
+        player_color: str = MusicTitleCard.DEFAULT_PLAYER_COLOR
+        player_inset: conint(ge=0, le=1200) = MusicTitleCard.DEFAULT_INSET
+        player_position: PlayerPosition = MusicTitleCard.DEFAULT_PLAYER_POSITION
+        player_style: PlayerStyle = MusicTitleCard.DEFAULT_PLAYER_STYLE
+        player_width: conint(ge=400, le=3000) = MusicTitleCard.DEFAULT_PLAYER_WIDTH
+        round_corners: bool = True
+        subtitle: str = '{series_name}'
+        timeline_color: str = MusicTitleCard.DEFAULT_TIMELINE_COLOR
+        truncate_long_titles: PositiveInt | Literal['False'] = 3
+        watched: bool | None = None
+
+        @validator('control_colors', allow_reuse=True)
+        def parse_control_colors(cls, val: str) -> tuple[str, str, str, str]:
+            """
+            Parse the control color string into a tuple of individual
+            colors.
+            """
+
+            return tuple(re_match(ControlColorRegex, val).groups()) # type: ignore
+
+        @root_validator(skip_on_failure=True, allow_reuse=True)
+        def assign_unassigned_player_action(cls, values: dict) -> dict:
+            """
+            Assign the pause/play icon based on the watched status if
+            indicated.
+            """
+
+            if values['pause_or_play'] == 'watched':
+                # No watched status, use default
+                if values['watched'] is None:
+                    values['pause_or_play'] = MusicTitleCard.DEFAULT_PLAYER_ACTION
+                else:
+                    values['pause_or_play']  = 'pause' if values['watched'] else 'play'
+
+            return values
+
+        @root_validator(skip_on_failure=True)
+        def validate_player_width(cls, values: dict) -> dict:
+            """
+            Verify the player width is not less than 600 if the controls
+            are enabled.
+            """
+
+            if values['add_controls'] and values['player_width'] < 600:
+                raise ValueError(
+                    'Player width must be at least 600 to add controls'
+                )
+
+            return values
+
+        @root_validator(skip_on_failure=True, pre=True)
+        def finalize_format_strings(cls, values: dict) -> dict:
+            """Finalize the percentage and subtitle format strings."""
+
+            if ((percentage := values.get('percentage', 'random')) is not None
+                and isinstance(percentage, str)
+                and percentage != 'random'):
+                p = float(FormatString(percentage, data=values).result)
+                values['percentage'] = max(0.0, min(1.0, p)) # Limit [0.0, 1.0]
+            if (subtitle := values.get('subtitle', '{series_name}')) is not None:
+                values['subtitle'] = FormatString(subtitle, data=values).result
+
+            return values
+
+        @root_validator(skip_on_failure=True)
+        def truncate_long_titles_(cls, values: dict) -> dict:
+            """Apply long title truncation if indicated"""
+
+            if (truncate := values.get('truncate_long_titles', 2)) != 'False':
+                if len(lines := values['title_text'].splitlines()) > truncate:
+                    values['title_text'] = '\n'.join(lines[:truncate]) + ' ...'
+                if len(values['season_text']) > 3:
+                    values['season_text'] = values['season_text'][:3] + '..'
+                if len(values['episode_text']) > 3:
+                    values['episode_text'] = values['episode_text'][:3] + '..'
+
+            return values
+
+        @root_validator(skip_on_failure=True, pre=True)
+        def validate_album_cover(cls, values: dict) -> dict:
+            """
+            Apply and find the album cover indicated by the player
+            style.
+            """
+            # Set album cover based on indicated player style
+            if values.get('album_cover') is None:
+                style = values.get('player_style', MusicTitleCard.DEFAULT_PLAYER_STYLE)
+                if style == 'artwork':
+                    values['album_cover'] = values['backdrop_file']
+                elif style == 'logo':
+                    values['album_cover'] = values['logo_file']
+                elif style == 'poster':
+                    values['album_cover'] = values['poster_file']
+
+            # Parse format strings in album cover
+            if (cover := values.get('album_cover')):
+                cover = Path(FormatString(str(cover), data=values).result)
+                if not cover.exists():
+                    cover = values['source_file'].parent / cover.name
+                values['album_cover'] = cover
+
+            # If no album cover is indicated and not in basic mode, error
+            if (values.get('album_cover') is None
+                and values['player_style'] != 'basic'):
+                raise ValueError(f'Cover must exist')
+
+            return values
+
+    return CardModel

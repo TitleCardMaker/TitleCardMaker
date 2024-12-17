@@ -1,13 +1,16 @@
 from pathlib import Path
 from random import choice
 from re import compile as re_compile
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
+from pydantic import FilePath, PositiveFloat, validator
+
+from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
-    ImageMagickCommands,
+    CardTypeDescription,
     Extra,
-    CardTypeDescription
+    ImageMagickCommands,
 )
 from modules.Debug import log
 from modules.Title import SplitCharacteristics
@@ -809,3 +812,35 @@ class RomanNumeralTitleCard(BaseCardType):
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
         ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class CardModel(BaseCardTypeAllText):
+        source_file: Any
+        font_color: str = RomanNumeralTitleCard.TITLE_COLOR
+        font_file: FilePath = RomanNumeralTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_size: PositiveFloat = 1.0
+        background: str = RomanNumeralTitleCard.BACKGROUND_COLOR
+        roman_numeral_color: str = RomanNumeralTitleCard.ROMAN_NUMERAL_TEXT_COLOR
+        season_text_color: str = RomanNumeralTitleCard.SEASON_TEXT_COLOR
+
+        @validator('episode_text')
+        def validate_episode_text_numeral(cls, val: str) -> str:
+            """
+            Remove all non-digits from the episode text, and verify the
+            number can be represented by a roman numeral.
+            """
+
+            val = ''.join(c for c in val if c.isdigit())
+            if not (0 <= int(val) <= RomanNumeralTitleCard.MAX_ROMAN_NUMERAL):
+                raise ValueError(
+                    f'Episode text number must be between 0 and '
+                    f'{RomanNumeralTitleCard.MAX_ROMAN_NUMERAL}'
+                )
+            return val
+
+    return CardModel
