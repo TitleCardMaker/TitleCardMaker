@@ -391,7 +391,7 @@ class WhiteBorderTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    class WhiteBorderCardType(BaseCardTypeCustomFontAllText):
+    class CardType(BaseCardTypeCustomFontAllText):
         font_color: str = WhiteBorderTitleCard.TITLE_COLOR
         font_file: FilePath = WhiteBorderTitleCard.TITLE_FONT # type: ignore
         omit_gradient: bool = False
@@ -401,4 +401,4 @@ def get_validator_model() -> type[Base]:
         episode_text_color: str = WhiteBorderTitleCard.TITLE_COLOR
         episode_text_font_size: PositiveFloat = 1.0
 
-    return WhiteBorderCardType
+    return CardType

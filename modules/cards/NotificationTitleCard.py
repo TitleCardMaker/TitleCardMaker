@@ -526,7 +526,7 @@ def get_validator_model() -> type[Base]:
     BoxAdjustments = constr(regex=BoxAdjustmentRegex)
 
     # pyright: reportInvalidTypeForm=false
-    class NotificationCardModel(BaseCardTypeCustomFontAllText):
+    class CardModel(BaseCardTypeCustomFontAllText):
         season_text: str
         episode_text: str
         font_color: str = NotificationTitleCard.TITLE_COLOR
@@ -558,4 +558,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return NotificationCardModel
+    return CardModel

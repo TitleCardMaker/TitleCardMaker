@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pydantic import FilePath, PositiveFloat, root_validator
+from pydantic import FilePath, PositiveFloat, confloat, root_validator
 
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
@@ -618,7 +618,8 @@ class AnimeTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    class AnimeCardModel(BaseCardTypeCustomFontAllText):
+    # pyright: reportInvalidTypeForm=false
+    class CardModel(BaseCardTypeCustomFontAllText):
         font_color: str = AnimeTitleCard.TITLE_COLOR
         font_file: FilePath = AnimeTitleCard.TITLE_FONT # type: ignore
         kanji: str | None = None
@@ -626,7 +627,7 @@ def get_validator_model() -> type[Base]:
         kanji_color: str | None = AnimeTitleCard.TITLE_COLOR
         kanji_font_size: PositiveFloat = 1.0
         kanji_stroke_color: str | None = None
-        kanji_stroke_width: PositiveFloat = 1.0
+        kanji_stroke_width: confloat(ge=0) = 1.0
         kanji_vertical_shift: int = 0
         separator: str = '·'
         omit_gradient: bool = False
@@ -654,4 +655,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return AnimeCardModel
+    return CardModel

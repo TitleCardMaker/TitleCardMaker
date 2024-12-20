@@ -505,7 +505,7 @@ class DividerTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    class DividerCardModel(BaseCardTypeCustomFontAllText):
+    class CardModel(BaseCardTypeCustomFontAllText):
         season_text: str
         episode_text: str
         font_color: str = DividerTitleCard.TITLE_COLOR
@@ -525,4 +525,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return DividerCardModel
+    return CardModel

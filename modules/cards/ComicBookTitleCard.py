@@ -749,7 +749,7 @@ def get_validator_model() -> type[Base]:
     RandomAngle = constr(regex=RandomAngleRegex)
 
     # pyright: reportInvalidTypeForm=false
-    class ComicBookCardModel(BaseCardTypeCustomFontAllText):
+    class CardModel(BaseCardTypeCustomFontAllText):
         font_color: str = ComicBookTitleCard.TITLE_COLOR
         font_file: FilePath = ComicBookTitleCard.TITLE_FONT # type: ignore
         episode_text_color: str = 'black'
@@ -800,4 +800,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return ComicBookCardModel
+    return CardModel

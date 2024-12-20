@@ -717,7 +717,7 @@ def get_validator_model() -> type[Base]:
     graph_episode_text_regex = re_compile(r'^(\d+)\s*\/\s*(\d+)$')
 
     # pyright: reportInvalidTypeForm=false
-    class GraphCardModel(BaseCardModel):
+    class CardModel(BaseCardModel):
         title_text: str
         episode_text: constr(to_upper=True)
         hide_episode_text: bool = False
@@ -760,4 +760,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return GraphCardModel
+    return CardModel

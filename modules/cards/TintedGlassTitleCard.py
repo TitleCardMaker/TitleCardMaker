@@ -525,7 +525,7 @@ def get_validator_model() -> type[Base]:
     BoxAdjustments = constr(regex=BoxAdjustmentRegex)
 
     # pyright: reportInvalidTypeForm=false
-    class TintedGlassCardModel(BaseCardTypeCustomFontNoText):
+    class CardModel(BaseCardTypeCustomFontNoText):
         title_text: str
         episode_text: constr(to_upper=True)
         hide_episode_text: bool = False
@@ -555,4 +555,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return TintedGlassCardModel
+    return CardModel

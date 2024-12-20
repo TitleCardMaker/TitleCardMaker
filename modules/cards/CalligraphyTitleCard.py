@@ -567,7 +567,7 @@ class CalligraphyTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    class CalligraphyCardModel(BaseCardTypeCustomFontAllText):
+    class CardModel(BaseCardTypeCustomFontAllText):
         season_text: str
         episode_text: str
         font_color: str = CalligraphyTitleCard.TITLE_COLOR
@@ -593,4 +593,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return CalligraphyCardModel
+    return CardModel

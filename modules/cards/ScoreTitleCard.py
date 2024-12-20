@@ -683,7 +683,7 @@ def get_validator_model() -> type[Base]:
     ColorPair = constr(regex=r'^\S+( \S+)?$', strip_whitespace=True)
 
     # pyright: reportInvalidTypeForm=false
-    class ScoreCardModel(BaseCardTypeAllText):
+    class CardModel(BaseCardTypeAllText):
         font_color: str = ScoreTitleCard.TITLE_COLOR
         font_file: FilePath = ScoreTitleCard.TITLE_FONT # type: ignore
         font_interline_spacing: int = 0
@@ -714,4 +714,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return ScoreCardModel
+    return CardModel

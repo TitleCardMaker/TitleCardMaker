@@ -419,7 +419,7 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     # pyright: reportInvalidTypeForm=false
-    class CutoutCardModel(BaseCardModel):
+    class CardModel(BaseCardModel):
         title_text: str
         episode_text: constr(to_upper=True)
         font_color: str = CutoutTitleCard.TITLE_COLOR
@@ -434,4 +434,4 @@ def get_validator_model() -> type[Base]:
         overlay_color: str = 'black'
         overlay_transparency: confloat(ge=0.0, le=1.0) = 0.0
 
-    return CutoutCardModel
+    return CardModel

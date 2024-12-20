@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-from pydantic import PositiveFloat, conint, constr, FilePath, root_validator
+from pydantic import PositiveFloat, conint, FilePath, root_validator
 
 from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
@@ -449,11 +449,11 @@ class CascadeTitleCard(BaseCardType):
         self.alt_text = alt_text
         self.alt_text_color = alt_text_color
         self.cascade_alphas = SequenceGenerator(cascade_alphas)
-        self.cascade_count = int(cascade_count)
+        self.cascade_count = cascade_count
         self.cascade_cropping = SequenceGenerator(cascade_cropping)
         self.cascade_fill_color = cascade_fill_color
         self.cascade_outline_color = cascade_outline_color
-        self.cascade_width = int(cascade_width)
+        self.cascade_width = cascade_width
         self.enable_glass = enable_glass
         self.episode_text_color = episode_text_color
         self.episode_text_font_size = episode_text_font_size

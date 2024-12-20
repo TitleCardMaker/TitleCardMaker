@@ -487,7 +487,7 @@ def get_validator_model() -> type[Base]:
     BoxAdjustments = constr(regex=BoxAdjustmentRegex)
 
     # pyright: reportInvalidTypeForm=false
-    class LandscapeCardModel(BaseCardModel):
+    class CardModel(BaseCardModel):
         title_text: str
         font_color: str = LandscapeTitleCard.TITLE_COLOR
         font_file: FilePath = LandscapeTitleCard.TITLE_FONT # type: ignore
@@ -517,4 +517,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return LandscapeCardModel
+    return CardModel

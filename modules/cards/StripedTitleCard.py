@@ -874,7 +874,7 @@ def get_validator_model() -> type[Base]:
     ]
 
     # pyright: reportInvalidTypeForm=false
-    class StripedCardModel(BaseCardTypeAllText):
+    class CardModel(BaseCardTypeAllText):
         season_text: str
         episode_text: str
         font_color: str = StripedTitleCard.TITLE_COLOR
@@ -926,4 +926,4 @@ def get_validator_model() -> type[Base]:
 
             return val
 
-    return StripedCardModel
+    return CardModel

@@ -512,7 +512,7 @@ class OverlineTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    class OverlineCardModel(BaseCardTypeCustomFontAllText):
+    class CardModel(BaseCardTypeCustomFontAllText):
         font_color: str = OverlineTitleCard.TITLE_COLOR
         font_file: FilePath = OverlineTitleCard.TITLE_FONT # type: ignore
         episode_text_color: str | None = None
@@ -538,4 +538,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return OverlineCardModel
+    return CardModel

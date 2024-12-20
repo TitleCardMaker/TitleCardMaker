@@ -1352,7 +1352,7 @@ def get_validator_model() -> type[Base]:
     RandomShape = constr(regex=RandomShapeRegex)
 
     # pyright: reportInvalidTypeForm=false
-    class ShapeCardModel(BaseCardTypeAllText):
+    class CardModel(BaseCardTypeAllText):
         season_text: str
         episode_text: str
         font_color: str = ShapeTitleCard.TITLE_COLOR
@@ -1400,4 +1400,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return ShapeCardModel
+    return CardModel

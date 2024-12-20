@@ -308,7 +308,7 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     # pyright: reportInvalidTypeForm=false
-    class StarWarsCardModel(BaseCardModel):
+    class CardModel(BaseCardModel):
         title_text: str
         episode_text: constr(to_upper=True)
         hide_episode_text: bool = False
@@ -329,4 +329,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return StarWarsCardModel
+    return CardModel

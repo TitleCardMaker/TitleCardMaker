@@ -305,11 +305,11 @@ class FadeTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    class FadeCardModel(BaseCardTypeCustomFontAllText):
+    class CardModel(BaseCardTypeCustomFontAllText):
         font_color: str = FadeTitleCard.TITLE_COLOR
         font_file: FilePath = FadeTitleCard.TITLE_FONT # type: ignore
         logo_file: Path | None = None
         episode_text_color: str = FadeTitleCard.EPISODE_TEXT_COLOR
         separator: str = '•'
 
-    return FadeCardModel
+    return CardModel

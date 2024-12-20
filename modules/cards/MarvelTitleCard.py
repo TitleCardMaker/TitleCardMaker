@@ -604,7 +604,7 @@ class MarvelTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    class MarvelCardModel(BaseCardTypeCustomFontAllText):
+    class CardModel(BaseCardTypeCustomFontAllText):
         font_file: FilePath = MarvelTitleCard.TITLE_FONT # type: ignore
         font_color: str = MarvelTitleCard.TITLE_COLOR
         border_color: str = MarvelTitleCard.DEFAULT_BORDER_COLOR
@@ -616,4 +616,4 @@ def get_validator_model() -> type[Base]:
         text_box_color: str = MarvelTitleCard.DEFAULT_TEXT_BOX_COLOR
         text_box_height: PositiveInt = MarvelTitleCard.DEFAULT_TEXT_BOX_HEIGHT
 
-    return MarvelCardModel
+    return CardModel

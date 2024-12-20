@@ -491,7 +491,7 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     # pyright: reportInvalidTypeForm=false
-    class FormulaOneCardModel(BaseCardTypeAllText):
+    class CardModel(BaseCardTypeAllText):
         airdate: datetime | None = None
         font_color: str = FormulaOneTitleCard.TITLE_COLOR
         font_file: FilePath = FormulaOneTitleCard.TITLE_FONT # type: ignore
@@ -539,4 +539,4 @@ def get_validator_model() -> type[Base]:
 
             return values
 
-    return FormulaOneCardModel
+    return CardModel

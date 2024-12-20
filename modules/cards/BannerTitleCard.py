@@ -461,7 +461,7 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     # pyright: reportInvalidTypeForm=false
-    class BannerCardModel(BaseCardTypeAllText):
+    class CardModel(BaseCardTypeAllText):
         font_color: str = BannerTitleCard.TITLE_COLOR
         font_file: FilePath = BannerTitleCard.TITLE_FONT # type: ignore
         font_interline_spacing: int = 0
@@ -485,4 +485,4 @@ def get_validator_model() -> type[Base]:
 
             return values
         
-    return BannerCardModel
+    return CardModel

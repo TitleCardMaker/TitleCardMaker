@@ -211,6 +211,7 @@ function getActiveTemplates(activeIds, availableTemplates) {
       }
     });
   }
+
   // Add all inactive Template values
   availableTemplates.forEach(({id, name}) => {
     // Skip Templates already included

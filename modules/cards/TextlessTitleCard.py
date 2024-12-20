@@ -149,7 +149,7 @@ class TextlessTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    class TextlessCardModel(BaseCardModel):
+    class CardModel(BaseCardModel):
         source_file: Path # Optional source file for importing w/o sources
 
-    return TextlessCardModel
+    return CardModel
