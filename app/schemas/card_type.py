@@ -1,7 +1,15 @@
 from typing import Any
 
-from app.schemas.base import Base, BaseCardModel, DictKey
+from app.schemas.base import (
+    Base,
+    BaseCardModel,
+    BaseCardTypeAllText,  # noqa: F401
+    BaseCardTypeCustomFontAllText,  # noqa: F401
+    BaseCardTypeCustomFontNoText,  # noqa: F401
+    DictKey,
+)
 from modules.cards import *
+
 
 class Extra(Base):
     name: str
