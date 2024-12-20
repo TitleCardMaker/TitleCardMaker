@@ -1,11 +1,12 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Literal, Optional, TypeVar, Union, overload
+from typing import Any, Callable, Literal, TypeVar, overload
 
 from modules.Debug import Logger, log
 
 
-ConnectionID = Union[int, tuple[int, str]]
-DatabaseID = TypeVar('DatabaseID')
+type ConnectionID = int | tuple[int, str]
+DatabaseID = TypeVar('DatabaseID', str, int)
 
 
 class InterfaceID:
@@ -127,7 +128,10 @@ class InterfaceID:
             self._ids[connection_id] = typed_id
 
 
-    def __getitem__(self, connection_id: ConnectionID, /) -> Optional[DatabaseID]:
+    def __getitem__(self,
+            connection_id: ConnectionID,
+            /,
+        ) -> DatabaseID | None:
         """
         Get the ID for the given interface.
 
@@ -169,7 +173,7 @@ class InterfaceID:
                 pass
 
 
-    def __eq__(self, other: Union[str, 'InterfaceID']) -> bool:
+    def __eq__(self, other: str | 'InterfaceID') -> bool:
         """
         Evaluate the equality of two InterfaceID objects.
 
@@ -202,7 +206,7 @@ class InterfaceID:
         return any(other[iid] == id_ for iid, id_ in self._ids.items())
 
 
-    def __gt__(self, other: Union[str, 'InterfaceID']) -> bool:
+    def __gt__(self, other: str | 'InterfaceID') -> bool:
         """
         Evaluate whether this object contains more information than is
         available in the comparison ID.
@@ -241,7 +245,7 @@ class InterfaceID:
         return any(key not in other._ids for key in self._ids)
 
 
-    def __lt__(self, other: Union[str, 'InterfaceID']) -> bool:
+    def __lt__(self, other: str | 'InterfaceID') -> bool:
         """
         Evaluate whether this object contains less information than is
         available in the comparison ID.
@@ -316,7 +320,7 @@ class InterfaceID:
         )
 
 
-    def __add__(self, other: Union[str, 'InterfaceID']) -> 'InterfaceID':
+    def __add__(self, other: str | 'InterfaceID') -> 'InterfaceID':
         """
         Add this object to the given object, returning the combination
         of their IDs. This objects IDs take priority in any interface
