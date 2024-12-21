@@ -253,9 +253,18 @@ class EpisodeInfo(DatabaseInfoContainer):
             log.exception(f'Cannot parse airdate')
             log.debug(f'Episode data: {info}')
 
-        # TMDb movies might have an ID formatted as {id}-{name}
+        # TMDb movies might have an ID formatted as {id}-{name} or ../{name}/{id}
         if (tmdb_id := info['ProviderIds'].get('Tmdb')) is not None:
-            tmdb_id = int(str(tmdb_id).split('-')[0])
+            if '-' in (tmdb_id_str := str(tmdb_id)):
+                try:
+                    tmdb_id = int(tmdb_id_str.split('-', maxsplit=1)[0])
+                except ValueError:
+                    pass
+            elif '/' in tmdb_id_str:
+                try:
+                    tmdb_id = int(tmdb_id_str.rsplit('/', maxsplit=1)[-1])
+                except ValueError:
+                    pass
 
         return cls(
             info['Name'],
