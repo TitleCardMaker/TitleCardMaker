@@ -386,9 +386,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Create list of all episodes in Plex
         all_episodes = []
-        for plex_episode in series.episodes(container_size=500): # type: ignore
+        epq = series.episodes(container_size=500, params={'includeGuids': 1})
+        for plex_episode in epq:
             # Skip if episode has no season or episode number
-            plex_episode: PlexEpisode
+            plex_episode = cast(PlexEpisode, plex_episode)
             if (plex_episode.parentIndex is None
                 or plex_episode.index is None):
                 log.warning(f'Episode {plex_episode} of {series_info} in '
@@ -472,7 +473,9 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                     self._interface_id, library_name, episode.isWatched,
                 )
             )
-            for episode in series.episodes(container_size=500)
+            for episode in series.episodes(
+                container_size=500, params={'includeGuids': 1}
+            )
             if episode.parentIndex is not None and episode.index is not None
         ]
 
@@ -564,9 +567,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         }
 
         # Go through all of this Series' Episodes
-        for plex_episode in series.episodes(container_size=500): # type: ignore
+        epq = series.episodes(container_size=500, params={'includeGuids': 1})
+        for plex_episode in epq:
             # Skip Plex episodes without indices
-            plex_episode: PlexEpisode
+            plex_episode = cast(PlexEpisode, plex_episode)
             if (plex_episode.seasonNumber is None
                 or plex_episode.episodeNumber is None):
                 log.debug(f'Skipping {plex_episode} - no season/episode number')
@@ -695,8 +699,18 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Verify this Episode does not have the Kometa overlay label
         if any(label.tag in bad_labels for label in plex_episode.labels):
-            log.debug(f'{series_info} {episode_info} Cannot use Plex '
-                        f'thumbnail, has existing Overlay or Title Card')
+            log.debug(
+                f'{series_info} {episode_info} Cannot use Plex thumbnail, has '
+                f'existing Overlay or Title Card'
+            )
+            return None
+
+        # Check that the Episode's thumbnail is valid
+        if not plex_episode.thumb:
+            log.warning(
+                f'{series_info} {episode_info} cannot use Plex image, this '
+                'episode does not have a valid thumbnail'
+            )
             return None
 
         # If proxying, use API redirect URL; token will be embedded by endpoint
@@ -708,7 +722,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # pylint: disable=protected-access
         return (
-            f'{self.__server._baseurl}{plex_episode.thumb}'
+            f'{self.__server._baseurl}/{plex_episode.thumb}'
             f'?X-Plex-Token={self.__token}'
         )
 
@@ -862,7 +876,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # Find episodes which have a matching Card to load
         matched_episodes: list[tuple[PlexEpisode, 'Episode', 'Card']] = []
 
-        # A UID (RatingKey) was provided, match directly
+        # An UID (RatingKey) was provided, match directly
         if len(episode_and_cards[0]) == 3:
             for episode, card, uid in episode_and_cards: # type: ignore
                 if (plex_ep := self.__server.fetchItem(int(uid))) is None:
@@ -878,7 +892,14 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 for episode, card, *_ in episode_and_cards
             ]
 
-            for plex_episode in series.episodes(container_size=100):
+            for plex_episode in series.episodes(
+                    container_size=100,
+                    params={'includeGuids': 1},
+                ):
+                # Exit if all episodes have been matched
+                if len(matched_episodes) == len(infos):
+                    break
+
                 plex_episode = cast(PlexEpisode, plex_episode)
                 for episode, episode_info, card in infos:
                     if episode_info == plex_episode:
@@ -952,7 +973,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             return None
 
         for season in series.seasons():
-            season: PlexSeason
+            season = cast(PlexSeason, season)
             # Skip if there is no poster for this season
             if not (poster := posters.get(season.index)):
                 continue
@@ -1106,8 +1127,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         try:
             # Get the entry for this key
-            entry = self.__server.fetchItem(rating_key) # type: ignore
-            if entry is None:
+            if (entry := self.__server.fetchItem(rating_key)) is None:
                 raise NotFound
 
             # Show, return all episodes in series
@@ -1134,7 +1154,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             # Season, return all episodes in season
             if entry.type == 'season':
                 entry = cast(PlexSeason, entry) # type: ignore
-                series: PlexShow = self.__server.fetchItem(entry.parentRatingKey) # type: ignore
+                series = cast(PlexShow, self.__server.fetchItem(entry.parentRatingKey))
                 series_info = SeriesInfo.from_plex_show(series)
                 return [
                     EpisodeDetails(
@@ -1216,15 +1236,9 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             return None
 
         # Get all Episodes for batch edits
-        episodes: list[PlexEpisode] = series.episodes(container_size=500) # type: ignore
+        episodes = cast(list[PlexEpisode], series.episodes(container_size=500))
         library.batchMultiEdits(episodes)
         library.removeLabel(labels)
-
-        # Remove all indicated labels
-        # for episode in episodes:
-        #     log.debug(f'Removed {labels} from {episode.labels} of '
-        #               f'{episode}')
-        #     episode.removeLabel(labels)
 
         # Finalize batch edits
         library.saveMultiEdits()
