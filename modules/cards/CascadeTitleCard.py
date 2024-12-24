@@ -530,6 +530,8 @@ class CascadeTitleCard(BaseCardType):
             f'-fill "{self.glass_color}"',
             f'-stroke "{self.glass_edge_color}" -strokewidth 2',
             f'-draw "roundrectangle {rectangle} 25,25"',
+            # Reset stroke for following text commands
+            f'+stroke',
         ]
 
 
