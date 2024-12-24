@@ -227,8 +227,8 @@ class CascadeTitleCard(BaseCardType):
                 name='Cascade Text Outline Color',
                 identifier='cascade_outline_color',
                 description='Color to outline the cascading text with',
-                tooltip='Default is <c>red</c>.',
-                default='red',
+                tooltip='Default is <c>white</c>.',
+                default='white',
             ),
             Extra(
                 name='Cascade Text Outline Width',
@@ -326,7 +326,7 @@ class CascadeTitleCard(BaseCardType):
     DEFAULT_CASCADE_COUNT: int = 2
     DEFAULT_CASCASE_CROP: str = '66,/2'
     DEFAULT_CASCADE_FILL_COLOR: str = 'transparent'
-    DEFAULT_CASCADE_OUTLINE_COLOR: str = 'red'
+    DEFAULT_CASCADE_OUTLINE_COLOR: str = TITLE_COLOR#'red'
     DEFAULT_CASCADE_WIDTH: int = 5
     DEFAULT_GLASS_COLOR: str = 'rgba(0,0,0,0.3)'
     DEFAULT_GLASS_EDGE_COLOR: str = 'rgba(12,12,12,0.4)'
