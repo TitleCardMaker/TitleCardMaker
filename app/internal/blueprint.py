@@ -42,7 +42,6 @@ BLUEPRINTS_URL = f'{REPO_URL}/blueprints'
 def generate_series_blueprint(
         series: Series,
         raw_episode_data: list[EpisodeInfo],
-        include_global_defaults: bool,
         include_episode_overrides: bool,
         mask_images: bool,
     ) -> ExportBlueprint:
@@ -54,37 +53,37 @@ def generate_series_blueprint(
     Args:
         series: Series to generate the Blueprint of.
         raw_episode_data: List of episode data to include in the export.
-        include_episode_overrides: Whether to include Episode-level
-            overrides in the exported Blueprint. If True, then any
-            Episode Font and Template assignments are also included.
+        include_global_defaults: Whether to write global settings if the
+            Series has no corresponding override, primarily for the
+            card type.
         mask_images: Whether to include mask images in the export.
 
     Returns:
         Blueprint that can be used to recreate the Series configuration.
     """
 
-    # Get all Episodes if indicated
+    # Get all Episodes if indicates
     episodes = series.episodes if include_episode_overrides else []
 
     # Get all Templates
-    templates: list[Template] = list(set(
+    templates = list(set(
         template for obj in [series] + episodes for template in obj.templates
     ))
 
     # Get all associated Fonts
-    fonts: list[Font] = list(set(
+    fonts = list(set(
         obj.font for obj in [series] + episodes + templates if obj.font
     ))
 
     # Create exported JSON object
     export_obj = {'series': {}, 'episodes': {}, 'templates': [], 'fonts': []}
 
-    # Append Series config; add global card type IF one was not provided and
-    # none of the associated Templates have one defined
+    # Append Series config; add global card type IF one was not provided
+    # and none of the associated Templates have one defined
     export_obj['series'] =  TieredSettings.filter(series.export_properties)
     if (export_obj['series'].get('card_type') is None
         and all(template.card_type is None for template in templates)):
-        export_obj['series']['card_type'] = preferences.default_card_type
+        export_obj['series']['card_type'] = get_preferences().default_card_type
 
     # Add Series Source Images
     if mask_images:

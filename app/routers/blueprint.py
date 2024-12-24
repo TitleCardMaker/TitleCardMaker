@@ -62,7 +62,6 @@ blueprint_router = APIRouter(
 def export_series_blueprint(
         request: Request,
         series_id: int,
-        include_global_defaults: bool = Query(default=True),
         include_episode_overrides: bool = Query(default=True),
         mask_images: bool = Query(default=True),
         db: Session = Depends(get_database),
@@ -96,7 +95,6 @@ def export_series_blueprint(
     return generate_series_blueprint(
         series,
         episode_data,
-        include_global_defaults,
         include_episode_overrides,
         mask_images,
     )
@@ -141,7 +139,6 @@ async def export_series_blueprint_as_zip(
         background_tasks: BackgroundTasks,
         request: Request,
         series_id: int,
-        include_global_defaults: bool = Query(default=True),
         include_episode_overrides: bool = Query(default=True),
         mask_images: bool = Query(default=True),
         db: Session = Depends(get_database),
@@ -152,8 +149,6 @@ async def export_series_blueprint_as_zip(
     associated Font files, and a preview image.
 
     - series_id: ID of the Series to export the Blueprint of.
-    - include_global_defaults: Whether to write global settings if the
-    Series has no corresponding override, primarily for the card type.
     - include_episode_overrides: Whether to include Episode-level
     overrides in the exported Blueprint. If True, then any Episode Font
     and Template assignments are also included.
@@ -180,7 +175,6 @@ async def export_series_blueprint_as_zip(
     blueprint = generate_series_blueprint(
         series,
         episode_data,
-        include_global_defaults,
         include_episode_overrides,
         mask_images,
     )
