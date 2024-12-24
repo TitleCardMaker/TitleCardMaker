@@ -496,6 +496,12 @@ class CascadeTitleCard(BaseCardType):
         # Center of the rectangle/image
         center = Coordinate(self.WIDTH / 2, self.HEIGHT / 2)
 
+        # Height of the alt/index text; +100% size = 83% size increase
+        alt_text_height = (45 * self.episode_text_font_size) + 30
+        if (self.hide_season_text and self.hide_episode_text
+            and not self.alt_text):
+            alt_text_height = 0
+
         # Determine effective dimensions of the cascading text elements
         width = self.__title_dimensions.width + 50
         height = (
@@ -509,7 +515,7 @@ class CascadeTitleCard(BaseCardType):
         )
 
         rectangle = Rectangle(
-            center - (width / 2, (height / 2) + 75),
+            center - (width / 2, (height / 2) + alt_text_height),
             center + (width / 2, height / 2)
         )
 
