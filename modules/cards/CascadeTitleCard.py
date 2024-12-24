@@ -41,15 +41,22 @@ class SequenceGenerator:
     The operators that are supported are: `+`, `-`, `/`, and `*`.
     """
 
-    def __init__(self, sequence: str, /) -> None:
+    def __init__(self,
+            sequence: str,
+            /,
+            bounds: tuple[int | float, int | float] | None = None,
+        ) -> None:
         """
         Initialize this object with the given sequence.
 
         Args:
             sequence: Definiton of this sequence to generate.
+            bounds: Lower/upper limits for bounds of this sequence.
+                Applied inclusively - e.g. [lower, upper].
         """
 
         self._values = sequence.split(',')
+        self._bounds = bounds
         self._index = 0
 
         self.__operator: str | None = None
@@ -58,6 +65,15 @@ class SequenceGenerator:
 
         if len(self._values) == 0:
             raise ValueError
+
+
+    def __apply_bounds(self, value: float, /) -> float:
+        """Apply the bounds of this sequence to the given value."""
+
+        if not self._bounds:
+            return value
+
+        return min(max(self._bounds[0], value), self._bounds[1])
 
 
     def __iter__(self) -> 'SequenceGenerator':
@@ -86,7 +102,7 @@ class SequenceGenerator:
                 self.__operator, self.__step = None, None
                 self._index += 1
                 self.__value = float(value)
-                return self.__value
+                return self.__apply_bounds(self.__value)
 
             # Parse operator and step value
             self.__operator, self.__step = value[0], float(value[1:])
@@ -105,12 +121,12 @@ class SequenceGenerator:
                 raise ValueError
 
             self._index += 1
-            return self.__value
+            return self.__apply_bounds(self.__value)
 
         # End of the sequence, return last value
         self._index += 1
         self.__value = float(self._values[-1])
-        return self.__value
+        return self.__apply_bounds(self.__value)
 
 
     @classmethod
@@ -448,9 +464,9 @@ class CascadeTitleCard(BaseCardType):
         # Extras
         self.alt_text = alt_text
         self.alt_text_color = alt_text_color
-        self.cascade_alphas = SequenceGenerator(cascade_alphas)
+        self.cascade_alphas = SequenceGenerator(cascade_alphas, (0, 100))
         self.cascade_count = cascade_count
-        self.cascade_cropping = SequenceGenerator(cascade_cropping)
+        self.cascade_cropping = SequenceGenerator(cascade_cropping, (1, 100))
         self.cascade_fill_color = cascade_fill_color
         self.cascade_outline_color = cascade_outline_color
         self.cascade_width = cascade_width
