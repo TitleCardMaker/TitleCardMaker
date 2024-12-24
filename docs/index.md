@@ -55,8 +55,13 @@ TitleCardMaker:
       </a>
     </figure>
     <figure data-label="Calligraph">
-      <a data-label="Banner" href="./card_types/calligraphy">
+      <a data-label="Calligraphy" href="./card_types/calligraphy">
         <img class="no-lightbox" src="./card_types/assets/calligraphy.webp" loading="lazy">
+      </a>
+    </figure>
+    <figure data-label="Cascade">
+      <a data-label="Cascade" href="./card_types/cascade">
+        <img class="no-lightbox" src="./card_types/assets/cascade.webp" loading="lazy">
       </a>
     </figure>
     <figure data-label="Comic Book">
