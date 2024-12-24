@@ -49,6 +49,7 @@ TitleCardMaker currently has the following built-in card types:
 | [Anime](./anime.md)                   | <img src="./assets/anime.webp" width="350">          |
 | [Banner](./banner.md)                 | <img src="./assets/banner.webp" width="350">         |
 | [Calligraphy](./calligraphy.md)       | <img src="./assets/calligraphy.webp" width="350">    |
+| [Cascade](./cascade.md)               | <img src="./assets/cascade.webp" width="350">        |
 | [Comic Book](./comic_book.md)         | <img src="./assets/comic_book.webp" width="350">     |
 | [Cutout](./cutout.md)                 | <img src="./assets/cutout.webp" width="350">         |
 | [Divider](./divider.md)               | <img src="./assets/divider.webp" width="350">        |
