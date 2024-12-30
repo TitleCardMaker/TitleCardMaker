@@ -3,9 +3,9 @@ from typing import Any
 from app.schemas.base import (
     Base,
     BaseCardModel,
-    BaseCardTypeAllText,  # noqa: F401
-    BaseCardTypeCustomFontAllText,  # noqa: F401
-    BaseCardTypeCustomFontNoText,  # noqa: F401
+    BaseCardTypeAllText, # noqa: F401
+    BaseCardTypeCustomFontAllText, # noqa: F401
+    BaseCardTypeCustomFontNoText, # noqa: F401
     DictKey,
 )
 from modules.cards import *
@@ -44,6 +44,7 @@ LocalCardTypeModels: dict[str, type[Base | BaseCardModel]] = {
     'roman numeral': RomanNumeralTitleCard.get_validator_model(),
     'score': ScoreTitleCard.get_validator_model(),
     'shape': ShapeTitleCard.get_validator_model(),
+    'skeleton crew': SkeletonCrew.get_validator_model(),
     'standard': StandardTitleCard.get_validator_model(),
     'star wars': StarWarsTitleCard.get_validator_model(),
     'striped': StripedTitleCard.get_validator_model(),
