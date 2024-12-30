@@ -787,7 +787,7 @@ class Show(YamlReader):
                 logo = ImageMagickInterface(
                     getattr(global_objects.pp, 'imagemagick_container', 'ImageMagick'),
                     getattr(global_objects.pp, 'use_magick_prefix', True),
-                    getattr(global_objects.pp, 'imagemagick_timeout', 30),
+                    timeout=getattr(global_objects.pp, 'imagemagick_timeout', 30),
                 ).convert_svg_to_png(
                     ImageMagickInterface.TEMPORARY_SVG_FILE,
                     self.logo,
