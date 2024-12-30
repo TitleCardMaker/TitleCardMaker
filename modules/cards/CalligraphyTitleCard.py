@@ -489,7 +489,8 @@ class CalligraphyTitleCard(BaseCardType):
 
         custom_extras = (
             ('episode_text_color' in extras
-                and extras['episode_text_color'] != CalligraphyTitleCard.TITLE_COLOR)
+                and extras['episode_text_color'] != \
+                    CalligraphyTitleCard.TITLE_COLOR)
             or ('episode_text_font_size' in extras
                 and extras['episode_text_font_size'] != 1.0)
             or ('shadow_color' in extras
@@ -497,13 +498,15 @@ class CalligraphyTitleCard(BaseCardType):
         )
 
         return (custom_extras
-            or ((font.color != CalligraphyTitleCard.TITLE_COLOR)
-            or (font.file != CalligraphyTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+            or (
+                font.color != CalligraphyTitleCard.TITLE_COLOR
+                or font.file != CalligraphyTitleCard.TITLE_FONT
+                or font.interline_spacing != 0
+                or font.interword_spacing != 0
+                or font.kerning != 1.0
+                or font.size != 1.0
+                or font.vertical_shift != 0
+            )
         )
 
 

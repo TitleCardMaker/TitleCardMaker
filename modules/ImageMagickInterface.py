@@ -454,8 +454,8 @@ class ImageMagickInterface:
             extension: Extension of randomized file to create.
 
         Returns:
-            Path to the randomized file. This file LIKELY DOES NOT
-            exist.
+            Path to the randomized file. It is only LIKELY this file
+            does not exist, not guaranteed.
         """
 
         random_chars = ''.join(random_choices(hexdigits, k=8))

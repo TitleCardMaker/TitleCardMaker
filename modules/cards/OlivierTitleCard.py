@@ -114,12 +114,25 @@ class OlivierTitleCard(BaseCardType):
     GRADIENT = REF_DIRECTORY.parent / 'overline' / 'small_gradient.png'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'hide_episode_text',
-        'episode_prefix', 'episode_text', 'font_color', 'font_file',
-        'font_interline_spacing', 'font_interword_spacing', 'font_kerning',
-        'font_size', 'font_stroke_width', 'font_vertical_shift', 'omit_gradient',
-        'stroke_color', 'episode_text_color', 'episode_text_font_size',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_stroke_width',
+        'font_vertical_shift',
+        'hide_episode_text',
+        'episode_prefix',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_font_size',
         'episode_text_vertical_shift',
+        'omit_gradient',
+        'output_file',
+        'stroke_color',
+        'source_file',
+        'title_text',
     )
 
     def __init__(self, *,
@@ -196,8 +209,10 @@ class OlivierTitleCard(BaseCardType):
             return []
 
         return [
-            fr'\( "{self.GRADIENT.resolve()}"',
-            fr'-rotate 90 \)',
+            fr'\(',
+            f'"{self.GRADIENT.resolve()}"',
+            f'-rotate 90',
+            fr'\)',
             f'-geometry -{(self.WIDTH - self.HEIGHT) / 2}+0',
             f'-composite',
         ]
@@ -214,7 +229,8 @@ class OlivierTitleCard(BaseCardType):
         vertical_shift = 785 + self.font_vertical_shift
 
         return [
-            fr'\( -font "{self.font_file}"',
+            fr'\(',
+            f'-font "{self.font_file}"',
             f'-gravity northwest',
             f'-pointsize {font_size}',
             f'-kerning {kerning}',
@@ -223,11 +239,14 @@ class OlivierTitleCard(BaseCardType):
             f'-fill "{self.stroke_color}"',
             f'-stroke "{self.stroke_color}"',
             f'-strokewidth {stroke_width}',
-            fr'-annotate +320+{vertical_shift} "{self.title_text}" \)',
-            fr'\( -fill "{self.font_color}"',
+            f'-annotate +320+{vertical_shift} "{self.title_text}"',
+            fr'\)',
+            fr'\(',
+            f'-fill "{self.font_color}"',
             f'-stroke "{self.font_color}"',
             f'-strokewidth 0',
-            fr'-annotate +320+{vertical_shift} "{self.title_text}" \)',
+            f'-annotate +320+{vertical_shift} "{self.title_text}"',
+            fr'\)',
         ]
 
 
@@ -346,7 +365,8 @@ class OlivierTitleCard(BaseCardType):
 
         custom_extras = (
             ('episode_text_color' in extras
-                and extras['episode_text_color'] != OlivierTitleCard.EPISODE_TEXT_COLOR)
+                and extras['episode_text_color'] != \
+                    OlivierTitleCard.EPISODE_TEXT_COLOR)
             or ('episode_text_font_size' in extras
                 and extras['episode_text_font_size'] != 1.0)
             or ('episode_text_vertical_shift' in extras

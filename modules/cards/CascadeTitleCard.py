@@ -305,7 +305,9 @@ class CascadeTitleCard(BaseCardType):
             ),
         ],
         description=[
-            
+            'A card type which features an adjustable number of cascading '
+            'outlines of text.', 'The color, count, and visual styling of the '
+            'cascading text can all be adjusted with extras.'
         ]
     )
 
@@ -536,7 +538,7 @@ class CascadeTitleCard(BaseCardType):
             f'-fill "{self.glass_color}"',
             f'-stroke "{self.glass_edge_color}" -strokewidth 2',
             f'-draw "roundrectangle {rectangle} 25,25"',
-            # Reset stroke for following text commands
+            # Reset stroke for subsequent text commands
             f'+stroke',
         ]
 
@@ -628,7 +630,6 @@ class CascadeTitleCard(BaseCardType):
                 # On the first cascade, clone the base image, all other
                 # passes just grab the most recent cascade on the stack
                 f'-clone 0' if cascade_index == 0 else f'+clone',
-                # f'-clone {0 if cascade_index == 0 else (cascade_index * 2) + 1}',
                 # Swap so that the text image is composed atop the reference
                 f'+swap',
                 f'-gravity center',
@@ -637,7 +638,7 @@ class CascadeTitleCard(BaseCardType):
                 fr'\)',
             ])
 
-            # Add bottom cascase
+            # Add bottom cascade
             bottom_reference_id = 2 if self.__multiline_mode else 1
             commands.extend([
                 # Add a new image to the stack
@@ -653,7 +654,6 @@ class CascadeTitleCard(BaseCardType):
                 f'+channel',
                 # Always clone the most recent cascade on the stack
                 f'+clone',
-                # f'-clone {(cascade_index + 1) * 2}',
                 # Swap so that the text image is composed atop the reference
                 f'+swap',
                 f'-gravity center',
@@ -823,7 +823,13 @@ class CascadeTitleCard(BaseCardType):
         # Generic font, reset episode text and box colors
         if not custom_font:
             for extra in (
-                ...
+                'alt_text_color',
+                'cascade_fill_color',
+                'cascade_outline_color',
+                'episode_text_color',
+                'episode_text_font_size',
+                'glass_color',
+                'glass_edge_color',
             ):
                 if extra in extras:
                     del extras[extra]
@@ -843,18 +849,29 @@ class CascadeTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ...
+        custom_extras = CascadeTitleCard._is_custom_extras(
+            extras,
+            {
+                'alt_text_color': CascadeTitleCard.EPISODE_TEXT_COLOR,
+                'cascade_fill_color': CascadeTitleCard.DEFAULT_CASCADE_FILL_COLOR,
+                'cascade_outline_color': CascadeTitleCard.DEFAULT_CASCADE_OUTLINE_COLOR,
+                'episode_text_color': CascadeTitleCard.EPISODE_TEXT_COLOR,
+                'episode_text_font_size': 1.0,
+                'glass_color': CascadeTitleCard.DEFAULT_GLASS_COLOR,
+                'glass_edge_color': CascadeTitleCard.DEFAULT_GLASS_EDGE_COLOR,
+            }
         )
 
         return (custom_extras
-            or ((font.color != CascadeTitleCard.TITLE_COLOR)
-            or (font.file != CascadeTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+            or (
+                font.color != CascadeTitleCard.TITLE_COLOR
+                or font.file != CascadeTitleCard.TITLE_FONT
+                or font.interline_spacing != 0
+                or font.interword_spacing != 0
+                or font.kerning != 1.0
+                or font.size != 1.0
+                or font.vertical_shift != 0
+            )
         )
 
 

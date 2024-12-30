@@ -17,9 +17,9 @@ def wrapped_default(self, obj):
     if isinstance(obj, datetime):
         return obj.strftime('%Y-%m-%dT%H:%M:%S%z') # ISO-8601
     return getattr(obj.__class__, '__json__', wrapped_default.default)(obj)
-wrapped_default.default = JSONEncoder().default
-JSONEncoder.original_default = JSONEncoder.default
-JSONEncoder.default = wrapped_default
+wrapped_default.default = JSONEncoder().default # type: ignore
+JSONEncoder.original_default = JSONEncoder.default # type: ignore
+JSONEncoder.default = wrapped_default # type: ignore
 
 
 _MAX_ROMAN_NUMERAL = 3999
@@ -233,12 +233,14 @@ class FormatString:
         try:
             return FormatString(fstring, data=data, catch=False).result
         except NameError as exc:
-            log.error(f'{series} {episode} Cannot format {name} - missing data '
-                      f'"{exc}"')
+            log.error(
+                f'{series} {episode} Cannot format {name}: missing data "{exc}"'
+            )
             raise InvalidFormatString from exc
         except (SyntaxError, NotImplementedError) as exc:
-            log.error(f'{series} {episode} Cannot format {name} - invalid '
-                      f'format "{exc}"')
+            log.error(
+                f'{series} {episode} Cannot format {name}: invalid format "{exc}"'
+            )
             raise InvalidFormatString from exc
 
 

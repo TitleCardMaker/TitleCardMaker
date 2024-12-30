@@ -380,10 +380,7 @@ class DividerTitleCard(BaseCardType):
 
         # Generic font, reset stroke color
         if not custom_font:
-            for extra in (
-                'divider_color',
-                'stroke_color',
-            ):
+            for extra in ('divider_color', 'stroke_color'):
                 del extras[extra]
 
 
@@ -408,15 +405,7 @@ class DividerTitleCard(BaseCardType):
                 and extras['stroke_color'] != 'black')
         )
 
-        return (custom_extras
-            or ((font.color != DividerTitleCard.TITLE_COLOR)
-            or (font.file != DividerTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.stroke_width != 1.0))
-        )
+        return custom_extras or DividerTitleCard._is_custom_font(font)
 
 
     @staticmethod

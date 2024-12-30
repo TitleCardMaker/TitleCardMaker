@@ -396,7 +396,8 @@ class BannerTitleCard(BaseCardType):
 
         custom_extras = (
             ('alternate_color' in extras
-                and extras['alternate_color'] != BannerTitleCard.EPISODE_TEXT_COLOR)
+                and extras['alternate_color'] != \
+                    BannerTitleCard.EPISODE_TEXT_COLOR)
             or ('banner_color' in extras
                 and extras['banner_color'] != BannerTitleCard.TITLE_COLOR)
             or ('episode_text_font_size' in extras
@@ -406,13 +407,15 @@ class BannerTitleCard(BaseCardType):
         )
 
         return (custom_extras
-            or ((font.color != BannerTitleCard.TITLE_COLOR)
-            or (font.file != BannerTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+            or (
+                font.color != BannerTitleCard.TITLE_COLOR
+                or font.file != BannerTitleCard.TITLE_FONT
+                or font.interline_spacing != 0
+                or font.interword_spacing != 0
+                or font.kerning != 1.0
+                or font.size != 1.0
+                or font.vertical_shift != 0
+            )
         )
 
 

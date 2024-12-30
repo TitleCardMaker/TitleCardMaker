@@ -272,9 +272,11 @@ class FormulaOneTitleCard(BaseCardType):
         return [
             # Create dark overlay
             f'-gravity center',
-            fr'\( -size {self.TITLE_CARD_SIZE}',
+            fr'\(',
+            f'-size {self.TITLE_CARD_SIZE}',
             f'xc:"{self.DARKEN_COLOR}"',
-            fr'\) -composite',
+            fr'\)',
+            f'-composite',
             # Add frame
             f'"{self.FRAME.resolve()}"',
             f'-composite',
@@ -436,9 +438,11 @@ class FormulaOneTitleCard(BaseCardType):
         )
 
         return (custom_extras
-            or ((font.color != FormulaOneTitleCard.TITLE_COLOR)
-            or (font.file != FormulaOneTitleCard.TITLE_FONT)
-            or (font.size != 1.0))
+            or (
+                font.color != FormulaOneTitleCard.TITLE_COLOR
+                or font.file != FormulaOneTitleCard.TITLE_FONT
+                or font.size != 1.0
+            )
         )
 
 

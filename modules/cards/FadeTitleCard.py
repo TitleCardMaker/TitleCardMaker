@@ -165,10 +165,13 @@ class FadeTitleCard(BaseCardType):
             return []
 
         return [
-            fr'\( "{self.logo.resolve()}"',
+            fr'\(',
+            f'"{self.logo.resolve()}"',
             f'-resize 900x',
-            fr'-resize x500\> \)',
-            f'-gravity west -geometry +100-550',
+            fr'-resize x500\>',
+            fr'\)',
+            f'-gravity west',
+            f'-geometry +100-550',
             f'-composite',
         ]
 
@@ -237,13 +240,15 @@ class FadeTitleCard(BaseCardType):
         )
 
         return (custom_extras
-            or ((font.color != FadeTitleCard.TITLE_COLOR)
-            or  (font.file != FadeTitleCard.TITLE_FONT)
-            or  (font.interline_spacing != 0)
-            or  (font.interword_spacing != 0)
-            or  (font.kerning != 1.0)
-            or  (font.size != 1.0)
-            or  (font.vertical_shift != 0))
+            or (
+                font.color != FadeTitleCard.TITLE_COLOR
+                or font.file != FadeTitleCard.TITLE_FONT
+                or font.interline_spacing != 0
+                or font.interword_spacing != 0
+                or font.kerning != 1.0
+                or font.size != 1.0
+                or font.vertical_shift != 0
+            )
         )
 
 
@@ -280,7 +285,8 @@ class FadeTitleCard(BaseCardType):
             f'-size "{self.TITLE_CARD_SIZE}"',
             f'xc:None',
             # Resize source to subsection of card
-            fr'\( "{self.source_file.resolve()}"',
+            fr'\(',
+            f'"{self.source_file.resolve()}"',
             f'-resize x1525',
             *self.style,
             fr'\)',

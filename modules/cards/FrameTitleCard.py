@@ -220,13 +220,15 @@ class FrameTitleCard(BaseCardType):
 
             return [
                 # Align text and image based on positioning
-                fr'-gravity {gravity} \(',
+                f'-gravity {gravity}',
+                fr'\(',
                 # Add index texts
                 *self._index_font_attributes,
                 f'label:"{self.season_text}"' if not self.hide_season else '',
                 f'label:"{self.episode_text}"' if not self.hide_episode else '',
                 # Smush vertically
-                fr'-smush 25 \)',
+                f'-smush 25',
+                fr'\)',
                 # Overlay on left/right of the title text
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
@@ -239,9 +241,11 @@ class FrameTitleCard(BaseCardType):
         season_command = []
         if not self.hide_season:
             season_command = [
-                fr'-gravity east \(',
+                f'-gravity east',
+                fr'\(',
                 *self._index_font_attributes,
-                fr'label:"{self.season_text}" \)',
+                f'label:"{self.season_text}"',
+                fr'\)',
                 f'-gravity east',
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
@@ -309,13 +313,15 @@ class FrameTitleCard(BaseCardType):
         )
 
         return (custom_extras
-            or ((font.color != FrameTitleCard.TITLE_COLOR)
-            or (font.file != FrameTitleCard.TITLE_FONT)
-            or (font.kerning != 1.0)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+            or (
+                font.color != FrameTitleCard.TITLE_COLOR
+                or font.file != FrameTitleCard.TITLE_FONT
+                or font.kerning != 1.0
+                or font.interline_spacing != 0
+                or font.interword_spacing != 0
+                or font.size != 1.0
+                or font.vertical_shift != 0
+            )
         )
 
 

@@ -685,13 +685,15 @@ class ComicBookTitleCard(BaseCardType):
         )
 
         return (custom_extras
-            or ((font.color != ComicBookTitleCard.TITLE_COLOR)
-            or (font.file != ComicBookTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+            or (
+                font.color != ComicBookTitleCard.TITLE_COLOR
+                or font.file != ComicBookTitleCard.TITLE_FONT
+                or font.interline_spacing != 0
+                or font.interword_spacing != 0
+                or font.kerning != 1.0
+                or font.size != 1.0
+                or font.vertical_shift != 0
+            )
         )
 
 

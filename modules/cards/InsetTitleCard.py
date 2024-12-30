@@ -281,7 +281,8 @@ class InsetTitleCard(BaseCardType):
 
         return [
             # Copy source image
-            fr'\( "{self.source_file.resolve()}"',
+            fr'\(',
+            f'"{self.source_file.resolve()}"',
             # Make source transparent (according to transparency)
             f'-alpha set',
             f'-channel A',
@@ -299,7 +300,8 @@ class InsetTitleCard(BaseCardType):
             # Blur edges so cropping is not so sharp
             f'-blur 0x7',
             f'-gravity south',
-            fr'\) -geometry +0+{crop_y-10:.0f}',
+            fr'\)',
+            f'-geometry +0+{crop_y-10:.0f}',
             f'-composite',
             # Add index text with a drop shadow
             *self.add_drop_shadow(
@@ -366,13 +368,15 @@ class InsetTitleCard(BaseCardType):
         )
 
         return (custom_extras
-            or ((font.color != InsetTitleCard.TITLE_COLOR)
-            or (font.file != InsetTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+            or (
+                font.color != InsetTitleCard.TITLE_COLOR
+                or font.file != InsetTitleCard.TITLE_FONT
+                or font.interline_spacing != 0
+                or font.interword_spacing != 0
+                or font.kerning != 1.0
+                or font.size != 1.0
+                or font.vertical_shift != 0
+            )
         )
 
 

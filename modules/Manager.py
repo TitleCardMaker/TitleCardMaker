@@ -186,7 +186,8 @@ class Manager:
             self.shows.append(show)
 
             # If archives are disabled globally, or for this show - skip
-            if not self.preferences.create_archive or not show.archive:
+            if (not self.preferences.create_archive or not show.archive
+                or not self.preferences.archive_directory):
                 continue
 
             self.archives.append(

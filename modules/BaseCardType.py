@@ -516,14 +516,15 @@ class BaseCardType(ImageMaker):
             True if the given Font is customized, False otherwise.
         """
 
-        return ((font.color != cls.TITLE_COLOR)
-            or (font.file != cls.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.stroke_width != 1.0)
-            or (font.vertical_shift != 0)
+        return (
+            font.color != cls.TITLE_COLOR
+            or font.file != cls.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
+            or font.stroke_width != 1.0
+            or font.vertical_shift != 0
         )
 
 
@@ -539,6 +540,27 @@ class BaseCardType(ImageMaker):
         """
 
         raise NotImplementedError
+
+
+    @staticmethod
+    def _is_custom_extras(extras: dict, default_extras: dict) -> bool:
+        """
+        Determine whether the given extra dictionary is customized. This
+        compares the assumes `default_extras` is a dictionary of keys
+        whose values indicate the "default" ones.
+
+        Args:
+            extras: Dictionary being evaluated.
+            default_extras: Dictionary of default extras.
+
+        Returns:
+            Whether the dictionary has been customized.
+        """
+
+        return any(
+            key in extras and extras[key] != default_value
+            for key, default_value in default_extras.items()
+        )
 
 
     @staticmethod
@@ -722,10 +744,12 @@ class BaseCardType(ImageMaker):
             pre_processing = self.resize_and_style
 
         return [
-            fr'\( "{mask.resolve()}"',
+            fr'\(',
+            f'"{mask.resolve()}"',
             *self.resize,
             *pre_processing,
-            fr'\) -geometry {x:+}{y:+}',
+            fr'\)',
+            f'-geometry {x:+}{y:+}',
             fr'-composite',
         ]
 
