@@ -2,8 +2,6 @@
 title: Available Variables
 description: >
     All available internal Title Card variables.
-tags:
-    - Series
 ---
 
 # Available Variables
@@ -32,7 +30,8 @@ hypothetical TCM customizations.
     | `season_number`           | Season number           | `2`                    |
     | `episode_number`          | Episode number          | `6`                    |
     | `absolute_number`         | Absolute episode number | `13`                   |
-    | `absolute_episode_number` | The absolute number (if available), otherwise the episode number | `13` |
+    | `absolute_episode_number` | Absolute number (if available), otherwise the episode number | `13` |
+    | `number_of_seasons`       | Number of seasons in the Series | `5`        |
     | `airdate`                 | Episode airdate[^3]     | `2009-04-12`           |
     | `watched`                 | Whether the Episode is watched or not | `true`   |
 
@@ -42,8 +41,8 @@ hypothetical TCM customizations.
     | ------------------- | ------------------------------------ | ----------- |
     | `title`             | Original title of the Episode        | `Peekaboo`  |
     | `title_text`        | Formatted title text of the Card[^1] | `PEEKABOO`  |
-    | `hide_season_text`  | Whether to hide season text          | `false`     |
-    | `hide_episode_text` | Whether to hide episode text         | `false`     |
+    | `hide_season_text`  | Whether to hide season text          | `False`     |
+    | `hide_episode_text` | Whether to hide episode text         | `False`     |
     | `season_text`       | The season text of the Card          | `Season 2`  |
     | `episode_text`      | The episode text of the Card         | `Episode 6` |
 

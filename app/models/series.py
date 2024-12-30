@@ -441,6 +441,7 @@ class Series(Base):
             'series_tmdb_id': self.tmdb_id,
             'series_tvdb_id': self.tvdb_id,
             'series_tvrage_id': self.tvrage_id,
+            'number_of_seasons': self.number_of_seasons,
         }
 
 
