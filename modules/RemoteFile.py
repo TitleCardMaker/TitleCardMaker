@@ -1,3 +1,4 @@
+from os import getenv
 from pathlib import Path
 
 from requests import Response, get
@@ -19,9 +20,10 @@ class RemoteFile:
     """
 
     """Base URL to look for remote content at"""
-    BASE_URL = (
+    BASE_URL = getenv(
+        'TCM_CARD_TYPE_URL',
         'https://github.com/CollinHeist/TitleCardMaker-CardTypes/raw/web-ui'
-    )
+    ).removesuffix('/')
 
     """Temporary directory all files will be downloaded into"""
     TEMP_DIR = Path(__file__).parent / '.objects'
@@ -69,8 +71,9 @@ class RemoteFile:
             log.debug(f'Downloaded RemoteFile "{username}/{filename}"')
         except Exception:
             self.valid = False
-            log.exception(f'Could not download RemoteFile '
-                          f'"{username}/{filename}"')
+            log.exception(
+                f'Could not download RemoteFile "{username}/{filename}"'
+            )
             return None
 
         try:

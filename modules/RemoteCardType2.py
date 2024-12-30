@@ -27,7 +27,7 @@ class RemoteCardType:
         'TCM_CARD_TYPE_URL',
         'https://raw.githubusercontent.com/CollinHeist/'
         'TitleCardMaker-CardTypes/web-ui'
-    )
+    ).removesuffix('/')
 
     """Temporary directory all card types are written to"""
     TEMP_DIR = Path(__file__).parent / '.objects'
@@ -158,19 +158,28 @@ class RemoteCardType:
                 being validated.
         """
 
+        if not self.card_class:
+            return None
+
         # Validate the API implementation details are there
         if not issubclass(self.card_class, BaseCardType):
-            log.error(f'CardType "{identifier}" must be is a subclass of '
-                      f'modules.BaseCardType.BaseCardType')
+            log.error(
+                f'CardType "{identifier}" must be is a subclass of '
+                f'modules.BaseCardType.BaseCardType'
+            )
             self.valid = False
 
         if not hasattr(self.card_class, 'CardModel'):
-            log.error(f'CardType "{identifier}" is missing the required '
-                      f'CardModel object')
+            log.error(
+                f'CardType "{identifier}" is missing the required CardModel '
+                f'object'
+            )
             self.valid = False
 
         if (hasattr(self.card_class, 'CardModel')
             and not issubclass(self.card_class.CardModel, Base)):
-            log.error(f'CardType "{identifier}" CardModel is invalid - must be '
-                      f'a Pydantic model')
+            log.error(
+                f'CardType "{identifier}" CardModel is invalid - must be a '
+                f'Pydantic model'
+            )
             self.valid = False
