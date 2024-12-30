@@ -129,6 +129,7 @@ hypothetical TCM customizations.
     | ------------- | -------------------------------------- | ----------- |
     | `extras`      | Any assigned extras                    | _See below_ |
     | `NEWLINE`     | A character to move text to a new line | `\n`        |
+    | `BACKSLASH`   | The ++backslash++ character            | `\`         |
 
     Any assigned extras are added as their variable name. For example, if I
     specify the "Episode Text Color" extra for the Series, then the variable
