@@ -88,7 +88,7 @@ To disable the cascading text completely, this extra should be set to `0`.
 
     <div class="image-compare example-card"
         data-starting-point="42"
-        data-left-label="0"
+        data-left-label="3"
         data-right-label="2">
         <img src="../assets/cascade/cascade_count.webp"/>
         <img src="../assets/cascade.webp"/>
@@ -329,3 +329,17 @@ effects.
         <img src="../assets/cascade/mask-raw.webp"/>
         <img src="../assets/cascade/mask.webp"/>
     </div>
+
+## Multi-Line Text
+
+Because of how the cascading text effect is generated, titles which feature
+multiple lines of text are handled a bit differently than those with one line.
+
+In the case of single-line text (as seen in all previous example images), the
+top and bottom cascade texts are both generated from the same line of text.
+However, when there are multiple lines of text the top cascade is generated from
+the top (first) line, and the bottom cascade from the bottom (last) line.
+
+!!! example "Example of Multi-Line Text"
+
+    ![Multi Line Text](./assets/cascade/multi_line_text.webp)

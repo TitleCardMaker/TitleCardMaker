@@ -139,7 +139,6 @@ effects.
     <div class="image-compare example-card"
         data-starting-point="14.25"
         data-left-label="Mask Image"
-       
         data-right-label="Resulting Title Card">
         <img src="../assets/negative_space/mask-raw.webp"/>
         <img src="../assets/negative_space/mask.webp"/>
