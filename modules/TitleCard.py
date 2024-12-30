@@ -37,6 +37,7 @@ from modules.cards.PosterTitleCard import PosterTitleCard
 from modules.cards.RomanNumeralTitleCard import RomanNumeralTitleCard
 from modules.cards.ScoreTitleCard import ScoreTitleCard
 from modules.cards.ShapeTitleCard import ShapeTitleCard
+from modules.cards.SkeletonCrew import SkeletonCrewTitleCard
 from modules.cards.StandardTitleCard import StandardTitleCard
 from modules.cards.StarWarsTitleCard import StarWarsTitleCard
 from modules.cards.StripedTitleCard import StripedTitleCard
@@ -121,6 +122,7 @@ class TitleCard:
         'score': ScoreTitleCard,
         'shape': ShapeTitleCard,
         'sherlock': TintedGlassTitleCard,
+        'skeleton crew': SkeletonCrewTitleCard,
         'spotify': MusicTitleCard,
         'standard': StandardTitleCard,
         'star wars': StarWarsTitleCard,
