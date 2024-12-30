@@ -15,7 +15,7 @@ from modules.Version import Version
 USER_CARD_TYPE_URL = getenv(
     'TCM_CARD_TYPE_URL',
     'https://raw.githubusercontent.com/CollinHeist/TitleCardMaker-CardTypes/web-ui'
-) + '/cards.json'
+).removesuffix('/') + '/cards.json'
 
 
 def get_latest_version(
@@ -99,6 +99,7 @@ def get_remote_cards(*, log: Logger = log) -> list[RemoteCardType]:
     # If the cached content has expired, request and update cache
     if _cache['expires'] <= datetime.now():
         log.debug('Refreshing cached RemoteCardTypes..')
+        log.trace(f'Querying "{USER_CARD_TYPE_URL}"')
         if not (text := get(USER_CARD_TYPE_URL, timeout=30).text):
             raise JSONDecodeError
         response = loads(text)
