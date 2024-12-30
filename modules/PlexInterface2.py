@@ -875,37 +875,45 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Find episodes which have a matching Card to load
         matched_episodes: list[tuple[PlexEpisode, 'Episode', 'Card']] = []
+        matched_indices: set[int] = set()
 
         # An UID (RatingKey) was provided, match directly
         if len(episode_and_cards[0]) == 3:
-            for episode, card, uid in episode_and_cards: # type: ignore
+            for index, (episode, card, uid) in enumerate(episode_and_cards): # type: ignore
                 if (plex_ep := self.__server.fetchItem(int(uid))) is None:
                     log.warning(f'No Episode associated with Key {int(uid)}')
                     continue
                 matched_episodes.append((plex_ep, episode, card))
+                matched_indices.add(index)
         # No UID provided, find by iterating through all episodes of show
         else:
             # Generate EpisodeInfo of the given Episodes/Cards ahead of time
-            # to avoid re-constructing the EpisodeInfo object for each ep
+            # to avoid re-constructing the EpisodeInfo object for each episode
             infos = [
                 (episode, episode.as_episode_info, card)
                 for episode, card, *_ in episode_and_cards
             ]
 
-            for plex_episode in series.episodes(
+            for plex_episode in cast(list[PlexEpisode], series.episodes(
                     container_size=100,
                     params={'includeGuids': 1},
-                ):
+                )):
                 # Exit if all episodes have been matched
                 if len(matched_episodes) == len(infos):
                     break
 
-                plex_episode = cast(PlexEpisode, plex_episode)
-                for episode, episode_info, card in infos:
+                for index, (episode, episode_info, card) in enumerate(infos):
                     if episode_info == plex_episode:
                         matched_episodes.append((plex_episode, episode, card))
+                        matched_indices.add(index)
                         break
 
+        # Log all unmatched Episodes
+        for index, (episode, *_) in enumerate(episode_and_cards):
+            if index not in matched_indices:
+                log.warning(f'Unable to find associated Episode for {episode}')
+
+        # No Episodes were found in Plex, exit
         if not matched_episodes:
             log.trace(f'Not loading any Cards for {series_info}')
             return []
