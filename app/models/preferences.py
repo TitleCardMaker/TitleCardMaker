@@ -48,6 +48,7 @@ class Preferences:
     """All environment variables which might be applicable to TCM, for boot"""
     __ENVIRONMENT_VARIABLES = (
         'TCM_BACKUP_RETENTION',
+        'TCM_CARD_TYPE_URL',
         'TCM_DISABLE_AUTH',
         'TCM_IS_DOCKER',
         'TCM_IM_DOCKER',
