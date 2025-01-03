@@ -663,7 +663,9 @@
                   <div class="default text">Default</div>
                   <div class="menu">
                     {% for connection in all_connections | sort(attribute='name') %}
-                      <div class="item" data-value="{{ connection.id }}">{{ connection.name }}</div>
+                      {% if connection.interface_type != 'Sonarr' %}
+                        <div class="item" data-value="{{ connection.id }}">{{ connection.name }}</div>
+                      {% endif %}
                     {% endfor %}
                   </div>
                 </div>
