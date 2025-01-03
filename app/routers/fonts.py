@@ -106,7 +106,7 @@ async def add_font_file(
 
     # Write to file
     font_directory = preferences.asset_directory / 'fonts'
-    file_path = font_directory / str(font.id) / file.filename
+    file_path = font_directory / str(font.id) / file.filename # type: ignore
     file_path.parent.mkdir(exist_ok=True, parents=True)
     file_path.write_bytes(file_content)
 
@@ -194,7 +194,7 @@ def get_all_fonts(
 
     return db.query(Font)\
         .order_by(Font.id if order == 'id' else Font.sort_name)\
-        .all()
+        .all() # type: ignore
 
 
 @font_router.get('/{font_id}')
@@ -273,39 +273,52 @@ def get_suggested_font_replacements(
 
     # Font has no custom file, make no suggestions
     if font.file_name is None or font.file is None:
+        log.debug(f'{font} has no custom File - no replacements to suggest')
         return FontAnalysis()
 
-    # Get any titles associated with this Font - look at Episodes using this
-    # Font; translated titles of Episodes using this Font; Episodes of Series
-    # using this Font; translated titles of Episodes of Series using this Font;
-    # Episodes using a Template using this Font; translated titles of Episodes
-    # using a Template using this Font; Episodes of Series using a Template
-    # using this Font; and translated titles of Episodes of Series using a
-    # Template using this Font
-    titles = set(episode.title for episode in font.episodes) \
-        | set(translation for episode in font.episodes
-                          for key, translation in episode.translations.items()
-                          if key == 'preferred_title') \
-        | set(episode.title for series in font.series
-                            for episode in series.episodes) \
-        | set(translation for series in font.series
-                          for episode in series.episodes
-                          for key, translation in episode.translations.items()
-                          if key == 'preferred_title') \
-        | set(episode.title for template in font.templates
-                            for episode in template.episodes) \
-        | set(translation for template in font.templates
-                          for episode in template.episodes
-                          for key, translation in episode.translations.items()
-                          if key == 'preferred_title') \
-        | set(episode.title for template in font.templates
-                            for series in template.series
-                            for episode in series.episodes) \
-        | set(translation for template in font.templates
-                          for series in template.series
-                          for episode in series.episodes
-                          for key, translation in episode.translations.items()
-                          if key == 'preferred_title')
+    # Get ANY titles associated with this Font
+    titles = (
+        # Episode titles using this Font
+        set(episode.title for episode in font.episodes)
+        | set( # Translated titles using this Font
+            translation
+            for episode in font.episodes
+            for key, translation in episode.translations.items()
+            if key == 'preferred_title'
+        ) | set( # Episode titles of Series using this Font
+            episode.title
+            for series in font.series
+            for episode in series.episodes
+        ) | set( # Translated titles of Series using this Font
+            translation
+            for series in font.series
+            for episode in series.episodes
+            for key, translation in episode.translations.items()
+            if key == 'preferred_title'
+        ) | set( # Episode titles using Templates using this Font
+            episode.title
+            for template in font.templates
+            for episode in template.episodes
+        ) | set( # Translated titles of Templates using this Font
+            translation
+            for template in font.templates
+            for episode in template.episodes
+            for key, translation in episode.translations.items()
+            if key == 'preferred_title'
+        ) | set( # Episode titles whose Series are using Templates using this Font
+            episode.title
+            for template in font.templates
+            for series in template.series
+            for episode in series.episodes
+        ) | set( # Translated titles of Episodes of Series using Templates using this Font
+            translation
+            for template in font.templates
+            for series in template.series
+            for episode in series.episodes
+            for key, translation in episode.translations.items()
+            if key == 'preferred_title'
+        )
+    )
 
     # Get all (non-whitespace) letters in these titles, add base printables
     title_letters = set(''.join(titles).lower()) | set(''.join(titles).upper())
@@ -387,7 +400,9 @@ def transfer_font_references(
     # Reassign global Fonts
     for card_type, id_ in preferences.default_fonts.items():
         if id_ == from_id:
-            log.debug(f'Preferences.global_font[{card_type}] = {from_id} -> {to_id}')
+            log.debug(
+                f'Preferences.global_font[{card_type}] = {from_id} -> {to_id}'
+            )
             preferences.default_fonts[card_type] = to_id
     # Reassign Template Fonts
     for template in from_font.templates:
