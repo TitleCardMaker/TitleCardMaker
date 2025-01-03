@@ -771,7 +771,7 @@ function addDropdownItem(element, args) {
 }
 
 /**
- * 
+ * Delete the Filter associated with the clicked button.
  * @param {HTMLButtonElement} deleteButton Button which was clicked.
  */
 function deleteFilter(deleteButton) {
@@ -963,6 +963,7 @@ function initializeFilterTemplate() {
       // Initialize condition items
       const fieldType = filterSettings.find(filter => filter.value === condition.field)?.type;
       if (!fieldType) { return; }
+
       filterChoices[fieldType].forEach(choice => {
         addDropdownItem(
           newFields.querySelector('.field[data-label="condition"] div.dropdown .menu'),
@@ -972,6 +973,10 @@ function initializeFilterTemplate() {
       newFields.querySelector('.field[data-label="condition"] div.dropdown > input').value = condition.expression;
       if (condition.reference !== null) {
         newFields.querySelector('.field[data-label="reference"] input').value = condition.reference;
+      }
+      // Enable/disable reference field
+      if (filterChoices[fieldType].find(choice => choice.name === condition.expression)?.requiresInput) {
+        newFields.querySelector('.field[data-label="reference"]').classList.remove('disabled');
       }
 
       // Add to page so dropdowns can be populated
