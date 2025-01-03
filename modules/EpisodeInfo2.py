@@ -153,13 +153,27 @@ class EpisodeInfo(DatabaseInfoContainer):
         # If a PlexEpisode, compare indirectly
         if isinstance(other, PlexEpisode):
             # Attempt database ID match
+            id_matches = 0
             for guid in other.guids:
                 if self.imdb_id and 'imdb://' in guid.id:
-                    return self.imdb_id == guid.id[len('imdb://'):]
+                    if self.imdb_id == guid.id.removeprefix('imdb://'):
+                        id_matches += 1
+                    else:
+                        id_matches -= 1
                 if self.tmdb_id and 'tmdb://' in guid.id:
-                    return self.tmdb_id == int(guid.id[len('tmdb://'):])
+                    if self.tmdb_id == int(guid.id.removeprefix('tmdb://')):
+                        id_matches += 1
+                    else:
+                        id_matches -= 1
                 if self.tvdb_id and 'tvdb://' in guid.id:
-                    return self.tvdb_id == int(guid.id[len('tvdb://'):])
+                    if self.tvdb_id == int(guid.id.removeprefix('tvdb://')):
+                        id_matches += 1
+                    else:
+                        id_matches -= 1
+
+            # Require at least one net positive ID match
+            if id_matches > 0:
+                return True
 
             # Attempt title and index match
             return (
