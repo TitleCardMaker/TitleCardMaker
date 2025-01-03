@@ -383,21 +383,24 @@ def download_episode_source_image(
             )
 
             # Get art backdrop
-            if 'art' in style:
-                source_image = interface.get_series_backdrop(
-                    series.as_series_info,
-                    skip_localized_images=skip_localized_images,
-                    raise_exc=raise_exc,
-                )
-            # Get source image
-            else:
-                source_image = interface.get_source_image(
-                    series.as_series_info,
-                    episode.as_episode_info,
-                    skip_localized_images=skip_localized_images,
-                    raise_exc=raise_exc,
-                    log=log,
-                )
+            try:
+                if 'art' in style:
+                    source_image = interface.get_series_backdrop(
+                        series.as_series_info,
+                        skip_localized_images=skip_localized_images,
+                        raise_exc=raise_exc,
+                    )
+                # Get source image
+                else:
+                    source_image = interface.get_source_image(
+                        series.as_series_info,
+                        episode.as_episode_info,
+                        skip_localized_images=skip_localized_images,
+                        raise_exc=raise_exc,
+                        log=log,
+                    )
+            except HTTPException:
+                pass
         elif isinstance(interface, TVDbInterface):
             # Get art backdrop
             if 'art' in style:
@@ -415,8 +418,10 @@ def download_episode_source_image(
 
         # No source image was returned
         if source_image is None:
-            log.trace(f'{episode} cannot download Source Image from '
-                      f'Connection[{interface_id}] {interface.INTERFACE_TYPE}')
+            log.trace(
+                f'{episode} cannot download Source Image from '
+                f'Connection[{interface_id}] {interface.INTERFACE_TYPE}'
+            )
             continue
 
         # Source image is valid, download - error if download fails
