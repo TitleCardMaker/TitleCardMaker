@@ -252,13 +252,7 @@ place of the episode text.
 
 ??? example "Example"
 
-    <div class="image-compare example-card"
-        data-starting-point="45.08"
-        data-left-label="True"
-        data-right-label="False">
-        <img src="../assets/cascade/kanji.webp"/>
-        <img src="../assets/cascade.webp"/>
-    </div>
+    ![Example Card with Kanji](./assets/cascade/kanji.webp)
 
 ### Size
 
