@@ -303,6 +303,18 @@ class CascadeTitleCard(BaseCardType):
                 ),
                 default='False',
             ),
+            Extra(
+                name='Allow Kanji in Episode Text',
+                identifier='allow_kanji_episode_text',
+                description='Permit kanji characters in the episode text',
+                tooltip=(
+                    'Either <v>True</v> or <v>False</v>. If <v>True</v> then '
+                    'an alternate font is used which correctly displays Kanji '
+                    'characters; it is recommended to set the Episode Text '
+                    'Format to <v>{kanji}</v> . Default is <v>False</v>.'
+                ),
+                default='False',
+            ),
         ],
         description=[
             'A card type which features an adjustable number of cascading '
@@ -332,6 +344,7 @@ class CascadeTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = 'E{episode_number}'
     EPISODE_TEXT_COLOR = TITLE_COLOR
     EPISODE_TEXT_FONT = TITLE_FONT
+    _KANJI_TEXT_FONT = REF_DIRECTORY.parent / 'anime' / 'hiragino-mincho-w3.ttc'
 
     """Whether this CardType uses season titles for archival purposes"""
     USES_SEASON_TITLE: bool = True
@@ -350,6 +363,7 @@ class CascadeTitleCard(BaseCardType):
     DEFAULT_GLASS_EDGE_COLOR: str = 'rgba(12,12,12,0.4)'
 
     __slots__ = (
+        'allow_kanji_episode_text',
         'alt_text',
         'alt_text_color',
         'cascade_alphas',
@@ -422,6 +436,7 @@ class CascadeTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             # Extras
+            allow_kanji_episode_text: bool = False,
             alt_text: str | None = None,
             alt_text_color: str = EPISODE_TEXT_COLOR,
             cascade_alphas: str = DEFAULT_CASCADE_ALPHAS,
@@ -464,6 +479,7 @@ class CascadeTitleCard(BaseCardType):
         self.font_vertical_shift = 0 + font_vertical_shift
 
         # Extras
+        self.allow_kanji_episode_text = allow_kanji_episode_text
         self.alt_text = alt_text
         self.alt_text_color = alt_text_color
         self.cascade_alphas = SequenceGenerator(cascade_alphas, (0, 100))
@@ -723,6 +739,10 @@ class CascadeTitleCard(BaseCardType):
         else:
             index_text = f'{self.season_text} {self.episode_text}'
 
+        font = self.TITLE_FONT
+        if self.allow_kanji_episode_text:
+            font = str(self._KANJI_TEXT_FONT.resolve())
+
         # Position the index text on the right side of the text
         dx = (self.WIDTH - self.__title_dimensions.width) / 2 + 8
         dy = (
@@ -736,7 +756,7 @@ class CascadeTitleCard(BaseCardType):
         size = 40 * self.episode_text_font_size
 
         return [
-            f'-font "{self.TITLE_FONT}"',
+            f'-font "{font}"',
             f'-fill "{self.episode_text_color}"',
             f'-pointsize {size}',
             f'-gravity east',
@@ -952,6 +972,7 @@ def get_validator_model() -> type[Base]:
         font_kerning: float = 1.0
         font_size: PositiveFloat = 1.0
         font_vertical_shift: int = 0
+        allow_kanji_episode_text: bool = False
         alt_text: str | None = '{series_name}'
         alt_text_color: str | None = None
         cascade_count: conint(ge=0, le=25) = CascadeTitleCard.DEFAULT_CASCADE_COUNT
