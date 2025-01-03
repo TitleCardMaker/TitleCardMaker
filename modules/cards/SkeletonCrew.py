@@ -67,6 +67,13 @@ class SkeletonCrewTitleCard(BaseCardType):
                 default='•',
             ),
             Extra(
+                name='Stroke Color',
+                identifier='stroke_color',
+                description='Color of the stroke used for the title text',
+                tooltip='Default is <c>transparent</c> (no stroke).',
+                default='transparent',
+            ),
+            Extra(
                 name='Text Vertical Position',
                 identifier='vertical_position',
                 description='Position of all text',
@@ -707,6 +714,7 @@ def get_validator_model() -> type[Base]:
         episode_text_color: str = 'transparent'
         episode_text_font_size: PositiveFloat = 1.0
         outline_color: str | None = None
+        stroke_color: str = SkeletonCrewTitleCard.DEFAULT_STROKE_COLOR
         vertical_position: VerticalPosition = 'bottom'
 
         @root_validator(skip_on_failure=True)
