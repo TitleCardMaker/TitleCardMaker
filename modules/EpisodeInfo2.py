@@ -155,17 +155,17 @@ class EpisodeInfo(DatabaseInfoContainer):
             # Attempt database ID match
             id_matches = 0
             for guid in other.guids:
-                if self.imdb_id and 'imdb://' in guid.id:
+                if self.imdb_id and 'imdb://' in guid.id: # type: ignore
                     if self.imdb_id == guid.id.removeprefix('imdb://'):
                         id_matches += 1
                     else:
                         id_matches -= 1
-                if self.tmdb_id and 'tmdb://' in guid.id:
+                if self.tmdb_id and 'tmdb://' in guid.id: # type: ignore
                     if self.tmdb_id == int(guid.id.removeprefix('tmdb://')):
                         id_matches += 1
                     else:
                         id_matches -= 1
-                if self.tvdb_id and 'tvdb://' in guid.id:
+                if self.tvdb_id and 'tvdb://' in guid.id: # type: ignore
                     if self.tvdb_id == int(guid.id.removeprefix('tvdb://')):
                         id_matches += 1
                     else:
