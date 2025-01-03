@@ -1005,16 +1005,25 @@ def apply_filter(
     for condition in filter.conditions:
         # Special handling for the "missing cards" criteria
         if condition.field == 'missing_cards':
+            # Unique Episode IDs associated with any Card
+            episode_ids = db.query(Card.episode_id).distinct()
+
+            # Series IDs of Episodes whose ID is not in the above list
+            missing_series_ids: list[int] = [
+                id_[0] for id_ in 
+                db.query(Episode.series_id)\
+                    .filter(not_(Episode.id.in_(episode_ids)))\
+                    .distinct()\
+                    .all()
+            ]
+
+            # Filter Series which ARE missing Cards
             if condition.expression == 'is true':
-                card_ids = db.query(Card.episode_id).distinct()
-                missing_series_ids: list[int] = [
-                    id_[0] for id_ in 
-                    db.query(Episode.series_id)\
-                        .filter(not_(Episode.id.in_(card_ids)))\
-                        .distinct()\
-                        .all()
-                ]
                 criterion.append(Series.id.in_(missing_series_ids))
+                continue
+            # Filter Series which ARE NOT missing cards
+            elif condition.expression == 'is false':
+                criterion.append(not_(Series.id.in_(missing_series_ids)))
                 continue
 
         # Get attribute which will be operated on
@@ -1075,18 +1084,8 @@ def query_and_filter_series(
         Paginated overview of all matching Series.
     """
 
-    # Include joined load for Episode and Cards if counts are expected
-    # to be returned
-    loads = []
-    # if include_counts:
-    #     loads = [
-    #         joinedload(Series.episodes),
-    #         joinedload(Series.cards),
-    #     ]
-
     # Perform query
     query = db.query(Series).options(
-        *loads,
         load_only(
             Series.id,
             Series.full_name,

@@ -803,11 +803,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         else:
             entry.uploadPoster(**kwargs)
 
-        # try:
-        #     entry.addLabel(['TCM'])
-        # except (PlexApiException, ReadTimeout):
-        #     log.exception(f'Unable to add "TCM" label to {entry}')
-
 
     def __add_exif_tag(self, image: Path, *, log: Logger = log) -> None:
         """
