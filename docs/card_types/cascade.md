@@ -241,6 +241,25 @@ extra. If unspecified, this defaults to match the color of the title text.
         <img src="../assets/cascade.webp"/>
     </div>
 
+### Kanji
+
+This card supports utilizing an alternate font for the episode text so that
+Kanji (Japanese) characters can be properly displayed.
+
+This is intended to be used with the [Episode Text Format](...) setting set to
+`{kanji}`, and season text hidden, so that TCM adds any translated Kanji text in
+place of the episode text.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="45.08"
+        data-left-label="True"
+        data-right-label="False">
+        <img src="../assets/cascade/kanji.webp"/>
+        <img src="../assets/cascade.webp"/>
+    </div>
+
 ### Size
 
 The size of the season and episode text can be adjusted with the
@@ -312,6 +331,11 @@ The glass itself can be disabled by setting the _Glass Toggle_ extra to `False`.
         <img src="../assets/cascade/glass_toggle.webp"/>
         <img src="../assets/cascade.webp"/>
     </div>
+
+## Kanji Text
+
+Kanji text can be added in place of the episode text - this is descibed
+[here](#kanji).
 
 ## Mask Images
 
