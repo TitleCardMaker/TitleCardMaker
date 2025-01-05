@@ -55,26 +55,34 @@ class TieredSettings:
 
 
     @staticmethod
-    def new_settings(*dicts: dict[str, _Setting]) -> dict[str, _Setting]:
+    def new_settings(
+            *dicts: dict[str, _Setting],
+            base: dict | None = None,
+        ) -> dict[str, _Setting]:
         """
         Resolve the TieredSettings for the given dictionaries, and
         return the created base.
 
         Args:
-            dicts: Any number of dictionaries to merge into the newly
-                created base. Dictionaries are provided in increasing
-                priority.
+            dicts: Any number of dictionaries to merge. Dictionaries are
+                provided in increasing priority.
+            base: Base dictionary of settings to include, even if these
+                contain `None` values. Copied as the lowest-priority
+                settings.
 
         Returns:
             New dictionary base with the merged settings.
         """
 
-        # Create new base, merge into
-        base = {}
-        TieredSettings(base, *dicts)
+        # Create new (or closed) base, merge into
+        if base:
+            base_dict = {k: v for k, v in base.items()}
+        else:
+            base_dict = {}
+        TieredSettings(base_dict, *dicts)
 
         # Return modified base
-        return base
+        return base_dict
 
 
     @staticmethod
