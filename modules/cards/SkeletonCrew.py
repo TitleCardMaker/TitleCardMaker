@@ -411,13 +411,13 @@ class SkeletonCrewTitleCard(BaseCardType):
             # Additional offsets necessary for equal padding
             x_start -= 56
             x_end += 44
-            y_start -= 40
+            y_start -= 50
             y_end += 16
 
             # Adjust for font size changes over multi-line
             if len(self.title_text.splitlines()) >= 2:
                 # Font size * user input font size * 65%
-                y_end -= (200 * self.font_size) * 0.65
+                y_end -= 200 * self.font_size * 0.65
             else:
                 y_end += 20
 
@@ -497,7 +497,7 @@ class SkeletonCrewTitleCard(BaseCardType):
         if self.stroke_color != 'transparent':
             stroke_commands = [
                 f'-stroke "{self.stroke_color}"',
-                f'-strokewidth {5 * self.font_stroke_width}',
+                f'-strokewidth {4 * self.font_stroke_width}',
             ]
 
         return [
