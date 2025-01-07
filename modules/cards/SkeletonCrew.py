@@ -452,7 +452,7 @@ class SkeletonCrewTitleCard(BaseCardType):
                 self._title_coordinates = self.get_title_coordinates()
 
             # Get dimensions of index text
-            width, _ = self.image_magick.get_text_dimensions(
+            width, height = self.image_magick.get_text_dimensions(
                 self.index_text_commands
             )
 
@@ -461,7 +461,8 @@ class SkeletonCrewTitleCard(BaseCardType):
 
             # Get start coordinates of the bounding box
             x_start, x_end = (self.WIDTH - width) / 2, (self.WIDTH + width) / 2
-            y_start, y_end = self.HEIGHT - y_offset - 50, self.HEIGHT - y_offset
+            y_end = self.HEIGHT - y_offset
+            y_start = y_end - height
 
             # Additional offsets for equal padding
             x_start -= 24
