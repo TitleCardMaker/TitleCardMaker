@@ -699,6 +699,15 @@ class CascadeTitleCard(BaseCardType):
         if not self.alt_text:
             return []
 
+        # Do not display alt text if the episode text was already longer
+        # than the title width
+        index_width, _ = self.image_magick.get_text_dimensions(
+            self.index_text_commands,
+            density=100,
+        )
+        if index_width > self.__title_dimensions.width:
+            return []
+
         # Position the alt text on the left side of the width
         dx = (self.WIDTH - self.__title_dimensions.width) / 2 - 8 # 8px margin
         dy = (
@@ -712,13 +721,30 @@ class CascadeTitleCard(BaseCardType):
 
         size = 40 * self.episode_text_font_size
 
-        return [
+        text_commands = [
             f'-font "{self.TITLE_FONT}"',
             f'-fill "{self.alt_text_color}"',
             f'-pointsize {size}',
             f'-gravity west',
             f'-annotate +{dx}-{dy} "{self.alt_text}"',
         ]
+
+        # Truncate alt text if this and the index text are too wide
+        alt_width, _ = self.image_magick.get_text_label_dimensions(
+            ['-background none'] + text_commands[:-1] + [f'label:"{self.alt_text}"'],
+            density=100,
+        )
+
+        if index_width + alt_width + 25 > self.__title_dimensions.width:
+            new_width = self.__title_dimensions.width - index_width - 25
+            new_length = int(new_width / alt_width * len(self.alt_text)) - 1
+            if new_length <= 0:
+                return []
+
+            modifed_text = self.alt_text[:new_length]
+            text_commands[-1] = f'-annotate +{dx}-{dy} "{modifed_text}.."'
+
+        return text_commands
 
 
     @property
