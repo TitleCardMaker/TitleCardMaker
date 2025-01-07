@@ -164,6 +164,11 @@ TitleCardMaker:
         <img class="no-lightbox" src="./card_types/assets/shape.webp" loading="lazy">
       </a>
     </figure>
+    <figure data-label="Skeleton Crew">
+      <a data-label="Skeleton Crew" href="./card_types/skeleton_crew">
+        <img class="no-lightbox" src="./card_types/assets/skeleton_crew.webp" loading="lazy">
+      </a>
+    </figure>
     <figure data-label="Standard">
       <a data-label="Standard" href="./card_types/standard">
         <img class="no-lightbox" src="./card_types/assets/standard.webp" loading="lazy">
