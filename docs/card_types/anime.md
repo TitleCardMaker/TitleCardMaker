@@ -41,7 +41,8 @@ overwritten with the [_Season Text Color_](#season-text-color) extra.
 
     <div class="image-compare example-card"
         data-starting-point="22"
-        data-left-label="rgb(233,20,35)" data-right-label="#CFCFCF">
+        data-left-label="rgb(233,20,35)"
+        data-right-label="#CFCFCF">
         <img src="../assets/anime/etc.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
@@ -56,7 +57,8 @@ size of the text, and values less than `#!yaml 1.0` will decrease it.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="1.3" data-right-label="1.0">
+        data-left-label="1.3"
+        data-right-label="1.0">
         <img src="../assets/anime/etfs.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
@@ -73,7 +75,8 @@ _Episode Text Stroke Color_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="crimson" data-right-label="black">
+        data-left-label="crimson"
+        data-right-label="black">
         <img src="../assets/anime/etsc.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
@@ -88,7 +91,8 @@ this gradient overlay, set the _Gradient Omission_ extra to `True`.
 
     <div class="image-compare example-card"
         data-starting-point="20"
-        data-left-label="False" data-right-label="True">
+        data-left-label="False"
+        data-right-label="True">
         <img src="../assets/anime.webp"/>
         <img src="../assets/anime/gradient.webp"/>
     </div>
@@ -122,7 +126,8 @@ The color of the kanji text can be adjusted with the _Kanji Color_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="14.5"
-        data-left-label="skyblue" data-right-label="white">
+        data-left-label="skyblue"
+        data-right-label="white">
         <img src="../assets/anime/kanji_color.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
@@ -145,7 +150,8 @@ the text, and values less than `#!yaml 1.0` will decrease it.
 
     <div class="image-compare example-card"
         data-starting-point="11.2"
-        data-left-label="1.5" data-right-label="1.0">
+        data-left-label="1.5"
+        data-right-label="1.0">
         <img src="../assets/anime/kanji_size.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
@@ -160,7 +166,8 @@ the [title text](#stroke-color_2).
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="crimson" data-right-label="black">
+        data-left-label="crimson"
+        data-right-label="black">
         <img src="../assets/anime/kanji_stroke_color.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
@@ -174,7 +181,8 @@ extra.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="1.4" data-right-label="1.0">
+        data-left-label="1.4"
+        data-right-label="1.0">
         <img src="../assets/anime/kanji_stroke_width.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
@@ -189,7 +197,8 @@ of the kanji, you can do so with the _Kanji Vertical Shift_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="10.5"
-        data-left-label="20" data-right-label="0">
+        data-left-label="20"
+        data-right-label="0">
         <img src="../assets/anime/kanji_shift.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
@@ -223,7 +232,8 @@ extras, with the season coloring taking priority over the episode.
 
     <div class="image-compare example-card"
         data-starting-point="90"
-        data-left-label="·" data-right-label="//">
+        data-left-label="·"
+        data-right-label="//">
         <img src="../assets/anime.webp"/>
         <img src="../assets/anime/separator.webp"/>
     </div>
@@ -237,7 +247,8 @@ _Stroke Text Color_ extra.
 
     <div class="image-compare example-card"
         data-starting-point="15"
-        data-left-label="red" data-right-label="black">
+        data-left-label="red"
+        data-right-label="black">
         <img src="../assets/anime/stroke_color.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
@@ -253,7 +264,8 @@ effects.
 
     <div class="image-compare example-card"
         data-starting-point="17.35"
-        data-left-label="Mask Image" data-right-label="Resulting Title Card">
+        data-left-label="Mask Image"
+        data-right-label="Resulting Title Card">
         <img src="../assets/anime/mask-raw.webp"/>
         <img src="../assets/anime/mask.webp"/>
     </div>
