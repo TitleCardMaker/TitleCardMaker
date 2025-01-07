@@ -727,6 +727,7 @@ def get_validator_model() -> type[Base]:
         episode_text_font_size: PositiveFloat = 1.0
         outline_color: str | None = None
         outline_width: PositiveFloat = SkeletonCrewTitleCard.DEFAULT_OUTLINE_WIDTH
+        separator: str = SkeletonCrewTitleCard.DEFAULT_SEPARATOR_CHARACTER
         stroke_color: str = SkeletonCrewTitleCard.DEFAULT_STROKE_COLOR
         vertical_position: VerticalPosition = 'bottom'
 
