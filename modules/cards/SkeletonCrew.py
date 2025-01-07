@@ -60,6 +60,13 @@ class SkeletonCrewTitleCard(BaseCardType):
                 tooltip='Default is to match the title color.',
             ),
             Extra(
+                name='Outline Width',
+                identifier='outline_width',
+                description='Width of the outline border',
+                tooltip='Number ><v>0</v>. Default is <v>16</v>. Unit is pixels.',
+                default=16,
+            ),
+            Extra(
                 name='Separator Character',
                 identifier='separator',
                 description='Character to separate season and episode text',
@@ -135,6 +142,7 @@ class SkeletonCrewTitleCard(BaseCardType):
     DEFAULT_SEPARATOR_CHARACTER: str = '•'
     DEFAULT_STROKE_COLOR: str = 'transparent'
     DEFAULT_OUTLINE_COLOR: str = TITLE_COLOR
+    DEFAULT_OUTLINE_WIDTH: float = 16
 
     __slots__ = (
         'episode_text',
@@ -148,6 +156,7 @@ class SkeletonCrewTitleCard(BaseCardType):
         'hide_episode_text',
         'output_file',
         'outline_color',
+        'outline_width',
         'season_text',
         'separator',
         'source_file',
@@ -175,6 +184,7 @@ class SkeletonCrewTitleCard(BaseCardType):
             episode_text_color: str = DEFAULT_EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
             outline_color: str = DEFAULT_OUTLINE_COLOR,
+            outline_width: float = DEFAULT_OUTLINE_WIDTH,
             separator: str = DEFAULT_SEPARATOR_CHARACTER,
             stroke_color: str = DEFAULT_STROKE_COLOR,
             vertical_position: VerticalPosition = 'bottom',
@@ -209,6 +219,7 @@ class SkeletonCrewTitleCard(BaseCardType):
         self.episode_text_color = episode_text_color
         self.episode_text_font_size = episode_text_font_size
         self.outline_color = outline_color
+        self.outline_width = outline_width
         self.separator = separator
         self.stroke_color = stroke_color
         if vertical_position == 'random':
@@ -312,7 +323,7 @@ class SkeletonCrewTitleCard(BaseCardType):
         return [
             f'-fill transparent',
             f'-stroke "{self.outline_color}"', 
-            f'-strokewidth 16',
+            f'-strokewidth {self.outline_width}',
             # Whitespace at end to keep as single draw command
             f'-draw "arc {x0+10},{y0+130} {x0+130},{y0+10} 180,270 ',
             f'line {x0+65},{y0+10} {x1-30},{y0+10} ',
@@ -714,6 +725,7 @@ def get_validator_model() -> type[Base]:
         episode_text_color: str = 'transparent'
         episode_text_font_size: PositiveFloat = 1.0
         outline_color: str | None = None
+        outline_width: PositiveFloat = SkeletonCrewTitleCard.DEFAULT_OUTLINE_WIDTH
         stroke_color: str = SkeletonCrewTitleCard.DEFAULT_STROKE_COLOR
         vertical_position: VerticalPosition = 'bottom'
 
