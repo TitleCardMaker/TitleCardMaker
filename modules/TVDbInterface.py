@@ -333,7 +333,9 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             'year': series_info.year,
             'type': 'series'
         })
-        results: dict[list] = self.get(f'{self.__ROOT_API_URL}/search?{params}')
+        results: dict[str, list] = self.get(
+            f'{self.__ROOT_API_URL}/search?{params}'
+        )
         if results.get('data'):
             return int(results.get('data')[0]['tvdb_id'])
 
@@ -656,9 +658,14 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             episode_info.set_tvdb_id(tvdb_id)
 
             # Query extended info for this episode
-            ids: list[TVDbRemoteID] = self.get(
+            extended_data = self.get(
                 f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/extended'
-            ).get('data', {}).get('remoteIds', [])
+            )
+            if (not isinstance(extended_data, dict)
+                or 'data' not in extended_data):
+                log.debug(f'{series_info} {episode_info} returned no TVDb data')
+                continue
+            ids: list[TVDbRemoteID] = extended_data['data'].get('remoteIds', [])
 
             # Update all ID data for this episode
             for id_ in ids:
