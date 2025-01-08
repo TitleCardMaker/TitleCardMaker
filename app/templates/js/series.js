@@ -2481,6 +2481,40 @@ function showCardUpload() {
 }
 
 /**
+ * Submit an API request to upload the source images to this Series' source
+ * directory.
+ */
+function uploadSourceImages() {
+  // Verify at least one file was selected
+  const files = document.getElementById('source-image-upload').files;
+  if (!files || files.length === 0) { return; }
+
+  // Mark icon as loading
+  const $icon = $('.button[data-action="upload-source-images"] > i.icon');
+  setLoadingIcon($icon);
+
+  // Create Form with all files
+  const form = new FormData();
+  for (const file of files) { form.append('images', file); }
+
+  // Submit API request
+  $.ajax({
+    type: 'PUT',
+    url: '/api/sources/series/{{ series.id }}/upload',
+    data: form,
+    cache: false,
+    contentType: false,
+    processData: false,
+    success: () => {
+      showInfoToast(files.length > 1 ? 'Source Images uploaded' : 'Source Image uploaded');
+      getSourceFileData();
+    },
+    error: response => showErrorToast({title: 'Error Updating Logo', response}),
+    complete: () => removeLoadingIcon($icon),
+  });
+}
+
+/**
  * Handler function to parse drag-n-dropped Cards in the upload Card dialog.
  * This parses the filenames of the uploads for season and episode numbers, and
  * then adds that data to the modal table.

@@ -1309,6 +1309,20 @@
             </span>
             {% endif %}
           </h2>
+
+          <div class="ui tertiary buttons">
+            <button class="ui blue tertiary button" data-action="refresh-source-images" onclick="getSourceFileData();" >
+              <i class="redo icon"></i>
+              Refresh
+            </button>
+
+            <input type="file" id="source-image-upload" class="ui invisible file input" onchange="uploadSourceImages();" multiple accept="image/*">
+            <label for="source-image-upload" data-action="upload-source-images" class="ui green tertiary button">
+              <i class="upload icon"></i>
+              Upload
+            </label>
+          </div>
+
           <div class="ui scrolling long fluid container">
             <table class="ui compact striped head stuck sortable unstackable scrolling long table">
               <thead>
@@ -1588,43 +1602,6 @@
     </div>
 
     <!-- MODALS -->
-
-    <!-- Edit poster modal -->
-    <div id="edit-poster-modal" class="ui mini modal">
-      <i class="close icon"></i>
-      <div class="header">Edit Poster</div>
-      <div class="content">
-        <!-- <form id="edit-poster-form" class="ui form"> -->
-          <div class="input field">
-            <label>URL</label>
-            <div class="ui action input">
-              <input name="url"></input>
-              <button onclick="queryTMDbPoster();" class="ui blue button">Query TMDb</button>
-            </div>
-          </div>
-
-          <div class="ui horizontal divider">Or</div>
-
-          <div class="ui file input">
-            <input type="file" name="file" accept="image/*">
-          </div>
-          <!-- <input type="file" id="uploadPoster" class="ui invisible file input">
-          <label for="uploadPoster" class="ui placeholder segment">
-            <div class="ui icon header">
-              <i class="upload icon"></i>
-              Upload
-            </div>
-          </label> -->
-          <!-- <div class="file clearable input field">
-            <label>Upload File</label>
-            <input name="file" type="file" accept="image/*">
-          </div> -->
-        <!-- </form> -->
-      </div>
-      <div class="actions">
-        <button class="ui positive button" onclick="editSeriesPoster();">Update</button>
-      </div>
-    </div>
 
     <!-- TMDb logo browser modal -->
     <div id="browse-tmdb-logo-modal" class="ui scrolling content large uninvertible basic modal">
