@@ -21,6 +21,12 @@ our Template, as well as show how these Cards can be further customized.
 
 ## Episode Data
 
+In TCM, "Episode Data" is pulled from the relevant Episode Data Source, which
+in this case is a [global setting](./settings.md). This data is typically
+refreshed [automatically](../user_guide/scheduler.md) when TCM creates Title
+Cards (unless the Series is unmonitored), but for this tutorial we'll be doing
+it manually.
+
 1. Go to the _Breaking Bad_ Series configuration page - you can quickly access
 it by searching for the title in the top left search bar (next to the TCM logo).
 
@@ -30,13 +36,14 @@ the page and click the <span class="example md-button">Refresh</span> button.
 TCM will now query your global Episode Data Source for any new Episodes
 (although this is also done when you first add a Series to TCM).
 
-    !!! note "Scheduled Task"
-
-        Refreshing Episode data happens automatically as a
-        [scheduled task](../user_guide/scheduler.md), __unless__ the Series is
-        marked as Unmonitored.
-
 ## Source Images
+
+A "Source Image" is the underlying blank/textless image which TCM uses to create
+most Title Cards. These are generally[^1] required, and TCM will pull these from
+your Image Source Priority [global setting](./settings.md). These are typically
+downloaded [automatically](../user_guide/scheduler.md) when TCM creates Title
+Cards (unless the Series is unmonitored), but for this tutorial we'll be doing
+it manually.
 
 4. Open the "Files" tab. This tab shows image information for all Source Images
 for each Episode of the Series. Since we just added _Breaking Bad_, all images
@@ -59,12 +66,6 @@ Source Image directory. Download any image.
 
 6. Close the image browser. The file for that Episode should now be filled in
 with Source Image information.
-
-    !!! note "Scheduled Task"
-
-        Downloading Source Images happens automatically as a
-        [scheduled task](../user_guide/scheduler.md), __unless__ the Series is
-        marked as Unmonitored.
 
 ## Title Cards
 
@@ -124,3 +125,7 @@ deleted.
 
     See the [User Guide](../user_guide/index.md) for detailed guides on each
     part of TCM.
+
+[^1]:
+    There are very few instances of [card types](../card_types/index.md) which
+    do not require Source Images, but this is uncommon.
