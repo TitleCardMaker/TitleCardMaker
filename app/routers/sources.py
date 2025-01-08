@@ -1,5 +1,6 @@
 from base64 import b64encode, b64decode
 
+from asyncio import gather as async_gather
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -359,6 +360,46 @@ def get_existing_series_source_images(
             get_source_image(episode) for episode in episodes
         ]
     )
+
+
+@source_router.put('/series/{series_id}/upload')
+async def upload_series_source_images(
+        request: Request,
+        series_id: int,
+        images: list[UploadFile] = [],
+        db: Session = Depends(get_database),
+    ) -> None:
+    """
+    Process any of the given uploaded source images and write them to
+    the source directory for the associated Series.
+
+    - series_id: ID of the Series whose images are provided.
+    - images: List of images to write and process.
+    """
+
+    # Get contextual logger
+    log: Logger = request.state.log
+
+    # Get Series with this ID, raise 404 if DNE
+    series = get_series(db, series_id, raise_exc=True)
+
+    async def _download_file(file: UploadFile) -> tuple[str, bytes]:
+        return file.filename, await file.read() # type: ignore
+
+    # Download all files in parallel
+    files = await async_gather(
+        *(_download_file(file) for file in images if file.filename)
+    )
+
+    # Write all file contents
+    for filename, contents in files:
+        file = series.source_directory / filename
+        if file.exists():
+            log.debug(f'"{file}" exists - overwriting')
+        file.write_bytes(contents)
+        log.trace(f'Wrote {len(contents):,} bytes to "{file}"')
+
+    log.info(f'Imported {len(files)} Source Images')
 
 
 @source_router.delete('/series/{series_id}')
