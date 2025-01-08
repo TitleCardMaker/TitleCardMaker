@@ -560,7 +560,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
                 overview=result.get('overview', 'No Overview'),
                 ongoing=result.get('status') == 'Continuing',
                 imdb_id=_get_id(result.get('remote_ids', []), 'IMDB'),
-                tmdb_id=result['tvdb_id'],
+                tvdb_id=result['tvdb_id'],
             )
             for result in results
             if 'year' in result
