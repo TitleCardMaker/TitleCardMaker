@@ -720,6 +720,45 @@ function mirrorSourceImage(episodeId) {
 }
 
 /**
+ * Submit an API request to delete the mask image for the given Episode.
+ * @param {number} episodeId ID of the Episode whose mask image is being deleted.
+ */
+function deleteEpisodeMaskImage(episodeId) {
+  $.ajax({
+    type: 'DELETE',
+    url: `/api/sources/episode/${episodeId}/mask`,
+    success: () => {
+      showInfoToast('Deleted Mask Image');
+      getSourceFileData();
+    },
+    error: response => showErrorToast({title: 'Error Deleting Mask Image', response}),
+  });
+}
+
+/**
+ * Get the mask file URL for the source image located at the given URL.
+ * @example
+ * // returns '/assets/source/s1e1-mask.png'
+ * replaceFileNameWithMask('/assets/source/s1e1.jpg');
+ * @param {string} imageSrc URL to the image whose mask file to return.
+ * @returns {string} URL to the mask file associated with the given image URL.
+ */
+function replaceFileNameWithMask(imageSrc) {
+  // Split the imageSrc into parts based on '/'
+  const parts = imageSrc.split('/');
+  const fileName = parts.pop(); // Remove the old filename
+
+  // Extract the base name and extension from the filename
+  const baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+
+  // Construct the new filename using the original name
+  parts.push(`${baseName}-mask.png`);
+
+  // Reconstruct the full URL with the new filename
+  return parts.join('/');
+}
+
+/**
  * Submit an API request to delete the Source Image of the given Episode. If
  * successful, then re-query the File and Card data.
  * @param {number} episodeId: ID of the Episode whose Source Image is being
@@ -745,13 +784,19 @@ function deleteSourceImage(episodeId) {
 /** @type {number} Current page number for the source files. */
 let currentFilePage = 1;
 
+let isDrawing = false;
+
 /**
  * Query and display the Source Images on the webpage.
  * @param {number} page - Page number of source files to query and display.
  */
 async function getSourceFileData(page=currentFilePage) {
-  const rowTemplate = document.getElementById('source-row-template');
+  // Mark icon as loading
+  const $icon = $('.button[data-action="refresh-source-images"] .redo.icon');
+  setLoadingIcon($icon);
 
+  // Submit API request
+  const rowTemplate = document.getElementById('source-row-template');
   $.ajax({
     type: 'GET',
     url: `/api/sources/series/{{ series.id }}?page=${page}&size=${sourceImagePreviewPageSize}`,
@@ -831,6 +876,28 @@ async function getSourceFileData(page=currentFilePage) {
         image.querySelector('.popup [data-action="download"]').href = source.source_url;
         image.querySelector('.popup [data-action="mirror"]').onclick = () => mirrorSourceImage(source.episode_id);
         image.querySelector('.popup [data-action="upload"]').onclick = () => uploadEpisodeSource(source.episode_id);
+        
+        image.querySelector('.popup [data-action="view-mask"]').onclick = () => {
+          resetMaskEditor();
+          document.querySelector('#example-modal img[data-type="source"]').src = source.source_url;
+          document.querySelector('#example-modal img[data-type="mask"]').src = replaceFileNameWithMask(source.source_url);
+          document.querySelector('#example-modal [data-action="delete-mask"]').onclick = () => deleteEpisodeMaskImage(source.episode_id);
+          document.querySelector('#example-modal .button[data-action="remove-background"]').onclick = () => backgroundRemovaltest(source.episode_id);
+          const editButton = document.querySelector('#example-modal .button[data-action="edit-mask"]');
+          editButton.classList.remove('disabled');
+          editButton.onclick = () => {
+            editButton.classList.add('disabled');
+            document.querySelector('#edit-mask-canvas').style.display = '';
+            editMaskFile(source.episode_id);
+          }
+          document.querySelector('#example-modal img[data-type="mask"]').onerror = function() {
+            this.src = source.source_url;
+            editButton.classList.add('disabled');
+            this.onerror = () => {};
+          }
+          $('#example-modal').modal({blurring: true}).modal('show');
+        }
+
         sourceImages.push(image);
       });
       document.getElementById('source-image-previews').replaceChildren(...sourceImages);
@@ -849,7 +916,18 @@ async function getSourceFileData(page=currentFilePage) {
       $('#source-image-previews .image').popup({on: 'click', inline: true});
     },
     error: response => showErrorToast({title: 'Error Loading Series Source Images', response}),
+    complete: () => removeLoadingIcon($icon),
   });
+}
+
+function resetMaskEditor() {
+  // Ensure the image comparison is visible; hidden when editing masks
+  document.querySelector('#example-modal .image-compare').style.display = '';
+  // Hide the mask editor canvas
+  document.querySelector('#edit-mask-canvas').style.display = 'none';
+  // Disable edit and save buttons
+  document.querySelector('#example-modal .button[data-action="edit-mask"]').classList.add('disabled');
+  document.querySelector('#example-modal .button[data-action="save-mask"]').classList.add('disabled');
 }
 
 /**
@@ -1311,6 +1389,24 @@ async function initAll() {
 
   // Show popup when poster is clicked
   $('#poster').popup({on: 'click', inline: true, position: 'right center'});
+
+  new ImageCompare(
+    document.querySelector('#example-modal .image-compare'),
+    {
+      startingPoint: 50,
+      verticalMode: false,
+      labelOptions: {
+        before: 'image',
+        after: 'mask',
+        onHover: true
+      },
+      hoverStart: false,
+      controlShadow: false,
+      addCircle: true,
+      addCircleBlur: true,
+      showLabels: true,
+    }
+  ).mount();
 }
 
 /**
@@ -1350,49 +1446,6 @@ function editSeriesPoster() {
     },
     error: response => showErrorToast({title: 'Error updating poster', response}),
     complete: () => $('#poster-dialog').toggleClass('loading', false),
-  });
-}
-
-
-function backgroundRemovaltest() {
-  // Attach an event listener to your button (assuming it has an ID of 'uploadButton')
-  $('#uploadButton').click(function() {
-    // Get the file from the file input (assuming it has an ID of 'fileInput')
-    const fileInput = $('#fileInput')[0];
-    const file = fileInput.files[0];
-
-    if (!file) {
-      alert('Please select a file first!');
-      return;
-    }
-
-    // Create a FormData object to hold the file
-    const formData = new FormData();
-    formData.append('file', file);
-    const params = new URLSearchParams({url: 'http://localhost:8002/api/remove'});
-
-    // Perform the AJAX request using jQuery
-    $.ajax({
-      url: `/api/webhooks/background-removal?${params.toString()}`,
-      type: 'POST',
-      data: formData,
-      processData: false, // Important! Prevent jQuery from automatically transforming the data
-      contentType: false, // Important! Ensures the correct content type
-      xhrFields: {
-        responseType: 'blob' // To handle the binary data as a blob
-      },
-      success: function(response) {
-        // Create a URL for the returned image
-        const imageUrl = URL.createObjectURL(response);
-
-        // Set the image source (assuming the img tag has an ID of 'resultImage')
-        $('#resultImage').attr('src', imageUrl);
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.error('Error during image processing:', textStatus, errorThrown);
-        showErrorToast({title: 'Error', jqXHR});
-      }
-    });
   });
 }
 
@@ -2936,5 +2989,111 @@ function openManualCardLoadModal(cardId) {
         });
       }
     },
+  });
+}
+
+// CANVAS TEST -----------------------------------------------------------------
+
+let maskSource;
+function editMaskFile(episodeId) {
+  const _compare = document.querySelector('#example-modal .image-compare');
+  const [width, height] = [_compare.clientWidth, _compare.clientHeight];
+  _compare.style.display = 'none';
+
+  /** @type {HTMLCanvasElement} */
+  const canvas = document.querySelector('#example-modal canvas');
+  canvas.width = width; canvas.height = height;
+
+  const applyMask = initializeEditableMask({
+    canvas: canvas,
+    imageSource: maskSource,
+    applyButton: document.querySelector('#example-modal .button[data-action="apply-selection"]'),
+  });
+
+  document.querySelector('#example-modal .button[data-action="save-mask"]').onclick = () => {
+    const canvas = applyMask();
+    // canvas.toBlob((blob) => {
+    //   const url = URL.createObjectURL(blob);
+    //   const link = document.createElement('a');
+    //   link.href = url;
+    //   link.download = 'mask.png'; // Name of the downloaded file
+    //   document.body.appendChild(link);
+    //   link.click();
+    //   document.body.removeChild(link);
+    //   URL.revokeObjectURL(url); // Release the URL object
+    // }, 'image/png');
+    canvas.toBlob((blob) => {
+      const maskForm = new FormData();
+      maskForm.set('file', blob, 'mask.png');
+
+      $.ajax({
+        url: `/api/sources/episode/${episodeId}/mask`,
+        type: 'PUT',
+        data: maskForm,
+        processData: false, // Important! Prevent jQuery from automatically transforming the data
+        contentType: false, // Important! Ensures the correct content type
+        success: () => showInfoToast('Mask File Uploaded'),
+        error: response => showErrorToast({title: 'Error Uploading Mask', response}),
+      });
+    });
+  };
+}
+
+/** @type {?Blob} Mask image */
+let maskBlob = new FormData();
+
+function backgroundRemovaltest(episodeId) {
+  const params = new URLSearchParams({
+    url: 'http://localhost:8002/api/remove',
+    episode_id: episodeId || 6388,
+    timeout: 60,
+  });
+
+  const rembgButton = document.querySelector('#example-modal .button[data-action="remove-background"] .icon');
+  rembgButton.classList.add('spinner', 'loading');
+  rembgButton.classList.remove('magic');
+
+  $.ajax({
+    url: `/api/webhooks/background-removal?${params.toString()}`,
+    type: 'POST',
+    // data: formData,
+    processData: false, // Important! Prevent jQuery from automatically transforming the data
+    contentType: false, // Important! Ensures the correct content type
+    xhrFields: {
+      responseType: 'blob' // To handle the binary data as a blob
+    },
+    /**
+     * Mask file created, display as image src.
+     * @param {Blob} response Streamed mask file.
+     */
+    success: function(response) {
+      // Create a URL for the returned image
+      const imageUrl = URL.createObjectURL(response);
+      maskSource = imageUrl;
+      maskBlob.set('file', response);
+      $('#resultImage').attr('src', imageUrl);
+
+      document.querySelector('#example-modal .button[data-action="edit-mask"]').classList.remove('disabled');
+      document.querySelector('#example-modal .button[data-action="save-mask"]').classList.remove('disabled');
+      document.querySelector('#example-modal .button[data-action="save-mask"]').onclick = () => {
+        $.ajax({
+          url: `/api/sources/episode/${episodeId}/mask`,
+          type: 'PUT',
+          data: maskBlob,
+          processData: false, // Important! Prevent jQuery from automatically transforming the data
+          contentType: false, // Important! Ensures the correct content type
+          success: () => showInfoToast('Mask File Uploaded'),
+          error: response => showErrorToast({title: 'Error Uploading Mask', response}),
+        });
+      };
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      console.error('Error during image processing:', textStatus, errorThrown);
+      showErrorToast({title: 'Error', jqXHR});
+    },
+    complete: () => {
+      rembgButton.classList.remove('spinner', 'loading');
+      rembgButton.classList.add('magic');
+    }
   });
 }
