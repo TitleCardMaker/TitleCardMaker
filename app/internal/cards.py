@@ -627,10 +627,8 @@ def resolve_card_settings(
             name='title text format', series=series, episode=episode, log=log
         )
 
-    # Get EpisodeInfo for this Episode
-    episode_info = episode.as_episode_info
-
     # Add season title specification
+    episode_info = episode.as_episode_info
     season_title_ranges = SeasonTitleRanges(
         card_settings.get('season_titles', {}),
         fallback=getattr(CardClass, 'season_text_formatter', None),
@@ -704,8 +702,10 @@ def resolve_card_settings(
     # Exit if the source file does not exist
     if (CardClass.USES_SOURCE_IMAGES
         and not card_settings['source_file'].exists()):
-        log.debug(f'{episode} Card source image '
-                  f'({card_settings["source_file"]}) is missing')
+        log.debug(
+            f'{episode} Card source image ({card_settings["source_file"]}) is '
+            f'missing'
+        )
         raise MissingSourceImage
 
     # Get card folder
