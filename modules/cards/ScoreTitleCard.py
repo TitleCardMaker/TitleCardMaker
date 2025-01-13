@@ -223,7 +223,7 @@ class ScoreTitleCard(BaseCardType):
 
 
     @staticmethod
-    def SEASON_TEXT_FORMATTER(episode_info: EpisodeInfo) -> str:
+    def season_text_formatter(episode_info: EpisodeInfo) -> str:
         """
         Fallback season title formatter.
 
