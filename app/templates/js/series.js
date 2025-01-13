@@ -1201,7 +1201,7 @@ function getCardData(
           preview.querySelector('.dimmer .content').innerHTML = `<h5>Season ${card.episode.season_number} Episode ${card.episode.episode_number}</h5>`;
         }
 
-        preview.querySelector('img').src = `${card.file_url}?${card.filesize}`;
+        preview.querySelector('img').src = `${card.file_url}?${card.id}`;
 
         return preview;
       });
