@@ -1,7 +1,7 @@
 from os import environ, name as os_name
 from pathlib import Path
 from random import choices as random_choices
-from re import findall
+from re import findall, compile as re_compile
 from shlex import split as command_split
 from string import hexdigits
 from subprocess import Popen, PIPE, TimeoutExpired
@@ -10,6 +10,9 @@ from typing import Iterable, Literal, NamedTuple, overload
 from imagesize import get as im_get
 
 from modules.Debug import Logger, log
+
+
+_dimension_regex = re_compile(r'.*?(\d+),(\d+).*')
 
 
 class Dimensions(NamedTuple): # pylint: disable=missing-class-docstring
@@ -56,7 +59,11 @@ class ImageMagickInterface:
     __REQUIRED_VERSION_SUBSTRINGS = ('Version','Copyright','License','Features')
 
     __slots__ = (
-        'executable', 'container', 'use_docker', 'prefix', 'timeout',
+        'container',
+        'executable',
+        'prefix',
+        'timeout',
+        'use_docker',
         '__history'
     )
 
@@ -285,7 +292,13 @@ class ImageMagickInterface:
             f'info:',
         ]))
 
-        return Dimensions(*map(int, output.split(',')))
+        # Remove any IMv7 convert warnings
+        try:
+            if (re_match := _dimension_regex.match(output)):
+                return Dimensions(*map(int, re_match.groups()))
+            return Dimensions(0, 0)
+        except ValueError:
+            return Dimensions(0, 0)
 
 
     def get_text_dimensions(self,
