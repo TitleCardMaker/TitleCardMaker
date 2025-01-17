@@ -157,7 +157,7 @@ BaseJobs = {
         function=wrapped_sync_all,
         seconds=Hours(6),
         crontab='0 */6 * * *',
-        description='Run all defined Syncs, adding any new Series',
+        description='Sync and add any new Series',
     ),
     JOB_CREATE_TITLE_CARDS: NewJob(
         id=JOB_CREATE_TITLE_CARDS,
@@ -171,7 +171,7 @@ BaseJobs = {
         function=wrapped_load_media_servers,
         seconds=Hours(4),
         crontab='0 */4 * * *',
-        description='Load all Title Cards into Emby, Jellyfin, or Plex',
+        description='Load all Title Cards into media servers',
     ),
     JOB_DOWNLOAD_SERIES_LOGOS: NewJob(
         id=JOB_DOWNLOAD_SERIES_LOGOS,
@@ -232,7 +232,7 @@ BaseJobs = {
         function=wrapped_snapshot_database,
         seconds=Minutes(30),
         crontab='*/30 * * * *',
-        description='Take a snapshot of the database',
+        description='Take a database snapshot',
         internal=True,
     ),
 }
