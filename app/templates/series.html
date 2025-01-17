@@ -296,11 +296,6 @@
             <i class="border all icon"></i>
             Browse
           </button>
-          <!-- Temporarily disabled -->
-          <!-- <button class="ui uninvertible disabled button" data-action="create-mask">
-            <i class="theater masks icon"></i>
-            Create Mask
-          </button> -->
           <button class="ui uninvertible button" data-action="delete">
             <i class="trash alternate icon"></i>
             Delete
@@ -317,11 +312,10 @@
             <i class="upload icon"></i>
             Upload
           </button>
-          <!-- Temporarily disabled -->
-          <!-- <button class="ui uninvertible disabled button" data-action="view-mask">
-            <i class="eye icon"></i>
-            View Mask
-          </button> -->
+          <button class="ui uninvertible button" data-action="view-mask">
+            <i class="theater masks icon"></i>
+            Create/View Mask
+          </button>
         </div>
       </div>
     </div>
@@ -1905,6 +1899,38 @@
             {% endif %}
           {% endfor %}
         </form>
+      </div>
+    </div>
+
+    <div class="ui basic modal" id="example-modal">
+      <div class="content">
+        <div class="image-compare">
+          <img data-type="mask" loading="lazy" id="resultImage">
+          <img data-type="source" loading="lazy">
+        </div>
+        <canvas id="edit-mask-canvas" style="display: none;"></canvas>
+      </div>
+      <div class="actions">
+        <div class="ui purple basic inverted button" data-action="remove-background">
+          <i class="magic icon"></i>
+          Remove Background
+        </div>
+        <div class="ui teal basic inverted button" data-action="edit-mask">
+          <i class="cut icon"></i>
+          Edit
+        </div>
+        <div class="ui teal basic inverted button" data-action="apply-selection">
+          <i class="save icon"></i>
+          Apply Selection
+        </div>
+        <div class="ui green ok inverted disabled button" data-action="save-mask">
+          <i class="checkmark icon"></i>
+          Save
+        </div>
+        <div class="ui red inverted button" data-action="delete-mask">
+          <i class="trash icon"></i>
+          Delete
+        </div>
       </div>
     </div>
 
