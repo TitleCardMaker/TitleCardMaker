@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import HTTPException
 from tmdbapis import (
@@ -618,7 +618,8 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             try:
                 # Search for movies with this title
                 results = self.api.movie_search(episode_info.title)
-                (movie := results[0]).reload()
+                movie = cast(TMDbMovie, results[0])
+                movie.reload()
 
                 # Check for TMDb ID match
                 id_match = (episode_info.has_id('tmdb_id')
@@ -642,8 +643,10 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                     raise NotFound
 
                 # Actual match, return "movie"
-                log.trace(f'Matched {episode_info} of "{series_info}" to TMDb '
-                          f'Movie {movie}')
+                log.trace(
+                    f'Matched {episode_info} of "{series_info}" to TMDb Movie '
+                    f'{movie}'
+                )
                 return movie
             except exception_group:
                 return None
@@ -665,18 +668,25 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             ) -> TMDbEpisode | None:
             # Find episode with series TMDb ID and given index
             try:
-                (episode := self.api.tv_episode(
+                episode = self.api.tv_episode(
                     series_info.tmdb_id, season_number, episode_number
-                )).reload()
+                )
+                episode.reload()
             except (NotFound, TMDbException):
                 return None
 
             # If TMDb ID matches, or title matches
-            id_match = (episode_info.has_id('tmdb_id')
-                        and episode_info.tmdb_id == episode.id)
-            does_match = (not title_match or (title_match and
-                          episode_info.full_title.matches(episode.name)))
-            return episode if id_match or does_match else None
+            return (
+                episode
+                if (
+                    episode_info.has_id('tmdb_id')
+                    and episode_info.tmdb_id == episode.id
+                ) or (
+                    not title_match or (title_match and
+                    episode_info.full_title.matches(episode.name))
+                )
+                else None
+            )
 
         # Try and match by index
         indices = episode_info.season_number, episode_info.episode_number
@@ -822,10 +832,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         Returns:
             List of tmdbapis.objs.image.Still objects. If the episode is
             not found on TMDb, then an empty list is returned.
-
-        Raises:
-            HTTPException (404): The given Series+Episode is not found
-                on TMDb.
         """
 
         # Get Episode object for this episode
@@ -833,10 +839,8 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info, episode_info, match_title, log=log,
         )
         if episode is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f'"{series_info}" {episode_info} not found on TMDb'
-            )
+            log.warning(f'"{series_info}" {episode_info} not found on TMDb')
+            return []
 
         # Episode found on TMDb, get images/backdrops based on episode/movie
         if hasattr(episode, 'stills'):
@@ -957,16 +961,9 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         """
 
         # Get all images for this episode
-        try:
-            all_images = self.get_all_source_images(
-                series_info, episode_info, match_title=match_title, log=log,
-            )
-        # Some error occurred, raise if indicated, otherwise return None
-        except HTTPException as exc:
-            log.exception('Error occured while querying Source Images')
-            if raise_exc:
-                raise exc
-            return None
+        all_images = self.get_all_source_images(
+            series_info, episode_info, match_title=match_title, log=log,
+        )
 
         # Exit if no images for this Episode
         if not all_images:
@@ -974,17 +971,21 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
         # Get the best image for this Episode
-        log.trace(f'TMDb has {len(all_images)} images for "{series_info}" '
-                  f'{episode_info}')
+        log.trace(
+            f'TMDb has {len(all_images)} images for "{series_info}" '
+            f'{episode_info}'
+        )
         kwargs = {
             'is_source_image': True,
-            'skip_localized':skip_localized_images
+            'skip_localized': skip_localized_images
         }
         if (best_image := self.__determine_best_image(all_images, **kwargs)):
             return best_image.url
 
-        log.debug(f'TMDb images for "{series_info}" {episode_info} do not meet '
-                  f'dimensional requirements')
+        log.debug(
+            f'TMDb images for "{series_info}" {episode_info} do not meet '
+            f'dimensional requirements'
+        )
         return None
 
 
