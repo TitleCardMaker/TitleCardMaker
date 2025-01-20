@@ -140,8 +140,9 @@ def get_all_episode_data(
 
     # Verify Series has an associated Library if EDS is a media server
     if not (libraries := list(series.get_libraries(interface_id))):
-        log.error('Series does not have a Library for the assigned Episode '
-                  'Data Source')
+        log.error(
+            'Series does not have a Library for the assigned Episode Data Source'
+        )
         if raise_exc:
             raise HTTPException(
                 status_code=409,
@@ -201,13 +202,13 @@ def refresh_episode_data(
         series.sync_specials,
     )
 
-    # Filter Episodezs
+    # Filter Episodes
     new_episodes: list[Episode] = []
     changed = False
     for episode_info, watched in all_episodes:
         # Skip specials if indicated
         if not sync_specials and episode_info.season_number == 0:
-            log.trace(f'{series} Skipping {episode_info} - specials disabled')
+            log.trace(f'{series} skipping {episode_info} - specials disabled')
             continue
 
         # Check if this Episode exists in the database already
@@ -240,8 +241,10 @@ def refresh_episode_data(
         all_existing = {ep.index_str: ep for ep in series.episodes}
         for delete_key in set(all_existing) - new_keys:
             # Delete Title Card(s)
-            log.info(f'Deleting {all_existing[delete_key]} - not in Episode '
-                      f'Data Source')
+            log.info(
+                f'Deleting {all_existing[delete_key]} - not in Episode Data '
+                f'Source'
+            )
             cards = db.query(Card)\
                 .filter_by(episode_id=all_existing[delete_key].id)\
                 .all()
@@ -259,6 +262,8 @@ def refresh_episode_data(
         log.info(f'{series} {len(new_episodes)} new Episodes')
     elif len(new_episodes) == 1:
         log.info(f'{series} new Episode "{new_episodes[0].title}"')
+    else:
+        log.trace(f'{series} has no new Episodes')
 
     # Set Episode ID's for all/new Episodes
     id_episodes = series.episodes if refresh_all_ids else new_episodes

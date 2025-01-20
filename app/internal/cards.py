@@ -60,18 +60,22 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                         try:
                             refresh_episode_data(db, series, log=log)
                         except HTTPException:
-                            log.exception(f'Cannot refresh Episode data of '
-                                          f'{series}')
+                            log.exception(
+                                f'Cannot refresh Episode data of {series}'
+                            )
                     else:
-                        log.trace(f'{series} is unmonitored, not refreshing '
-                                  f'Episode data')
+                        log.trace(
+                            f'{series} is unmonitored, not refreshing Episode '
+                            f'data'
+                        )
 
                     # Set watch statuses of all Episodes
                     try:
                         get_watched_statuses(db, series,series.episodes,log=log)
                     except HTTPException as exc:
-                        log.debug(f'Cannot query watched statuses of {series} '
-                                  f'- {exc}')
+                        log.debug(
+                            f'Cannot query watched statuses of {series} - {exc}'
+                        )
 
                     # Add translations if monitored
                     if series.monitored:
@@ -79,7 +83,9 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                             translate_episode(db, episode, commit=False, log=log)
                         db.commit()
                     else:
-                        log.trace(f'{series} is unmonitored, skipping translations')
+                        log.trace(
+                            f'{series} is unmonitored, skipping translations'
+                        )
 
                     # Download Source Images
                     if series.monitored:
@@ -89,8 +95,10 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                             )
                         db.commit()
                     else:
-                        log.trace(f'{series} is unmonitored, skipping Source '
-                                  f'Image selection')
+                        log.trace(
+                            f'{series} is unmonitored, skipping Source Image '
+                            f'selection'
+                        )
 
                     # Create Cards for all Episodes
                     for episode in series.episodes:
@@ -143,8 +151,10 @@ def clean_database(*, log: Logger = log) -> None:
                 .filter(or_(Card.episode_id.is_(None),
                             Card.series_id.is_(None)))\
                 .all()
-            unlinked_cards += [card for card in db.query(Card)
-                               if card.episode is None or card.series is None]
+            unlinked_cards += [
+                card for card in db.query(Card)
+                if card.episode is None or card.series is None
+            ]
             for card in set(unlinked_cards):
                 log.debug(f'Deleting unlinked {card}')
                 card.file.unlink(missing_ok=True)
@@ -197,7 +207,7 @@ def clean_database(*, log: Logger = log) -> None:
                     Card.id != subquery.c.max_id,
                 )
                 for card in to_delete.all():
-                    log.debug(f'Deleting redundant {card}')
+                    log.debug(f'Deleting duplicate {card}')
                     card.file.unlink(missing_ok=True)
                     db.delete(card)
                 db.commit()
