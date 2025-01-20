@@ -64,6 +64,10 @@ def process_rating_key(
         # Episode does not exist, refresh episode data and try again
         if not episodes:
             # Try and find associated Series, skip if DNE
+            log.trace(
+                f'No Episode found for ({episode_info}) - refreshing Episode '
+                f'data'
+            )
             series = db.query(Series)\
                 .filter(series_info.filter_conditions(Series))\
                 .first()
