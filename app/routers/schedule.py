@@ -206,8 +206,8 @@ BaseJobs = {
     INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES: NewJob(
         id=INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES,
         function=wrapped_refresh_all_remote_cards,
-        seconds=Days(1),
-        crontab='0 0 */1 * *',
+        seconds=Days(3),
+        crontab='0 0 */3 * *',
         description='Refresh all non-built-in card types',
         internal=True,
     ),
