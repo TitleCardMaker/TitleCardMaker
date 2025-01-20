@@ -161,7 +161,9 @@ def set_all_series_ids(*, log: Logger = log) -> None:
             changed = False
             for series in db.query(Series).all():
                 try:
-                    changed |= set_series_database_ids(series, db, commit=False)
+                    changed |= set_series_database_ids(
+                        series, db, commit=False, log=log,
+                    )
                 except HTTPException:
                     log.warning(f'{series} Skipping ID assignment')
                     continue
@@ -184,8 +186,8 @@ def load_all_media_servers(*, log: Logger = log) -> None:
 
     try:
         # Get the Database
-        retries = 0
         with next(get_database()) as db:
+            retries = 0
             # Get all Series
             for series in db.query(Series).all():
                 # Skip this Series if it has no library
@@ -919,7 +921,7 @@ def add_series(
     download_series_logo(series, log=log)
 
     # Refresh card types in case new remote type was specified
-    refresh_remote_card_types(db, log=log)
+    refresh_remote_card_types(db, reset=False, log=log)
 
     # Refresh Episode data
     if series.monitored:
