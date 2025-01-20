@@ -1,3 +1,5 @@
+from time import sleep
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -76,6 +78,7 @@ def process_rating_key(
                 continue
 
             # Series found, refresh data and look for Episode again
+            sleep(5)
             new_episodes = refresh_episode_data(db, series, log=log)
             episodes = db.query(Episode)\
                 .filter(episode_info.filter_conditions(Episode))\
