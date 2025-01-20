@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import FilePath, PositiveFloat, constr, root_validator
 
@@ -16,6 +16,8 @@ from modules.Title import SplitCharacteristics
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
     from modules.Font import Font
+
+GradientType = Literal['original', 'improved']
 
 
 class OlivierTitleCard(BaseCardType):
@@ -73,6 +75,17 @@ class OlivierTitleCard(BaseCardType):
                 ),
                 default='True',
             ),
+            Extra(
+                name='Gradient Type',
+                identifier='gradient_type',
+                description='The type of gradient to overlay',
+                tooltip=(
+                    'Either <v>original</v>, <v>improved</v>, or a custom '
+                    'ImageMagick command to create a gradient image which '
+                    'starts with <v>command:</v>. See documentation for more '
+                    'details. Default is <v>improved</v>.'
+                ),
+            ),
         ],
         description=[
             'Title card with left-aligned title and episode text.', 'This card '
@@ -112,8 +125,14 @@ class OlivierTitleCard(BaseCardType):
 
     """Gradient image"""
     GRADIENT = REF_DIRECTORY.parent / 'overline' / 'small_gradient.png'
+    _ALT_GRADIENT = REF_DIRECTORY / 'alt_gradient.png'
 
     __slots__ = (
+        'episode_prefix',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_font_size',
+        'episode_text_vertical_shift',
         'font_color',
         'font_file',
         'font_interline_spacing',
@@ -122,12 +141,8 @@ class OlivierTitleCard(BaseCardType):
         'font_size',
         'font_stroke_width',
         'font_vertical_shift',
+        'gradient_type',
         'hide_episode_text',
-        'episode_prefix',
-        'episode_text',
-        'episode_text_color',
-        'episode_text_font_size',
-        'episode_text_vertical_shift',
         'omit_gradient',
         'output_file',
         'stroke_color',
@@ -138,9 +153,11 @@ class OlivierTitleCard(BaseCardType):
     def __init__(self, *,
             source_file: Path,
             card_file: Path,
+            # Text
             title_text: str,
             episode_text: str,
             hide_episode_text: bool = False,
+            # Font
             font_color: str = TITLE_COLOR,
             font_file: str = TITLE_FONT,
             font_interline_spacing: int = 0,
@@ -149,14 +166,17 @@ class OlivierTitleCard(BaseCardType):
             font_size: float = 1.0,
             font_stroke_width: float = 1.0,
             font_vertical_shift: int = 0,
+            # Builtins
             blur: bool = False,
             grayscale: bool = False,
+            preferences: 'Preferences | None' = None,
+            # Extras
             episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
             episode_text_vertical_shift: int = 0,
             omit_gradient: bool = True,
+            gradient_type: GradientType | str = 'improved',
             stroke_color: str = STROKE_COLOR,
-            preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
         """Construct a new instance of this card."""
@@ -195,6 +215,7 @@ class OlivierTitleCard(BaseCardType):
         self.episode_text_color = episode_text_color
         self.episode_text_font_size = episode_text_font_size
         self.episode_text_vertical_shift = episode_text_vertical_shift
+        self.gradient_type = gradient_type
         self.stroke_color = stroke_color
 
 
@@ -208,14 +229,23 @@ class OlivierTitleCard(BaseCardType):
         if self.omit_gradient:
             return []
 
-        return [
-            fr'\(',
-            f'"{self.GRADIENT.resolve()}"',
-            f'-rotate 90',
-            fr'\)',
-            f'-geometry -{(self.WIDTH - self.HEIGHT) / 2}+0',
-            f'-composite',
-        ]
+        # Gradient image, append to image
+        if self.gradient_type in ('original', 'improved'):
+            if self.gradient_type == 'original':
+                gradient_command =[f'"{self.GRADIENT.resolve()}"', '-rotate 90']
+            else:
+                gradient_command = f'"{self._ALT_GRADIENT.resolve()}"'
+
+            return [
+                fr'\(',
+                *gradient_command,
+                fr'\)',
+                f'-geometry -{(self.WIDTH - self.HEIGHT) / 2}+0',
+                f'-composite',
+            ]
+
+        # Custom gradient definition, generate and append
+        return [self.gradient_type.removeprefix('custom:')]
 
 
     @property
@@ -422,6 +452,8 @@ class OlivierTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
+    CustomGradient = constr(regex=r'^custom:.*$')
+
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontNoText):
         title_text: str
@@ -432,6 +464,7 @@ def get_validator_model() -> type[Base]:
         episode_text_color: str = OlivierTitleCard.EPISODE_TEXT_COLOR
         episode_text_font_size: PositiveFloat = 1.0
         episode_text_vertical_shift: int = 0
+        gradient_type: GradientType | CustomGradient = 'improved'
         omit_gradient: bool = True
         stroke_color: str = OlivierTitleCard.STROKE_COLOR
 
