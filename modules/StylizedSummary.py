@@ -84,7 +84,7 @@ class StylizedSummary(BaseSummary):
             f'convert',
             f'"{self.logo.resolve()}"',
             f'-resize x350',
-            f'-resize {max_width}x350\>',
+            fr'-resize {max_width}x350\>',
             f'"{self.__RESIZED_LOGO_PATH.resolve()}"',
         ])
 
@@ -129,13 +129,15 @@ class StylizedSummary(BaseSummary):
         command = ' '.join([
             f'convert "{montage.resolve()}"',
             # Create reflection of montage
-            f'\( +clone',
+            fr'\(',
+            f'+clone',
             f'-flip',
             # Blur reflection
             f'-blur 0x8',
             # Darken reflection
             f'-fill black',
-            f'-colorize 75% \)',
+            f'-colorize 75%',
+            fr'\)',
             f'-append',
             # Create colored background
             f'-size {width+200}x{height+700}',
@@ -147,16 +149,20 @@ class StylizedSummary(BaseSummary):
             f'-geometry +0+400',
             f'-composite',
             # Overlay created by image
-            f'\( "{created_by.resolve()}"',
+            fr'\(',
+            f'"{created_by.resolve()}"',
             f'-resize x75',
             # Create reflection of created by image
-            f'\( +clone',
+            fr'\(',
+            f'+clone',
             f'-flip',
             f'-blur 0x2',
             # Darken reflection of created by image
             f'-fill black',
-            f'-colorize 75% \)',
-            f'-append \)',
+            f'-colorize 75%',
+            fr'\)',
+            f'-append',
+            fr'\)',
             f'-gravity south',
             f'-geometry +0+50',
             f'-composite',

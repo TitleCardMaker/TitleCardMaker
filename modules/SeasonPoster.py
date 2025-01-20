@@ -34,9 +34,19 @@ class SeasonPoster(ImageMaker):
     GRADIENT_OVERLAY = REF_DIRECTORY / 'gradient.png'
 
     __slots__ = (
-        'source', 'destination', 'logo', 'season_text', 'font', 'font_color',
-        'font_size', 'font_kerning', 'logo_placement', 'omit_gradient',
-        'omit_logo', 'text_placement', 'font_vertical_shift',
+        'destination',
+        'font',
+        'font_color',
+        'font_size',
+        'font_kerning',
+        'font_vertical_shift',
+        'logo',
+        'logo_placement',
+        'omit_gradient',
+        'omit_logo',
+        'season_text',
+        'source',
+        'text_placement',
     )
 
 
@@ -97,7 +107,7 @@ class SeasonPoster(ImageMaker):
             f'convert',
             f'"{self.logo.resolve()}"',
             f'-resize 1460x',
-            f'-resize x750\>',
+            fr'-resize x750\>',
             f'-format "%[h]"',
             f'info:',
         ])
@@ -116,8 +126,10 @@ class SeasonPoster(ImageMaker):
         # Top placement, rotate gradient
         if self.text_placement == 'top':
             return [
-                f'\( "{self.GRADIENT_OVERLAY.resolve()}"',
-                f'-rotate 180 \)',
+                fr'\(',
+                f'"{self.GRADIENT_OVERLAY.resolve()}"',
+                f'-rotate 180',
+                fr'\)',
                 f'-compose Darken',
                 f'-composite',
             ]
@@ -146,11 +158,13 @@ class SeasonPoster(ImageMaker):
 
         return [
             # Overlay logo
-            f'\( "{self.logo.resolve()}"',
+            fr'\(',
+            f'"{self.logo.resolve()}"',
             # Fit to 1460px wide
             f'-resize 1460x',
             # Limit to 750px tall
-            f'-resize x750\> \)',
+            fr'-resize x750\>',
+            fr'\)',
             # Begin logo merge
             f'-gravity {gravity}',
             f'-compose Atop',

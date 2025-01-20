@@ -107,8 +107,10 @@ class BaseSummary(ImageMaker):
         # Skip if the number of available episodes is below the minimum
         minimum = global_objects.pp.summary_minimum_episode_count
         if episode_count < minimum:
-            log.debug(f'Skipping Summary, {self.show} has {episode_count} '
-                      f'episodes, minimum setting is {minimum}')
+            log.debug(
+                f'Skipping Summary, {self.show} has {episode_count} episodes, '
+                f'minimum setting is {minimum}'
+            )
             return False
 
         # Get a random subset of images to create the summary with
@@ -156,8 +158,10 @@ class BaseSummary(ImageMaker):
             f'-fill "#CFCFCF"',
             f'label:"with"',
             # Resize TCM logo
-            f'\( "{self.__TCM_LOGO.resolve()}"',
-            f'-resize x100 \)',
+            fr'\(',
+            f'"{self.__TCM_LOGO.resolve()}"',
+            f'-resize x100',
+            fr'\)',
             # Create "TitleCardMaker" image/text
             f'-fill "#5493D7"',
             f'label:"TitleCardMaker"',
