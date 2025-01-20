@@ -392,8 +392,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             plex_episode = cast(PlexEpisode, plex_episode)
             if (plex_episode.parentIndex is None
                 or plex_episode.index is None):
-                log.warning(f'Episode {plex_episode} of {series_info} in '
-                            f'"{library_name}" has no index - skipping')
+                log.warning(
+                    f'Episode {plex_episode} of {series_info} in '
+                    f'"{library_name}" has no index - skipping'
+                )
                 continue
 
             # Skip temp titles if title matching and within 2 days of airing
@@ -402,9 +404,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 and airdate is not None
                 and self.__TEMP_IGNORE_REGEX.match(plex_episode.title)
                 and airdate + timedelta(days=2) > datetime.now()):
-                log.debug(f'Temporarily ignoring '
-                          f'{plex_episode.seasonEpisode.upper()} of '
-                          f'{series_info} - placeholder title')
+                log.debug(
+                    f'Temporarily ignoring {plex_episode.seasonEpisode.upper()}'
+                    f' of {series_info} - placeholder title'
+                )
                 continue
 
             # Create a new EpisodeInfo, add to list
