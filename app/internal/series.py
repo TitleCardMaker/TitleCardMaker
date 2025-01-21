@@ -1013,9 +1013,9 @@ def apply_filter(
             # Series IDs of Episodes whose ID is not in the above list
             missing_series_ids: list[int] = [
                 id_[0] for id_ in 
-                db.query(Episode.series_id)\
-                    .filter(not_(Episode.id.in_(episode_ids)))\
-                    .distinct()\
+                db.query(Episode.series_id)
+                    .filter(not_(Episode.id.in_(episode_ids)))
+                    .distinct()
                     .all()
             ]
 

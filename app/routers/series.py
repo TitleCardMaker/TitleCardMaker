@@ -14,7 +14,7 @@ from fastapi_pagination import paginate as paginate_sequence
 from PIL import Image
 from pydantic import ValidationError
 from sqlalchemy import and_, func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 from unidecode import unidecode
 
 from app.dependencies import (
@@ -48,9 +48,10 @@ from app.schemas.series import (
     SeriesOrder,
     SeriesOverview,
     SeriesOverviewWithCounts,
+    SeriesSearchResult,
     UpdateSeries
 )
-from modules.Debug import Logger, log
+from modules.Debug import Logger
 from modules.PlexInterface2 import PlexInterface
 from modules.WebInterface import WebInterface
 
@@ -219,22 +220,30 @@ def delete_series_(
 @series_router.get('/search')
 def search_existing_series(
         name: str | None = None,
-        year: int | None = None,
-        monitored: bool | None = None,
-        font_id: int | None = None,
         sync_id: int | None = None,
         template_id: int | None = None,
         db: Session = Depends(get_database),
-    ) -> Page[Series]: # type: ignore
+    ) -> Page[SeriesSearchResult]: # type: ignore
     """
     Query all defined defined series by the given parameters. This
     performs an AND operation with the given conditions.
 
     - name: Name to fuzzy match the Series against.
-    - year: Year to exactly filter results by.
-    - monitored: Monitored status to filter results by.
-    - *_id: Object ID to filter results by.
+    - *_id: Associated object ID to filter the results by.
     """
+
+    # Perform query on subset of Series data
+    query = db.query(SeriesModel).options(
+        load_only(
+            SeriesModel.clean_name,
+            SeriesModel.id,
+            SeriesModel.name,
+            SeriesModel.poster_url,
+            SeriesModel.sort_name,
+            SeriesModel.sync_id,
+            SeriesModel.year,
+        )
+    )
 
     # Generate conditions for the given arguments
     conditions = []
@@ -244,35 +253,29 @@ def search_existing_series(
             SeriesModel.fuzzy_matches(name),
             SeriesModel.clean_name.contains(unidecode(name, errors='preserve')),
         ))
-    if year is not None:
-        conditions.append(SeriesModel.year==year)
-    if monitored is not None:
-        conditions.append(SeriesModel.monitored==monitored)
-    if font_id is not None:
-        conditions.append(SeriesModel.font_id==font_id)
     if sync_id is not None:
         conditions.append(SeriesModel.sync_id==sync_id)
+
+    # Template ID filtering has alternate filter logic
     if template_id is not None:
         return paginate(
-            db.query(SeriesModel)\
-                .join(models.template.SeriesTemplates.series)\
-                .filter(models.template.SeriesTemplates.template_id==template_id)\
-                .filter(*conditions)\
+            db.query(SeriesModel)
+                .join(models.template.SeriesTemplates.series)
+                .filter(models.template.SeriesTemplates.template_id==template_id)
+                .filter(*conditions)
                 .order_by(SeriesModel.sort_name)
         )
 
     # Query by all given conditions - if by name, sort by str difference
+    results = query.filter(*conditions)
     if name is not None:
         return paginate(
-            db.query(SeriesModel).filter(*conditions)\
-                .order_by(SeriesModel.diff_ratio(name).desc())\
+            results
+                .order_by(SeriesModel.diff_ratio(name).desc())
                 .order_by(func.lower(SeriesModel.sort_name))
         )
 
-    return paginate(
-        db.query(SeriesModel).filter(*conditions)\
-            .order_by(func.lower(SeriesModel.sort_name))
-    )
+    return paginate(results.order_by(func.lower(SeriesModel.sort_name)))
 
 
 @series_router.get('/lookup')
