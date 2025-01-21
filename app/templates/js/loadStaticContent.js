@@ -14,7 +14,7 @@ $(document).ready(function() {
   // Search results should show a poster preview
   $.fn.search.settings.templates = {
     standard: response => {
-      const query = $('#search-bar input').val();
+      const query = document.querySelector('#search-bar input').value;
       let elements = response.results.map(({id, name, poster_url}) => {
         return `<a class="search result" href="/series/${id}"><div class="search content"><img src="${poster_url}">${name}</div></a>`;
       });
@@ -23,11 +23,10 @@ $(document).ready(function() {
     },
     message: (message, type) => {
       if (message === 'Your search returned no results') {
-        const query = $('#search-bar input').val();
+        const query = document.querySelector('#search-bar input').value;
         return `<a class="search result" href="/add?q=${query}">Search for "${query}"..</a>`;
-      } else {
-        return `<div class="search result">${message}</div>`;
-      }
+      } 
+      return `<div class="search result">${message}</div>`;
     },
   }
 
@@ -41,9 +40,9 @@ $(document).ready(function() {
 
   // Enable webhook if passed as true in the script tag
   if (Object.fromEntries(new URL(_thisScript.src).searchParams).websocket.toLowerCase() === 'true') {
-    /**
-     * Function to create (or get) the log message element.
-     */
+    /** Function to create (or get) the log message element. 
+     * 
+    */
     const createLogMessage = () => {
       const elem = document.createElement('div');
       elem.id = '__current_log';
