@@ -33,6 +33,7 @@ function getSnapshots() {
           label: 'Episodes',
           data: snapshots.map(snapshot => snapshot.episodes),
           yAxisID: 'yCards',
+          fill: '+1', // Fill to total number of Cards
         },
         // {
         //   label: 'Blueprints',
@@ -42,6 +43,7 @@ function getSnapshots() {
           label: 'Title Cards',
           data: snapshots.map(snapshot => snapshot.cards),
           yAxisID: 'yCards',
+          fill: '+1', // Fill to number of loaded Cards
         },
         // {
         //   label: 'Fonts',
@@ -63,7 +65,7 @@ function getSnapshots() {
         {
           label: 'Title Cards Created',
           data: snapshots.map(snapshot => snapshot.cards_created),
-          fill: 'origin',
+          // fill: 'origin',
           yAxisID: 'yTotalCards',
         },
         {
