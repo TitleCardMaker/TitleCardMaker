@@ -136,7 +136,7 @@ function showDeleteModal(templateId) {
     /** Fill out and display modal to confirm deletion */
     complete: () => {
       // Populate modal with list of Series (or nothing)
-      $('#delete-template-modal [data-value="series-list"]')[0].innerHTML = seriesElements.join('');
+      document.querySelector('#delete-template-modal [data-value="series-list"]').innerHTML = seriesElements.join('');
 
       // Assign delete API request to button press
       $('#delete-template-modal .button[data-action="delete-template"]').off('click').on('click', () => {
