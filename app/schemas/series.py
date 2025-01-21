@@ -377,3 +377,9 @@ class SeriesOverviewWithCounts(Base):
     episode_count: int
     card_count: int
     monitored: bool
+
+class SeriesSearchResult(Base):
+    id: int
+    name: str
+    year: int
+    poster_url: str
