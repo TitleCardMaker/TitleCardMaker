@@ -88,6 +88,7 @@ function getSnapshots() {
         options: {
           responsive: true,
           stacked: false,
+          pointStyle: false,
           interaction: {
             intersect: false,
             axis: 'x'
@@ -184,6 +185,7 @@ function getSnapshots() {
         options: {
           responsive: true,
           stacked: false,
+          pointStyle: false,
           interaction: {
             intersect: false,
             axis: 'x'
