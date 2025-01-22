@@ -329,7 +329,7 @@ class CascadeTitleCard(BaseCardType):
     """Characteristics for title splitting by this class"""
     TITLE_CHARACTERISTICS: SplitCharacteristics = {
         'max_line_width': 20,
-        'max_line_count': 3,
+        'max_line_count': 4,
         'style': 'bottom',
     }
 
