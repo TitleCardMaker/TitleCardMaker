@@ -879,6 +879,9 @@ class CascadeTitleCard(BaseCardType):
             ):
                 if extra in extras:
                     del extras[extra]
+        if not custom_season_titles:
+            if 'allow_kanji_episode_text' in extras:
+                del extras['allow_kanji_episode_text']
 
 
     @staticmethod
