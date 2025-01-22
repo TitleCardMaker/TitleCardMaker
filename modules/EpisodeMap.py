@@ -18,11 +18,17 @@ class EpisodeMap:
     DEFAULT_APPLIES_TO = 'all'
 
     """Regex to match season/episode number from index range text"""
-    INDEX_RANGE_REGEX = re_compile('s(\d+)e(\d+)', IGNORECASE)
+    INDEX_RANGE_REGEX = re_compile(r's(\d+)e(\d+)', IGNORECASE)
 
     __slots__ = (
-        'valid', 'is_custom', '__index_by', 'raw', '__titles', '__sources',
-        '__applies', 'unique_season_titles',
+        'raw',
+        'is_custom',
+        'unique_season_titles',
+        'valid',
+        '__index_by',
+        '__titles',
+        '__sources',
+        '__applies',
     )
 
 
@@ -93,8 +99,10 @@ class EpisodeMap:
     def __repr__(self) -> str:
         """Returns an unambiguous string representation of the object."""
 
-        return (f'<EpisodeRange {self.__titles=}, {self.__sources=}, '
-                f'{self.__applies=}, {self.__index_by=}>')
+        return (
+            f'<EpisodeRange {self.__titles=}, {self.__sources=}, '
+            f'{self.__applies=}, {self.__index_by=}>'
+        )
 
 
     @property
