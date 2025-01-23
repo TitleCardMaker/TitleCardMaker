@@ -3,6 +3,7 @@ from typing import Any, Literal, TypedDict
 from urllib.parse import quote as url_quote, urlencode
 
 from fastapi import HTTPException
+from pydantic import BaseModel, ValidationError
 
 from modules.Debug import Logger, log
 from modules.EpisodeDataSource2 import (
@@ -27,14 +28,20 @@ OrderType = Literal[ # Called season-type in TVDb API docs
     'absolute', 'alternate', 'default', 'dvd', 'official', 'regional'
 ]
 SourceName = Literal[
-    'EIDR', 'Facebook', 'IMDB', 'Instagram', 'Official Website',
-    'TheMovieDB.com', 'Twitter',
+    'EIDR',
+    'Facebook',
+    'IMDB',
+    'Instagram',
+    'Official Website',
+    'TheMovieDB.com',
+    'Twitter',
+    'X (Twitter)'
 ]
 
-class TVDbRemoteID(TypedDict):
+class _RemoteID(BaseModel):
     id: str
     type: int
-    sourceName: SourceName
+    sourceName: SourceName | str
 
 class TVDbSearchResult(TypedDict):
     objectID: str
@@ -55,7 +62,7 @@ class TVDbSearchResult(TypedDict):
     overviews: dict[str, str]
     translations: dict[str, str]
     network: str
-    remote_ids: list[TVDbRemoteID]
+    remote_ids: list[_RemoteID]
     thumbnail: str
 
 class TVDbArtwork(TypedDict):
@@ -119,6 +126,116 @@ class TVDbEpisodes(TypedDict):
     series: Any # TVDbSeries
     episodes: list[TVDbEpisode]
 
+# class _Alias(BaseModel):
+#     language: str
+#     name: str
+
+# class _SeriesStatus(BaseModel):
+#     id: int
+#     name: Literal['Continuing']
+#     recordType: Literal['series']
+#     keepUpdated: bool
+
+# class _Airdays(BaseModel):
+#     sunday: bool
+#     monday: bool
+#     tuesday: bool
+#     wednesday: bool
+#     thursday: bool
+#     friday: bool
+#     saturday: bool
+
+# class _Company(BaseModel):
+#     activeDate: datetime
+#     aliases: list[_Alias]
+#     country: str
+#     id: int
+#     inactiveDate: datetime
+#     name: str
+#     nameTranslations: list[str]
+#     overviewTranslations: list[str]
+#     primaryCompanyType: int
+#     slug: str
+#     parentCompany: _ParentCompany
+#     tagOptions: _TagOption
+
+# class _Companies(BaseModel):
+#     studio: _Company | None
+#     network: _Company | None
+#     production: _Company | None
+#     distributor: _Company | None
+#     special_effects: _Company | None
+
+# class _Genre(BaseModel):
+#     id: int
+#     name: str
+#     slug: str
+
+class _SeasonType(BaseModel):
+    id: int
+    name: Literal['Absolute Order', 'Aired Order', 'DVD Order'] | str
+    type: OrderType
+    alternateName: str | None
+
+class _SeasonBaseRecord(BaseModel):
+    id: int
+    # seriesId: int
+    type: '_SeasonType'
+    number: int
+    nameTranslations: list[str]
+    # overviewTranslations: list[str]
+    # companies: _Companies
+    # image: str
+    # imageType: Literal[7]
+    # lastUpdated: datetime
+
+class _SeriesExtendedRecord(BaseModel):
+    # id: int
+    # name: str
+    # slug: str
+    # image: AnyUrl
+    # nameTranslations: list[str]
+    # overviewTranslations: list[str]
+    # aliases: list[_SeriesAlias]
+    # firstAired: datetime
+    # lastAired: datetime
+    # nextAired: datetime
+    # score: int
+    # status: _SeriesStatus
+    # originalCountry: str
+    # originalLanguage: str
+    defaultSeasonType: Literal[1, 2, 3]
+    # isOrderRandomized: bool
+    # lastUpdated: datetime
+    # averageRuntime: int
+    # episodes: None
+    # overview: str
+    # year: int
+    # artworks: list[...]
+    # companies: list[...]
+    # originalNetwork: ...
+    # latestNetwork: ...
+    # genres: list[_Genre]
+    # trailers: list[...]
+    # lists: list[...]
+    # remoteIds: list[_RemoteID]
+    # characters: list[...]
+    # airsDays: _Airdays
+    # airsTime: str
+    seasons: list[_SeasonBaseRecord]
+    # tags: None | list[_TagOptions]
+    # contentRatings: list[_ContentRating]
+    # seasonTypes: list[_SeasonType]
+
+class _Translation(BaseModel):
+    # aliases: list[str] = []
+    # isAlias: bool = False
+    # isPrimary: bool = False
+    name: str
+    # overview: str
+    # language: str
+    # tagline: str | None = None
+
 
 class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
     """
@@ -181,6 +298,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
                 for source images.
             language_priority: Priority which artwork should be
                 evaluated at.
+            interface_id: Interface ID of this interface.
             log: Logger for all log messages.
 
         Raises:
@@ -216,7 +334,8 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             for API requests.
 
         Raises:
-            Raises: HTTPException (401): The API key is invalid.
+            Raises: ValueError: The API key is invalid or no auth token
+                was returned.
         """
 
         # Submit login request
@@ -519,7 +638,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         series_info.set_tvdb_id(tvdb_id)
 
         # Use short mode so that characters and artwork are not returned
-        remote_ids: list[TVDbRemoteID] = self.get(
+        remote_ids: list[_RemoteID] = self.get(
             f'{self.__ROOT_API_URL}/series/{tvdb_id}/extended?short=true'
         ).get('data', {}).get('remoteIds', [])
 
@@ -553,7 +672,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             f'{self.__ROOT_API_URL}/search?query={url_quote(query)}'
         ).get('data', [])
 
-        def _get_id(ids: list[TVDbRemoteID], source_name: str) -> str | None:
+        def _get_id(ids: list[_RemoteID], source_name: str) -> str | None:
             for id_ in ids:
                 if id_['sourceName'] == source_name:
                     return id_['id']
@@ -670,7 +789,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
                 or 'data' not in extended_data):
                 log.debug(f'{series_info} {episode_info} returned no TVDb data')
                 continue
-            ids: list[TVDbRemoteID] = extended_data['data'].get('remoteIds', [])
+            ids: list[_RemoteID] = extended_data['data'].get('remoteIds', [])
 
             # Update all ID data for this episode
             for id_ in ids:
@@ -904,3 +1023,82 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
         return self.__get_best_artwork(tvdb_id, 'poster')
+
+
+    def get_season_titles(self,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log
+        ) -> dict[str, dict[int, str]]:
+        """
+        Get all custom season titles for all languages of the given
+        series.
+
+        >>> get_season_titles(...)
+        {'eng': {1: 'Part One', 2: 'Part Two'}, 'ita': {...}}
+
+        Args:
+            series_info: Series whose season titles to query.
+            log: Logger for all log messages.
+
+        Returns:
+            Dictionary whose keys are the language code and whose values
+            are dictionaroes whose keys are the season numbers and
+            whose values are the season titles.
+        """
+
+        # Find Series
+        if (tvdb_id := self.__get_series_id(series_info)) is None:
+            log.warning(f'Cannot find {series_info} on TVDb')
+            return {}
+
+        # Read all season data
+        _raw = None
+        try:
+            _raw = self.get(f'{self.__ROOT_API_URL}/series/{tvdb_id}/extended')
+            series_data = _SeriesExtendedRecord.parse_obj(_raw['data'])
+        except (ValidationError, KeyError):
+            log.exception(f'{series_info} returned invalid series data')
+            log.trace(_raw)
+            return {}
+
+        # Determine effective season type
+        if self._order_type == 'default':
+            season_type = series_data.defaultSeasonType
+        else:
+            season_type = self._order_type
+
+        # Look for alternate translations of all seasons
+        translations: dict[str, dict[int, str]] = {}
+        for season in series_data.seasons:
+            # Skip seasons for alternate orderings
+            if season_type not in (season.type.id, season.type.name):
+                log.debug(f'Skipping {season=}, wrong type')
+                continue
+
+            # Skip seasons with no name translations
+            if not season.nameTranslations:
+                log.debug(f'Skipping {season=}, no translations')
+                continue
+
+            # Translations are listed as comma-separated string, for some reason..
+            for language in season.nameTranslations[0].split(','):
+                # Query translated season data
+                try:
+                    _raw = self.get(
+                        f'{self.__ROOT_API_URL}/seasons/{season.id}'
+                        f'/translations/{language}'
+                    )
+                    season_data = _Translation.parse_obj(_raw['data'])
+                except (ValidationError, KeyError):
+                    log.exception(f'Invalid season translation subdata')
+                    log.trace(_raw)
+                    continue
+
+                # Add translation
+                if language in translations:
+                    translations[language][season.number] = season_data.name
+                else:
+                    translations[language] = {season.number: season_data.name}
+
+        return translations

@@ -2,10 +2,11 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.database.query import get_episode, get_series
-from app.dependencies import get_database
+from app.dependencies import get_database, require_tvdb_interface
 from app.internal.auth import get_current_user
 from app.internal.translate import translate_episode
 from app.schemas.episode import Episode
+from modules.TVDbInterface import TVDbInterface
 
 
 translation_router = APIRouter(
@@ -15,11 +16,31 @@ translation_router = APIRouter(
 )
 
 
+@translation_router.get('/series/{series_id}/season-titles')
+def get_series_season_titles(
+        request: Request,
+        series_id: int,
+        tvdb_interface: TVDbInterface = Depends(require_tvdb_interface),
+        db: Session = Depends(get_database),
+    ) -> dict[str, dict[int, str]]:
+    """
+    Query possible season titles from TVDb for the given Series.
+
+    - series_id: ID of the Series to query titles of.
+    - tvdb_interface_id: ID of the TVDb Connection to query titles from.
+    """
+
+    return tvdb_interface.get_season_titles(
+        get_series(db, series_id, raise_exc=True).as_series_info,
+        log=request.state.log
+    )
+
+
 @translation_router.post('/series/{series_id}')
 def add_series_translations(
-        series_id: int,
         background_tasks: BackgroundTasks,
         request: Request,
+        series_id: int,
         db: Session = Depends(get_database),
     ) -> None:
     """
@@ -37,8 +58,8 @@ def add_series_translations(
 
 @translation_router.post('/episode/{episode_id}')
 def add_episode_translations(
-        episode_id: int,
         request: Request,
+        episode_id: int,
         db: Session = Depends(get_database),
     ) -> Episode:
     """
