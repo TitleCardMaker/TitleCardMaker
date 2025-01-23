@@ -379,9 +379,14 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
         # Generate query URL
-        url = f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes/' \
-            + f'{self._order_type}?season={episode_info.season_number}&' \
-            + f'episodeNumber={episode_info.episode_number}'
+        params = urlencode({
+            'season': episode_info.season_number,
+            'episodeNumber': episode_info.episode_number,
+        })
+        url = (
+            f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes/'
+            f'{self._order_type}?{params}'
+        )
 
         # Submit API request
         if not (results := self.get(url).get('data', {}).get('episodes')):
@@ -778,8 +783,10 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         # Skip dimension check if requirements are >640p since TVDb
         # never has images of that quality
         if self.minimum_source_width > 640 or self.minimum_source_height > 360:
-            log.debug(f'TVDb images for "{series_info}" {episode_info} do not '
-                      'meet dimensional requirements')
+            log.debug(
+                f'TVDb images for "{series_info}" {episode_info} do not meet '
+                f'dimensional requirements'
+            )
             return None
 
         # Verify image meets dimensional requirements
@@ -788,8 +795,10 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             and height > self.minimum_source_height):
             return image_url
 
-        log.debug(f'TMDb images for "{series_info}" {episode_info} do not meet '
-                  f'dimensional requirements')
+        log.debug(
+            f'TMDb images for "{series_info}" {episode_info} do not meet '
+            f'dimensional requirements'
+        )
         return None
 
 
@@ -819,8 +828,10 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             log.warning(f'Cannot find {series_info} {episode_info} on TVDb')
             return None
 
-        url = f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/translations/' \
-            + language_code
+        url = (
+            f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/translations/'
+            f'{language_code}'
+        )
 
         return self.get(url).get('data', {}).get('name')
 
