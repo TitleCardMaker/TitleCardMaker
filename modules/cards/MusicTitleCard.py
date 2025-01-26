@@ -1266,8 +1266,14 @@ def get_validator_model() -> type[Base]:
             if ((percentage := values.get('percentage', 'random')) is not None
                 and isinstance(percentage, str)
                 and percentage != 'random'):
-                p = float(FormatString(percentage, data=values).result)
-                values['percentage'] = max(0.0, min(1.0, p)) # Limit [0.0, 1.0]
+                # Resolve the format string in case it was some logic
+                # which resolved to "random"
+                result = FormatString(percentage, data=values).result
+                if result == 'random':
+                    values['percentage'] = 'random'
+                else:
+                    p = float(result)
+                    values['percentage'] = max(0.0, min(1.0, p)) # Limit [0.0, 1.0]
             if (subtitle := values.get('subtitle', '{series_name}')) is not None:
                 values['subtitle'] = FormatString(subtitle, data=values).result
 
