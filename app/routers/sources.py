@@ -404,8 +404,8 @@ async def upload_series_source_images(
 
 @source_router.delete('/series/{series_id}')
 def delete_series_source_images(
-        series_id: int,
         request: Request,
+        series_id: int,
         db: Session = Depends(get_database),
     ) -> None:
     """

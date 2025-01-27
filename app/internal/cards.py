@@ -28,7 +28,7 @@ from app.schemas.card import NewTitleCard
 from app.schemas.card_type import LocalCardTypeModels
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
-from modules.Debug import InvalidCardSettings, Logger, MissingSourceImage, log
+from modules.Debug import InvalidCardSettings, Logger, MissingSourceImage, UnknownCardType, log
 from modules.FormatString import FormatString
 from modules.RemoteCardType2 import RemoteCardType
 from modules.RemoteFile import RemoteFile
@@ -468,9 +468,11 @@ def resolve_card_settings(
         The resolved Card settings as a dictionary.
 
     Raises:
-        HTTPException (400): Invalid Card type or class.
         HTTPException (404): A specified Template or Font is missing.
         MissingSourceImage: The required Source Image is missing.
+        UnknownCardType: The indicated card type is unknown/invalid.
+            Most likely this is a remote card type which needs to be
+            downloaded.
     """
 
     # Get effective Template(s) for this Series and Episode
@@ -580,13 +582,7 @@ def resolve_card_settings(
         card_settings['card_type'], log=log
     )
     if CardClass is None:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                f'Cannot create Card - invalid card type '
-                f'{card_settings["card_type"]}'
-            ),
-        )
+        raise UnknownCardType(card_settings['card_type'])
 
     # Add card default font stuff
     if card_settings.get('font_file', None) is None:

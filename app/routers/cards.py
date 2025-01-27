@@ -45,7 +45,7 @@ from app.schemas.episode import Episode as EpisodeSchema, UpdateEpisode
 from app.schemas.font import DefaultFont
 from app.schemas.series import UpdateSeries
 
-from modules.Debug import InvalidCardSettings, Logger, MissingSourceImage
+from modules.Debug import InvalidCardSettings, Logger, MissingSourceImage, UnknownCardType
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.FormatString import FormatString
 from modules.TieredSettings import TieredSettings
@@ -82,7 +82,10 @@ def create_preview_card(
     if CardClass is None:
         raise HTTPException(
             status_code=400,
-            detail=f'Cannot create preview for card type "{card.card_type}"',
+            detail=(
+                'Cannot create previews for Remote Card Types which have not '
+                'been saved first - save this change and try again'
+            ),
         )
 
     # Fake data
@@ -218,8 +221,8 @@ def create_preview_card_for_episode(
         raise HTTPException(
             status_code=422,
             detail=(
-                'Preview Cards cannot reflect Template changes - save changes '
-                'and try again'
+                'Preview Cards cannot reflect Template changes - save the new '
+                'Templates and try again'
             )
         )
 
@@ -243,15 +246,23 @@ def create_preview_card_for_episode(
     try:
         card_settings = resolve_card_settings(episode, library, log=log)
         card_settings['card_file'] = output
+    except UnknownCardType as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                'Preview cards cannot be created from un-initialized card '
+                'types - save the card type and try again'
+            )
+        ) from exc
     except MissingSourceImage as exc:
         raise HTTPException(
             status_code=404,
-            detail=f'Missing the required Source Image',
+            detail='Missing the required Source Image',
         ) from exc
     except (HTTPException, InvalidCardSettings) as exc:
         raise HTTPException(
             status_code=400,
-            detail=f'Invalid Card settings',
+            detail='Invalid Card settings',
         ) from exc
 
     # Delete output if it exists, then create Card
@@ -274,11 +285,7 @@ def create_preview_card_for_episode(
 def get_all_title_cards(
         db: Session = Depends(get_database)
     ) -> Page[TitleCard]: # type: ignore
-    """
-    Get all defined Title Cards.
-
-    - order_by: How to order the Cards in the returned list.
-    """
+    """Get all defined Title Cards."""
 
     return paginate(db.query(Card))
 
@@ -504,8 +511,8 @@ def load_series_title_cards_(
 
 @card_router.put('/episode/{episode_id}/load', tags=['Episodes'])
 def force_reload_episode_cards(
-        episode_id: int,
         request: Request,
+        episode_id: int,
         db: Session = Depends(get_database),
     ) -> None:
     """
@@ -532,8 +539,8 @@ def force_reload_episode_cards(
 
 @card_router.put('/card/{card_id}/load')
 def reload_card(
-        card_id: int,
         request: Request,
+        card_id: int,
         interface_id: int | None = Query(default=None),
         library_name: str | None = Query(default=None),
         uid: int | str | None = Query(default=None),
