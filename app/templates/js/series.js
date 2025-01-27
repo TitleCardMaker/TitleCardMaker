@@ -879,23 +879,23 @@ async function getSourceFileData(page=currentFilePage) {
         
         image.querySelector('.popup [data-action="view-mask"]').onclick = () => {
           resetMaskEditor();
-          document.querySelector('#mask-editor img[data-type="source"]').src = source.source_url;
-          document.querySelector('#mask-editor img[data-type="mask"]').src = replaceFileNameWithMask(source.source_url);
-          document.querySelector('#mask-editor [data-action="delete-mask"]').onclick = () => deleteEpisodeMaskImage(source.episode_id);
-          document.querySelector('#mask-editor .button[data-action="remove-background"]').onclick = () => backgroundRemovaltest(source.episode_id);
-          const editButton = document.querySelector('#mask-editor .button[data-action="edit-mask"]');
+          document.querySelector('#mask-editor-modal img[data-type="source"]').src = source.source_url;
+          document.querySelector('#mask-editor-modal img[data-type="mask"]').src = replaceFileNameWithMask(source.source_url);
+          document.querySelector('#mask-editor-modal [data-action="delete-mask"]').onclick = () => deleteEpisodeMaskImage(source.episode_id);
+          document.querySelector('#mask-editor-modal .button[data-action="remove-background"]').onclick = () => backgroundRemovaltest(source.episode_id);
+          const editButton = document.querySelector('#mask-editor-modal .button[data-action="edit-mask"]');
           editButton.classList.remove('disabled');
           editButton.onclick = () => {
             editButton.classList.add('disabled');
             document.querySelector('#edit-mask-canvas').style.display = '';
             editMaskFile(source.episode_id);
           }
-          document.querySelector('#mask-editor img[data-type="mask"]').onerror = function() {
+          document.querySelector('#mask-editor-modal img[data-type="mask"]').onerror = function() {
             this.src = source.source_url;
             editButton.classList.add('disabled');
             this.onerror = () => {};
           }
-          $('#mask-editor').modal({blurring: true}).modal('show');
+          $('#mask-editor-modal').modal({blurring: true}).modal('show');
         }
 
         sourceImages.push(image);
@@ -922,12 +922,12 @@ async function getSourceFileData(page=currentFilePage) {
 
 function resetMaskEditor() {
   // Ensure the image comparison is visible; hidden when editing masks
-  document.querySelector('#mask-editor .image-compare').style.display = '';
+  document.querySelector('#mask-editor-modal .image-compare').style.display = '';
   // Hide the mask editor canvas
   document.querySelector('#edit-mask-canvas').style.display = 'none';
   // Disable edit and save buttons
-  document.querySelector('#mask-editor .button[data-action="edit-mask"]').classList.add('disabled');
-  document.querySelector('#mask-editor .button[data-action="save-mask"]').classList.add('disabled');
+  document.querySelector('#mask-editor-modal .button[data-action="edit-mask"]').classList.add('disabled');
+  document.querySelector('#mask-editor-modal .button[data-action="save-mask"]').classList.add('disabled');
 }
 
 /**
@@ -1391,7 +1391,7 @@ async function initAll() {
   $('#poster').popup({on: 'click', inline: true, position: 'right center'});
 
   new ImageCompare(
-    document.querySelector('#mask-editor .image-compare'),
+    document.querySelector('#mask-editor-modal .image-compare'),
     {
       startingPoint: 50,
       verticalMode: false,
@@ -2996,21 +2996,21 @@ function openManualCardLoadModal(cardId) {
 
 let maskSource;
 function editMaskFile(episodeId) {
-  const _compare = document.querySelector('#mask-editor .image-compare');
+  const _compare = document.querySelector('#mask-editor-modal .image-compare');
   const [width, height] = [_compare.clientWidth, _compare.clientHeight];
   _compare.style.display = 'none';
 
   /** @type {HTMLCanvasElement} */
-  const canvas = document.querySelector('#mask-editor canvas');
+  const canvas = document.querySelector('#mask-editor-modal canvas');
   canvas.width = width; canvas.height = height;
 
   const applyMask = initializeEditableMask({
     canvas: canvas,
     imageSource: maskSource,
-    applyButton: document.querySelector('#mask-editor .button[data-action="apply-selection"]'),
+    applyButton: document.querySelector('#mask-editor-modal .button[data-action="apply-selection"]'),
   });
 
-  document.querySelector('#mask-editor .button[data-action="save-mask"]').onclick = () => {
+  document.querySelector('#mask-editor-modal .button[data-action="save-mask"]').onclick = () => {
     const canvas = applyMask();
     canvas.toBlob((blob) => {
       const maskForm = new FormData();
@@ -3039,7 +3039,7 @@ function backgroundRemovaltest(episodeId) {
     timeout: 60,
   });
 
-  const rembgButton = document.querySelector('#mask-editor .button[data-action="remove-background"] .icon');
+  const rembgButton = document.querySelector('#mask-editor-modal .button[data-action="remove-background"] .icon');
   rembgButton.classList.add('spinner', 'loading');
   rembgButton.classList.remove('magic');
 
@@ -3063,9 +3063,9 @@ function backgroundRemovaltest(episodeId) {
       maskBlob.set('file', response);
       $('#resultImage').attr('src', imageUrl);
 
-      document.querySelector('#mask-editor .button[data-action="edit-mask"]').classList.remove('disabled');
-      document.querySelector('#mask-editor .button[data-action="save-mask"]').classList.remove('disabled');
-      document.querySelector('#mask-editor .button[data-action="save-mask"]').onclick = () => {
+      document.querySelector('#mask-editor-modal .button[data-action="edit-mask"]').classList.remove('disabled');
+      document.querySelector('#mask-editor-modal .button[data-action="save-mask"]').classList.remove('disabled');
+      document.querySelector('#mask-editor-modal .button[data-action="save-mask"]').onclick = () => {
         $.ajax({
           url: `/api/sources/episode/${episodeId}/mask`,
           type: 'PUT',
