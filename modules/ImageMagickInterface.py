@@ -16,8 +16,8 @@ _dimension_regex = re_compile(r'.*?(\d+),(\d+).*')
 
 
 class Dimensions(NamedTuple): # pylint: disable=missing-class-docstring
-    width: int | float
-    height: int | float
+    width: int
+    height: int
 
 
 class ImageMagickInterface:
