@@ -21,8 +21,8 @@ class EpisodeMap:
     INDEX_RANGE_REGEX = re_compile(r's(\d+)e(\d+)', IGNORECASE)
 
     __slots__ = (
-        'raw',
         'is_custom',
+        'raw',
         'unique_season_titles',
         'valid',
         '__index_by',
@@ -172,10 +172,14 @@ class EpisodeMap:
             # Parse start and end of the range
             try:
                 start, end = episode_range.split('-')
-                start_season, start_episode =\
-                    map(int, self.INDEX_RANGE_REGEX.match(start).groups())
-                end_season, end_episode =\
-                    map(int, self.INDEX_RANGE_REGEX.match(end).groups())
+                start_season, start_episode =map(
+                    int,
+                    self.INDEX_RANGE_REGEX.match(start).groups() # type: ignore
+                )
+                end_season, end_episode = map(
+                    int,
+                    self.INDEX_RANGE_REGEX.match(end).groups() # type: ignore
+                )
 
                 # Error if range spans multiple seasons
                 assert start_season == end_season,'Cannot span multiple seasons'
@@ -305,9 +309,7 @@ class EpisodeMap:
 
         # Call default function if provided
         if episode_info and default is not None:
-            return default(
-                episode_info=episode_info
-            ).format(**episode_info.characteristics)
+            return default(episode_info).format(**episode_info.characteristics)
 
         return 'Specials' if season_number == 0 else f'Season {season_number}'
 
@@ -326,7 +328,7 @@ class EpisodeMap:
     def __get_value(self,
             episode_info: EpisodeInfo,
             which: Literal['season_titles', 'source', 'applies_to'],
-            default: Callable[[EpisodeInfo], str],
+            default: Callable[[EpisodeInfo | None], str],
         ) -> str:
         """
         Get the value for the given Episode from the target associated with
@@ -360,7 +362,7 @@ class EpisodeMap:
                     data=episode_info.characteristics
                 ).result
 
-            return default(episode_info=episode_info)
+            return default(episode_info)
 
         # Index by index
         if self.__index_by == 'index':
@@ -370,7 +372,7 @@ class EpisodeMap:
                     data=episode_info.characteristics,
                 ).result
 
-            return default(episode_info=episode_info)
+            return default(episode_info)
 
         # Index by absolute episode number
         # If there's no absolute number, use episode number instead
@@ -385,7 +387,7 @@ class EpisodeMap:
             ).result
 
         # Use default if index doesn't fall into specified target
-        return default(episode_info=episode_info)
+        return default(episode_info)
 
 
     def get_season_title(self,
@@ -413,11 +415,14 @@ class EpisodeMap:
         if self.__index_by == 'episode':
             if (episode_info.abs_number is None
                 and episode_info.season_number != 0):
-                log.warning(f'Episode range specified, but {episode_info} has '
-                            f'no absolute episode number')
+                log.warning(
+                    f'Episode range specified, but {episode_info} has no '
+                    f'absolute episode number'
+                )
             elif episode_info.abs_number not in self.__titles:
-                log.warning(f'{episode_info} does not fall into given episode '
-                            f'ranges')
+                log.warning(
+                    f'{episode_info} does not fall into given episode ranges'
+                )
         # Warn if default was returned and indexing by index
         elif (self.__index_by == 'index'
             and episode_info.index not in self.__titles):
