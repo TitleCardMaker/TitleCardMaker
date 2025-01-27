@@ -100,7 +100,7 @@ def parse_raw_yaml(yaml: str) -> YamlDict:
     except Exception as exc:
         raise HTTPException(
             status_code=422,
-            detail=f'YAML is invalid and cannot be parsed',
+            detail='YAML is invalid and cannot be parsed',
         ) from exc
 
 
@@ -108,7 +108,7 @@ _AttributeType = TypeVar('_AttributeType')
 def _get(
         yaml_dict: YamlDict,
         *keys: str,
-        type_: Callable[..., _AttributeType | None] = None,
+        type_: Callable[[Any], _AttributeType] | None = None,
         default: Any = None,
     ) -> _AttributeType:
     """
@@ -171,7 +171,7 @@ def _parse_translations(
         List of Translations defined by the given YAML.
 
     Raises:
-        HTTPException (422) if the YAML is invalid and cannot be parsed.
+        HTTPException (422): The YAML is invalid and cannot be parsed.
     """
 
     # No translations, return default
@@ -278,7 +278,7 @@ def _parse_filesize_limit(yaml_dict: YamlDict) -> str:
     except Exception as exc:
         raise HTTPException(
             status_code=422,
-            detail=f'Invalid filesize limit',
+            detail='Invalid filesize limit',
         ) from exc
 
 
@@ -1649,7 +1649,11 @@ def import_card_files(
         )
 
         card = add_card_to_database(
-            db, title_card, CardTypeModel, card_settings['card_file'], library,
+            db,
+            title_card,
+            CardTypeModel,
+            card_settings['card_file'],
+            library,
         )
         log.debug(f'{episode} Imported {episode.index_str}')
 
