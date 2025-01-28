@@ -45,7 +45,12 @@ from app.schemas.episode import Episode as EpisodeSchema, UpdateEpisode
 from app.schemas.font import DefaultFont
 from app.schemas.series import UpdateSeries
 
-from modules.Debug import InvalidCardSettings, Logger, MissingSourceImage, UnknownCardType
+from modules.Debug import (
+    InvalidCardSettings,
+    Logger,
+    MissingSourceImage,
+    UnknownCardType
+)
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.FormatString import FormatString
 from modules.TieredSettings import TieredSettings
