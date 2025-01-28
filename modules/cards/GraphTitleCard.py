@@ -1,7 +1,7 @@
 from math import cos, sin, pi
 from pathlib import Path
 from re import compile as re_compile
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import (
     FilePath,
@@ -300,7 +300,7 @@ class GraphTitleCard(BaseCardType):
             percentage: float = 0.75,
             text_position: TextPosition = 'lower left',
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -617,7 +617,7 @@ class GraphTitleCard(BaseCardType):
 
     @staticmethod
     def modify_extras(
-            extras: dict,
+            extras: dict[str, Any],
             custom_font: bool,
             custom_season_titles: bool,
         ) -> None:
@@ -638,7 +638,7 @@ class GraphTitleCard(BaseCardType):
 
 
     @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
         """
         Determine whether the given font characteristics constitute a
         default or custom font.
@@ -651,12 +651,12 @@ class GraphTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('graph_background_color' in extras
-                and extras['graph_background_color'] != \
-                    GraphTitleCard.BACKGROUND_GRAPH_COLOR)
-            or ('graph_color' in extras
-                and extras['graph_color'] != GraphTitleCard.GRAPH_COLOR)
+        custom_extras = GraphTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'graph_background_color': GraphTitleCard.BACKGROUND_GRAPH_COLOR,
+                'graph_color': GraphTitleCard.GRAPH_COLOR,
+            }
         )
 
         return custom_extras or GraphTitleCard._is_custom_font(font)

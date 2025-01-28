@@ -235,7 +235,7 @@ class ScoreTitleCard(BaseCardType):
             'Season {x}' of the given Episode.
         """
 
-        return 'Season {season_number}'
+        return f'Season {episode_info.season_number}'
 
 
     def __init__(self, *,

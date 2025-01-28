@@ -1,7 +1,7 @@
 from pathlib import Path
 from random import random
 from re import match as re_match
-from typing import TYPE_CHECKING, Literal, NamedTuple
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple
 
 from pydantic import (
     FilePath,
@@ -440,7 +440,7 @@ class MusicTitleCard(BaseCardType):
             subtitle: str = '',
             timeline_color: str = DEFAULT_TIMELINE_COLOR,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -1043,7 +1043,7 @@ class MusicTitleCard(BaseCardType):
 
     @staticmethod
     def modify_extras(
-            extras: dict,
+            extras: dict[str, Any],
             custom_font: bool,
             custom_season_titles: bool,
         ) -> None:
@@ -1068,7 +1068,7 @@ class MusicTitleCard(BaseCardType):
 
 
     @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
         """
         Determine whether the given font characteristics constitute a
         default or custom font.

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import FilePath, PositiveFloat, conint, root_validator
 
@@ -157,7 +157,7 @@ class BannerTitleCard(BaseCardType):
             hide_banner: bool = False,
             x_offset: int = X_OFFSET,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -355,7 +355,7 @@ class BannerTitleCard(BaseCardType):
 
     @staticmethod
     def modify_extras(
-            extras: dict,
+            extras: dict[str, Any],
             custom_font: bool,
             custom_season_titles: bool,
         ) -> None:
@@ -381,7 +381,7 @@ class BannerTitleCard(BaseCardType):
 
 
     @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
         """
         Determine whether the given font characteristics constitute a
         default or custom font.

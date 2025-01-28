@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import FilePath
 
@@ -125,7 +125,7 @@ class FrameTitleCard(BaseCardType):
             episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_position: Position = 'surround',
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -272,7 +272,7 @@ class FrameTitleCard(BaseCardType):
 
     @staticmethod
     def modify_extras(
-            extras: dict,
+            extras: dict[str, Any],
             custom_font: bool,
             custom_season_titles: bool,
         ) -> None:
@@ -293,7 +293,7 @@ class FrameTitleCard(BaseCardType):
 
 
     @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
         """
         Determines whether the given arguments represent a custom font
         for this card. This CardType only uses custom font cases.
@@ -306,22 +306,22 @@ class FrameTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    FrameTitleCard.EPISODE_TEXT_COLOR)
+        custom_extras = FrameTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'episode_text_color': FrameTitleCard.EPISODE_TEXT_COLOR,
+            }
         )
 
-        return (custom_extras
-            or (
-                font.color != FrameTitleCard.TITLE_COLOR
-                or font.file != FrameTitleCard.TITLE_FONT
-                or font.kerning != 1.0
-                or font.interline_spacing != 0
-                or font.interword_spacing != 0
-                or font.size != 1.0
-                or font.vertical_shift != 0
-            )
+        return (
+            custom_extras
+            or font.color != FrameTitleCard.TITLE_COLOR
+            or font.file != FrameTitleCard.TITLE_FONT
+            or font.kerning != 1.0
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 

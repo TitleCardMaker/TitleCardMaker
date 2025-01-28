@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import FilePath, PositiveFloat, confloat
 
@@ -159,7 +159,7 @@ class InsetTitleCard(BaseCardType):
             separator: str = '-',
             transparency: float = 1.0,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -325,7 +325,7 @@ class InsetTitleCard(BaseCardType):
 
     @staticmethod
     def modify_extras(
-            extras: dict,
+            extras: dict[str, Any],
             custom_font: bool,
             custom_season_titles: bool,
         ) -> None:
@@ -346,7 +346,7 @@ class InsetTitleCard(BaseCardType):
 
 
     @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
         """
         Determine whether the given font characteristics constitute a
         default or custom font.
@@ -359,24 +359,23 @@ class InsetTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    InsetTitleCard.EPISODE_TEXT_COLOR)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
+        custom_extras = InsetTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'episode_text_color': InsetTitleCard.EPISODE_TEXT_COLOR,
+                'episode_text_font_size': 1.0,
+            }
         )
 
-        return (custom_extras
-            or (
-                font.color != InsetTitleCard.TITLE_COLOR
-                or font.file != InsetTitleCard.TITLE_FONT
-                or font.interline_spacing != 0
-                or font.interword_spacing != 0
-                or font.kerning != 1.0
-                or font.size != 1.0
-                or font.vertical_shift != 0
-            )
+        return (
+            custom_extras
+            or font.color != InsetTitleCard.TITLE_COLOR
+            or font.file != InsetTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 

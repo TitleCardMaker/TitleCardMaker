@@ -1,7 +1,7 @@
 from pathlib import Path
 from random import choice as random_choice
 from re import compile as re_compile, IGNORECASE
-from typing import Literal, TYPE_CHECKING, Union
+from typing import Any, Literal, TYPE_CHECKING, Union
 
 from pydantic import FilePath, PositiveFloat, confloat, conint, root_validator
 
@@ -314,7 +314,7 @@ class TintedFrameTitleCard(BaseCardType):
             title_horizontal_shift: int = 0,
             blur_edges: bool = True,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -731,7 +731,7 @@ class TintedFrameTitleCard(BaseCardType):
 
     @staticmethod
     def modify_extras(
-            extras: dict,
+            extras: dict[str, Any],
             custom_font: bool,
             custom_season_titles: bool,
         ) -> None:
@@ -760,7 +760,7 @@ class TintedFrameTitleCard(BaseCardType):
 
 
     @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
         """
         Determine whether the given font characteristics constitute a
         default or custom font.
@@ -773,31 +773,27 @@ class TintedFrameTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    TintedFrameTitleCard.EPISODE_TEXT_COLOR)
-            or ('episode_text_font' in extras
-                and extras['episode_text_font'] != \
-                    TintedFrameTitleCard.EPISODE_TEXT_FONT)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
-            or ('episode_text_vertical_shift' in extras
-                and extras['episode_text_vertical_shift'] != 0)
-            or ('frame_color' in extras
-                and extras['frame_color'] != TintedFrameTitleCard.TITLE_COLOR)
-            or ('shadow_color' in extras
-                and extras['shadow_color'] != TintedFrameTitleCard.SHADOW_COLOR)
+        custom_extras = TintedFrameTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'episode_text_color': TintedFrameTitleCard.EPISODE_TEXT_COLOR,
+                'episode_text_font': TintedFrameTitleCard.EPISODE_TEXT_FONT,
+                'episode_text_font_size': 1.0,
+                'episode_text_vertical_shift': 0,
+                'frame_color': TintedFrameTitleCard.TITLE_COLOR,
+                'shadow_color': TintedFrameTitleCard.SHADOW_COLOR,
+            }
         )
 
-        return (custom_extras
-            or ((font.color != TintedFrameTitleCard.TITLE_COLOR)
-            or (font.file != TintedFrameTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+        return (
+            custom_extras
+            or font.color != TintedFrameTitleCard.TITLE_COLOR
+            or font.file != TintedFrameTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 

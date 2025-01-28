@@ -1,10 +1,10 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Iterable,
     Literal,
 )
 
@@ -280,7 +280,7 @@ class Shadow:
 type TextCase = Literal['blank', 'lower', 'source', 'title', 'upper']
 
 
-class BaseCardType(ImageMaker):
+class BaseCardType(ImageMaker, ABC):
     """
     This class describes an abstract card type. A BaseCardType is a
     subclass of ImageMaker, because all CardTypes are designed to create
@@ -377,7 +377,7 @@ class BaseCardType(ImageMaker):
             grayscale: bool = False,
             *,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """
         Construct a new CardType. Must call super().__init__() to
@@ -401,7 +401,7 @@ class BaseCardType(ImageMaker):
         self.grayscale = grayscale
 
 
-    def __init_subclass__(cls, **kwargs) -> None:
+    def __init_subclass__(cls, **kwargs: Any) -> None:
         """
         Initialize the subclass CardType. After initialization, this
         performs basic validations on the class for required
@@ -482,7 +482,7 @@ class BaseCardType(ImageMaker):
 
     @staticmethod
     def modify_extras( # pylint: disable=unused-argument
-            extras: dict,
+            extras: dict[str, Any],
             custom_font: bool,
             custom_season_titles: bool,
         ) -> None:
@@ -530,7 +530,7 @@ class BaseCardType(ImageMaker):
 
     @staticmethod
     @abstractmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
         """
         Abstract method to determine whether the given font
         characteristics indicate the use of a custom font or not.
@@ -543,7 +543,10 @@ class BaseCardType(ImageMaker):
 
 
     @staticmethod
-    def _is_custom_extras(extras: dict, default_extras: dict) -> bool:
+    def _is_custom_extras(
+            extras: dict[str, Any],
+            default_extras: dict[str, Any],
+        ) -> bool:
         """
         Determine whether the given extra dictionary is customized. This
         compares the assumes `default_extras` is a dictionary of keys
@@ -581,7 +584,7 @@ class BaseCardType(ImageMaker):
 
 
     @staticmethod
-    def resolve_format_strings(data: dict) -> dict:
+    def resolve_format_strings(data: dict[str, Any]) -> dict[str, Any]:
         """
         Resolve any class-specific format strings. If a subclass does
         not implement this, the data is returned unmodified.

@@ -202,7 +202,7 @@ def update_multiple_episode_configs(
     """
 
     # Get contextual logger
-    log = request.state.log
+    log: Logger = request.state.log
 
     # Update each Episode in the list
     episodes, changed = [], False

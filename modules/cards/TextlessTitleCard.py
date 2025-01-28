@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, CardTypeDescription, TextCase
@@ -67,12 +67,12 @@ class TextlessTitleCard(BaseCardType):
 
 
     def __init__(self, *,
-            source_file: Path,
+            source_file: Path | None,
             card_file: Path,
             blur: bool = False,
             grayscale: bool = False,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this card."""
 
@@ -85,7 +85,7 @@ class TextlessTitleCard(BaseCardType):
 
 
     @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> Literal[False]:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> Literal[False]:
         """
         Determines whether the given font characteristics constitute a
         default or custom font.
@@ -127,7 +127,8 @@ class TextlessTitleCard(BaseCardType):
         object's defined title card.
         """
 
-        if (self.source_file and isinstance(self.source_file, Path)
+        if (self.source_file
+            and isinstance(self.source_file, Path)
             and self.source_file.exists()):
             add_source = [f'"{self.source_file.resolve()}"']
         else:

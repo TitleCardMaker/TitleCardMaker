@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import (
     FilePath,
@@ -223,7 +223,7 @@ class FormulaOneTitleCard(BaseCardType):
             frame_year: int = 2024,
             race: str = 'GRAND PRIX',
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -395,7 +395,7 @@ class FormulaOneTitleCard(BaseCardType):
 
     @staticmethod
     def modify_extras(
-            extras: dict,
+            extras: dict[str, Any],
             custom_font: bool,
             custom_season_titles: bool,
         ) -> None:
@@ -416,7 +416,7 @@ class FormulaOneTitleCard(BaseCardType):
 
 
     @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
         """
         Determine whether the given font characteristics constitute a
         default or custom font.
@@ -429,20 +429,19 @@ class FormulaOneTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    FormulaOneTitleCard.EPISODE_TEXT_COLOR)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
+        custom_extras = FormulaOneTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'episode_text_color': FormulaOneTitleCard.EPISODE_TEXT_COLOR,
+                'episode_text_font_size': 1.0,
+            }
         )
 
-        return (custom_extras
-            or (
-                font.color != FormulaOneTitleCard.TITLE_COLOR
-                or font.file != FormulaOneTitleCard.TITLE_FONT
-                or font.size != 1.0
-            )
+        return (
+            custom_extras
+            or font.color != FormulaOneTitleCard.TITLE_COLOR
+            or font.file != FormulaOneTitleCard.TITLE_FONT
+            or font.size != 1.0
         )
 
 
