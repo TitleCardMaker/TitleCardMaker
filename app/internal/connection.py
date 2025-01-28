@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database.query import get_connection
 from app.dependencies import (
+    AnyInterface,
     get_emby_interfaces,
     get_jellyfin_interfaces,
     get_plex_interfaces,
@@ -173,7 +174,7 @@ def add_connection(
 def update_connection(
         db: Session,
         interface_id: int,
-        interface_group: InterfaceGroup,
+        interface_group: InterfaceGroup[int, AnyInterface],
         update_object: _UpdateConnection,
         *,
         log: Logger = log,

@@ -1,4 +1,5 @@
 from base64 import urlsafe_b64encode
+from typing import Any
 from cryptography.fernet import Fernet
 from datetime import datetime, timedelta
 from logging import getLogger, ERROR
@@ -117,7 +118,7 @@ def get_user(db: Session, username: str) -> User | None:
     return db.query(UserModel).filter_by(username=username).first()
 
 
-_creds = {}
+_creds: dict[str, User] = {}
 def get_current_user(
         db: Session = Depends(get_database),
         preferences: Preferences = Depends(get_preferences),
@@ -210,7 +211,7 @@ def authenticate_user(
 
 
 def create_access_token(
-        data: dict,
+        data: dict[str, Any],
         expires_delta: timedelta | None = None,
     ) -> str:
     """

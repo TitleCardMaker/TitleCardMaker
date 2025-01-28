@@ -53,8 +53,9 @@ def set_episode_ids(
                 library['name'], series.as_series_info, episode_infos, log=log,
             )
         else:
-            log.debug(f'Skipping Library "{library["name"]}" - no applicable '
-                      f'interface')
+            log.debug(
+                f'Skipping Library "{library["name"]}" - no applicable interface'
+            )
 
     # Set from Connections which don't require libraries
     for _, interface in get_sonarr_interfaces():
@@ -267,13 +268,14 @@ def refresh_episode_data(
 
     # Set Episode ID's for all/new Episodes
     id_episodes = series.episodes if refresh_all_ids else new_episodes
-    if background_tasks is None:
-        set_episode_ids(db, series, id_episodes, log=log)
-    else:
-        background_tasks.add_task(
-            set_episode_ids,
-            db, series, id_episodes,log=log
-        )
+    if id_episodes:
+        if background_tasks is None:
+            set_episode_ids(db, series, id_episodes, log=log)
+        else:
+            background_tasks.add_task(
+                set_episode_ids,
+                db, series, id_episodes,log=log
+            )
 
     # Commit to database if changed
     if changed:

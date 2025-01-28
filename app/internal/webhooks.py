@@ -67,7 +67,7 @@ def process_rating_key(
         if not episodes:
             # Try and find associated Series, skip if DNE
             log.trace(
-                f'No Episode found for ({episode_info}) - refreshing Episode '
+                f'No Episode found for ({episode_info!r}) - refreshing Episode '
                 f'data'
             )
             series = db.query(Series)\

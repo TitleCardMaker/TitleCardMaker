@@ -350,8 +350,8 @@ class Episode(Base):
         ) -> bool:
         """
         Update the inherant metadata for this Episode from the given
-        EpisodeInfo. This includes the season/episode/absolute numbers
-        and titles.
+        EpisodeInfo. This includes the season/episode/absolute numbers,
+        titles, and airdate.
 
         Args:
             log: Logger for all log messages.
@@ -365,19 +365,25 @@ class Episode(Base):
 
         # Update indices
         if self.season_number != episode_info.season_number:
-            log.debug(f'{self} Updating season number '
-                      f'({self.season_number} -> {episode_info.season_number})')
+            log.debug(
+                f'{self} updating season number ({self.season_number} -> '
+                f'{episode_info.season_number})'
+            )
             self.season_number = episode_info.season_number
             changed = True
         if self.episode_number != episode_info.episode_number:
-            log.debug(f'{self} Updating episode number ({self.episode_number} '
-                      f'-> {episode_info.episode_number})')
+            log.debug(
+                f'{self} updating episode number ({self.episode_number} -> '
+                f'{episode_info.episode_number})'
+            )
             self.episode_number = episode_info.episode_number
             changed = True
         if (episode_info.absolute_number is not None
             and self.absolute_number != episode_info.absolute_number):
-            log.debug(f'{self} Updating absolute number ({self.absolute_number}'
-                      f' -> {episode_info.absolute_number})')
+            log.debug(
+                f'{self} updating absolute number ({self.absolute_number} -> '
+                f'{episode_info.absolute_number})'
+            )
             self.absolute_number = episode_info.absolute_number
             changed = True
 
@@ -386,11 +392,16 @@ class Episode(Base):
             self.series.match_titles,
             self.match_title,
         )
-
         if (do_title_match
             and self.title != episode_info.title):
             self.title = episode_info.title
             log.debug(f'{self} Updating title')
+            changed = True
+
+        # Airdate
+        if not self.airdate and episode_info.airdate:
+            self.airdate = episode_info.airdate
+            log.debug(f'{self} adding airdate ({self.airdate})')
             changed = True
 
         return changed

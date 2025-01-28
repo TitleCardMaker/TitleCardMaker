@@ -28,7 +28,13 @@ from app.schemas.card import NewTitleCard
 from app.schemas.card_type import LocalCardTypeModels
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
-from modules.Debug import InvalidCardSettings, Logger, MissingSourceImage, UnknownCardType, log
+from modules.Debug import (
+    InvalidCardSettings,
+    Logger,
+    MissingSourceImage,
+    UnknownCardType,
+    log,
+)
 from modules.FormatString import FormatString
 from modules.RemoteCardType2 import RemoteCardType
 from modules.RemoteFile import RemoteFile
@@ -58,7 +64,9 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                     # Refresh Episode data if Series is monitored
                     if series.monitored:
                         try:
-                            refresh_episode_data(db, series, log=log)
+                            refresh_episode_data(
+                                db, series, refresh_all_ids=True, log=log
+                            )
                         except HTTPException:
                             log.exception(
                                 f'Cannot refresh Episode data of {series}'
