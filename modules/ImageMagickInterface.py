@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from os import environ, name as os_name
 from pathlib import Path
 from random import choices as random_choices
@@ -5,7 +6,7 @@ from re import findall, compile as re_compile
 from shlex import split as command_split
 from string import hexdigits
 from subprocess import Popen, PIPE, TimeoutExpired
-from typing import Iterable, Literal, NamedTuple, overload
+from typing import Literal, NamedTuple, overload
 
 from imagesize import get as im_get
 
