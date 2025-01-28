@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from pydantic import FilePath
+from pydantic import FilePath, PositiveFloat
 
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
@@ -82,6 +82,7 @@ class FadeTitleCard(BaseCardType):
 
     __slots__ = (
         'episode_text_color',
+        'episode_text_font_size',
         'font_color',
         'font_file',
         'font_interline_spacing',
@@ -115,9 +116,10 @@ class FadeTitleCard(BaseCardType):
             grayscale: bool = False,
             logo_file: Path | None = None,
             episode_text_color: str = EPISODE_TEXT_COLOR,
+            episode_text_font_size: float = 1.0,
             separator: str = '•',
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """
         Construct a new instance of this Card.
@@ -154,6 +156,7 @@ class FadeTitleCard(BaseCardType):
 
         # Extras
         self.episode_text_color = episode_text_color
+        self.episode_text_font_size = episode_text_font_size
 
 
     @property
@@ -206,13 +209,15 @@ class FadeTitleCard(BaseCardType):
         """Subcommand to add the index text to the source image."""
 
         # No season or episode text, return blank command
-        if len(self.index_text) == 0:
+        if not self.index_text:
             return []
+
+        size = 65 * self.episode_text_font_size
 
         return [
             f'-gravity northwest',
             f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
-            f'-pointsize 65',
+            f'-pointsize {size}',
             f'-kerning 5',
             f'-fill "{self.episode_text_color}"',
             f'-annotate +105+725 "{self.index_text}"',
@@ -220,7 +225,7 @@ class FadeTitleCard(BaseCardType):
 
 
     @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
+    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
         """
         Determine whether the given arguments represent a custom font
         for this card.
@@ -233,22 +238,23 @@ class FadeTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    FadeTitleCard.EPISODE_TEXT_COLOR)
+        custom_extras = FadeTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'episode_text_color': FadeTitleCard.EPISODE_TEXT_COLOR,
+                'episode_text_font_size': 1.0,
+            }
         )
 
-        return (custom_extras
-            or (
-                font.color != FadeTitleCard.TITLE_COLOR
-                or font.file != FadeTitleCard.TITLE_FONT
-                or font.interline_spacing != 0
-                or font.interword_spacing != 0
-                or font.kerning != 1.0
-                or font.size != 1.0
-                or font.vertical_shift != 0
-            )
+        return (
+            custom_extras
+            or font.color != FadeTitleCard.TITLE_COLOR
+            or font.file != FadeTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 
@@ -272,7 +278,7 @@ class FadeTitleCard(BaseCardType):
 
         return (
             custom_episode_map
-            or (episode_text_format != FadeTitleCard.EPISODE_TEXT_FORMAT)
+            or episode_text_format != FadeTitleCard.EPISODE_TEXT_FORMAT
         )
 
 
@@ -316,6 +322,7 @@ def get_validator_model() -> type[Base]:
         font_file: FilePath = FadeTitleCard.TITLE_FONT # type: ignore
         logo_file: Path | None = None
         episode_text_color: str = FadeTitleCard.EPISODE_TEXT_COLOR
+        episode_text_font_size: PositiveFloat = 1.0
         separator: str = '•'
 
     return CardModel
