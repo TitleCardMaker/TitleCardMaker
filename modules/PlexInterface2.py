@@ -476,8 +476,9 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                     self._interface_id, library_name, episode.isWatched,
                 )
             )
-            for episode in series.episodes(
-                container_size=500, params={'includeGuids': 1}
+            for episode in cast(
+                list[PlexEpisode],
+                series.episodes(container_size=500, params={'includeGuids': 1})
             )
             if episode.parentIndex is not None and episode.index is not None
         ]

@@ -532,26 +532,19 @@ class AnimeTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('episode_stroke_color' in extras
-                and extras['episode_stroke_color'] != \
-                    AnimeTitleCard.EPISODE_STROKE_COLOR)
-            or ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    AnimeTitleCard.EPISODE_TEXT_COLOR)
-            or ('episode_text_size' in extras
-                and extras['episode_text_size'] != 1.0)
-            or ('kanji_color' in extras
-                and extras['kanji_color'] != AnimeTitleCard.TITLE_COLOR)
-            or ('kanji_font_size' in extras and extras['kanji_font_size'] !=1.0)
-            or ('kanji_stroke_color' in extras
-                and extras['kanji_stroke_color'] != 'black')
-            or ('kanji_stroke_width' in extras
-                and extras['kanji_stroke_width'] != 1.0)
-            or ('kanji_vertical_shift' in extras
-                and extras['kanji_vertical_shift'] != 0)
-            or ('stroke_color' in extras
-                and extras['stroke_color'] != 'black')
+        custom_extras = AnimeTitleCard._is_custom_extras(
+            extras,
+            {
+                'episode_stroke_color': AnimeTitleCard.EPISODE_STROKE_COLOR,
+                'episode_text_color': AnimeTitleCard.EPISODE_TEXT_COLOR,
+                'episode_text_size': 1.0,
+                'kanji_color': AnimeTitleCard.TITLE_COLOR,
+                'kanji_font_size': 1.0,
+                'kanji_stroke_color': 'black',
+                'kanji_stroke_width': 1.0,
+                'kanji_vertical_shift': 0,
+                'stroke_color': 'black'
+            }
         )
 
         return custom_extras or AnimeTitleCard._is_custom_font(font)

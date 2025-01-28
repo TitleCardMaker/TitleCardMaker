@@ -125,12 +125,27 @@ class BannerTitleCard(BaseCardType):
     X_OFFSET = 50
 
     __slots__ = (
-        'source_file', 'output_file', 'top_title_text', 'bottom_title_text',
-        'season_text', 'episode_text', 'hide_season_text', 'hide_episode_text',
-        'font_color', 'font_file', 'font_interline_spacing',
-        'font_interword_spacing', 'font_kerning', 'font_size',
-        'font_vertical_shift', 'alternate_color', 'banner_height',
-        'episode_text_font_size', 'hide_banner', 'banner_color', 'x_offset',
+        'alternate_color',
+        'banner_color',
+        'banner_height',
+        'bottom_title_text',
+        'episode_text',
+        'episode_text_font_size',
+        'hide_banner',
+        'hide_episode_text',
+        'hide_season_text',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'output_file',
+        'season_text',
+        'source_file',
+        'top_title_text',
+        'x_offset',
     )
 
     def __init__(self, *,
@@ -394,28 +409,25 @@ class BannerTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('alternate_color' in extras
-                and extras['alternate_color'] != \
-                    BannerTitleCard.EPISODE_TEXT_COLOR)
-            or ('banner_color' in extras
-                and extras['banner_color'] != BannerTitleCard.TITLE_COLOR)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
-            or ('x_offset' in extras
-                and extras['x_offset'] != BannerTitleCard.X_OFFSET)
+        custom_extras = BannerTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'alternate_color': BannerTitleCard.EPISODE_TEXT_COLOR,
+                'banner_color': BannerTitleCard.TITLE_COLOR,
+                'episode_text_font_size': 1.0,
+                'x_offset': BannerTitleCard.X_OFFSET,
+            }
         )
 
-        return (custom_extras
-            or (
-                font.color != BannerTitleCard.TITLE_COLOR
-                or font.file != BannerTitleCard.TITLE_FONT
-                or font.interline_spacing != 0
-                or font.interword_spacing != 0
-                or font.kerning != 1.0
-                or font.size != 1.0
-                or font.vertical_shift != 0
-            )
+        return (
+            custom_extras
+            or font.color != BannerTitleCard.TITLE_COLOR
+            or font.file != BannerTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 
