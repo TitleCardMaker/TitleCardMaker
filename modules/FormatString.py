@@ -40,8 +40,9 @@ def to_roman_numeral(number: int, /) -> str:
 
     # Verify number can be converted
     if not 1 <= number <= _MAX_ROMAN_NUMERAL:
-        raise InvalidFormatString(f'Number {number} cannot be converted to a '
-                                  f'roman numeral')
+        raise InvalidFormatString(
+            f'Number {number} cannot be converted to a roman numeral'
+        )
 
     m_text = ['', 'M', 'MM', 'MMM']
     c_text = ['', 'C', 'CC', 'CCC', 'CD', 'D', 'DC', 'DCC', 'DCCC', 'CM']
@@ -173,7 +174,7 @@ class FormatString:
             fstring: str,
             /,
             *,
-            data: dict,
+            data: dict[str, Any],
             catch: bool = True,
         ) -> None:
         """
@@ -209,7 +210,7 @@ class FormatString:
             fstring: str,
             /,
             *,
-            data: dict,
+            data: dict[str, Any],
             name: str,
             series: Any,
             episode: Any,
@@ -250,7 +251,7 @@ class FormatString:
             fstring: str,
             /,
             *,
-            data: dict,
+            data: dict[str, Any],
             name: str,
             series: Any,
             episode: Any,

@@ -1,7 +1,8 @@
+from collections.abc import Sequence
 from copy import deepcopy
 from pathlib import Path
 from re import compile as re_compile
-from typing import Any, Iterable
+from typing import Any
 
 from modules import global_objects
 from modules.BaseCardType import BaseCardType
@@ -31,7 +32,7 @@ class Episode:
             episode_info: EpisodeInfo,
             card_class: BaseCardType,
             base_source: Path,
-            destination: Path,
+            destination: Path | None,
             given_keys: set[str],
             **extras: Any
         ) -> None:
@@ -56,9 +57,10 @@ class Episode:
 
         # Set source/destination paths
         self._base_source = base_source
-        source_name = (f's{episode_info.season_number}'
-                       f'e{episode_info.episode_number}'
-                       f'{TitleCard.INPUT_CARD_EXTENSION}')
+        source_name = (
+            f's{episode_info.season_number}e{episode_info.episode_number}'
+            f'{TitleCard.INPUT_CARD_EXTENSION}'
+        )
         self.source = base_source / source_name
         self.destination = destination
         self.downloadable_source = True
@@ -83,8 +85,10 @@ class Episode:
     def __repr__(self) -> str:
         """Returns an unambiguous string representation of the object"""
 
-        attrs = ', '.join(f'{attr}={getattr(self, attr)}'
-                          for attr in self.__slots__)
+        attrs = ', '.join(
+            f'{attr}={getattr(self, attr)}'
+            for attr in self.__slots__
+        )
 
         return f'<Episode {attrs}>'
 
@@ -234,14 +238,21 @@ class MultiEpisode:
     ETF_REGEX = re_compile(r'^(.*?)(\s*){(episode|abs)_number(.*?)}(.*)')
 
     __slots__ = (
-        'season_number', 'episode_start', 'episode_end', 'abs_start', 'abs_end',
-        '_first_episode', 'episode_info', 'destination', 'episode_range',
+        'season_number',
+        'episode_start',
+        'episode_end',
+        'abs_start',
+        'abs_end',
+        '_first_episode',
+        'episode_info',
+        'destination',
+        'episode_range',
         'word_set',
     )
 
 
     def __init__(self,
-            episodes: Iterable[Episode],
+            episodes: Sequence[Episode],
             title: Title,
         ) -> None:
         """
@@ -258,12 +269,14 @@ class MultiEpisode:
 
         # Verify at least two episodes have been provided
         if len(episodes) < 2:
-            raise ValueError(f'MultiEpisode requires at least 2 Episodes')
+            raise ValueError('MultiEpisode requires at least 2 Episodes')
 
         # Verify all episodes are from the same season
         episode_infos = tuple(map(lambda e: e.episode_info, episodes))
-        if not all(episode_info.season_number == episode_infos[0].season_number
-                   for episode_info in episode_infos):
+        if not all(
+            episode_info.season_number == episode_infos[0].season_number
+            for episode_info in episode_infos
+        ):
             raise ValueError(f'Given set of EpisodeInfo objects must be from '
                              f'the same season.')
 
@@ -298,7 +311,8 @@ class MultiEpisode:
             ('episode_start', self.episode_start),
             ('episode_end', self.episode_end),
             ('abs_start', self.abs_start),
-            ('abs_end', self.abs_end)):
+            ('abs_end', self.abs_end)
+        ):
             self.word_set.add_numeral(label, number)
 
         # Add translated word variations for each globally enabled language
@@ -307,7 +321,8 @@ class MultiEpisode:
                 ('episode_start', self.episode_start),
                 ('episode_end', self.episode_end),
                 ('abs_start', self.abs_start),
-                ('abs_end', self.abs_end)):
+                ('abs_end', self.abs_end)
+            ):
                 self.word_set.add_numeral(label, number, lang)
 
         # Override title, set blank destination
@@ -318,16 +333,20 @@ class MultiEpisode:
     def __str__(self) -> str:
         """Returns a string representation of the object."""
 
-        return (f'S{self.season_number:02}'
-                f'E{self.episode_start:02}-E{self.episode_end:02}')
+        return (
+            f'S{self.season_number:02}'
+            f'E{self.episode_start:02}-E{self.episode_end:02}'
+        )
 
 
     def __repr__(self) -> str:
         """Returns an unambiguous string representation of the object"""
 
-        ret = (f'<MultiEpisode episode_start={self.episode_start}, episode_end='
-               f'{self.episode_end}, title={self.episode_info.title}, '
-               f'destination={self.destination}')
+        ret = (
+            f'<MultiEpisode episode_start={self.episode_start}, episode_end='
+            f'{self.episode_end}, title={self.episode_info.title}, '
+            f'destination={self.destination}'
+        )
         ret += '' if self.abs_start is None else f', abs_start={self.abs_start}'
         ret += '' if self.abs_end is None else f', abs_end={self.abs_end}'
 

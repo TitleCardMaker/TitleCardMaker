@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
 from re import compile as re_compile
+from typing import override
 
 try:
     from modules.Debug import log
@@ -75,7 +76,7 @@ class Version:
 
         # Store branch and version(s)
         self.branch: str = version_data['branch']
-        self.version: tuple[int] = (
+        self.version: tuple[int, int, int, int] = (
             int(version_data['version']),
             int(version_data['sub_version']),
             int(version_data['sub_sub_version']),
@@ -117,7 +118,7 @@ class Version:
         """
 
         if not isinstance(other, Version):
-            raise TypeError(f'Can only compare Version objects')
+            raise TypeError('Can only compare Version objects')
 
         return self.version == other.version and self.branch == other.branch
 
@@ -135,7 +136,7 @@ class Version:
         """
 
         if not isinstance(other, Version):
-            raise TypeError(f'Can only compare Version objects')
+            raise TypeError('Can only compare Version objects')
 
         # Compare each like-version
         for this_v, other_v in zip(self.version, other.version):

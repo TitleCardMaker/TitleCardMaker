@@ -22,7 +22,7 @@ class YamlReader:
 
 
     def __init__(self,
-            yaml: dict = {},
+            yaml: dict[Any, Any] | Any = {},
             *,
             log_function: Callable[[str], None] = log.error
         ) -> None:
@@ -36,12 +36,12 @@ class YamlReader:
         """
 
         self._base_yaml = yaml
-        self.valid = True
+        self.valid: bool = True
         self.__log = log_function
 
         # Verify base YAML is a dictionary
         if not isinstance(yaml, dict):
-            self.__log(f'Specified YAML is invalid')
+            self.__log('Specified YAML is invalid')
             self.valid = False
 
 

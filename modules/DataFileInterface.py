@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any, Iterator
 from yaml import safe_load, dump
 
 from modules import global_objects
@@ -55,8 +56,10 @@ class DataFileInterface:
     def __repr__(self) -> str:
         """Returns an unambiguous string representation of the object."""
 
-        return (f'<DataFileInterface series_info={self.series_info}, '
-                f'file={self.file.resolve()}>')
+        return (
+            f'<DataFileInterface series_info={self.series_info}, '
+            f'file={self.file.resolve()}>'
+        )
 
 
     def __read_data(self) -> dict[str, dict[float, dict]]:
@@ -245,7 +248,7 @@ class DataFileInterface:
         return None
 
 
-    def add_many_entries(self, new_episodes: Iterable[EpisodeInfo]) -> None:
+    def add_many_entries(self, new_episodes: Sequence[EpisodeInfo]) -> None:
         """
         Adds many entries at once. This only reads and writes from this
         interface's file once.

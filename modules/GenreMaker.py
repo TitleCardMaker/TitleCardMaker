@@ -82,15 +82,17 @@ class GenreMaker(ImageMaker):
 
         # If the source file doesn't exist, exit
         if not self.source.exists():
-            log.error(f'Cannot create genre card - "{self.source.resolve()}" '
-                      f'does not exist.')
+            log.error(
+                f'Cannot create genre card - "{self.source.resolve()}" does '
+                f'not exist.'
+            )
             return None
 
         # Create the output directory and any necessary parents
         self.output.parent.mkdir(parents=True, exist_ok=True)
 
         # Command to create genre poster
-        command = ' '.join([
+        self.image_magick.run([
             # Resize source image
             f'convert "{self.source.resolve()}"',
             f'-background transparent',
@@ -111,5 +113,4 @@ class GenreMaker(ImageMaker):
             f'"{self.output.resolve()}"',
         ])
 
-        self.image_magick.run(command)
         return None

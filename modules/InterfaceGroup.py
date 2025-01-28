@@ -1,4 +1,5 @@
-from typing import Generic, Iterable, Iterator, Mapping, TypeVar
+from collections.abc import Iterable, Iterator, Mapping
+from typing import Any, Generic, TypeVar
 
 from modules.Debug import Logger, log
 from modules.Interface import Interface
@@ -7,7 +8,6 @@ _InterfaceID = TypeVar('_InterfaceID', bound=int)
 _Interface = TypeVar('_Interface', bound=Interface)
 
 
-# class InterfaceGroup(Mapping[int, type[Interface]]):
 class InterfaceGroup(Generic[_InterfaceID, _Interface],
                      Mapping[_InterfaceID, _Interface]):
     """
@@ -42,7 +42,7 @@ class InterfaceGroup(Generic[_InterfaceID, _Interface],
 
         self.cls = cls
         self.interfaces: dict[_InterfaceID, _Interface] = {}
-        self._uninitialized: dict[_InterfaceID, dict] = {}
+        self._uninitialized: dict[_InterfaceID, dict[str, Any]] = {}
 
 
     def __repr__(self) -> str:
@@ -151,12 +151,12 @@ class InterfaceGroup(Generic[_InterfaceID, _Interface],
 
     @classmethod
     def from_argument_list(
-            cls: type['InterfaceGroup'],
+            cls: type['InterfaceGroup[int, _Interface]'],
             interface_cls: type[_Interface],
-            interface_kwargs: Iterable[dict],
+            interface_kwargs: Iterable[dict[str, Any]],
             *,
             log: Logger = log,
-        ) -> 'InterfaceGroup':
+        ) -> 'InterfaceGroup[int, _Interface]':
         """
         Construct a new `InterfaceGroup` object of the given
         `interface_cls`, each initialized with the given arguments.
@@ -192,7 +192,7 @@ class InterfaceGroup(Generic[_InterfaceID, _Interface],
 
     def initialize_interface(self,
             interface_id: _InterfaceID,
-            interface_kwargs: dict,
+            interface_kwargs: dict[str, Any],
             *,
             log: Logger = log,
         ) -> _Interface:
@@ -225,7 +225,7 @@ class InterfaceGroup(Generic[_InterfaceID, _Interface],
 
     def refresh(self,
             interface_id: _InterfaceID,
-            interface_kwargs: dict,
+            interface_kwargs: dict[str, Any],
             *,
             log: Logger = log,
         ) -> _Interface:

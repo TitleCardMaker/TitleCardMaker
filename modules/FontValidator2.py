@@ -1,6 +1,6 @@
+from collections.abc import Iterable
 from pathlib import Path
 from string import whitespace
-from typing import Iterable
 
 from fontTools.ttLib import TTFont
 

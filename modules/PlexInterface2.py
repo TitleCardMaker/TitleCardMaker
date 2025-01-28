@@ -1154,13 +1154,16 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                             ep.isWatched,
                         )
                     )
-                    for ep in entry.episodes()
+                    for ep in cast(list[PlexEpisode], entry.episodes())
                 ]
 
             # Season, return all episodes in season
             if entry.type == 'season':
                 entry = cast(PlexSeason, entry) # type: ignore
-                series = cast(PlexShow, self.__server.fetchItem(entry.parentRatingKey))
+                series = cast(
+                    PlexShow,
+                    self.__server.fetchItem(entry.parentRatingKey)
+                )
                 series_info = SeriesInfo.from_plex_show(series)
                 return [
                     EpisodeDetails(
@@ -1176,7 +1179,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                             ep.isWatched,
                         ),
                     )
-                    for ep in entry.episodes()
+                    for ep in cast(list[PlexEpisode], entry.episodes())
                 ]
 
             # Episode, return just that
