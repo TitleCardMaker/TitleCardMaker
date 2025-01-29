@@ -627,7 +627,8 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
                 # Check for title match
                 title_match = episode_info.full_title.matches(
-                    movie.title,*(alt.title for alt in movie.alternative_titles)
+                    movie.title,
+                    *(alt.title for alt in movie.alternative_titles)
                 )
 
                 # Verify release date match +/- 1 day
@@ -635,9 +636,11 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                 release_date_match = (
                     episode_info.airdate is not None
                     and release_date is not None
-                    and (episode_info.airdate - timedelta(days=1)
-                         <= release_date
-                         <= episode_info.airdate + timedelta(days=1))
+                    and (
+                        episode_info.airdate - timedelta(days=1)
+                        <= release_date
+                        <= episode_info.airdate + timedelta(days=1)
+                    )
                 )
                 if not id_match and not (title_match and release_date_match):
                     raise NotFound
