@@ -877,26 +877,26 @@ async function getSourceFileData(page=currentFilePage) {
         image.querySelector('.popup [data-action="mirror"]').onclick = () => mirrorSourceImage(source.episode_id);
         image.querySelector('.popup [data-action="upload"]').onclick = () => uploadEpisodeSource(source.episode_id);
         
-        image.querySelector('.popup [data-action="view-mask"]').onclick = () => {
-          resetMaskEditor();
-          document.querySelector('#mask-editor-modal img[data-type="source"]').src = source.source_url;
-          document.querySelector('#mask-editor-modal img[data-type="mask"]').src = replaceFileNameWithMask(source.source_url);
-          document.querySelector('#mask-editor-modal [data-action="delete-mask"]').onclick = () => deleteEpisodeMaskImage(source.episode_id);
-          document.querySelector('#mask-editor-modal .button[data-action="remove-background"]').onclick = () => backgroundRemovaltest(source.episode_id);
-          const editButton = document.querySelector('#mask-editor-modal .button[data-action="edit-mask"]');
-          editButton.classList.remove('disabled');
-          editButton.onclick = () => {
-            editButton.classList.add('disabled');
-            document.querySelector('#edit-mask-canvas').style.display = '';
-            editMaskFile(source.episode_id);
-          }
-          document.querySelector('#mask-editor-modal img[data-type="mask"]').onerror = function() {
-            this.src = source.source_url;
-            editButton.classList.add('disabled');
-            this.onerror = () => {};
-          }
-          $('#mask-editor-modal').modal({blurring: true}).modal('show');
-        }
+        // image.querySelector('.popup [data-action="view-mask"]').onclick = () => {
+        //   resetMaskEditor();
+        //   document.querySelector('#mask-editor-modal img[data-type="source"]').src = source.source_url;
+        //   document.querySelector('#mask-editor-modal img[data-type="mask"]').src = replaceFileNameWithMask(source.source_url);
+        //   document.querySelector('#mask-editor-modal [data-action="delete-mask"]').onclick = () => deleteEpisodeMaskImage(source.episode_id);
+        //   document.querySelector('#mask-editor-modal .button[data-action="remove-background"]').onclick = () => backgroundRemovaltest(source.episode_id);
+        //   const editButton = document.querySelector('#mask-editor-modal .button[data-action="edit-mask"]');
+        //   editButton.classList.remove('disabled');
+        //   editButton.onclick = () => {
+        //     editButton.classList.add('disabled');
+        //     document.querySelector('#edit-mask-canvas').style.display = '';
+        //     editMaskFile(source.episode_id);
+        //   }
+        //   document.querySelector('#mask-editor-modal img[data-type="mask"]').onerror = function() {
+        //     this.src = source.source_url;
+        //     editButton.classList.add('disabled');
+        //     this.onerror = () => {};
+        //   }
+        //   $('#mask-editor-modal').modal({blurring: true}).modal('show');
+        // }
 
         sourceImages.push(image);
       });
