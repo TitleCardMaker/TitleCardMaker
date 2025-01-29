@@ -53,10 +53,171 @@
           "v2.0-alpha.12.1",
           "v2.0-alpha.13.0",
           "v2.0-alpha.14.0",
+          "v2.0-alpha.14.1",
         ] %}
         {% for version in versions[::-1] %}
           <a class="ui label" href="#{{version}}">{{version}}</a>
         {% endfor %}
+      </div>
+
+      <h2 id="v2.0-alpha.14.1" class="ui top attached header">
+        v2.0-alpha.14.1
+        <div class="sub header">Released January 27, 2025</div>
+      </h2>
+      <div data-version="v2.0-alpha.14.1" class="ui bottom attached segment">
+        <h3>Major Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Create new Cascade card type - this card can also have Kanji added to it
+            <div class="item">
+              <img width="50%" src="https://titlecardmaker.com/card_types/assets/cascade.webp" width="60%">
+              <img width="50%" src="https://titlecardmaker.com/card_types/assets/cascade/kanji.webp" width="60%">
+            </div>
+          </div>
+          <div class="item">Add new Skeleton Crew card type (created by Supremicus)
+            <div class="list">
+              <img width="50%" src="https://titlecardmaker.com/card_types/assets/skeleton_crew.webp" width="60%">
+            </div>
+          </div>
+          <div class="item">Improve Plex API call performance
+            <div class="list">
+              <div class="item">Include Episode GUIDs in the initial API call to Plex to improve Episode match timings (and reduce the need for an API call for each GUID comparison)</div>
+              <div class="item">Fast-exit when matching Episodes for Card loads; this means loading subsets of Title Cards should be much faster</div>
+            </div>
+          </div>
+          <div class="item">Add functionality to upload multiple (generic) Source Images directly to a Series source directory</div>
+          <div class="item">Begin implementation of mask image editing and creation as part of TCM</div>
+          <div class="item">Significantly improve the speed of Series searching</div>
+          <div class="item">Update Episode airdate when refreshing Episode data</div>
+        </div>
+
+        <h3>Major Fixes</h3>
+        <div class="ui ordered list">
+          <div class="item">Properly display very long exception log messages on the log page</div>
+          <div class="item">Do not reinitialize the HTML <b>template</b> elements when creating a new Template</div>
+          <div class="item">Properly display sequential non-alphabetical Templates in dropdowns on the Series page</div>
+          <div class="item">Fix adding the global card type to Blueprint exports only if one is not defined an an associated Template</div>
+          <div class="item">No longer allow selecting Sonarr Connections in Series Image Source Priority dropdowns</div>
+          <div class="item">Fix changing the Font title case setting on the Series page</div>
+          <div class="item">Implement the <b>Has Missing Title Cards is false</b> Series filter condition (was no-op)</div>
+          <div class="item">Improve Episode database ID match logic for Plex - require at least one <i>net</i> positive ID match, this means that Episodes which have just one matching ID, but other mismatching ID's (e.g. matching IMDb, not matching TMDb and TVDb IDs) do not falsely flag</div>
+        </div>
+
+        <h3>Minor Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Add Download buttons to Source Images on the Series page</div>
+          <div class="item">Add new variables for format strings in Card creation:
+            <div class="list">
+              <div class="item"><b>number_of_seasons</b> which is the number of unique seasons a Series has</div>
+              <div class="item">Python's builtin <b>len()</b> and <b>locals()</b> functions</div>
+              <div class="item">Change <b>airdate</b> and <b>absolute_number</b> to always be present even if undefined; if no set airdate or no defined absolute number then these default to <b>None</b></div>
+            </div>
+          </div>
+          <div class="item">Log unmatched Episodes when loading Cards into Plex</div>
+          <div class="item">Improve font replacement query logic for globally assigned Fonts (by querying all titles for characters to replace)</div>
+          <div class="item">Reword some Task descriptions on the Scheduler page to improve clarity</div>
+          <div class="item">Log when refreshing Episode data during the Plex webhook</div>
+          <div class="item">Sleep for 5 seconds before refreshing Episode data for missing Episodes in Plex webhooks</div>
+          <div class="item">Change the default interval of the card data refresh task to 3 days (from 1)</div>
+          <div class="item">Revise parts of the Graphs page
+            <div class="list">
+              <div class="item">Remove the data point styling</div>
+              <div class="item">Change the graph styling to stepwise (instead of interpolation)</div>
+              <div class="item">Adjust the fill styling</div>
+            </div>
+          </div>
+          <div class="item">Improve the error messages for creating previews using uninitialized remote card types</div>
+        </div>
+
+        <h3>Minor Fixes</h3>
+        <div class="ui ordered list">
+          <div class="item">Allow specification of the <b>TCM_CARD_TYPE_URL</b> environment variable to override the root URL of remote card types - this is designed to make it easier to test remote card types while they are developed.</div>
+          <div class="item">Improve handling of bad / invalid TVDb IDs when querying for Episode or Source Image data from TVDb</div>
+          <div class="item">Handle more types of bad TMDb ID's from Emby</div>
+          <div class="item">Log the <b>TCM_CARD_TYPE_URL</b> environment variable on startup</div>
+          <div class="item">Improve handling of TMDb 404 errors in Source Image queries</div>
+          <div class="item">Properly enable editable reference fields for existing filters on the home page</div>
+          <div class="item">Fix Template <b>is not null</b> filter condition assignment from the UI</div>
+          <div class="item">Properly assign a Series' TVDb ID (instead of TMDb ID) when searching for Series via TVDb</div>
+          <div class="item">Improve handling of null episode data when querying TVDb</div>
+          <div class="item">Avoid FE cache collisions for Cards whose size does not change, but is remade</div>
+          <div class="item"><div class="ui mini circular green label">v1</div> Fix SVG to PNG logo conversion</div>
+        </div>
+
+        <h3>Title Card Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">All types
+            <div class="list">
+              <div class="item">Create an improved (and very accurate) <b>ImageMagick.get_text_label_dimensions</b> method to get the exact dimensions of some <b>label:</b> generated ImageMagick text while accounting for exact dimensions not FontTools reported metrics</div>
+              <div class="item">Rename the <b>BaseCardType.SEASON_TEXT_FORMATTER</b> class method to <b>season_text_formatter</b> (functional spec remains unchanged)</div>
+              <div class="item">Change the <b>BaseCardType.resolve_format_strings</b> method two accept a single dictionary (<b>data: dict</b>) rather than unpacked keyword arguments (<b>**data</b>)</div>
+              <div class="item">Move all card type validator models into their respective card Python files, rather than <b>app.schemas.card_type</b></div>
+            </div>
+          </div>
+          <div class="item">Calligraphy
+            <div class="list">
+              <div class="item">Fix episode text hiding</div>
+            </div>
+          </div>
+          <div class="item">Comic Book
+            <div class="list">
+              <div class="item">Fix the episode text box fill color extra (was incorrectly using the title text box fill color)</div>
+            </div>
+          </div>
+          <div class="item">Fade
+            <div class="list">
+              <div class="item">Add episode text font size extra</div>
+            </div>
+          </div>
+          <div class="item">Formula 1
+            <div class="list">
+              <div class="item">Fix the country flag determination logic</div>
+            </div>
+          </div>
+          <div class="item">Music
+            <div class="list">
+              <div class="item">Handle Percentage format strings which resolve to <b>random</b></div>
+            </div>
+          </div>
+          <div class="item">Olivier
+            <div class="list">
+              <div class="item">Add new gradient type extra</div>
+            </div>
+          </div>
+          <div class="item">Score
+            <div class="list">
+              <div class="item">Fix the default season text for season 0</div>
+            </div>
+          </div>
+          <div class="item">Standard
+            <div class="list">
+              <div class="item">Add episode text stroke color extra</div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Documentation Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Fix minor typos in the Striped card documentation</div>
+          <div class="item">Create <a href="https://titlecardmaker.com/card_types/cascade/" target="_blank">page</a> for the new Cascade card type</div>
+          <div class="item">Create <a href="https://titlecardmaker.com/card_types/skeleton_crew/" target="_blank">page</a> for the new Skeleton Crew card type</div>
+          <div class="item">Correct label for the Calligraphy card type on the home page (was Banner)</div>
+          <div class="item">Add docs on the <b>BACKSLASH</b> format string variable</div>
+          <div class="item">Improve the Getting Started docs to have more clarity around when "basic tasks" (source image gathering, card creation, etc.) occur</div>
+          <div class="item">Add details on all tasks in <a href="https://titlecardmaker.com/user_guide/scheduler/" target="_blank">the scheduler</a></div>
+        </div>
+
+        <h3>API Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Remove the <b>include_global_defaults</b> query parameter from the <b>GET</b> <b>/api/blueprints/export/series/{series_id}/zip</b> endpoint</div>
+          <div class="item">Create new <b>PUT</b> <b>/api/sources/series/{series_id}/upload</b> endpoint to upload any number of generic Source Images to a Series</div>
+          <div class="item">Rewrite the <b>GET</b> <b>/api/series/search</b> endpoint
+            <div class="list">
+              <div class="item">No longer accept the <b>year</b>, <b>monitored</b>, or <b>font_id</b> query parameters</div>
+              <div class="item">Only return the <b>id</b>, <b>name</b>, <b>year</b>, and <b>poster_url</b> fields in the return model</div>
+            </div>
+          </div>
+          <div class="item">Create <b>GET</b> <b>/api/translate/series/{series_id}/season-titles</b> endpoint to look up season titles for a given Series on TVDb; not yet implemented on the front end</div>
+        </div>
       </div>
 
       <h2 id="v2.0-alpha.14.0" class="ui top attached header">
