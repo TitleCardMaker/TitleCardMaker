@@ -4,6 +4,7 @@ description: >
     Integrate TitleCardMaker with external services such as Plex Webhooks,
     Tautulli, or Sonarr.
 tags:
+    - Jellyfin
     - Plex
     - Sonarr
     - Tautulli
@@ -20,6 +21,60 @@ For example, Plex can be configured to notify TCM to make/remake Title Cards
 when an event (in this case rating an Episode) occurs:
 
 ![Plex Webhook](./assets/plex-webhooks.gif){.no-lightbox}
+
+## Jellyfin
+
+Jellyfin webhooks can be configured to prompt TCM to create cards for newly
+added content.
+
+1. In Jellyfin, install the _Webhook_ plugin from official Jellyfin Catalogue.
+
+2. Within the Webhook plugin, click <span class="example md-button">Add Generic
+Destination</span>.
+
+3. Add a descriptive name; and for the URL enter the URL of your TCM server
+(including the port), followed by `/api/webhooks/sonarr/cards` (see note[^1]).
+
+    !!! example "Example"
+
+        For my server, this looks like `http://192.168.0.29:4242/api/webhooks/sonarr/cards`.
+
+4. For the Notification Type, select only _Item Added_, and for the Item Type,
+select _Episodes_.
+
+5. In the Template section, paste the following:
+
+    ??? tip "Webhook Template"
+
+        ```json
+        {
+            "eventType": "Download",
+            "series": {
+                "id": 1,
+                "title": "{{SeriesName}}",
+                "year": "{{Year}}",
+                "imdbId": "{{Provider_imdb}}",
+                "tvRageId": 0,
+                "tmdbId": 0
+            },
+            "episodes": [
+                {
+                    "id": 0,
+                    "seriesId": 0,
+                    "title": "{{Name}}",
+                    "seasonNumber": {{EpisodeNumber}},
+                    "episodeNumber": {{SeasonNumber}},
+                    "tvdbId": {{Provider_tvdb}}
+                }
+            ]
+        }
+        ```
+
+6. Click <span class="example md-button">Add Request Header</span> and add the
+Key `Content-Type`, and the value `application/json`.
+
+Now, when new episodes are added to your Jellyfin server, it will send an API
+trigger to TCM which prompts a new Card to be created and loaded.
 
 ## Plex
 
@@ -238,4 +293,7 @@ in TCM - this is because TCM only submits API requests to Tautulli to
 create an agent. Afterwards, it is Tautulli that sends data to TCM, and so no
 active connection is required.
 
-
+[^1]:
+    Although this is using the [Sonarr](#sonarr) webhook, this integration
+    __does not__ require (or use) Sonarr. We are simply reusing the API code
+    from the Sonarr endpoint.
