@@ -17,7 +17,7 @@ from fastapi.responses import StreamingResponse
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
 
-from app.database.query import get_episode, get_interface
+from app.database.query import get_episode, get_media_interface
 from app.dependencies import get_database, require_plex_interface, PlexInterface
 from app.internal.cards import create_episode_cards, delete_cards
 from app.internal.episodes import refresh_episode_data
@@ -37,6 +37,7 @@ from app.schemas.series import NewSeries
 from app.schemas.webhooks import PlexWebhook, SonarrWebhook
 
 from modules.Debug import Logger
+from modules.EpisodeDataSource2 import WatchedStatus
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.SeriesInfo2 import SeriesInfo
 
@@ -228,8 +229,14 @@ def create_cards_for_sonarr_webhook(
             log.info(f'Cannot find Episode for {series_info} {episode_info}')
             return None
 
-        # Assume Episode is unwatched
-        episode.watched = False
+        # Assume Episode is unwatched in all libraries which do not
+        # already have a defined watched status
+        for library in series.libraries:
+            iid, name = library['interface_id'], library['name']
+            if episode.get_watched_status(iid, name) is None:
+                episode.add_watched_status(
+                    WatchedStatus(iid, name, False), log=log
+                )
 
         # Look for source, add translation, create Card if source exists
         images = download_episode_source_images(db, episode, log=log)
@@ -248,14 +255,22 @@ def create_cards_for_sonarr_webhook(
 
         # Reload into all associated libraries
         for library in series.libraries:
-            if (interface := get_interface(library['interface_id'], raise_exc=False)):
+            iid = library['interface_id']
+            if (interface := get_media_interface(iid, raise_exc=False)):
                 load_episode_title_card(
-                    episode, db, library['name'], library['interface_id'],
-                    interface, attempts=6, log=log,
+                    episode,
+                    db,
+                    library['name'],
+                    iid,
+                    interface,
+                    attempts=6,
+                    log=log,
                 )
             else:
-                log.debug(f'Not loading {series_info} {episode_info} into '
-                          f'library "{library["name"]}" - no valid Connection')
+                log.debug(
+                    f'Not loading {series_info} {episode_info} into library '
+                    f'"{library["name"]}" - no valid Connection'
+                )
                 continue
 
     return None

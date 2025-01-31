@@ -498,27 +498,10 @@ class Episode(Base):
         return all(status for status in self.watched_statuses.values())
 
 
-    @property
-    def watched_statuses_flat(self) -> dict[str, bool]:
-        """
-        Get a mapping of library names to watched statuses for this
-        Episode. This is the flattened dictionary for each library name.
-
-        >>> ep.watched_statuses = {'1:TV': True, '2:Anime': False}
-        >>> ep.watched_statuses_flat
-        {'TV': True, 'Anime': False}
-        """
-
-        return {
-            key.split(':', maxsplit=1): watched
-            for key, watched in self.watched_statuses
-        }
-
-
     def get_watched_status(self,
             interface_id: int,
             library_name: str,
-        ) -> Optional[bool]:
+        ) -> bool | None:
         """
         Get this Episode's watched status for the given library.
 
@@ -562,8 +545,10 @@ class Episode(Base):
             current = self.watched_statuses.get(key)
             self.watched_statuses[key] = status.status
             if current != status.status:
-                log.trace(f'{self} updating watched status '
-                          f'({current} -> {status.status})')
+                log.trace(
+                    f'{self} updating watched status ({current} -> '
+                    f'{status.status})'
+                )
 
             return current != status.status
 
