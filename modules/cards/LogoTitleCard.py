@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import FilePath, PositiveFloat, root_validator
 
@@ -41,14 +41,24 @@ class LogoTitleCard(BaseCardType):
                 default=1.0,
             ),
             Extra(
+                name='Logo Horizontal Shift',
+                identifier='logo_horizontal_shift',
+                description='Horizontal shift to apply to the logo',
+                tooltip=(
+                    'Positive values to shift the logo left, negative values '
+                    'shift it right. Default is <v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
+            Extra(
                 name='Logo Vertical Shift',
                 identifier='logo_vertical_shift',
                 description='Vertical shift to apply to the logo',
                 tooltip=(
-                    'Positive values to shift the logo down, negative values to'
-                    'shift it up. Default is <v>0.0</v>. Unit is pixels.'
+                    'Positive values to shift the logo down, negative values '
+                    'shift it up. Default is <v>0</v>. Unit is pixels.'
                 ),
-                default=0.0,
+                default=0,
             ),
             Extra(
                 name='Episode Text Color',
@@ -169,24 +179,45 @@ class LogoTitleCard(BaseCardType):
     __GRADIENT_IMAGE = REF_DIRECTORY / 'GRADIENT.png'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_color',
-        'font_file', 'font_kerning', 'font_interline_spacing',
-        'font_interword_spacing', 'font_size', 'font_stroke_width',
-        'font_vertical_shift', 'separator', 'logo', 'logo_size',
-        'logo_vertical_shift', 'omit_gradient', 'background', 'stroke_color',
-        'use_background_image', 'blur_only_image', 'episode_text_color',
+        'background',
+        'blur_only_image',
+        'episode_text',
+        'episode_text_color',
         'episode_text_vertical_shift'
+        'font_color',
+        'font_file',
+        'font_kerning',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_size',
+        'font_stroke_width',
+        'font_vertical_shift',
+        'hide_season_text',
+        'hide_episode_text',
+        'omit_gradient',
+        'output_file',
+        'logo',
+        'logo_horizontal_shift',
+        'logo_size',
+        'logo_vertical_shift',
+        'season_text',
+        'separator',
+        'source_file',
+        'stroke_color',
+        'title_text',
+        'use_background_image',
     )
 
     def __init__(self, *,
             card_file: Path,
             title_text: str,
+            # Text
             season_text: str,
             episode_text: str,
             source_file: Path,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
+            # Font
             font_color: str = TITLE_COLOR,
             font_file: str = TITLE_FONT,
             font_interline_spacing: int = 0,
@@ -195,13 +226,16 @@ class LogoTitleCard(BaseCardType):
             font_size: float = 1.0,
             font_stroke_width: float = 1.0,
             font_vertical_shift: int = 0,
+            # Builtins
             blur: bool = False,
             grayscale: bool = False,
+            # Extras
             background: str = 'black',
             blur_only_image: bool = False,
             episode_text_color: str = SERIES_COUNT_TEXT_COLOR,
             episode_text_vertical_shift: int = 0,
             logo_file: Path = ...,
+            logo_horizontal_shift: int = 0,
             logo_size: float = 1.0,
             logo_vertical_shift: int = 0,
             omit_gradient: bool = True,
@@ -209,7 +243,7 @@ class LogoTitleCard(BaseCardType):
             stroke_color: str = 'black',
             use_background_image: bool = False,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this card."""
 
@@ -245,6 +279,7 @@ class LogoTitleCard(BaseCardType):
         self.episode_text_color = episode_text_color
         self.episode_text_vertical_shift = episode_text_vertical_shift
         self.omit_gradient = omit_gradient
+        self.logo_horizontal_shift = logo_horizontal_shift
         self.logo_size = logo_size
         self.logo_vertical_shift = logo_vertical_shift
         self.separator = separator
@@ -275,10 +310,12 @@ class LogoTitleCard(BaseCardType):
 
         return [
             f'-gravity north',
-            fr'\( "{self.logo.resolve()}"',
+            fr'\(',
+            f'"{self.logo.resolve()}"',
             f'-resize x{max_height}',
             fr'-resize {max_width}x{max_height}\>',
-            fr'\) -geometry +0{offset:+}',
+            fr'\)',
+            f'-geometry {self.logo_horizontal_shift:+}{offset:+}',
             f'-composite',
         ]
 
@@ -336,7 +373,8 @@ class LogoTitleCard(BaseCardType):
             f'-pointsize 67.75',
             f'-interword-spacing 14.5',
             # Black stroke behind primary text
-            fr'\( -fill black',
+            fr'\(',
+            f'-fill black',
             f'-stroke black',
             f'-strokewidth 6',
             # Add season text
@@ -346,12 +384,14 @@ class LogoTitleCard(BaseCardType):
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
             # Combine season+episode text into one "image"
-            fr'+smush 25 \)',
+            f'+smush 25',
+            fr'\)',
             # Add season+episode text "image" to source image
             f'-geometry +0{y:+}',
             f'-composite',
             # Primary text
-            fr'\( -fill "{self.episode_text_color}"',
+            fr'\(',
+            f'-fill "{self.episode_text_color}"',
             f'-stroke "{self.episode_text_color}"',
             f'-strokewidth 0.75',
             # Add season text
@@ -360,7 +400,8 @@ class LogoTitleCard(BaseCardType):
             # Add episode text
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
-            fr'+smush 30 \)',
+            f'+smush 30',
+            fr'\)',
             # Add text to source image
             f'-geometry +0{y:+}',
             f'-composite',
@@ -442,13 +483,13 @@ class LogoTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != 0)
-            or ('episode_text_vertical_shift' in extras
-                and extras['episode_text_vertical_shift'] != 0)
-            or ('stroke_color' in extras
-                and extras['stroke_color'] != 'black')
+        custom_extras = LogoTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'episode_text_color': LogoTitleCard.SERIES_COUNT_TEXT_COLOR,
+                'episode_text_vertical_shift': 0,
+                'stroke_color': 'black',
+            }
         )
 
         return custom_extras or LogoTitleCard._is_custom_font(font)
@@ -552,6 +593,7 @@ def get_validator_model() -> type[Base]:
         blur_only_image: bool = False
         episode_text_color: str = LogoTitleCard.SERIES_COUNT_TEXT_COLOR
         episode_text_vertical_shift: int = 0
+        logo_horizontal_shift: int = 0
         logo_size: PositiveFloat = 1.0
         logo_vertical_shift: int = 0
         omit_gradient: bool = True
