@@ -13,12 +13,15 @@ from imagesize import get as im_get
 from modules.Debug import Logger, log
 
 
+"""Regex to extract the width/height from a command output"""
 _dimension_regex = re_compile(r'.*?(\d+),(\d+).*')
 
+"""Regex to extract the pixel count and color code from a histogram"""
+_histogram_regex = re_compile(r'\s*(\d+):\s*\(([^)]+)\)')
 
 class Dimensions(NamedTuple): # pylint: disable=missing-class-docstring
-    width: int
-    height: int
+    width: int | float
+    height: int | float
 
 
 class ImageMagickInterface:
@@ -259,7 +262,7 @@ class ImageMagickInterface:
         if not image.exists():
             return Dimensions(0, 0)
 
-        return Dimensions(*map(float, im_get(image)))
+        return Dimensions(*map(int, im_get(image)))
 
 
     def get_text_label_dimensions(self,
@@ -521,3 +524,69 @@ class ImageMagickInterface:
         ])
 
         return temp_image
+
+
+    def get_primary_colors(self,
+            image: Path,
+            *,
+            colors: int = 8,
+            alpha_threshold: int = 70,
+            black_threshold: int = 40,
+            white_threshold: int = 210,
+        ) -> list[str]:
+        """
+        
+        """
+
+        """
+        Histogram output format is like:
+
+        384774: (0,0,0,0) #00000000 none
+          8587: (9.55211,106.285,174.132,255) #0A6AAEFF srgba(3.74592%,41.6803%,68.2872%,1)
+         13191: (15.659,153.019,241.567,255) #1099F2FF srgba(6.14078%,60.0076%,94.7322%,1)
+          2125: (89.1054,65.3291,90.7678,255) #59415BFF srgba(34.9433%,25.6193%,35.5952%,1)
+
+        Which is practically:
+
+        {count}: {rgb color} #{hex color} {color name or string}
+        """
+        histogram = self.run_get_output(' '.join([
+            f'convert',
+            f'"{image.resolve()}"',
+            fr'-resize x300\>',
+            # Remove pixels which are transparent below given threshold
+            f'-channel alpha',
+            f'-threshold "{alpha_threshold}%"',
+            f'+channel',
+            # Limit number of colors to given count
+            f'-colors {colors}',
+            f'-format "%c"',
+            f'histogram:info:',
+        ]))
+
+        color_list: list[tuple[int, str]] = []
+        for line in histogram.splitlines():
+            if (match := _histogram_regex.match(line)):
+                pixel_count, color = match.groups(1)
+                # Parse color RGB values into floats for thresholds
+                try:
+                    # Ignore the alpha value if present
+                    i_colors = str(color).split(',')[:3]
+                    color_vals = list(map(float, i_colors))
+                except ValueError:
+                    continue
+
+                # Skip if all color values are outside threshold
+                if (all(val < black_threshold for val in color_vals)
+                    or all(val > white_threshold for val in color_vals)):
+                    continue
+
+                # Color is valid and within bounds, add to list
+                color_list.append((int(pixel_count), f'rgb({color})'))
+
+        return [
+            # Only return the RGB color, ignore the count
+            color for _, color in
+            # Sort by the pixel count
+            sorted(color_list, key=lambda c: c[0], reverse=True)[:colors]
+        ]
