@@ -111,7 +111,9 @@ images, logos, and posters) from. Unlike the Episode data source, multiple
 sources can be specified here, and the selected order does matter.
 
 TitleCardMaker, while searching for images, will try the listed sources
-_in order_ until a source image is found.
+_in order_ until a source image is found. If the source is a media server, then
+the Series must have a library associated for that server in order for TCM to
+look for images.
 
 ??? tip "Recommended Setting"
 
