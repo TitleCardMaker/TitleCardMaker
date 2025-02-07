@@ -91,7 +91,7 @@ def get_effective_templates(
         library: Library | None = None,
     ) -> Union[tuple[Template | None, None, None],
                tuple[None, Template | None, None],
-               tuple[None, None, Template]] | None:
+               tuple[None, None, Template | None]]:
     ...
 
 def get_effective_templates(
@@ -100,7 +100,7 @@ def get_effective_templates(
         library: Library | None = None,
     ) -> Union[tuple[Template | None, None, None],
                tuple[None, Template | None, None],
-               tuple[None, None, Template]] | None:
+               tuple[None, None, Template | None]]:
     """
     Get the effective Global, Series, and Episode Templates for the given
     Series and optional Episode. This evaluates all Template conditions
