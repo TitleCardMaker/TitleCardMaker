@@ -9,7 +9,7 @@ from sqlalchemy.exc import OperationalError, PendingRollbackError
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.orm.session import object_session
 
-from app.database.query import get_font, get_interface
+from app.database.query import get_font, get_media_interface
 from app.dependencies import get_database, get_preferences
 from app.internal.availability import get_remote_card_hash
 from app.internal.episodes import refresh_episode_data
@@ -598,6 +598,34 @@ def resolve_card_settings(
     if card_settings.get('font_color', None) is None:
         card_settings['font_color'] = CardClass.TITLE_COLOR
 
+    # Resolve auto color detection
+    if (card_settings['font_color'] in ('{logo_color}', '{logo_color_no_white}')
+        or 'get_image_color(' in str(card_settings['font_color'])
+    ):
+        # Substitute actual function calls for the common variables
+        if card_settings['font_color'] == '{logo_color}':
+            card_settings['font_color'] = (
+                '{get_image_color(logo_file, '
+                + 'fallback=' + repr(CardClass.TITLE_COLOR) + ''
+                + ')}'
+            )
+        elif card_settings['font_color'] == '{logo_color_no_white}':
+            card_settings['font_color'] = (
+                '{get_image_color(logo_file, '
+                + 'fallback=' + repr(CardClass.TITLE_COLOR) + ', '
+                + 'white_threshold=210)}'
+            )
+
+        # Perform actual FormatString resolution
+        card_settings['font_color'] = FormatString.new(
+            str(card_settings['font_color']),
+            data=card_settings,
+            name='font color',
+            series=series,
+            episode=episode,
+            log=log,
+        )
+
     # Apply Font pre-replacements
     repl_in = list(CardClass.FONT_REPLACEMENTS.keys())
     repl_out = list(CardClass.FONT_REPLACEMENTS.values())
@@ -950,7 +978,8 @@ def get_watched_statuses(
     # Get statuses for each library of this Series
     changed = False
     for library in series.libraries:
-        if (interface :=get_interface(library['interface_id'],raise_exc=False)):
+        interface = get_media_interface(library['interface_id'],raise_exc=False)
+        if interface:
             changed |= interface.update_watched_statuses(
                 library['name'], series.as_series_info, episodes, log=log,
             )
