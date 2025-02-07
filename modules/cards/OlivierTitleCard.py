@@ -234,7 +234,7 @@ class OlivierTitleCard(BaseCardType):
             if self.gradient_type == 'original':
                 gradient_command =[f'"{self.GRADIENT.resolve()}"', '-rotate 90']
             else:
-                gradient_command = f'"{self._ALT_GRADIENT.resolve()}"'
+                gradient_command = [f'"{self._ALT_GRADIENT.resolve()}"']
 
             return [
                 fr'\(',
