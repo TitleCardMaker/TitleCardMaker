@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, TypedDict
 
 from plexapi.video import Episode as PlexEpisode
-from sqlalchemy import ColumnElement, and_, func, or_
+from sqlalchemy import ColumnElement, and_, false as sql_false, func, or_, not_
 
 from modules.Debug import Logger, log
 from modules.DatabaseInfoContainer import DatabaseInfoContainer, InterfaceID
@@ -60,18 +60,18 @@ class EpisodeInfo(DatabaseInfoContainer):
     """
 
     __slots__ = (
-        'title',
-        'season_number',
-        'episode_number',
         'absolute_number',
+        'airdate',
+        'episode_number',
         'emby_id',
         'imdb_id',
         'jellyfin_id',
         'plex_id',
+        'season_number',
         'tmdb_id',
         'tvdb_id',
         'tvrage_id',
-        'airdate',
+        'title',
     )
 
 
@@ -262,9 +262,9 @@ class EpisodeInfo(DatabaseInfoContainer):
                 info['PremiereDate'], '%Y-%m-%dT%H:%M:%S.%f000000Z'
             )
         except KeyError:
-            log.debug(f'Cannot parse episode airdate')
+            log.debug('Cannot parse episode airdate')
         except Exception:
-            log.exception(f'Cannot parse airdate')
+            log.exception('Cannot parse airdate')
             log.debug(f'Episode data: {info}')
 
         # TMDb movies might have an ID formatted as {id}-{name} or ../{name}/{id}
@@ -510,7 +510,9 @@ class EpisodeInfo(DatabaseInfoContainer):
         self._update_attribute('airdate', airdate)
 
 
-    def filter_conditions(self, EpisodeModel: 'Episode') -> ColumnElement[bool]:
+    def filter_conditions(self,
+            EpisodeModel: type['Episode'],
+        ) -> ColumnElement[bool]:
         """
         Get the SQLAlchemy Query condition for this object.
 
@@ -518,13 +520,14 @@ class EpisodeInfo(DatabaseInfoContainer):
             EpisodeModel: Episode model to utilize for Query conditions.
 
         Returns:
-            Query condition for this object. This includes an OR for any
-            (non-None) database ID matches as well as an index and title
-            match.
+            Query condition for this object. This is a complex condition
+            for at least two non-null ID matches OR an index match (e.g.
+            season+episode number) and either an airdate, title, or
+            single-ID match.
         """
 
         # Conditions to filter by database ID
-        id_conditions = []
+        id_conditions: list[ColumnElement[bool]] = []
         if self.emby_id:
             id_conditions.append(func.regex_match(
                 fr'(?:^|\D){self.emby_id}(?!\d)', EpisodeModel.emby_id,
@@ -544,21 +547,34 @@ class EpisodeInfo(DatabaseInfoContainer):
 
         # If >1 ID condition is present, require any two ID match to
         # prevent failed matches caused by single ID collision
-        conditions = []
+        expressions: list[ColumnElement[bool]] = []
         if len(id_conditions) >= 2:
             for i, condition in enumerate(id_conditions):
                 for j in range(i + 1, len(id_conditions)):
-                    conditions.append(and_(condition, id_conditions[j]))
-        else:
-            conditions = id_conditions
+                    expressions.append(and_(condition, id_conditions[j]))
+
+        # Airdate expression
+        airdate_expression: list[ColumnElement[bool]] = []
+        if self.airdate:
+            airdate_expression = [and_(
+                not_(EpisodeModel.airdate.is_(None)),
+                func.date(EpisodeModel.airdate)==self.airdate.date()
+            )]
 
         return or_(
-            # Find by database ID
-            or_(*conditions),
-            # Find by index and title
+            # At least two ID matches; add false() in case no expressions
+            or_(sql_false(), *expressions),
+            # Index match and (title match OR ID match OR airdate match)
             and_(
                 EpisodeModel.season_number==self.season_number,
                 EpisodeModel.episode_number==self.episode_number,
-                EpisodeModel.title==self.title,
+                or_(
+                    # Title match
+                    EpisodeModel.title==self.title,
+                    # ID Match
+                    *id_conditions,
+                    # Airdate match
+                    *airdate_expression,
+                ),
             ),
         )
