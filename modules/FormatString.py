@@ -135,13 +135,51 @@ def format_date(date: datetime, fmt: str, /) -> str:
     return date.strftime(fmt)
 
 
+def get_image_color(
+        image: Path,
+        /,
+        fallback: str,
+        index: int = 0,
+        *,
+        colors: int = 8,
+        alpha_threshold: int = 70,
+        black_threshold: int = 40,
+        white_threshold: int = 256,
+    ) -> str:
+    """
+    Get a color from the given image. This is practically a wrapper for
+    the `ImageMagick.get_primary_colors` method.
+    """
+
+    # Image does not exist, return fallback
+    if not image.exists():
+        return fallback
+
+    # Query IM for primary colors
+    from app.dependencies import get_imagemagick_interface
+    color_codes = get_imagemagick_interface().get_primary_colors(
+        image,
+        colors=colors,
+        alpha_threshold=alpha_threshold,
+        black_threshold=black_threshold,
+        white_threshold=white_threshold,
+    )
+
+    # If no colors were returned (or none of the given index)
+    if not color_codes or len(color_codes) - 1 < index:
+        return fallback
+
+    return color_codes[index]
+
+
 __BUILTIN_FUNCTIONS: dict[str, Callable[..., str]] = {
+    'format_date': format_date,
+    'get_image_color': get_image_color,
     'titlecase': titlecase,
     'to_roman_numeral': to_roman_numeral,
     'to_cardinal': to_cardinal,
     'to_ordinal': to_ordinal,
     'to_short_ordinal': to_short_ordinal,
-    'format_date': format_date,
 }
 __BUILTIN_VARIABLES: dict[str, str] = {
     'NEWLINE': '\n',
@@ -201,7 +239,9 @@ class FormatString:
                 data,
             )
         except (NameError, SyntaxError, NotImplementedError, KeyError) as exc:
-            log.debug(f'Error evaluating ({fstring}) with ({dumps(data, indent=2)})')
+            log.debug(
+                f'Error evaluating ({fstring}) with ({dumps(data, indent=2)})'
+            )
             raise (InvalidFormatString if catch else exc) from exc
 
 
