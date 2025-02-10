@@ -119,7 +119,7 @@ class SeriesInfo(DatabaseInfoContainer):
 
         # If year still isn't specified, error
         if self.year is None:
-            raise ValueError(f'Year not provided')
+            raise ValueError('Year not provided')
 
         self.year = int(self.year)
         self.update_name(self.name)

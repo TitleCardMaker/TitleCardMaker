@@ -28,8 +28,11 @@ class BaseSummary(ImageMaker):
 
     BACKGROUND_COLOR = '#1A1A1A'
 
-    """Path to the 'created by' image to add to all show summaries"""
-    _CREATED_BY_PATH = REF_DIRECTORY / 'created_by.png'
+    """
+    Path to the 'created by' image to add to all show summaries. This
+    was created with the "BasicSans-SemiBold" Font.
+    """
+    _CREATED_BY_PATH = REF_DIRECTORY / 'created_by_v2.png'
 
     """Configuration for the created by image creation"""
     HEADER_FONT = REF_DIRECTORY.parent / 'Proxima Nova Regular.otf'
@@ -89,7 +92,10 @@ class BaseSummary(ImageMaker):
 
         # Filter out episodes that don't have an existing title card
         available_episodes = list(filter(
-            lambda e: self.show.episodes[e].destination.exists(),
+            lambda e: (
+                self.show.episodes[e].destination is not None
+                and self.show.episodes[e].destination.exists() # type: ignore
+            ),
             self.show.episodes
         ))
 

@@ -55,7 +55,7 @@ class StylizedSummary(BaseSummary):
             Path to the created image.
         """
 
-        command = ' '.join([
+        self.image_magick.run([
             f'montage',
             f'-set colorspace sRGB',
             f'-background "{self.BACKGROUND_COLOR}"',
@@ -65,12 +65,10 @@ class StylizedSummary(BaseSummary):
             f'"{self.__MONTAGE_PATH.resolve()}"',
         ])
 
-        self.image_magick.run(command)
-
         return self.__MONTAGE_PATH
 
 
-    def __resize_logo(self, max_width: int) -> Path:
+    def __resize_logo(self, max_width: int | float) -> Path:
         """
         Resize this associated show's logo to fit into at least a 350
         pixel high space. If the resulting logo is wider than the given
@@ -80,15 +78,13 @@ class StylizedSummary(BaseSummary):
             Path to the resized logo.
         """
 
-        command = ' '.join([
+        self.image_magick.run([
             f'convert',
             f'"{self.logo.resolve()}"',
             f'-resize x350',
             fr'-resize {max_width}x350\>',
             f'"{self.__RESIZED_LOGO_PATH.resolve()}"',
         ])
-
-        self.image_magick.run(command)
 
         return self.__RESIZED_LOGO_PATH
 
@@ -126,7 +122,7 @@ class StylizedSummary(BaseSummary):
         else:
             created_by = self._create_created_by(self.created_by)
 
-        command = ' '.join([
+        self.image_magick.run([
             f'convert "{montage.resolve()}"',
             # Create reflection of montage
             fr'\(',
@@ -173,8 +169,6 @@ class StylizedSummary(BaseSummary):
             f'-composite',
             f'"{self.output.resolve()}"',
         ])
-
-        self.image_magick.run(command)
 
         # Delete intermediate images
         if self.created_by is None:
