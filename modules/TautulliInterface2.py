@@ -230,10 +230,12 @@ class TautulliInterface(WebInterface, Interface):
                 'on_created_body': '"{rating_key}"',
             }
             self.get(self.tautulli_url, params)
-            log.info(f'Created and configured Recently Added Tautulli '
-                     f'Notification Agent {created_id}')
+            log.info(
+                f'Created and configured Recently Added Tautulli Notification '
+                f'Agent {created_id}'
+            )
         else:
-            log.debug(f'Recently Added Tautulli integration detected')
+            log.debug('Recently Added Tautulli integration detected')
 
         if self._trigger_watched and not integrated.watched:
             # Create Agent, raise if fails
@@ -278,7 +280,9 @@ class TautulliInterface(WebInterface, Interface):
                 'on_watched_body': '"{rating_key}"',
             }
             self.get(self.tautulli_url, params)
-            log.info(f'Created and configured Watched Tautulli Notification '
-                     f'Agent {created_id}')
+            log.info(
+                f'Created and configured Watched Tautulli Notification Agent '
+                f'{created_id}'
+            )
         elif self._trigger_watched:
-            log.debug(f'Watched Tautulli integration detected')
+            log.debug('Watched Tautulli integration detected')
