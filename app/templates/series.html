@@ -1163,22 +1163,29 @@
         <!-- Episode Data Tab -->
         <div class="ui bottom attached tab segment" data-tab="episodes">
           <!-- Mass table editor buttons -->
-          <button data-action="refresh-episodes" class="ui green tertiary button" onclick="refreshEpisodes();">
-            <i class="sync icon"></i>
-            Refresh
-          </button>
-          <button data-action="add-episode" id="new-episode" class="ui green tertiary button">
-            <i class="plus square outline icon"></i>
-            Add
-          </button>
-          <button data-action="save-episodes" class="ui blue tertiary button" onclick="saveAllEpisodes();">
-            <i class="save outline icon"></i>
-            Save All Changes
-          </button>
-          <button data-action="delete-episodes" class="ui red tertiary button" onclick="deleteAllEpisodes();">
-            <i class="trash alternate outline icon"></i>
-            Delete All
-          </button>
+          <div class="uu buttons">
+            <button data-action="refresh-episodes" class="ui green tertiary button" onclick="refreshEpisodes();">
+              <i class="sync icon"></i>
+              Refresh
+            </button>
+            <button data-action="add-episode" id="new-episode" class="ui green tertiary button">
+              <i class="plus square outline icon"></i>
+              Add
+            </button>
+            <button data-action="save-episodes" class="ui blue tertiary button" onclick="saveAllEpisodes();">
+              <i class="save outline icon"></i>
+              Save All Changes
+            </button>
+            <button data-action="delete-episodes" class="ui red tertiary button" onclick="deleteAllEpisodes();">
+              <i class="trash alternate outline icon"></i>
+              Delete All
+            </button>
+            <button data-action="toggle-advanced-mode" class="ui right floated teal tertiary button" onclick="toggleAdvancedMode();">
+              <i class="sliders horizontal icon"></i>
+              <!-- <i class="table icon"></i> -->
+              Toggle Advanced Mode
+            </button>
+          </div>
 
           <!-- Episode data table -->
           <div class="ui scrolling long fluid container">

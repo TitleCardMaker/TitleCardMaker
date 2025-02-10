@@ -162,10 +162,12 @@ function getUpdateEpisodeObject(episodeId, excludeBlank=false) {
  * "Change" the given icon to a loading indication. This is done by inserting an
  * adjacent spinner icon and hiding the given icon.
  * @param {JQuery} icon Element of the icon to set as loading,
+ * @returns {JQuery} Icon which was modified
  */
 function setLoadingIcon($icon) {
   $icon.css('display', 'none');
   $('<i class="spinner loading icon"></i>').insertAfter($icon);
+  return $icon
 }
 
 /**
@@ -3085,5 +3087,30 @@ function backgroundRemovaltest(episodeId) {
       rembgButton.classList.remove('spinner', 'loading');
       rembgButton.classList.add('magic');
     }
+  });
+}
+
+/**
+ * Submit an API request to toggle the advanced episode data table mode and
+ * refresh the page if successful.
+ */
+function toggleAdvancedMode() {
+  // Mark icon as loading
+  const $icon = setLoadingIcon($('.ui.button[data-action="toggle-advanced-mode"] > .icon'));
+
+  // Submit API request
+  const data = {simplified_data_table: !simplified_data_table};
+  $.ajax({
+    type: 'PATCH',
+    url: '/api/settings/update',
+    contentType: 'application/json',
+    data: JSON.stringify(data),
+    /** Settings updated, display toast and reload the page */
+    success: () => {
+      showInfoToast({title: 'Settings Updated', message: 'Reloading page..'});
+      setTimeout(() => location.reload(), 2000);
+    },
+    error: response => showErrorToast({title: 'Error Changing Setting', response}),
+    complete: () => removeLoadingIcon($icon),
   });
 }
