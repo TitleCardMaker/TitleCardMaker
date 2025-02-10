@@ -100,7 +100,7 @@ class BaseSummary(ImageMaker):
         ))
 
         # Filter specials if indicated
-        if global_objects.pp.summary_ignore_specials:
+        if getattr(global_objects.pp, 'summary_ignore_specials', True):
             available_episodes = list(filter(
                 lambda e: self.show.episodes[e].episode_info.season_number != 0,
                 available_episodes
@@ -111,7 +111,7 @@ class BaseSummary(ImageMaker):
             return False
 
         # Skip if the number of available episodes is below the minimum
-        minimum = global_objects.pp.summary_minimum_episode_count
+        minimum = getattr(global_objects.pp, 'summary_minimum_episode_count', 6)
         if episode_count < minimum:
             log.debug(
                 f'Skipping Summary, {self.show} has {episode_count} episodes, '
@@ -148,7 +148,7 @@ class BaseSummary(ImageMaker):
             Path to the created image.
         """
 
-        command = ' '.join([
+        self.image_magick.run([
             f'convert',
             # Create blank background
             f'-background transparent',
@@ -175,7 +175,5 @@ class BaseSummary(ImageMaker):
             f'+smush 30',
             f'"{self.__CREATED_BY_TEMPORARY_PATH.resolve()}"'
         ])
-
-        self.image_magick.run(command)
 
         return self.__CREATED_BY_TEMPORARY_PATH
