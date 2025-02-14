@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Iterator, Optional, TypeVar, Union
+from typing import Iterator, TypeVar, Union
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import HTTPException, Query, Request
@@ -191,25 +191,34 @@ def _require_interface(
         `Interface` object with the given ID.
 
     Raises:
-        HTTPException (400): The interface cannot be communicated with.
-        HTTPException (404): There is no interface with the given ID.
+        HTTPException (400): The interface is defined but not enabled
+            or valid.
+        HTTPException (404): There is no interface with the given ID, or
+            no ID was provided.
     """
 
-    # Get this interface's arguments
+    # No ID provided, raise 404
+    if interface_id is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f'No {name} Connection defined'
+        )
+
+    # Interface not defined in the group, raise 404
     if interface_id not in interface_group:
         raise HTTPException(
             status_code=404,
             detail=f'No {name} Connection with ID {interface_id}'
         )
 
-    # Interface enabled but not active, refresh
-    if not interface_group[interface_id]:
+    # Interface enabled but not active, raise 400
+    if not (iid := interface_group[interface_id]):
         raise HTTPException(
             status_code=400,
             detail=f'Error connecting to {name}[{interface_id}]'
         )
 
-    return interface_group[interface_id] # type: ignore
+    return iid
 
 
 # pylint: disable=global-statement
@@ -255,7 +264,7 @@ def refresh_imagemagick_interface() -> None:
 
     global ImageMagickInterfaceLocal
     ImageMagickInterfaceLocal = ImageMagickInterface(
-        **get_preferences().imagemagick_arguments,
+        use_magick_prefix=get_preferences().use_magick_prefix,
     )
 
 
@@ -374,8 +383,36 @@ def get_tmdb_interfaces() -> InterfaceGroup[int, TMDbInterface]:
     return TMDbInterfaces
 
 
+def get_first_tmdb_interface(
+        interface_id: int | None = Query(default=None),
+    ) -> TMDbInterface | None:
+    """
+    Dependency to get the `TMDbInterface` with the given ID. This adds
+    `interface_id` as a Query parameter. If the parameter is omitted,
+    then the first-defined TMDbInterface is used.
+
+    Args:
+        interface_id: ID of the interface to get.
+
+    Returns:
+        `TMDbInterface` with the given ID (or the first one if
+        `interface_id` is None) as defined in the global
+        `InterfaceGroup`. None otherwise.
+    """
+
+    # If no ID was provided, get the first available TVDb interface
+    if interface_id is None:
+        for _, interface in TMDbInterfaces:
+            return interface
+
+    try:
+        return _require_interface(TMDbInterfaces, interface_id, 'tmdb')
+    except HTTPException:
+        return None
+
+
 def require_tmdb_interface(
-        interface_id: Optional[int] = Query(default=None)
+        interface_id: int | None = Query(default=None)
     ) -> TMDbInterface:
     """
     Dependency to get the `TMDbInterface` with the given ID. This adds
@@ -415,8 +452,8 @@ def get_tvdb_interfaces() -> InterfaceGroup[int, TVDbInterface]:
 
 
 def get_first_tvdb_interface(
-        tvdb_interface_id: Optional[int] = Query(default=None)
-    ) -> Optional[TVDbInterface]:
+        tvdb_interface_id: int | None = Query(default=None)
+    ) -> TVDbInterface | None:
     """
     Dependency to get the `TVDbInterface` with the given ID. This adds
     `tvdb_interface_id` as a Query parameter. If the parameter is
@@ -443,7 +480,7 @@ def get_first_tvdb_interface(
 
 
 def require_tvdb_interface(
-        tvdb_interface_id: Optional[int] = Query(default=None)
+        tvdb_interface_id: int | None = Query(default=None)
     ) -> TVDbInterface:
     """
     Dependency to get the `TVDbInterface` with the given ID. This adds
