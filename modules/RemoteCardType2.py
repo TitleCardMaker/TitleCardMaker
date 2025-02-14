@@ -82,21 +82,26 @@ class RemoteCardType:
             # Make GET request for the contents of the specified value
             if (response := get(url, timeout=30)).status_code >= 400:
                 log.error(f'Cannot identify Card Type "{identifier}"')
-                log.debug(f'Error querying card from {url} '
-                          f'({response.content.decode()})')
+                log.debug(
+                    f'Error querying card from {url} '
+                    f'({response.content.decode()})'
+                )
                 self.valid = False
                 return None
 
             # Validate hash of downloaded file (if present)
             if file_hash:
                 if file_hash == (hash_act := md5(response.content).hexdigest()):
-                    log.trace(f'CardType "{identifier}" has matching MD5 hash '
-                              f'of {file_hash}')
+                    log.trace(
+                        f'CardType "{identifier}" has matching MD5 hash of '
+                        f'{file_hash}'
+                    )
                 # Hash does not match, set invalid
                 else:
-                    log.error(f'CardType "{identifier}" MD5 hash does not '
-                              f'match {file_hash} ({hash_act}) - not loading '
-                              f'CardType')
+                    log.error(
+                        f'CardType "{identifier}" MD5 hash does not match '
+                        f'{file_hash} ({hash_act}) - not loading CardType'
+                    )
                     self.valid = False
                     return None
 
@@ -133,9 +138,11 @@ class RemoteCardType:
                 log.debug(f'Loaded RemoteCardType "{identifier}"')
         # Error looking for module under class name - likely bad naming
         except KeyError:
-            log.exception(f'Cannot load CardType "{identifier}" - cannot '
-                          f'identify Card class. Ensure there is a Class of '
-                          f'the same name as the file itself.')
+            log.exception(
+                f'Cannot load CardType "{identifier}" - cannot identify Card '
+                f'class. Ensure there is a Class of the same name as the file '
+                f'itself.'
+            )
             self.valid = False
         # Some error in loading, set object as invalid
         except Exception:
