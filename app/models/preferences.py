@@ -447,10 +447,12 @@ class Preferences:
         for file in self.card_type_directory.glob('*.py'):
             # Attempt to load each file; skip if invalid
             if not (card_type := RemoteCardType(file, log=log)).valid:
-                log.critical(f'Error reading local CardType')
+                log.critical('Error reading local CardType')
                 continue
 
             # Card type parsed, add to dictionary of identifiers to classes
+            if not card_type.card_class:
+                continue
             details = card_type.card_class.API_DETAILS
             self.local_card_types[details.identifier] = card_type.card_class
             log.debug(f'Parsed local CardType[{details.identifier}]')

@@ -151,7 +151,7 @@ Page = CustomizedPage[
 ImageMagickInterfaceLocal = None
 try:
     ImageMagickInterfaceLocal = ImageMagickInterface(
-        **PreferencesLocal.imagemagick_arguments
+        use_magick_prefix=PreferencesLocal.use_magick_prefix,
     )
 except Exception:
     pass
