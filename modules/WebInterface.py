@@ -273,6 +273,7 @@ class WebInterface:
 
         # Validate content
         if not WebInterface.verify_image_content(url, content):
+            log.trace(content)
             return False
 
         # Write content to file
