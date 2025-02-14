@@ -114,7 +114,7 @@ class InterfaceGroup(Generic[_InterfaceID, _Interface],
         self.interfaces[interface_id] = interface
 
 
-    def __contains__(self, interface_id: _InterfaceID) -> bool:
+    def __contains__(self, interface_id: object | _InterfaceID) -> bool:
         """
         Whether the given interface ID has an associated Interface.
         """
