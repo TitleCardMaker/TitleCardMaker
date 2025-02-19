@@ -212,3 +212,7 @@ img[data-action="browse-tmdb"] {
 #episode-data-table tr td .ui.input {
   width: 100%;
 }
+
+.tab[data-tab="logs"] .feed .blurred.event {
+  filter: blur(2px);
+}

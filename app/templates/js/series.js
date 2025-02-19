@@ -1092,27 +1092,59 @@ function querySeriesLogs() {
      * @param {LogEntryPage} logs - Logs associated with this Series.
      */
     success: logs => {
+      // Template for all log elements
       const eventTemplate = document.getElementById('log-event-template');
 
+      // Feed for all elements
+      const feed = document.querySelector('.tab[data-tab="logs"] .feed');
+
+      // Create elements for each log entry
       const events = logs.items.map(log => {
         const event = eventTemplate.content.cloneNode(true);
         const color = {
-          'CRITICAL': 'red', 'ERROR': 'orange', 'WARNING': 'yellow',
-          'INFO': 'blue', 'DEBUG': 'grey', 'TRACE': 'white',
+          'CRITICAL': 'red',
+          'ERROR': 'orange',
+          'WARNING': 'yellow',
+          'INFO': 'blue',
+          'DEBUG': 'grey',
+          'TRACE': 'white',
         }[log.level];
 
+        // If this message has a context ID add interactivity when hovering
+        if (log.context_id !== null) {
+          event.querySelector('.event').dataset.contextId = log.context_id;
+          event.querySelector('.event [data-value="context_id"]').addEventListener('mouseenter', () => {
+            feed.querySelectorAll('.event').forEach(event => {
+              if (event.dataset.contextId !== log.context_id) {
+                event.classList.add('blurred');
+              }
+            });
+          });
+          event.querySelector('.event [data-value="context_id"]').addEventListener('mouseleave', () => {
+            feed.querySelectorAll('.event').forEach(event => {
+              event.classList.remove('blurred');
+            });
+          });
+        }
+
+        // Populate template
         event.querySelector('.label .icon').classList.add(color);
         event.querySelector('.summary span').innerText = `${toTitleCase(log.level)} Message`;
         event.querySelector('[data-value="date"]').innerText = timeDiffString(log.time);
-        event.querySelector('[data-value="context_id"]').innerText = log.context_id || '';
+        if (log.context_id === null) {
+          event.querySelector('[data-value="context_id"]').remove();
+        } else {
+          event.querySelector('[data-value="context_id"]').innerText = log.context_id || '';
+        }
         event.querySelector('[data-value="message"]').innerText = log.message
           .replace(`Series[{{ series.id }}] ${series_full_name}`, series_full_name);
 
         return event;
-      })
+      });
 
+      // Remove loader, add elements to page
       document.getElementById('logs-loader').remove();
-      document.querySelector('.feed').replaceChildren(...events);
+      feed.replaceChildren(...events);
       refreshTheme();
     },
   });
