@@ -54,14 +54,15 @@ def query_logs(
         context_id: str | None = Query(default=None, min_length=1),
         contains: str | None = Query(default=None, min_length=1),
         shallow: bool = Query(default=True),
-    ) -> Page[LogEntry]:
+    ) -> Page[LogEntry]: # type: ignore
     """
     Query all log entries for the given criteria.
 
     - level: Minimum log level. All messages of lower levels are removed.
     - after: Earliest date of logs to return. ISO 8601 format.
     - before: Latest date of logs to return. ISO 8601 format.
-    - context_id: Comma separated list of contexts to filter by.
+    - context_id: Comma separated list of contexts to filter by. If `!`
+    is included, logs with no context ID's are excluded.
     - contains: Required substring. Case insensitive.
     - shallow: Whether to only do a "shallow" query, which will only
     evaluate the most recent (active) log file.
@@ -72,11 +73,14 @@ def query_logs(
     # Function to filter log results by
     contains = None if contains is None else contains.lower().split('|')
     def meets_filters(data: RawLogData) -> bool:
+        # Level
         if _LEVEL_NUMBERS[data['level']] < _LEVEL_NUMBERS[level]:
             return False
 
         # Context
-        if (data['context_id'] is not None and context_id is not None
+        if (context_id is not None
+            # Include null context messages if '!' wasn't included in filter ID
+            and (data['context_id'] is not None or '!' in context_id)
             and data['context_id'] not in context_id):
             return False
 
@@ -126,6 +130,7 @@ def get_zipped_log_file(
     - filename: Name of the file to zip.
     """
 
+    # Get contextual logger
     log: Logger = request.state.log
 
     # Find associated log file, raise 404 if DNE
