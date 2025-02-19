@@ -418,7 +418,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         if series_info.tvdb_id:
             return series_info.tvdb_id
 
-        def _find(results: list[dict]) -> int | None:
+        def _find(results: list[dict] | Any) -> int | None:
             """
             Search through the given results and return the TVDb ID of
             the first series.
