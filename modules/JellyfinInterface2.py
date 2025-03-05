@@ -699,7 +699,9 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             episode_info = episode.as_episode_info
             for jellyfin_episode, watched_status in jellyfin_episodes:
                 if episode_info == jellyfin_episode:
-                    changed |= episode.add_watched_status(watched_status)
+                    changed |= episode.add_watched_status(
+                        watched_status, log=log
+                    )
                     break
 
         return changed
