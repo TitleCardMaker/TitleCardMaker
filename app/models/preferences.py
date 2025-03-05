@@ -459,15 +459,6 @@ class Preferences:
 
 
     @property
-    def imagemagick_arguments(self) -> dict[str, bool]:
-        """Arguments for initializing a ImageMagickInterface"""
-
-        return {
-            'use_magick_prefix': self.use_magick_prefix,
-        }
-
-
-    @property
     def card_properties(self) -> dict[str, str]:
         """Properties to utilize and merge in Title Card creation."""
 
