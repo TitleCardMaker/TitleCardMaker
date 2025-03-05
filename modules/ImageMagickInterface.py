@@ -300,8 +300,10 @@ class ImageMagickInterface:
         try:
             if (re_match := _dimension_regex.match(output)):
                 return Dimensions(*map(int, re_match.groups()))
+            log.trace(f'Unable to determine label dimensions\n{output}')
             return Dimensions(0, 0)
         except ValueError:
+            log.trace(f'Unable to determine label dimensions\n{output}')
             return Dimensions(0, 0)
 
 
