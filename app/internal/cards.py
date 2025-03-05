@@ -703,24 +703,28 @@ def resolve_card_settings(
         )
     card_settings['episode_text'] = card_settings['episode_text'].replace('\\n','\n')
 
-    # Set style independent of watched status if both styles match
-    watched = None
-    if card_settings['watched_style'] == card_settings['unwatched_style']:
-        style = card_settings['watched_style']
-        card_settings['blur'] = 'blur' in style
-        card_settings['grayscale'] = 'grayscale' in style
-    # Turn styles into boolean style toggles
-    elif (library and
-        (watched := episode.get_watched_status(library['interface_id'],
-                                               library['name'])) is not None):
-        prefix = 'watched' if watched else 'unwatched'
-        style = card_settings[f'{prefix}_style']
-        card_settings['blur'] = 'blur' in style
-        card_settings['grayscale'] = 'grayscale' in style
-    # Indeterminate watch status, cannot determine styles
+    # Determine watched status and style toggles; if there is a library
+    # then use it to determine the individual watched status
+    if library:
+        watched = episode.get_watched_status(
+            library['interface_id'], library['name']
+        )
+        style = card_settings[
+            'watched_style' if watched is True else 'unwatched_style'
+        ]
+    # No library present, determine watched status by total watched
+    # status of all libraries (or default if indeterminate)
     else:
-        card_settings['blur'] = False
-        card_settings['grayscale'] = False
+        if (watched := episode.is_completely_watched or None) is None:
+            if card_settings['watched_style']==card_settings['unwatched_style']:
+                style = card_settings['watched_style']
+            else:
+                style = 'unique'
+        else:
+            style = card_settings[('' if watched else 'un') + 'watched_style']
+    card_settings['blur'] = 'blur' in style
+    card_settings['grayscale'] = 'grayscale' in style
+
 
     # Add source file
     if card_settings.get('source_file') is None:
