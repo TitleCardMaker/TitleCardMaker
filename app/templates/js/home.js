@@ -216,10 +216,7 @@ function _populateSeriesRow(series, template) {
   row.querySelector('tr').id = `series-id${series.id}`;
 
   // Determine maximum number of Cards based on libraries
-  const maxCards = library_unique_cards
-    ? series.episode_count * series.libraries.length
-    : series.episode_count
-  ;
+  let maxCards = series.episode_count * (library_unique_cards ? series.libraries.length : 1);
 
   // Make row red / yellow depending on Card count
   if (series.card_count === 0 && series.episode_count > 0) {
