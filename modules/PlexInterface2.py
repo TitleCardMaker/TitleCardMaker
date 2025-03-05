@@ -489,7 +489,9 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             episode_info = episode.as_episode_info
             for plex_episode, watched_status in plex_episodes:
                 if episode_info == plex_episode:
-                    changed |= episode.add_watched_status(watched_status)
+                    changed |= episode.add_watched_status(
+                        watched_status, log=log,
+                    )
                     break
 
         return changed

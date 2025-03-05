@@ -747,7 +747,10 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
                 WatchedStatus(self._interface_id)
             )
             for episode in self.__get_all_episodes(tvdb_id)
-            if self._include_movies or not episode['isMovie']
+            if (
+                (self._include_movies or not episode['isMovie'])
+                and episode['name']
+            )
         ]
 
 
