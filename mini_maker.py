@@ -249,22 +249,12 @@ def movie_poster(
     ).create()
 
 
-@mini_maker.command(help='Create a show summary image')
-@click.argument('directory', type=Path)
-@click.argument('logo', type=Path)
-@click.option('--background', type=str, default=None,
-              help='Background color or image for the created show summary')
-@click.option('--creator', type=str, default=None,
-              help='Custom username for the "Created by .." text')
-@click.option('--summary-type',
-              type=click.Choice(['standard', 'stylized']), default='stylized',
-              help='Type of summary image to create')
-def show_summary(
+def _create_show_summary(
         directory: Path,
         logo: Path,
-        background: str | None,
-        creator: str | None,
-        summary_type: Literal['standard', 'stylized'],
+        background: str | None = None,
+        creator: str | None = None,
+        summary_type: Literal['standard', 'stylized'] = 'stylized',
     ) -> None:
 
     # Temporary classes
@@ -301,9 +291,9 @@ def show_summary(
 
     # Create Summary
     if summary_type == 'standard':
-        summary = StandardSummary(show, background, creator)
+        summary = StandardSummary(show, background, creator) # type: ignore
     elif summary_type == 'stylized':
-        summary = StylizedSummary(show, background, creator)
+        summary = StylizedSummary(show, background, creator) # type: ignore
     summary.create()
 
     # Log success/failure
@@ -312,6 +302,49 @@ def show_summary(
     else:
         log.warning(f'Failed to create "{summary.output.resolve()}"')
         summary.image_magick.print_command_history()
+
+
+@mini_maker.command(help='Create a show summary image')
+@click.argument('directory', type=Path)
+@click.argument('logo', type=Path)
+@click.option('--background', type=str, default=None,
+              help='Background color or image for the created show summary')
+@click.option('--creator', type=str, default=None,
+              help='Custom username for the "Created by .." text')
+@click.option('--summary-type',
+              type=click.Choice(['standard', 'stylized']), default='stylized',
+              help='Type of summary image to create')
+def show_summary(
+        directory: Path,
+        logo: Path,
+        background: str | None = None,
+        creator: str | None = None,
+        summary_type: Literal['standard', 'stylized'] = 'stylized',
+    ) -> None:
+    """Create a show summary for the given directory of images."""
+
+    _create_show_summary(directory, logo, background, creator, summary_type)
+
+
+@mini_maker.command(help='Create a batch of show summary images')
+@click.argument('directory', type=Path)
+@click.argument('pattern', type=str)
+@click.argument('source', type=Path)
+def batch_show_summary(directory: Path, pattern: str, source: Path) -> None:
+    """
+    Batch-update show summaries for all directories which match the
+    given pattern in the given directory, finding logos in the given
+    source directory.
+    """
+
+    for archive in directory.glob(pattern):
+        if not (logo := source / archive.parent.name / 'logo.png').exists():
+            log.debug(f'No logo file ({logo})')
+            continue
+        if (existing := archive / 'Summary.jpg').exists():
+            log.debug(f'Deleting {archive.parent.name}/{archive.name} Summary')
+            existing.unlink(missing_ok=True)
+        _create_show_summary(archive, logo)
 
 
 @mini_maker.command(help='Create a season poster')
