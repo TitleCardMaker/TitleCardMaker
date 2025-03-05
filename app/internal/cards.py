@@ -725,7 +725,6 @@ def resolve_card_settings(
     card_settings['blur'] = 'blur' in style
     card_settings['grayscale'] = 'grayscale' in style
 
-
     # Add source file
     if card_settings.get('source_file') is None:
         card_settings['source_file'] = episode.get_source_file(

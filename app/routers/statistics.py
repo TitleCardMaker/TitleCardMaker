@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import PositiveInt
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.database.query import get_series
@@ -161,6 +161,17 @@ def get_snapshots(
     previous = datetime.now() \
         - timedelta(days=previous_days, hours=previous_hours)
 
-    return db.query(SnapshotModel)\
-        .filter(SnapshotModel.timestamp > previous)\
-        .all()[::slice_]
+    # Get subquery on Snapshots which includes the row number column for
+    # slicing
+    subquery = (
+        # Add row number as new column
+        select(
+            SnapshotModel,
+            func.row_number().over(order_by=SnapshotModel.id).label('row')
+        )
+        # Apply timestamp filter
+        .filter(SnapshotModel.timestamp > previous)
+        .subquery()
+    )
+
+    return db.query(subquery).filter(subquery.c.row % slice_ == 0).all()
