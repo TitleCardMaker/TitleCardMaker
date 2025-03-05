@@ -1519,8 +1519,9 @@ def import_card_content(
 
         # No associated Episode, skip
         if episode is None:
-            log.warning(f'{series} No associated Episode for {filename} '
-                        f'- skipping')
+            log.warning(
+                f'{series} No associated Episode for {filename} - skipping'
+            )
             continue
 
         # Episode has an existing Card, skip if not forced

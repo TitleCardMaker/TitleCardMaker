@@ -102,7 +102,7 @@ def process_rating_key(
             continue
 
         # Update Episode watched status
-        episode.add_watched_status(watched_status)
+        episode.add_watched_status(watched_status, log=log)
 
         # Look for source, add translation, create card if source exists
         download_episode_source_images(db, episode, log=log)
