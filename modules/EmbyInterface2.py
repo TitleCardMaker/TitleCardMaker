@@ -686,7 +686,9 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             episode_info = episode.as_episode_info
             for emby_episode, watched_status in emby_episodes:
                 if episode_info == emby_episode:
-                    changed |= episode.add_watched_status(watched_status)
+                    changed |= episode.add_watched_status(
+                        watched_status, log=log,
+                    )
                     break
 
         return changed
