@@ -445,6 +445,23 @@ function querySeries() {
           card.querySelector('[data-value="ongoing"]').innerText = result.ongoing ? 'Ongoing' : 'Ended';
         }
 
+        // Add ID fields
+        [
+          [result.emby_id, 'emby_id', 'emby'],
+          [result.imdb_id, 'imdb_id', 'imdb'],
+          [result.jellyfin_id, 'jellyfin_id', 'jellyfin'],
+          [result.sonarr_id, 'sonarr_id', 'sonarr'],
+          [result.tmdb_id, 'tmdb_id', 'tmdb'],
+          [result.tvdb_id, 'tvdb_id', 'tvdb'],
+          [result.tvrage_id, 'tvrage_id', 'tvrage'],
+        ].forEach(([id, idLabel, label]) => {
+          if (!id) {
+            card.querySelector(`[data-label="${idLabel}"]`).remove();
+          } else {
+            card.querySelector(`[data-label="${idLabel}"]`).innerHTML = `${label}:<span class="ui blue text">${id}</span>`;
+          }
+        });
+
         card.querySelector('[data-value="overview"]').innerHTML = '<p>' + result.overview.join('</p><p>') + '</p>';
         
         // Disable card if already added
