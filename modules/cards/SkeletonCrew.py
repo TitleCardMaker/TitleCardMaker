@@ -394,9 +394,8 @@ class SkeletonCrewTitleCard(BaseCardType):
 
         if self._title_coordinates is None:
             # Get dimensions of title text
-            width, height = self.image_magick.get_text_dimensions(
-                self.title_text_commands,
-                line_count=len(self.title_text.splitlines()),
+            width, height = self.image_magick.get_text_label_dimensions(
+                self.title_text_commands[:-1], # Remove -composite command
             )
 
             # Get start coordinates of the bounding box
