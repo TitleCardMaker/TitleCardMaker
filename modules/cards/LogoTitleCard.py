@@ -183,7 +183,7 @@ class LogoTitleCard(BaseCardType):
         'blur_only_image',
         'episode_text',
         'episode_text_color',
-        'episode_text_vertical_shift'
+        'episode_text_vertical_shift',
         'font_color',
         'font_file',
         'font_kerning',
