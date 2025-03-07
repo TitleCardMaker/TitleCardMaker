@@ -296,7 +296,6 @@ class ImageMagickInterface:
             f'info:',
         ]))
 
-        # Remove any IMv7 convert warnings
         try:
             if (re_match := _dimension_regex.match(output)):
                 return Dimensions(*map(int, re_match.groups()))
