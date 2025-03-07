@@ -742,7 +742,7 @@ class BaseCardType(ImageMaker, ABC):
         else:
             return []
 
-        log.debug(f'Identified mask image "{mask.resolve()}"')
+        log.trace(f'Identified mask image "{mask.resolve()}"')
         if pre_processing is None:
             pre_processing = self.resize_and_style
 
