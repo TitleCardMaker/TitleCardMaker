@@ -90,9 +90,7 @@ def get_all_series(
             detail='Filter definition is invalid',
         ) from exc
 
-    return query_and_filter_series(
-        db, filter, order_by=order_by, include_counts=False, log=log
-    )
+    return query_and_filter_series(db, filter, order_by=order_by, log=log)
 
 
 @series_router.get('/all-extended')
@@ -122,9 +120,7 @@ def get_all_series_including_counts(
             detail='Filter definition is invalid',
         ) from exc
 
-    return query_and_filter_series(
-        db, filter, order_by=order_by, include_counts=True, log=log
-    )
+    return query_and_filter_series(db, filter, order_by=order_by, log=log)
 
 
 @series_router.get('/series/{series_id}/previous')

@@ -1,6 +1,6 @@
 from pathlib import Path
 from time import sleep
-from typing import Any, Callable, Literal, overload
+from typing import Any, Callable
 
 from fastapi import BackgroundTasks, HTTPException
 from fastapi_pagination.ext.sqlalchemy import paginate
@@ -1040,34 +1040,11 @@ def apply_filter(
     return query.filter(*criterion)
 
 
-@overload
 def query_and_filter_series(
         db: Session,
         filter: SeriesFilter | None,
         *,
         order_by: SeriesOrder,
-        include_counts: Literal[True],
-        log: Logger = log,
-    ) -> Page[SeriesOverviewWithCounts]: # type: ignore
-    ...
-
-@overload
-def query_and_filter_series(
-        db: Session,
-        filter: SeriesFilter | None,
-        *,
-        order_by: SeriesOrder,
-        include_counts: Literal[False],
-        log: Logger = log,
-    ) -> Page[SeriesOverview]: # type: ignore
-    ...
-
-def query_and_filter_series(
-        db: Session,
-        filter: SeriesFilter | None,
-        *,
-        order_by: SeriesOrder,
-        include_counts: bool,
         log: Logger = log,
     ) -> Page[SeriesOverview] | Page[SeriesOverviewWithCounts]: # type: ignore
     """
@@ -1078,8 +1055,6 @@ def query_and_filter_series(
         db: Session to query for Series.
         filter: Optional set of filter conditions to apply
         order_by: How to order the returned query.
-        include_counts: Whether to include counts in the query. If True,
-            then Episodes and Cards are loaded in the same query.
         log: Logger for all log messages.
 
     Returns:
