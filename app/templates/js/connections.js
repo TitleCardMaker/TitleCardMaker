@@ -394,6 +394,53 @@ function _refreshLibraryList(connectionId) {
 }
 
 /**
+ * Submit an API request to delete any unlinked libraries which are assigned to
+ * a Series but not a part of the given Connection's latest list.
+ * @param {number} connectionId ID of the Connection whose unlinked libraries to
+ * delete.
+ */
+function _deleteUnlinkedLibraries(connectionId) {
+  // Mark icon as loading
+  const $icon = $(`#connection${connectionId} [data-action="delete-libraries"] .icon`);
+  setLoadingIcon($icon);
+
+  // Submit API request
+  $.ajax({
+    type: 'DELETE',
+    url: `/api/connection/${connectionId}/libraries?unlinked=true`,
+    success: changedCount => showInfoToast(`Modified ${changedCount} Series`),
+    /** Error deleting libraries, show toast  */
+    error: response => showErrorToast({title: 'Error Deleting Libraries', response}),
+    complete: () => removeLoadingIcon($icon),
+  });
+}
+
+/**
+ * Submit an API request to delete all reference to the given library for the
+ * given Connection.
+ * @param {number} connectionId ID of the Connection whose library reference is
+ * being deleted.
+ * @param {string} libraryName Name of the library reference to delete from all
+ * Series.
+ */
+function deleteLibrary(connectionId, libraryName) {
+  // Mark icon as loading
+  const $icon = $(`#connection${connectionId} .label[data-library-name="${libraryName}"] .icon`);
+  setLoadingIcon($icon);
+
+  // Submit API request
+  const args = new URLSearchParams({library_name: libraryName})
+  $.ajax({
+    type: 'DELETE',
+    url: `/api/connection/${connectionId}/libraries?${args.toString()}`,
+    success: changedCount => showInfoToast(`Modified ${changedCount} Series`),
+    /** Error deleting libraries, show toast  */
+    error: response => showErrorToast({title: 'Error Deleting Libraries', response}),
+    complete: () => removeLoadingIcon($icon),
+  });
+}
+
+/**
  * Display a temporary modal which asks the user to confirm the Connection
  * deletion. If confirmed, then submit an API request to delete the Connection
  * with the given ID. If that is successful, then the HTML element(s) for this
@@ -473,6 +520,7 @@ function initializeEmby() {
     // Username later
     // SSL later
     embyForm.querySelector('input[name="filesize_limit"]').value = connection.filesize_limit;
+    embyForm.querySelector('[data-action="delete-libraries"]').onclick = () => _deleteUnlinkedLibraries(connection.id);
 
     return embyForm;
   });
@@ -514,10 +562,10 @@ function initializeEmby() {
       connection.use_ssl ? 'check' : 'uncheck'
     );
     // Libraries
-    const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui label">${library}</div>`));
+    const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui right icon label" data-library-name="${library}">${library}<i class="trash alternate outline link icon" onclick="deleteLibrary(${connection.id}, '${library}')"></i></div>`));
     $(`#connection${connection.id} .labels[data-value="libraries"]`).append(libraries);
     document.querySelector(`#connection${connection.id} [data-action="refresh-libraries"]`).onclick = () => _refreshLibraryList(connection.id);
-    
+
     // Assign save function to button
     $(`#connection${connection.id} form`).on('submit', (event) => {
       event.preventDefault();
@@ -561,6 +609,7 @@ function initializeJellyfin() {
     // Username later
     // SSL later
     jellyfinForm.querySelector('input[name="filesize_limit"]').value = connection.filesize_limit;
+    jellyfinForm.querySelector('[data-action="delete-libraries"]').onclick = () => _deleteUnlinkedLibraries(connection.id);
 
     return jellyfinForm;
   });
@@ -603,7 +652,7 @@ function initializeJellyfin() {
     );
 
     // Libraries
-    const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui label">${library}</div>`));
+    const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui right icon label" data-library-name="${library}">${library}<i class="trash alternate outline link icon" onclick="deleteLibrary(${connection.id}, '${library}')"></i></div>`));
     $(`#connection${connection.id} .labels[data-value="libraries"]`).append(libraries);
     document.querySelector(`#connection${connection.id} [data-action="refresh-libraries"]`).onclick = () => _refreshLibraryList(connection.id);
 
@@ -650,6 +699,7 @@ function initializePlex() {
     // SSL later
     // Kometa integration later
     plexForm.querySelector('input[name="filesize_limit"]').value = connection.filesize_limit;
+    plexForm.querySelector('[data-action="delete-libraries"]').onclick = () => _deleteUnlinkedLibraries(connection.id);
 
     return plexForm;
   });
@@ -679,7 +729,7 @@ function initializePlex() {
     });
 
     // Libraries
-    const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui label">${library}</div>`));
+    const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui right icon label" data-library-name="${library}">${library}<i class="trash alternate outline link icon" onclick="deleteLibrary(${connection.id}, '${library}')"></i></div>`));
     $(`#connection${connection.id} .labels[data-value="libraries"]`).append(libraries);
     document.querySelector(`#connection${connection.id} [data-action="refresh-libraries"]`).onclick = () => _refreshLibraryList(connection.id);
 

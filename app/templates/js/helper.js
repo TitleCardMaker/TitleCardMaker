@@ -41,6 +41,31 @@ function toggleNavMenu() {
 }
 
 /**
+ * "Change" the given icon to a loading indication. This is done by inserting an
+ * adjacent spinner icon and hiding the given icon.
+ * @param {JQuery} icon Element of the icon to set as loading,
+ * @returns {JQuery} Icon which was modified
+ */
+function setLoadingIcon($icon) {
+  $icon.css('display', 'none');
+  $('<i class="spinner loading icon"></i>').insertAfter($icon);
+  return $icon
+}
+
+/**
+ * Remove the loading indication from the given icon. This removes the
+ * previously inserted adjacent spinner icon and unhides the given icon.
+ * @param {JQuery} $icon Element of the icon to unset as loading.
+ */
+function removeLoadingIcon($icon) {
+  const $spinnerIcon = $icon.next();
+  if ($spinnerIcon.hasClass('spinner') && $spinnerIcon.hasClass('icon')) {
+    $spinnerIcon.remove();
+  }
+  $icon.css('display', '');
+}
+
+/**
  * Debounce the given function with the given timeout. The minimum interval
  * between calls to the return of this function will be `timeout` ms.
  * @arg {function} func - Function to debounce.
