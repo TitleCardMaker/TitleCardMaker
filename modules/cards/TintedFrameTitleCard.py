@@ -406,10 +406,12 @@ class TintedFrameTitleCard(BaseCardType):
             f'-blur 0x20',
             # Crop out center area of the source image
             f'-gravity center',
-            fr'\( "{self.source_file.resolve()}"',
+            fr'\(',
+            f'"{self.source_file.resolve()}"',
             *self.resize_and_style,
             f'-crop {crop_width}x{crop_height}+0+0',
-            fr'+repage \)',
+            f'+repage',
+            fr'\)',
             # Overlay unblurred center area
             f'-composite',
         ]
