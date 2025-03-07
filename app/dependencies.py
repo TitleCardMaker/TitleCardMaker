@@ -171,6 +171,18 @@ def get_preferences() -> Preferences:
     return PreferencesLocal
 
 
+def get_logger(request: Request) -> Logger:
+    """
+    Get the contextualized Logger from the Requet object.
+
+    Returns:
+        Contextualized logger with a (pseudo)random context ID for this
+        request.
+    """
+
+    return getattr(request.state, 'log', log)
+
+
 _InterfaceType = TypeVar('_InterfaceType', bound=Interface)
 def _require_interface(
         interface_group: InterfaceGroup[int, _InterfaceType],
