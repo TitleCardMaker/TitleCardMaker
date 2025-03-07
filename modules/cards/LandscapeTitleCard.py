@@ -501,6 +501,8 @@ def get_validator_model() -> type[Base]:
         box_color: str | None = None
         box_width: PositiveInt = LandscapeTitleCard.BOX_WIDTH
         darken: DarkenOption = 'box'
+        darken_color: str = LandscapeTitleCard.DARKEN_COLOR
+        shadow_color: str = LandscapeTitleCard.SHADOW_COLOR
 
         @validator('box_adjustments')
         def parse_box_adjustments(cls, val: str) -> tuple[int, int, int, int]:
