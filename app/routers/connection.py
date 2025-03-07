@@ -1,9 +1,11 @@
 from typing import Literal
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from sqlalchemy import func
 
 from app.database.query import get_connection
 from app.dependencies import *
+from app.dependencies import get_logger
 from app.internal.auth import get_current_user
 from app.internal.cards import delete_cards
 from app.internal.connection import add_connection, update_connection
@@ -11,7 +13,7 @@ from app.models.card import Card
 from app.models.connection import Connection
 from app.models.episode import Episode
 from app.models.loaded import Loaded
-from app.models.series import Series
+from app.models.series import Series, Library as SeriesLibrary
 from app.models.sync import Sync
 from app.models.template import Template
 from app.schemas.connection import (
@@ -655,6 +657,8 @@ def get_potential_sonarr_libraries(
         )
 
     # Attempt to interpret library names from root folders
+    # This cannot be a direct PotentialSonarrLibrary object since these
+    # are used in Jinja templates
     return [
         {
             'name': folder.name.replace('-', ' ').replace('_', ' '),
@@ -778,3 +782,79 @@ def refresh_interface_libraries(
     )
 
     return preferences.libraries[interface_id][1]
+
+
+@connection_router.delete('/{interface_id}/libraries')
+def delete_interface_libraries(
+        interface_id: int,
+        unlinked: bool = Query(default=False),
+        library_name: str | None = Query(default=None),
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+        preferences: Preferences = Depends(get_preferences),
+    ) -> int:
+    """
+    Delete any libraries associated with the given Connection which are
+    either not a part of the most recently-queried library list or are
+    the given name. This will potentially affect many Series. This
+    returns the total number of modified Series.
+
+    - interface_id: ID of the Connection whose libraries to delete.
+    - unlinked: Whether to delete unlinked libraries for the given
+    Connection. Mutually exclusive with `library_name`.
+    - library_name: Name of the library in the given Connection to
+    delete . Mutually exclusive with `unlinked`.
+    """
+
+    # If deleting unlinked then query any Series with at least one library
+    keep_list: list[str] = []
+    if unlinked:
+        # Get list of all libraries to keep
+        keep_list = preferences.libraries.get(interface_id, ('', []))[1]
+        series_list = db.query(Series)\
+            .filter(func.json_array_length(Series.libraries) > 0)\
+            .all()
+    # If deleting a specific library then query any Series with those
+    elif library_name:
+        series_list = db.query(Series)\
+            .filter(Series.libraries.contains(library_name))\
+            .all()
+    # Raise 422 if neither unlinked flag nor a library name was provided
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail='Must provide unlinked flag or library name for deletion'
+        )
+
+    def keep_library(library: SeriesLibrary) -> bool:
+        """Whether to keep the given library in the Series assignment"""
+        return (
+            library['interface_id'] != interface_id
+            or (
+                (unlinked and library['name'] not in keep_list)
+                or library['name'] != library_name
+            )
+        )
+
+    # Update any Series with unlinked libraries
+    changed = 0
+    for series in series_list:
+        _old = series.libraries
+        series.libraries = [
+            library
+            for library in series.libraries
+            if keep_library(library)
+        ]
+
+        # If the library list was changed, log and increment counter
+        if len(series.libraries) != len(_old):
+            changed += 1
+            log.debug(
+                f'Series[{series.id}].libraries = {_old} -> {series.libraries}'
+            )
+
+    # Commit changes if any Series were modified
+    if changed > 0:
+        db.commit()
+
+    return changed
