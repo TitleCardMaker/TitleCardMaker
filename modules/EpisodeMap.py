@@ -275,9 +275,10 @@ class EpisodeMap:
             self.__index_by = 'season'
 
 
-    def get_generic_season_title(self, *,
-            season_number: int | None = None,
+    def get_generic_season_title(self,
             episode_info: EpisodeInfo | None = None,
+            *,
+            season_number: int | None = None,
             default: Callable[[EpisodeInfo], str] | None = None,
         ) -> str:
         """
@@ -327,7 +328,7 @@ class EpisodeMap:
 
     def __get_value(self,
             episode_info: EpisodeInfo,
-            which: Literal['season_titles', 'source', 'applies_to'],
+            which: Literal['season_title', 'source', 'applies_to'],
             default: Callable[[EpisodeInfo | None], str],
         ) -> str:
         """
@@ -442,7 +443,7 @@ class EpisodeMap:
             Source filename defined by this map for this Episode.
         """
 
-        source = self.__get_value(episode_info, 'source', lambda *_, **__: None)
+        source = self.__get_value(episode_info, 'source', lambda _: None)
 
         # Attempt to format string for this episode index
         if isinstance(source, str):
