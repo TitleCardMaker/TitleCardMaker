@@ -1,6 +1,6 @@
 from pathlib import Path
 from re import match as re_match
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import (
     FilePath,
@@ -19,10 +19,8 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
     Rectangle,
-    TextCase,
 )
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -40,7 +38,7 @@ class NotificationTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Notification',
         identifier='notification',
         example='/internal_assets/cards/notification.webp',
@@ -136,27 +134,27 @@ class NotificationTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'music'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 28,
         'max_line_count': 4,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Gotham-Bold.otf').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'source'
-    FONT_REPLACEMENTS: dict[str ,str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'Gotham-Bold.otf').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'source'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = 'Episode {episode_number}'
     EPISODE_TEXT_COLOR = TITLE_COLOR
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Notification Style'
+    ARCHIVE_NAME = 'Notification Style'
 
     """Implementation details"""
     EDGE_COLOR = TITLE_COLOR
@@ -170,13 +168,29 @@ class NotificationTitleCard(BaseCardType):
     _TEXT_X_OFFSET = 35
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_color',
-        'font_file', 'font_interline_spacing', 'font_interword_spacing',
-        'font_kerning', 'font_size', 'font_vertical_shift', 'edge_color',
-        'edge_width', 'episode_text_color', 'episode_text_font_size',
-        'episode_text_vertical_shift', 'glass_color', 'position', 'separator',
         'box_adjustments',
+        'edge_color',
+        'edge_width',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_font_size',
+        'episode_text_vertical_shift',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'glass_color',
+        'hide_season_text',
+        'hide_episode_text',
+        'output_file',
+        'position',
+        'season_text',
+        'separator',
+        'source_file',
+        'title_text',
     )
 
 
@@ -207,7 +221,7 @@ class NotificationTitleCard(BaseCardType):
             position: Position = 'right',
             separator: str = '-',
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -250,7 +264,7 @@ class NotificationTitleCard(BaseCardType):
         """Subcommands required to add the title text."""
 
         # If no title text, return empty commands
-        if len(self.title_text) == 0:
+        if not self.title_text:
             return []
 
         gravity = 'southwest' if self.position == 'left' else 'southeast'

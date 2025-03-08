@@ -14,9 +14,7 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Rectangle,
     Shadow,
-    TextCase,
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -36,8 +34,7 @@ class TintedFrameTitleCard(BaseCardType):
     index text, or a logo at the top and bottom.
     """
 
-    """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Tinted Frame',
         identifier='tinted frame',
         example='/internal_assets/cards/tinted frame.jpg',
@@ -212,31 +209,31 @@ class TintedFrameTitleCard(BaseCardType):
         ]
     )
 
-    """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'tinted_frame'
+    """Directory where all reference files used by this card are stored"""
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 42,
         'max_line_count': 2,
         'style': 'even',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Galey Semi Bold.ttf').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'Galey Semi Bold.ttf').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'upper'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = TITLE_COLOR
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Galey Semi Bold.ttf'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Tinted Frame Style'
+    ARCHIVE_NAME = 'Tinted Frame Style'
 
     """Implementation details"""
     BOX_OFFSET = 185
@@ -245,13 +242,13 @@ class TintedFrameTitleCard(BaseCardType):
 
 
     __slots__ = (
-        'source_file',
-        'output_file',
-        'title_text',
-        'season_text',
+        'blur_edges',
+        'bottom_element',
         'episode_text',
-        'hide_season_text',
-        'hide_episode_text',
+        'episode_text_color',
+        'episode_text_font',
+        'episode_text_font_size',
+        'episode_text_vertical_shift',
         'font_file',
         'font_size',
         'font_color',
@@ -259,23 +256,23 @@ class TintedFrameTitleCard(BaseCardType):
         'font_interword_spacing',
         'font_kerning',
         'font_vertical_shift',
-        'blur_edges',
-        'bottom_element',
-        'episode_text_color',
-        'episode_text_font',
-        'episode_text_font_size',
-        'episode_text_vertical_shift',
         'frame_color',
         'frame_width',
+        'hide_season_text',
+        'hide_episode_text',
+        'index_text_horizontal_shift',
+        'middle_element',
         'logo',
         'logo_size',
         'logo_vertical_shift',
-        'middle_element',
+        'output_file',
         'separator',
+        'season_text',
         'shadow_color',
-        'top_element',
+        'source_file',
         'title_horizontal_shift',
-        'index_text_horizontal_shift',
+        'title_text',
+        'top_element',
     )
 
 

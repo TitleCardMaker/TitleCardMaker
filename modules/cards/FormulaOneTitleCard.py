@@ -16,10 +16,8 @@ from modules.BaseCardType import (
     CardTypeDescription,
     Extra,
     ImageMagickCommands,
-    TextCase,
 )
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -41,7 +39,7 @@ class FormulaOneTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Formula 1',
         identifier='formula 1',
         example='/internal_assets/cards/formula.webp',
@@ -120,17 +118,17 @@ class FormulaOneTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'formula'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 40,
         'max_line_count': 1,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Formula1-Bold.otf').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'Formula1-Bold.otf').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'upper'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Formula1-Bold.otf'
@@ -138,10 +136,10 @@ class FormulaOneTitleCard(BaseCardType):
     EPISODE_TEXT_COLOR = 'white'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Formula 1 Style'
+    ARCHIVE_NAME = 'Formula 1 Style'
 
     """Implementation details"""
     DARKEN_COLOR = 'rgba(0,0,0,0.5)'

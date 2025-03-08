@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import FilePath, PositiveFloat
 
@@ -11,7 +11,6 @@ from modules.BaseCardType import (
     ImageMagickCommands,
 )
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -27,7 +26,7 @@ class StandardTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Standard',
         identifier='standard',
         example='/internal_assets/cards/standard.jpg',
@@ -102,24 +101,24 @@ class StandardTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 32,
         'max_line_count': 4,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Sequel-Neue.otf').resolve())
-    TITLE_COLOR: str = '#EBEBEB'
-    FONT_REPLACEMENTS: dict[str, str] = {
+    TITLE_FONT = str((REF_DIRECTORY / 'Sequel-Neue.otf').resolve())
+    TITLE_COLOR = '#EBEBEB'
+    FONT_REPLACEMENTS = {
         '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...', '“': '"'
     }
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """Standard class has standard archive name"""
-    ARCHIVE_NAME: str = 'standard'
+    ARCHIVE_NAME = 'standard'
 
     """Default fonts and color for series count text"""
     SEASON_COUNT_FONT = REF_DIRECTORY / 'Proxima Nova Semibold.otf'
@@ -181,7 +180,7 @@ class StandardTitleCard(BaseCardType):
             episode_text_vertical_shift: int = 0,
             omit_gradient: bool = False,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this card."""
 
@@ -374,18 +373,15 @@ class StandardTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    StandardTitleCard.SERIES_COUNT_TEXT_COLOR)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
-            or ('episode_text_stroke_color' in extras
-                and extras['episode_text_stroke_color'] != StandardTitleCard.DEFAULT_STROKE_COLOR)
-            or ('episode_text_vertical_shift' in extras
-                and extras['episode_text_vertical_shift'] != 0)
-            or ('stroke_color' in extras
-                and extras['stroke_color'] != StandardTitleCard.DEFAULT_STROKE_COLOR)
+        custom_extras = StandardTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'episode_text_color': StandardTitleCard.SERIES_COUNT_TEXT_COLOR,
+                'episode_text_font_size': 1.0,
+                'episode_text_stroke_color': StandardTitleCard.DEFAULT_STROKE_COLOR,
+                'episode_text_vertical_shift': 0,
+                'stroke_color': StandardTitleCard.DEFAULT_STROKE_COLOR,
+            }
         )
 
         return custom_extras or StandardTitleCard._is_custom_font(font)

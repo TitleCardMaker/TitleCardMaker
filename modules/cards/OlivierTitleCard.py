@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import FilePath, PositiveFloat, constr, root_validator
 
@@ -11,7 +11,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -27,7 +26,7 @@ class OlivierTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Olivier',
         identifier='olivier',
         example='/internal_assets/cards/olivier.jpg',
@@ -99,16 +98,16 @@ class OlivierTitleCard(BaseCardType):
     SW_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'star_wars'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 16,
         'max_line_count': 5,
         'style': 'top',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Montserrat-Bold.ttf').resolve())
-    TITLE_COLOR: str = 'white'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'Montserrat-Bold.ttf').resolve())
+    TITLE_COLOR = 'white'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = 'EPISODE {to_cardinal(episode_number)}'
@@ -118,10 +117,10 @@ class OlivierTitleCard(BaseCardType):
     STROKE_COLOR = 'black'
 
     """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Olivier Style'
+    ARCHIVE_NAME = 'Olivier Style'
 
     """Gradient image"""
     GRADIENT = REF_DIRECTORY.parent / 'overline' / 'small_gradient.png'
@@ -177,7 +176,7 @@ class OlivierTitleCard(BaseCardType):
             omit_gradient: bool = True,
             gradient_type: GradientType | str = 'improved',
             stroke_color: str = STROKE_COLOR,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this card."""
 

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import FilePath, PositiveInt
 
@@ -11,10 +11,8 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
     Rectangle,
-    TextCase,
 )
 from modules.ImageMagickInterface import Dimensions
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -33,7 +31,7 @@ class MarvelTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Marvel',
         identifier='marvel',
         example='/internal_assets/cards/marvel.jpg',
@@ -127,27 +125,27 @@ class MarvelTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'marvel'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 25,
         'max_line_count': 1,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Qualion ExtraBold.ttf').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'Qualion ExtraBold.ttf').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'upper'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = '#C9C9C9'
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Qualion ExtraBold.ttf'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Marvel Style'
+    ARCHIVE_NAME = 'Marvel Style'
 
     """How thick the border is (in pixels)"""
     DEFAULT_BORDER_SIZE = 55
@@ -213,7 +211,7 @@ class MarvelTitleCard(BaseCardType):
             text_box_color: str = DEFAULT_TEXT_BOX_COLOR,
             text_box_height: int = DEFAULT_TEXT_BOX_HEIGHT,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 

@@ -10,7 +10,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -26,7 +25,7 @@ class CutoutTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Cutout',
         identifier='cutout',
         example='/internal_assets/cards/cutout.jpg',
@@ -101,22 +100,22 @@ class CutoutTitleCard(BaseCardType):
     SW_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'star_wars'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 34,
         'max_line_count': 3,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((OLIVIER_REF_DIRECTORY / 'Montserrat-Bold.ttf').resolve())
-    TITLE_COLOR: str = 'white'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((OLIVIER_REF_DIRECTORY / 'Montserrat-Bold.ttf').resolve())
+    TITLE_COLOR = 'white'
+    FONT_REPLACEMENTS = {}
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Cutout Style'
+    ARCHIVE_NAME = 'Cutout Style'
 
     """Default fonts and color for series count text"""
     EPISODE_TEXT_FORMAT = '{to_cardinal(episode_number)}'

@@ -4,6 +4,7 @@ from random import choice as random_choice
 from re import match as re_match
 from typing import (
     TYPE_CHECKING,
+    Any,
     Literal,
     get_args as get_type_args
 )
@@ -25,10 +26,8 @@ from modules.BaseCardType import (
     CardTypeDescription,
     Extra,
     ImageMagickCommands,
-    TextCase
 )
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -60,7 +59,7 @@ class ShapeTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Shape',
         identifier='shape',
         example='/internal_assets/cards/shape.webp',
@@ -227,17 +226,17 @@ class ShapeTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'shape'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 32,
         'max_line_count': 3,
         'style': 'top',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Golca Extra Bold.ttf').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'source'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'Golca Extra Bold.ttf').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'source'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = 'skyblue' # gold1
@@ -246,10 +245,10 @@ class ShapeTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = '{episode_number}.'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Shape Style'
+    ARCHIVE_NAME = 'Shape Style'
 
     """Implementation details"""
     DEFAULT_SHAPE: Shape = 'diamond'
@@ -334,7 +333,7 @@ class ShapeTitleCard(BaseCardType):
             stroke_color: str = 'black',
             text_position: TextPosition = 'lower left',
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -1284,16 +1283,14 @@ class ShapeTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('season_text_color' in extras
-             and extras['season_text_color'] != \
-                ShapeTitleCard.EPISODE_TEXT_COLOR)
-            or ('season_text_font_size' in extras
-                and extras['season_text_font_size'] != 1.0)
-            or ('shape_color' in extras
-                and extras['shape_color'] != ShapeTitleCard.SHAPE_COLOR)
-            or ('stroke_color' in extras
-                and extras['stroke_color'] != 'black')
+        custom_extras = ShapeTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'season_text_color': ShapeTitleCard.EPISODE_TEXT_COLOR,
+                'season_text_font_size': 1.0,
+                'shape_color': ShapeTitleCard.SHAPE_COLOR,
+                'stroke_color': 'black'
+            }
         )
 
         return custom_extras or ShapeTitleCard._is_custom_font(font)

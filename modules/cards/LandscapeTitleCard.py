@@ -1,16 +1,17 @@
 from collections import namedtuple
 from pathlib import Path
 from re import match as re_match
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
-from pydantic import FilePath, PositiveFloat, PositiveInt, constr, root_validator, validator
+from pydantic import (
+    FilePath, PositiveFloat, PositiveInt, constr, root_validator, validator
+)
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
     BaseCardType, ImageMagickCommands, Extra, CardTypeDescription, Shadow
 )
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -33,7 +34,7 @@ class LandscapeTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Landscape',
         identifier='landscape',
         example='/internal_assets/cards/landscape.jpg',
@@ -118,30 +119,30 @@ class LandscapeTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'landscape'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 15,
         'max_line_count': 5,
         'style': 'top',
     }
 
     """Default font and text color for episode title text"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Geometos.ttf').resolve())
-    TITLE_COLOR: str = 'white'
+    TITLE_FONT = str((REF_DIRECTORY / 'Geometos.ttf').resolve())
+    TITLE_COLOR = 'white'
 
     """Default characters to replace in the generic font"""
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    FONT_REPLACEMENTS = {}
 
     """Default episode text format for this class"""
     EPISODE_TEXT_FORMAT = ''
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """Whether this CardType uses unique source images"""
-    USES_UNIQUE_SOURCES: bool = True
+    USES_UNIQUE_SOURCES = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Landscape Style'
+    ARCHIVE_NAME = 'Landscape Style'
 
     """Additional spacing (in pixels) between bounding box and title text"""
     BOUNDING_BOX_SPACING = 150
@@ -153,9 +154,12 @@ class LandscapeTitleCard(BaseCardType):
     SHADOW_COLOR = 'black'
 
     __slots__ = (
-        'source_file',
-        'output_file',
-        'title_text',
+        'add_bounding_box',
+        'box_adjustments',
+        'box_color',
+        'box_width',
+        'darken',
+        'darken_color',
         'font_color',
         'font_file',
         'font_interline_spacing',
@@ -163,13 +167,10 @@ class LandscapeTitleCard(BaseCardType):
         'font_kerning',
         'font_size',
         'font_vertical_shift',
-        'add_bounding_box',
-        'box_adjustments',
-        'box_color',
-        'box_width',
-        'darken',
-        'darken_color',
+        'output_file',
         'shadow_color',
+        'source_file',
+        'title_text',
     )
 
     def __init__(self, *,
@@ -193,7 +194,7 @@ class LandscapeTitleCard(BaseCardType):
             darken_color: str = DARKEN_COLOR,
             shadow_color: str = SHADOW_COLOR,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) ->None:
         """Construct a new instance of this Card."""
 

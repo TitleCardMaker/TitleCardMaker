@@ -1,6 +1,6 @@
 from pathlib import Path
 from random import choice as random_choice
-from typing import Literal, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING
 
 from pydantic import PositiveFloat, root_validator
 
@@ -13,7 +13,6 @@ from modules.BaseCardType import (
     Extra,
 )
 from modules.Debug import log
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -30,7 +29,7 @@ class SkeletonCrewTitleCard(BaseCardType):
     and borders just like the shows logo and poster.
     """
 
-    API_DETAILS: CardDescription = CardDescription(
+    API_DETAILS = CardDescription(
         name='Skeleton Crew',
         identifier='skeleton crew',
         example='/internal_assets/cards/skeleton_crew.webp',
@@ -104,7 +103,7 @@ class SkeletonCrewTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'skeleton_crew'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 20,
         'max_line_count': 4,
         'style': 'top',
@@ -114,9 +113,9 @@ class SkeletonCrewTitleCard(BaseCardType):
     ARCHIVE_NAME: str = 'SkeletonCrew'
 
     """Characteristics of title font"""
-    TITLE_FONT: str = str(REF_DIRECTORY / 'SkeletonCrew.otf')
+    TITLE_FONT = str(REF_DIRECTORY / 'SkeletonCrew.otf')
     TITLE_FONT_BOTTOM = REF_DIRECTORY / 'SkeletonCrew-Offset.otf'
-    TITLE_COLOR: str = 'white'
+    TITLE_COLOR = 'white'
     DEFAULT_FONT_CASE = 'source'
 
     """Characteristics of index text"""
@@ -124,7 +123,7 @@ class SkeletonCrewTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = 'EPISODE {episode_number}'
 
     """Standard font replacements for the title font"""
-    FONT_REPLACEMENTS: dict[str, str] = {
+    FONT_REPLACEMENTS = {
         '_': '',
         '~': '',
         '@': 'at',
@@ -135,7 +134,7 @@ class SkeletonCrewTitleCard(BaseCardType):
     }
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """Extras"""
     DEFAULT_EPISODE_TEXT_COLOR: str = 'transparent'
@@ -192,7 +191,7 @@ class SkeletonCrewTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 

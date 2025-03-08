@@ -10,7 +10,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -24,7 +23,7 @@ class LogoTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Logo',
         identifier='logo',
         example='/internal_assets/cards/logo.jpg',
@@ -145,30 +144,30 @@ class LogoTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 32,
         'max_line_count': 2,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Sequel-Neue.otf').resolve())
-    TITLE_COLOR: str = '#EBEBEB'
-    FONT_REPLACEMENTS: dict[str, str] = {
+    TITLE_FONT = str((REF_DIRECTORY / 'Sequel-Neue.otf').resolve())
+    TITLE_COLOR = '#EBEBEB'
+    FONT_REPLACEMENTS = {
         '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...'
     }
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """Whether this CardType uses unique source images"""
-    USES_UNIQUE_SOURCES: bool = False
+    USES_UNIQUE_SOURCES = False
 
     """Whether this class uses Source Images at all"""
-    USES_SOURCE_IMAGES: bool = False # Set as False; if required then caught by model
+    USES_SOURCE_IMAGES = False # Set as False; if required then caught by model
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Logo Style'
+    ARCHIVE_NAME = 'Logo Style'
 
     """Default fonts and color for series count text"""
     SEASON_COUNT_FONT = REF_DIRECTORY / 'Proxima Nova Semibold.otf'

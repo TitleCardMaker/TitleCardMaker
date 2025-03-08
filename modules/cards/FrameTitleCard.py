@@ -9,9 +9,7 @@ from modules.BaseCardType import (
     CardTypeDescription,
     Extra,
     ImageMagickCommands,
-    TextCase
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -29,7 +27,7 @@ class FrameTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Frame',
         identifier='frame',
         example='/internal_assets/cards/frame.jpg',
@@ -69,23 +67,23 @@ class FrameTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'frame'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 31,
         'max_line_count': 2,
         'style': 'bottom',
     }
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Frame Style'
+    ARCHIVE_NAME = 'Frame Style'
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'guess-sans-medium.otf').resolve())
-    DEFAULT_FONT_CASE: TextCase = 'upper'
-    TITLE_COLOR: str = 'rgb(80, 80, 80)'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'guess-sans-medium.otf').resolve())
+    DEFAULT_FONT_CASE = 'upper'
+    TITLE_COLOR = 'rgb(80, 80, 80)'
+    FONT_REPLACEMENTS = {}
 
     """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """Default colors for space outside the frame, and index text"""
     BACKGROUND_COLOR = 'black'
@@ -98,11 +96,22 @@ class FrameTitleCard(BaseCardType):
     __FRAME_IMAGE = REF_DIRECTORY / 'frame.png'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season', 'hide_episode', 'font_color',
-        'font_file', 'font_interline_spacing', 'font_interword_spacing',
-        'font_kerning', 'font_size', 'font_vertical_shift',
-        'episode_text_color', 'episode_text_position',
+        'episode_text',
+        'episode_text_color',
+        'episode_text_position',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'hide_season',
+        'hide_episode',
+        'output_file',
+        'season_text',
+        'source_file',
+        'title_text',
     )
 
     def __init__(self, *,

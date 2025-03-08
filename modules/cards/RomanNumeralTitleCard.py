@@ -13,7 +13,6 @@ from modules.BaseCardType import (
     ImageMagickCommands,
 )
 from modules.Debug import log
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -207,7 +206,7 @@ class RomanNumeralTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Roman Numeral',
         identifier='roman numeral',
         example='/internal_assets/cards/roman.jpg',
@@ -250,35 +249,35 @@ class RomanNumeralTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'roman'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 26,
         'max_line_count': 5,
         'style': 'top',
     }
 
     """Default font and text color for episode title text"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'flanker-griffo.otf').resolve())
-    TITLE_COLOR: str = 'white'
+    TITLE_FONT = str((REF_DIRECTORY / 'flanker-griffo.otf').resolve())
+    TITLE_COLOR = 'white'
 
     """Default characters to replace in the generic font"""
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    FONT_REPLACEMENTS = {}
 
     """Default episode text format for this class"""
     EPISODE_TEXT_FORMAT = '{episode_number}'
     GENERIC_EPISODE_TEXT_FORMATS = (EPISODE_TEXT_FORMAT, '{abs_number}')
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """Whether this CardType uses unique source images"""
-    USES_UNIQUE_SOURCES: bool = False
-    USES_SOURCE_IMAGES: bool = False
+    USES_UNIQUE_SOURCES = False
+    USES_SOURCE_IMAGES = False
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Roman Numeral Style'
+    ARCHIVE_NAME = 'Roman Numeral Style'
 
     """Blur profile for this card is 1/3 the radius of the standard blur"""
-    BLUR_PROFILE: str = '0x30'
+    BLUR_PROFILE = '0x30'
 
     """Default fonts and color for series count text"""
     BACKGROUND_COLOR = 'black'
@@ -331,7 +330,7 @@ class RomanNumeralTitleCard(BaseCardType):
             roman_numeral_color: str = ROMAN_NUMERAL_TEXT_COLOR,
             season_text_color: str = SEASON_TEXT_COLOR,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -377,8 +376,10 @@ class RomanNumeralTitleCard(BaseCardType):
 
         # Limit to maximum possible roman numeral
         if number > self.MAX_ROMAN_NUMERAL:
-            log.warning(f'Numbers larger than {self.MAX_ROMAN_NUMERAL:,} cannot'
-                        f' be represented as roman numerals')
+            log.warning(
+                f'Numbers larger than {self.MAX_ROMAN_NUMERAL:,} cannot be '
+                f'represented as roman numerals'
+            )
             number = self.MAX_ROMAN_NUMERAL
 
         # Index-sorted places -> roman numerals
@@ -751,12 +752,13 @@ class RomanNumeralTitleCard(BaseCardType):
                     RomanNumeralTitleCard.SEASON_TEXT_COLOR)
         )
 
-        return (custom_extras
-            or ((font.color != RomanNumeralTitleCard.TITLE_COLOR)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.file != RomanNumeralTitleCard.TITLE_FONT)
-            or (font.size != 1.0))
+        return (
+            custom_extras
+            or font.color != RomanNumeralTitleCard.TITLE_COLOR
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.file != RomanNumeralTitleCard.TITLE_FONT
+            or font.size != 1.0
         )
 
 

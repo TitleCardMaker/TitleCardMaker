@@ -3,8 +3,10 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
+    Annotated,
     Any,
     Callable,
+    ClassVar,
     Literal,
 )
 
@@ -292,13 +294,13 @@ class BaseCardType(ImageMaker, ABC):
     """
 
     """Default case string for all title text"""
-    DEFAULT_FONT_CASE: TextCase = 'upper'
+    DEFAULT_FONT_CASE: ClassVar[TextCase] = 'upper'
 
     """Default font replacements"""
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    FONT_REPLACEMENTS: ClassVar[dict[str, str]] = {}
 
     """Mapping of 'case' strings to format functions"""
-    CASE_FUNCTIONS: dict[TextCase, Callable[[Any], str]] = {
+    CASE_FUNCTIONS: ClassVar[dict[TextCase, Callable[[Any], str]]] = {
         'blank': lambda _: '',
         'lower': str.lower,
         'source': str,
@@ -307,64 +309,55 @@ class BaseCardType(ImageMaker, ABC):
     }
 
     """Default episode text format string, can be overwritten by each class"""
-    EPISODE_TEXT_FORMAT: str = 'Episode {episode_number}'
+    EPISODE_TEXT_FORMAT: ClassVar[str] = 'Episode {episode_number}'
 
     """Whether this class uses unique source images for card creation"""
-    USES_UNIQUE_SOURCES: bool = True
+    USES_UNIQUE_SOURCES: ClassVar[bool] = True
 
-    """Whether this class uses Source Images at all"""
-    USES_SOURCE_IMAGES: bool = True
+    USES_SOURCE_IMAGES: Annotated[
+        ClassVar[bool],
+        'Whether this card type uses Source Images in card creation'
+    ] = True
 
     """Standard size for all title cards"""
-    WIDTH: int = 3200
-    HEIGHT: int = 1800
-    TITLE_CARD_SIZE: str = f'{WIDTH}x{HEIGHT}'
+    WIDTH: ClassVar[int] = 3200
+    HEIGHT: ClassVar[int] = 1800
+    TITLE_CARD_SIZE: ClassVar[str] = f'{WIDTH}x{HEIGHT}'
 
-    """Standard blur effect to apply to spoiler-free images"""
-    BLUR_PROFILE: str = '0x60'
+    BLUR_PROFILE: Annotated[
+        ClassVar[str],
+        'Default blur effect to apply to blurred images'
+    ] = '0x60'
 
-    @property
-    @abstractmethod
-    def API_DETAILS(self) -> CardTypeDescription: # pylint: disable=missing-function-docstring
-        raise NotImplementedError
+    API_DETAILS: Annotated[
+        ClassVar[CardTypeDescription],
+        'Front-end description of this card type and its customization'
+    ]
 
+    TITLE_CHARACTERISTICS: Annotated[
+        ClassVar[SplitCharacteristics],
+        'Characteristics for how to auto-split titles for this card type'
+    ]
 
-    @property
-    @abstractmethod
-    def TITLE_CHARACTERISTICS(self) -> SplitCharacteristics:
-        """Characteristics of title splitting for this card type."""
-        raise NotImplementedError
+    ARCHIVE_NAME: Annotated[
+        ClassVar[str],
+        'How to name archive directories associated with this card'
+    ]
 
+    TITLE_FONT: Annotated[
+        ClassVar[str],
+        'Default font to use for all title text on this card'
+    ]
 
-    @property
-    @abstractmethod
-    def ARCHIVE_NAME(self) -> str:
-        """How to name archive directories for this type of card"""
-        raise NotImplementedError
+    TITLE_COLOR: Annotated[
+        ClassVar[str],
+        'Default font color to use for all title text on this card'
+    ]
 
-
-    @property
-    @abstractmethod
-    def TITLE_FONT(self) -> str:
-        """
-        Standard font (full path or ImageMagick recognized font name) to
-        use for the episode title text.
-        """
-        raise NotImplementedError
-
-
-    @property
-    @abstractmethod
-    def TITLE_COLOR(self) -> str:
-        """Standard color to use for the episode title text"""
-        raise NotImplementedError
-
-
-    @property
-    @abstractmethod
-    def USES_SEASON_TITLE(self) -> bool:
-        """Whether this class uses season titles for archives"""
-        raise NotImplementedError
+    USES_SEASON_TITLE: Annotated[
+        ClassVar[bool],
+        'Whether this card type uses season titles for archives'
+    ]
 
 
     """Slots for standard style attributes"""
@@ -410,10 +403,11 @@ class BaseCardType(ImageMaker, ABC):
         """
 
         super().__init_subclass__(**kwargs)
+        ClsName = cls.__name__
 
         if not isinstance(cls.API_DETAILS, CardTypeDescription):
             raise TypeError(
-                f'{cls.__name__}.API_DETAILS must be a CardTypeDescription '
+                f'{ClsName}.API_DETAILS must be a CardTypeDescription '
                 f'object'
             )
 
@@ -421,42 +415,52 @@ class BaseCardType(ImageMaker, ABC):
             SplitCharacteristics(cls.TITLE_CHARACTERISTICS) # type: ignore
         except Exception:
             raise TypeError(
-                f'{cls.__name__}.TITLE_CHARACTERISTICS must be a '
-                f'SplitCharacteristics dictionary.'
+                f'{ClsName}.TITLE_CHARACTERISTICS must be a '
+                f'SplitCharacteristics dictionary'
             )
 
+        if not hasattr(cls, 'ARCHIVE_NAME'):
+            raise NotImplementedError(f'{ClsName}.ARCHIVE_NAME')
         if not isinstance(cls.ARCHIVE_NAME, str):
-            raise TypeError(f'{cls.__name__}.ARCHIVE_NAME must be a string')
+            raise TypeError(f'{ClsName}.ARCHIVE_NAME must be a string')
         if len(cls.ARCHIVE_NAME) == 0:
             raise ValueError(
-                f'{cls.__name__}.ARCHIVE_NAME must be at least 1 character long'
+                f'{ClsName}.ARCHIVE_NAME must be at least 1 character long'
             )
 
+        if not hasattr(cls, 'USES_SEASON_TITLE'):
+            raise NotImplementedError(f'{ClsName}.USES_SEASON_TITLE')
+        if not isinstance(cls.USES_SEASON_TITLE, bool):
+            raise TypeError(f'{ClsName}.USES_SEASON_TITLE must be a boolean')
+
         if not isinstance(cls.DEFAULT_FONT_CASE, str):
-            raise TypeError(f'{cls.__name__}.DEFAULT_FONT_CASE must be a string')
-        if cls.DEFAULT_FONT_CASE not in ('blank', 'lower', 'source', 'title',
-                                         'upper'):
+            raise TypeError(f'{ClsName}.DEFAULT_FONT_CASE must be a string')
+        if cls.DEFAULT_FONT_CASE not in (
+            'blank', 'lower', 'source', 'title', 'upper'
+        ):
             raise TypeError(
-                f'{cls.__name__}.DEFAULT_FONT_CASE must be "blank", "lower", '
+                f'{ClsName}.DEFAULT_FONT_CASE must be "blank", "lower", '
                 f'"source", "title", or "upper"'
             )
 
+        if not isinstance(cls.TITLE_FONT, str):
+            raise TypeError(f'{ClsName}.TITLE_FONT must be a string')
+
         if not isinstance(cls.TITLE_COLOR, str):
-            raise TypeError(f'{cls.__name__}.TITLE_COLOR must be a string')
+            raise TypeError(f'{ClsName}.TITLE_COLOR must be a string')
 
         if not isinstance(cls.FONT_REPLACEMENTS, dict):
             raise TypeError(
-                f'{cls.__name__}.FONT_REPLACEMENTS must be a dictionary'
+                f'{ClsName}.FONT_REPLACEMENTS must be a dictionary'
             )
 
         # Validate font replacements
-        if any(
-                not isinstance(k, str) or not isinstance(v, str)
-                for k, v in cls.FONT_REPLACEMENTS.items()
-            ):
+        if not all(
+            isinstance(k, str) and isinstance(v, str)
+            for k, v in cls.FONT_REPLACEMENTS.items()
+        ):
             raise TypeError(
-                f'All keys and values of {cls.__name__}.FONT_REPLACEMENTS must '
-                f'strings'
+                f'All keys/values of {ClsName}.FONT_REPLACEMENTS must strings'
             )
 
         # Register card type descriptions and blur profiles into global lists
@@ -733,11 +737,9 @@ class BaseCardType(ImageMaker, ABC):
 
         # Look for mask file corresponding to this source image
         # Prioritize episode-specific mask, then general mask
-        if (mask := list(file.parent.glob(f'{file.stem}-mask.*'))):
-            mask = mask[0]
-        elif (mask := list(file.parent.glob(f'{file.stem}_mask.*'))):
-            mask = mask[0]
-        elif (mask := list(file.parent.glob(f'mask.*'))):
+        if ((mask := list(file.parent.glob(f'{file.stem}-mask.*')))
+            or (mask := list(file.parent.glob(f'{file.stem}_mask.*')))
+            or (mask := list(file.parent.glob(f'mask.*')))):
             mask = mask[0]
         else:
             return []

@@ -10,10 +10,8 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
     Shadow,
-    TextCase,
 )
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -27,7 +25,7 @@ class InsetTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Inset',
         identifier='inset',
         example='/internal_assets/cards/inset.webp',
@@ -91,27 +89,27 @@ class InsetTitleCard(BaseCardType):
     GRADIENT = REF_DIRECTORY.parent / 'overline' / 'small_gradient.png'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 20,
         'max_line_count': 3,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((SW_REF_DIRECTORY / 'HelveticaNeue.ttc').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((SW_REF_DIRECTORY / 'HelveticaNeue.ttc').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'upper'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = 'crimson'
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'HelveticaNeue-BoldItalic.ttf'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Inset Style'
+    ARCHIVE_NAME = 'Inset Style'
 
     __slots__ = (
         'episode_text',

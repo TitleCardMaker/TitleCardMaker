@@ -3,7 +3,7 @@ from math import tan, pi as PI
 from pathlib import Path
 from random import choice as random_choice, randint
 from re import IGNORECASE, compile as re_compile
-from typing import TYPE_CHECKING, Literal, Sequence, Union
+from typing import TYPE_CHECKING, Any, Literal, Sequence, Union
 
 from pydantic import FilePath, PositiveFloat, confloat, conint, constr, validator
 
@@ -14,7 +14,6 @@ from modules.BaseCardType import (
     Coordinate,
     Extra,
     ImageMagickCommands,
-    TextCase,
 )
 from modules.Debug import log # noqa: F401
 from modules.Title import SplitCharacteristics
@@ -273,7 +272,7 @@ class StripedTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Striped',
         identifier='striped',
         example='/internal_assets/cards/striped.webp',
@@ -388,17 +387,17 @@ class StripedTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'shape'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 35,
         'max_line_count': 3,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Golca Bold Italic.ttf').resolve())
-    TITLE_COLOR: str = 'black'
-    DEFAULT_FONT_CASE: TextCase = 'source'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'Golca Bold Italic.ttf').resolve())
+    TITLE_COLOR = 'black'
+    DEFAULT_FONT_CASE = 'source'
+    FONT_REPLACEMENTS = {}
  
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = 'crimson' # TITLE_COLOR
@@ -407,10 +406,10 @@ class StripedTitleCard(BaseCardType):
     INDEX_TEXT_FONT = REF_DIRECTORY / 'Gotham-Medium.ttf'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Striped Style'
+    ARCHIVE_NAME = 'Striped Style'
 
     """Implementation details"""
     DEFAULT_ANGLE = 79.5 # Degrees
@@ -478,7 +477,7 @@ class StripedTitleCard(BaseCardType):
             separator: str = ' - ',
             text_position: TextPosition = DEFAULT_TEXT_POSITION,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -761,14 +760,15 @@ class StripedTitleCard(BaseCardType):
                 and extras['episode_text_font_size'] != 1.0)
         )
 
-        return (custom_extras
-            or ((font.color != StripedTitleCard.TITLE_COLOR)
-            or (font.file != StripedTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+        return (
+            custom_extras
+            or font.color != StripedTitleCard.TITLE_COLOR
+            or font.file != StripedTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 

@@ -1,6 +1,6 @@
 from pathlib import Path
 from random import choice as random_choice
-from typing import Literal, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING
 
 from pydantic import FilePath, PositiveFloat, constr, root_validator
 
@@ -14,7 +14,6 @@ from modules.BaseCardType import (
 )
 from modules.Debug import log
 from modules.EpisodeInfo2 import EpisodeInfo
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -32,7 +31,7 @@ class ScoreTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Score',
         identifier='score',
         example='/internal_assets/cards/score.webp',
@@ -163,17 +162,17 @@ class ScoreTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'negative_space'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 20,
         'max_line_count': 3,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Futura.ttc').resolve())
-    TITLE_COLOR: str = 'white'
+    TITLE_FONT = str((REF_DIRECTORY / 'Futura.ttc').resolve())
+    TITLE_COLOR = 'white'
     DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = 'EPISODE {episode_number}'
@@ -181,13 +180,13 @@ class ScoreTitleCard(BaseCardType):
     EPISODE_TEXT_FONT = TITLE_FONT
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Score Style'
+    ARCHIVE_NAME = 'Score Style'
 
     """Default variables"""
-    STROKE_COLOR: str = 'black'
+    STROKE_COLOR = 'black'
 
     """Path to the gradient image to overlay"""
     _GRADIENT_IMAGE = REF_DIRECTORY.parent / 'anime' / 'GRADIENT.png'
@@ -267,7 +266,7 @@ class ScoreTitleCard(BaseCardType):
             placement: Placement = 'bottom',
             variation: Variation = 'surround',
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -608,29 +607,28 @@ class ScoreTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    ScoreTitleCard.EPISODE_TEXT_COLOR)
-            or extras.get('episode_text_font_size', 1.0) != 1.0
-            or extras.get('episode_text_horizontal_offset', 0) != 0
-            or extras.get('episode_text_vertical_offset', 0) != 0
-            or ('season_text_color' in extras
-                and extras['season_text_color'] != \
-                    ScoreTitleCard.EPISODE_TEXT_COLOR)
-            or ('stroke_color' in extras
-                and extras['stroke_color'] != ScoreTitleCard.STROKE_COLOR)
-            or extras.get('title_text_horizontal_offset', 0) != 0
+        custom_extras = ScoreTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'episode_text_color': ScoreTitleCard.EPISODE_TEXT_COLOR,
+                'episode_text_font_size': 1.0,
+                'episode_text_horizontal_offset': 0,
+                'episode_text_vertical_offset': 0,
+                'season_text_color': ScoreTitleCard.EPISODE_TEXT_COLOR,
+                'stroke_color': ScoreTitleCard.STROKE_COLOR,
+                'title_text_horizontal_offset': 0,
+            }
         )
 
-        return (custom_extras
-            or ((font.color != ScoreTitleCard.TITLE_COLOR)
-            or (font.file != ScoreTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+        return (
+            custom_extras
+            or font.color != ScoreTitleCard.TITLE_COLOR
+            or font.file != ScoreTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 

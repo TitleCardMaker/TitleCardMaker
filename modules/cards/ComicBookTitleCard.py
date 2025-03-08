@@ -109,7 +109,7 @@ class ComicBookTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Comic Book',
         identifier='comic book',
         example='/internal_assets/cards/comic book.jpg',
@@ -246,27 +246,27 @@ class ComicBookTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'comic_book'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 32,
         'max_line_count': 2,
         'style': 'top',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY /'cc-wild-words-bold-italic.ttf').resolve())
-    TITLE_COLOR: str = 'black'
-    DEFAULT_FONT_CASE: TextCase = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {'é': 'e', 'É': 'E'}
+    TITLE_FONT = str((REF_DIRECTORY /'cc-wild-words-bold-italic.ttf').resolve())
+    TITLE_COLOR = 'black'
+    DEFAULT_FONT_CASE = 'upper'
+    FONT_REPLACEMENTS = {'é': 'e', 'É': 'E'}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = TITLE_COLOR
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'cc-wild-words-bold-italic.ttf'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Comic Book Style'
+    ARCHIVE_NAME = 'Comic Book Style'
 
     """Implementation details"""
     BANNER_FILL_COLOR = 'rgba(235,73,69,0.6)'

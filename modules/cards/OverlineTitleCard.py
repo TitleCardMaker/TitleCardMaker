@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import FilePath, PositiveFloat, PositiveInt, root_validator
 
@@ -11,10 +11,8 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
     Rectangle,
-    TextCase,
 )
 from modules.ImageMagickInterface import Dimensions
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -31,7 +29,7 @@ class OverlineTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Overline',
         identifier='overline',
         example='/internal_assets/cards/overline.jpg',
@@ -119,17 +117,17 @@ class OverlineTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'overline'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 30,
         'max_line_count': 2,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'HelveticaNeueMedium.ttf').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'HelveticaNeueMedium.ttf').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'upper'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = TITLE_COLOR
@@ -138,10 +136,10 @@ class OverlineTitleCard(BaseCardType):
     )
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Overline Style'
+    ARCHIVE_NAME = 'Overline Style'
 
     """How thick the line is (in pixels)"""
     LINE_THICKNESS = 9
@@ -186,7 +184,7 @@ class OverlineTitleCard(BaseCardType):
             omit_gradient: bool = False,
             separator: str = '-',
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -442,14 +440,15 @@ class OverlineTitleCard(BaseCardType):
                 and extras['line_color'] != OverlineTitleCard.TITLE_COLOR)
         )
 
-        return (custom_extras
-            or ((font.color != OverlineTitleCard.TITLE_COLOR)
-            or (font.file != OverlineTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+        return (
+            custom_extras
+            or font.color != OverlineTitleCard.TITLE_COLOR
+            or font.file != OverlineTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 

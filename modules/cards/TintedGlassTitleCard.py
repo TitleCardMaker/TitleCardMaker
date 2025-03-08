@@ -1,7 +1,7 @@
 from collections import namedtuple
 from pathlib import Path
 from re import match as re_match
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import FilePath, conint, constr, root_validator, validator
 
@@ -13,7 +13,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -33,7 +32,7 @@ class TintedGlassTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Tinted Glass',
         identifier='tinted glass',
         example='/internal_assets/cards/tinted glass.jpg',
@@ -114,16 +113,16 @@ class TintedGlassTitleCard(BaseCardType):
     SW_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'star_wars'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 24,
         'max_line_count': 3,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((SW_REF_DIRECTORY / 'HelveticaNeue-Bold.ttf').resolve())
-    TITLE_COLOR: str = 'white'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((SW_REF_DIRECTORY / 'HelveticaNeue-Bold.ttf').resolve())
+    TITLE_COLOR = 'white'
+    FONT_REPLACEMENTS = {}
 
     """Default episode text format for this class"""
     EPISODE_TEXT_FORMAT = '{series_name} | S{season_number} E{episode_number}'
@@ -131,13 +130,13 @@ class TintedGlassTitleCard(BaseCardType):
     EPISODE_TEXT_FONT = SW_REF_DIRECTORY / 'HelveticaNeue-Bold.ttf'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """Whether this CardType uses unique source images"""
-    USES_UNIQUE_SOURCES: bool = True
+    USES_UNIQUE_SOURCES = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Tinted Glass Style'
+    ARCHIVE_NAME = 'Tinted Glass Style'
 
     """Darkened area behind title/episode text is nearly black and 70% opaque"""
     DARKEN_COLOR = 'rgba(25, 25, 25, 0.7)'
@@ -168,7 +167,7 @@ class TintedGlassTitleCard(BaseCardType):
         '__line_count',
     )
 
-    def __init__(self,
+    def __init__(self, *,
             source_file: Path,
             card_file: Path,
             title_text: str,
@@ -190,7 +189,7 @@ class TintedGlassTitleCard(BaseCardType):
             rounding_radius: int = DEFAULT_ROUNDING_RADIUS,
             vertical_adjustment: int = 0,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
 
         # Initialize the parent class - this sets up an ImageMagickInterface
@@ -449,14 +448,15 @@ class TintedGlassTitleCard(BaseCardType):
                 and extras['glass_color'] != TintedGlassTitleCard.DARKEN_COLOR)
         )
 
-        return (custom_extras
-            or ((font.color != TintedGlassTitleCard.TITLE_COLOR)
-            or  (font.file != TintedGlassTitleCard.TITLE_FONT)
-            or  (font.interline_spacing != 0)
-            or  (font.interword_spacing != 0)
-            or  (font.kerning != 1.0)
-            or  (font.size != 1.0)
-            or  (font.vertical_shift != 0))
+        return (
+            custom_extras
+            or font.color != TintedGlassTitleCard.TITLE_COLOR
+            or font.file != TintedGlassTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 

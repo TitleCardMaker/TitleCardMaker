@@ -10,7 +10,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -25,7 +24,7 @@ class FadeTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Fade',
         identifier='fade',
         example='/internal_assets/cards/fade.jpg',
@@ -54,16 +53,16 @@ class FadeTitleCard(BaseCardType):
     FONT_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 13,
         'max_line_count': 5,
         'style': 'top',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((FONT_REF_DIRECTORY / 'Sequel-Neue.otf').resolve())
-    TITLE_COLOR: str = 'white'
-    FONT_REPLACEMENTS: dict[str, str] = {
+    TITLE_FONT = str((FONT_REF_DIRECTORY / 'Sequel-Neue.otf').resolve())
+    TITLE_COLOR = 'white'
+    FONT_REPLACEMENTS = {
         '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...', '“': '"'
     }
 
@@ -73,10 +72,10 @@ class FadeTitleCard(BaseCardType):
     EPISODE_TEXT_FONT = FONT_REF_DIRECTORY / 'Proxima Nova Semibold.otf'
 
     """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = '4x3 Fade Style'
+    ARCHIVE_NAME = '4x3 Fade Style'
 
     __OVERLAY = REF_DIRECTORY / 'gradient_fade.png'
 
@@ -121,9 +120,7 @@ class FadeTitleCard(BaseCardType):
             preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
-        """
-        Construct a new instance of this Card.
-        """
+        """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
         super().__init__(blur, grayscale, preferences=preferences)

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import FilePath, PositiveFloat, constr, root_validator
 
@@ -10,7 +10,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -25,7 +24,7 @@ class StarWarsTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Star Wars',
         identifier='star wars',
         example='/internal_assets/cards/star wars.webp',
@@ -54,16 +53,16 @@ class StarWarsTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'star_wars'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 16,
         'max_line_count': 5,
         'style': 'top',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Monstice-Base.ttf').resolve())
-    TITLE_COLOR: str = '#DAC960'
-    FONT_REPLACEMENTS: dict[str, str] = {'Ō': 'O', 'ō': 'o'}
+    TITLE_FONT = str((REF_DIRECTORY / 'Monstice-Base.ttf').resolve())
+    TITLE_COLOR = '#DAC960'
+    FONT_REPLACEMENTS = {'Ō': 'O', 'ō': 'o'}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = 'EPISODE {to_cardinal(episode_number)}'
@@ -72,10 +71,10 @@ class StarWarsTitleCard(BaseCardType):
     EPISODE_NUMBER_FONT = REF_DIRECTORY / 'HelveticaNeue-Bold.ttf'
 
     """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Star Wars Style'
+    ARCHIVE_NAME = 'Star Wars Style'
 
     """Path to the reference star image to overlay on all source images"""
     __STAR_GRADIENT_IMAGE = REF_DIRECTORY / 'star_gradient.png'
@@ -114,7 +113,7 @@ class StarWarsTitleCard(BaseCardType):
             grayscale: bool = False,
             episode_text_color: str = EPISODE_TEXT_COLOR,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Initialize the CardType object."""
 
@@ -252,13 +251,14 @@ class StarWarsTitleCard(BaseCardType):
                     StarWarsTitleCard.EPISODE_TEXT_COLOR)
         )
 
-        return (custom_extras
-            or ((font.color != StarWarsTitleCard.TITLE_COLOR)
-            or (font.file != StarWarsTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
+        return (
+            custom_extras
+            or font.color != StarWarsTitleCard.TITLE_COLOR
+            or font.file != StarWarsTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.size != 1.0
+            or font.vertical_shift != 0
         )
 
 

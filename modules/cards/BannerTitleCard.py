@@ -9,10 +9,8 @@ from modules.BaseCardType import (
     CardTypeDescription,
     Extra,
     ImageMagickCommands,
-    TextCase,
 )
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -27,7 +25,7 @@ class BannerTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Banner',
         identifier='banner',
         example='/internal_assets/cards/banner.webp',
@@ -98,16 +96,16 @@ class BannerTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'banner'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 19,
         'max_line_count': 3,
         'style': 'forced even',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Gill Sans Nova ExtraBold.ttf').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'upper'
+    TITLE_FONT = str((REF_DIRECTORY / 'Gill Sans Nova ExtraBold.ttf').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'upper'
     FONT_REPLACEMENTS = {'(': '', ')': ''}
 
     """Characteristics of the episode text"""
@@ -115,10 +113,10 @@ class BannerTitleCard(BaseCardType):
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Gill Sans Nova ExtraBold.ttf'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Banner Style'
+    ARCHIVE_NAME = 'Banner Style'
 
     """Implementation details"""
     BANNER_HEIGHT = 185

@@ -2,9 +2,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 from app.schemas.base import Base, BaseCardModel
-from modules.BaseCardType import BaseCardType, CardTypeDescription, TextCase
+from modules.BaseCardType import BaseCardType, CardTypeDescription
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -19,7 +18,7 @@ class TextlessTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Textless',
         identifier='textless',
         example='/internal_assets/cards/textless.jpg',
@@ -37,31 +36,31 @@ class TextlessTitleCard(BaseCardType):
     )
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 999,
         'max_line_count': 1,
         'style': 'bottom',
     }
 
     """Font case for this card is entirely blank"""
-    DEFAULT_FONT_CASE: TextCase = 'blank'
+    DEFAULT_FONT_CASE = 'blank'
 
     """Default episode text format string, can be overwritten by each class"""
-    EPISODE_TEXT_FORMAT: str = ''
+    EPISODE_TEXT_FORMAT = ''
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = ''
-    TITLE_COLOR: str = ''
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = ''
+    TITLE_COLOR = ''
+    FONT_REPLACEMENTS = {}
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """Don't require source images to work w/ importing"""
-    USES_SOURCE_IMAGES: bool = False # Set as False; if required then caught by model
+    USES_SOURCE_IMAGES = False # Set as False; if required then caught by model
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Textless Version'
+    ARCHIVE_NAME = 'Textless Version'
 
     __slots__ = ('source_file', 'output_file')
 

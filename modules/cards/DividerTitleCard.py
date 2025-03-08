@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import FilePath, root_validator
 
@@ -35,7 +35,7 @@ class DividerTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Divider',
         identifier='divider',
         example='/internal_assets/cards/divider.jpg',
@@ -105,26 +105,26 @@ class DividerTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'anime'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 18,
         'max_line_count': 4,
         'style': 'bottom',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Flanker Griffo.otf').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'source'
-    FONT_REPLACEMENTS: dict[str, str] = {'♡': '', '☆': '', '✕': 'x'}
+    TITLE_FONT = str((REF_DIRECTORY / 'Flanker Griffo.otf').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'source'
+    FONT_REPLACEMENTS = {'♡': '', '☆': '', '✕': 'x'}
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_FORMAT: str = 'Episode {episode_number}'
+    EPISODE_TEXT_FORMAT = 'Episode {episode_number}'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Divider Style'
+    ARCHIVE_NAME = 'Divider Style'
 
     __slots__ = (
         'divider_color',
@@ -149,7 +149,7 @@ class DividerTitleCard(BaseCardType):
         'title_text_position',
     )
 
-    def __init__(self,
+    def __init__(self, *,
             source_file: Path,
             card_file: Path,
             title_text: str,
@@ -173,7 +173,7 @@ class DividerTitleCard(BaseCardType):
             title_text_position: TitleTextPosition = 'left',
             text_position: TextPosition = 'lower right',
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 

@@ -21,10 +21,8 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
     Line,
-    TextCase,
 )
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -124,7 +122,7 @@ class GraphTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Graph',
         identifier='graph',
         example='/internal_assets/cards/graph.webp',
@@ -230,27 +228,27 @@ class GraphTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'inset'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 35,
         'max_line_count': 3,
         'style': 'top',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'HelveticaNeue-BoldItalic.ttf').resolve())
-    TITLE_COLOR: str = 'rgb(247, 247, 247)'
-    DEFAULT_FONT_CASE: TextCase = 'source'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'HelveticaNeue-BoldItalic.ttf').resolve())
+    TITLE_COLOR = 'rgb(247, 247, 247)'
+    DEFAULT_FONT_CASE = 'source'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'HelveticaNeue-BoldItalic.ttf'
     EPISODE_TEXT_FORMAT = '{episode_number} / {season_episode_max}'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Graph Style'
+    ARCHIVE_NAME = 'Graph Style'
 
     """Implementation details"""
     BACKGROUND_GRAPH_COLOR = 'rgba(140,140,140,0.5)'
@@ -264,13 +262,29 @@ class GraphTitleCard(BaseCardType):
     GRADIENT = REF_DIRECTORY.parent / 'overline' / 'small_gradient.png'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'numerator', 'denominator',
-        'hide_episode_text', 'font_color', 'font_interline_spacing',
-        'font_interword_spacing', 'font_file', 'font_kerning', 'font_size',
-        'font_vertical_shift', 'episode_text_font_size',
-        'graph_background_color', 'graph_color', 'graph_inset', 'graph_radius',
-        'graph_width', 'fill_scale', 'omit_gradient', 'percentage',
+        'denominator',
+        'episode_text_font_size',
+        'fill_scale',
+        'font_color',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_file',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'graph_background_color',
+        'graph_color',
+        'graph_inset',
+        'graph_radius',
+        'graph_width',
+        'hide_episode_text',
+        'numerator',
+        'omit_gradient',
+        'output_file',
+        'percentage',
+        'source_file',
         'text_position',
+        'title_text',
     )
 
 

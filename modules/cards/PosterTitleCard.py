@@ -1,11 +1,10 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import FilePath, PositiveFloat, constr, root_validator
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, Extra, CardTypeDescription
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -20,7 +19,7 @@ class PosterTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Poster',
         identifier='poster',
         example='/internal_assets/cards/poster.jpg',
@@ -48,16 +47,16 @@ class PosterTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'poster_card'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 16,
         'max_line_count': 5,
         'style': 'top',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Amuro.otf').resolve())
-    TITLE_COLOR: str = '#FFFFFF'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'Amuro.otf').resolve())
+    TITLE_COLOR = '#FFFFFF'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = 'Ep. {episode_number}'
@@ -65,13 +64,13 @@ class PosterTitleCard(BaseCardType):
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Amuro.otf'
 
     """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Poster Style'
+    ARCHIVE_NAME = 'Poster Style'
 
     """Custom blur profile for the poster"""
-    BLUR_PROFILE: str = '0x30'
+    BLUR_PROFILE = '0x30'
 
     """Path to the reference star image to overlay on all source images"""
     __GRADIENT_OVERLAY = REF_DIRECTORY / 'stars-overlay.png'
@@ -106,7 +105,7 @@ class PosterTitleCard(BaseCardType):
             logo_file: Path | None = None,
             episode_text_color: str = EPISODE_TEXT_COLOR,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this card."""
 
@@ -177,12 +176,13 @@ class PosterTitleCard(BaseCardType):
                     PosterTitleCard.EPISODE_TEXT_COLOR)
         )
 
-        return (custom_extras
-            or ((font.color != PosterTitleCard.TITLE_COLOR)
-            or (font.file != PosterTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.size != 1.0))
+        return (
+            custom_extras
+            or font.color != PosterTitleCard.TITLE_COLOR
+            or font.file != PosterTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.size != 1.0
         )
 
 

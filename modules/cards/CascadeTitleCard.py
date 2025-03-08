@@ -16,7 +16,6 @@ from modules.Debug import log
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.FormatString import FormatString
 from modules.ImageMagickInterface import Dimensions
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -175,7 +174,7 @@ class CascadeTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Cascade',
         identifier='cascade',
         example='/internal_assets/cards/cascade.webp',
@@ -327,7 +326,7 @@ class CascadeTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'cascade'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 20,
         'max_line_count': 4,
         'style': 'bottom',
@@ -335,10 +334,10 @@ class CascadeTitleCard(BaseCardType):
 
     """Characteristics of the default title font"""
     _ITALIC_TITLE_FONT = REF_DIRECTORY / 'SpockEssAlt1-It.ttf'
-    TITLE_FONT: str = str((REF_DIRECTORY / 'SpockEssAlt1.ttf').resolve())
-    TITLE_COLOR: str = 'white'
+    TITLE_FONT = str((REF_DIRECTORY / 'SpockEssAlt1.ttf').resolve())
+    TITLE_COLOR = 'white'
     DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = 'E{episode_number}'
@@ -347,10 +346,10 @@ class CascadeTitleCard(BaseCardType):
     _KANJI_TEXT_FONT = REF_DIRECTORY.parent / 'anime' / 'hiragino-mincho-w3.ttc'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Cascade Style'
+    ARCHIVE_NAME = 'Cascade Style'
 
     """Implementation details"""
     DEFAULT_CASCADE_ALPHAS: str = '66,/2'

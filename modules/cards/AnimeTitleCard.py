@@ -11,7 +11,6 @@ from modules.BaseCardType import (
     ImageMagickCommands,
 )
 from modules.Debug import log # noqa: F401
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -26,7 +25,7 @@ class AnimeTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Anime',
         identifier='anime',
         example='/internal_assets/cards/anime.webp',
@@ -158,26 +157,26 @@ class AnimeTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'anime'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 25,
         'max_line_count': 4,
         'style': 'bottom',
     }
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Anime Style'
+    ARCHIVE_NAME = 'Anime Style'
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Flanker Griffo.otf').resolve())
+    TITLE_FONT = str((REF_DIRECTORY / 'Flanker Griffo.otf').resolve())
     DEFAULT_FONT_CASE = 'source'
-    TITLE_COLOR: str = 'white'
+    TITLE_COLOR = 'white'
     FONT_REPLACEMENTS = {'♡': '', '☆': '', '＊': '', '✕': 'x', '♥': ''}
 
     """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """Source path for the gradient image overlayed over all title cards"""
-    __GRADIENT_IMAGE: Path = REF_DIRECTORY / 'GRADIENT.png'
+    __GRADIENT_IMAGE = REF_DIRECTORY / 'GRADIENT.png'
 
     """Path to the font to use for the kanji font"""
     KANJI_FONT = REF_DIRECTORY / 'hiragino-mincho-w3.ttc'

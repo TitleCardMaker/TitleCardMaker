@@ -1,6 +1,6 @@
 from pathlib import Path
 from random import random
-from typing import Literal, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING
 
 from pydantic import FilePath, PositiveFloat, constr, root_validator
 
@@ -11,7 +11,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -31,7 +30,7 @@ class NegativeSpaceTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Negative Space',
         identifier='negative space',
         example='/internal_assets/cards/negative_space.webp',
@@ -104,17 +103,17 @@ class NegativeSpaceTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'negative_space'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 14,
         'max_line_count': 5,
         'style': 'top',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Futura.ttc').resolve())
-    TITLE_COLOR: str = 'white'
+    TITLE_FONT = str((REF_DIRECTORY / 'Futura.ttc').resolve())
+    TITLE_COLOR = 'white'
     DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = '{episode_number}'
@@ -122,15 +121,20 @@ class NegativeSpaceTitleCard(BaseCardType):
     EPISODE_TEXT_FONT = TITLE_FONT
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = False
+    USES_SEASON_TITLE = False
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'Negative Space Style'
+    ARCHIVE_NAME = 'Negative Space Style'
 
     """Implementation Details"""
     DEFAULT_TEXT_SIDE: TextSide = 'left'
 
     __slots__ = (
+        'episode_text',
+        'episode_text_color',
+        'episode_text_font_size',
+        'episode_text_horizontal_offset',
+        'episode_text_vertical_offset',
         'font_color',
         'font_file',
         'font_interline_spacing',
@@ -138,11 +142,6 @@ class NegativeSpaceTitleCard(BaseCardType):
         'font_kerning',
         'font_size',
         'font_vertical_shift',
-        'episode_text',
-        'episode_text_color',
-        'episode_text_font_size',
-        'episode_text_horizontal_offset',
-        'episode_text_vertical_offset',
         'hide_episode_text',
         'output_file',
         'source_file',
@@ -174,7 +173,7 @@ class NegativeSpaceTitleCard(BaseCardType):
             text_side: TextSide | Literal['random'] = DEFAULT_TEXT_SIDE,
             title_text_horizontal_offset: int = 0,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 

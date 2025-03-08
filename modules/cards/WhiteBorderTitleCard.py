@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import FilePath, PositiveFloat
 
@@ -9,9 +9,7 @@ from modules.BaseCardType import (
     CardTypeDescription,
     Extra,
     ImageMagickCommands,
-    TextCase
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
@@ -26,7 +24,7 @@ class WhiteBorderTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='White Border',
         identifier='white border',
         example='/internal_assets/cards/white border.webp',
@@ -77,17 +75,17 @@ class WhiteBorderTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'white_border'
 
     """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
+    TITLE_CHARACTERISTICS = {
         'max_line_width': 30,
         'max_line_count': 3,
         'style': 'top',
     }
 
     """Characteristics of the default title font"""
-    TITLE_FONT: str = str((REF_DIRECTORY / 'Arial_Bold.ttf').resolve())
-    TITLE_COLOR: str = 'white'
-    DEFAULT_FONT_CASE: TextCase = 'upper'
-    FONT_REPLACEMENTS: dict[str, str] = {}
+    TITLE_FONT = str((REF_DIRECTORY / 'Arial_Bold.ttf').resolve())
+    TITLE_COLOR = 'white'
+    DEFAULT_FONT_CASE = 'upper'
+    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = TITLE_COLOR
@@ -97,10 +95,10 @@ class WhiteBorderTitleCard(BaseCardType):
     STROKE_COLOR: str = 'black'
 
     """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
+    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
-    ARCHIVE_NAME: str = 'White Border Style'
+    ARCHIVE_NAME = 'White Border Style'
 
     """White border frame image to overlay"""
     FRAME_IMAGE = REF_DIRECTORY / 'border.png'
@@ -142,7 +140,7 @@ class WhiteBorderTitleCard(BaseCardType):
             separator: str = '•',
             stroke_color: str = STROKE_COLOR,
             preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -183,7 +181,7 @@ class WhiteBorderTitleCard(BaseCardType):
         """Subcommand for adding title text to the image."""
 
         # No title text
-        if len(self.title_text) == 0:
+        if not self.title_text:
             return []
 
         vertical_shift = 250 + self.font_vertical_shift
@@ -266,6 +264,7 @@ class WhiteBorderTitleCard(BaseCardType):
             f'-draw "rectangle 0,0,25,{self.HEIGHT}"',
         ]
 
+
     @staticmethod
     def modify_extras(
             extras: dict,
@@ -307,16 +306,14 @@ class WhiteBorderTitleCard(BaseCardType):
             True if a custom font is indicated, False otherwise.
         """
 
-        custom_extras = (
-            ('border_color' in extras
-                and extras['border_color'] != 'white')
-            or ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    WhiteBorderTitleCard.EPISODE_TEXT_COLOR)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
-            or ('stroke_color' in extras
-                and extras['stroke_color'] != WhiteBorderTitleCard.STROKE_COLOR)
+        custom_extras = WhiteBorderTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'border_color': 'white',
+                'episode_text_color': WhiteBorderTitleCard.EPISODE_TEXT_COLOR,
+                'episode_text_font_size': 1.0,
+                'stroke_color': WhiteBorderTitleCard.STROKE_COLOR,
+            }
         )
 
         return custom_extras or WhiteBorderTitleCard._is_custom_font(font)
