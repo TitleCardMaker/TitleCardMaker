@@ -580,18 +580,16 @@ async function editEpisodeExtras(episode, allEpisodes) {
       /** Parse some list value, converting empty lists to null */
       const parseList = (value, _default) => value.length ? value : _default;
 
+      // Parse translations
+      const translationKeys = Array.from(document.querySelectorAll('#episode-extras-modal input[name="translation_key"]'));
+      const translationValues = Array.from(document.querySelectorAll('#episode-extras-modal input[name="translation_value"]'));
+      const translations = {};
+      translationKeys.forEach((key, index) => translations[key.value] = translationValues[index].value);
+
       // Convert form to data
       /** @type {UpdateEpisode} */
       const data = {
-        translations: parseList(
-            Array.from(document.querySelectorAll('#episode-extras-modal input[name="language_code"]')).map((input, index) => {
-              return {
-                language_code: input.value,
-                data_key: document.querySelectorAll('#episode-extras-modal input[name="data_key"]')[index].value,
-              };
-            }),
-            {},
-          ),
+        translations: translations,
         extra_keys: parseList(
             $('#episode-extras-modal section[aria-label="extras"] input').map(function() {
               if ($(this).val() !== '') { 
