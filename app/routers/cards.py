@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import not_
 from sqlalchemy.orm import Session, load_only
+import pytz
 
 from app.database.query import (
     get_card,
@@ -13,6 +16,7 @@ from app.database.query import (
 from app.database.session import Page
 from app.dependencies import (
     get_database,
+    get_logger,
     get_preferences,
     Preferences,
 )
@@ -39,7 +43,8 @@ from app.schemas.card import (
     CardActions,
     PreviewTitleCard,
     TitleCard,
-    TitleCardReduced
+    TitleCardExtended,
+    TitleCardReduced,
 )
 from app.schemas.episode import Episode as EpisodeSchema, UpdateEpisode
 from app.schemas.font import DefaultFont
@@ -49,7 +54,8 @@ from modules.Debug import (
     InvalidCardSettings,
     Logger,
     MissingSourceImage,
-    UnknownCardType
+    tz as local_tz,
+    UnknownCardType,
 )
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.FormatString import FormatString
@@ -288,11 +294,30 @@ def create_preview_card_for_episode(
 
 @card_router.get('/all')
 def get_all_title_cards(
-        db: Session = Depends(get_database)
+        db: Session = Depends(get_database),
     ) -> Page[TitleCard]: # type: ignore
     """Get all defined Title Cards."""
 
     return paginate(db.query(Card))
+
+
+@card_router.get('/recent')
+def get_recently_created_title_cards(
+        db: Session = Depends(get_database),
+        after: datetime = Query(...),
+    ) -> Page[TitleCardExtended]: # type: ignore
+    """Get all recently created Title Cards after the given date."""
+
+    # Convert to UTC timezone for DB comparison
+    if after.tzinfo is None:
+        after = local_tz.localize(after)
+    after = after.astimezone(pytz.timezone('UTC'))
+
+    return paginate(
+        db.query(Card)
+            .filter(Card.created > after)
+            .order_by(Card.created.desc())
+    )
 
 
 @card_router.get('/card/{card_id}')
@@ -311,9 +336,9 @@ def get_title_card(
 
 @card_router.post('/series/{series_id}', tags=['Series'])
 def create_cards_for_series(
-        request: Request,
         series_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Create the Title Cards for the given Series. This deletes and
@@ -321,9 +346,6 @@ def create_cards_for_series(
 
     - series_id: ID of the Series to create Title Cards for.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
@@ -340,8 +362,7 @@ def create_cards_for_series(
             log.exception(f'{episode} Card creation failed - {exc}')
 
 
-@card_router.get('/series/{series_id}', tags=['Series'],
-                 dependencies=[Depends(get_current_user)])
+@card_router.get('/series/{series_id}', tags=['Series'])
 def get_series_cards(
         series_id: int,
         db: Session = Depends(get_database)
@@ -363,8 +384,7 @@ def get_series_cards(
     )
 
 
-@card_router.get('/series/{series_id}/reduced', tags=['Series'],
-                 dependencies=[Depends(get_current_user)])
+@card_router.get('/series/{series_id}/reduced', tags=['Series'])
 def get_series_cards_reduced_models(
         series_id: int,
         db: Session = Depends(get_database)
@@ -400,10 +420,10 @@ def get_series_cards_reduced_models(
 
 @card_router.put('/series/{series_id}/load/all', deprecated=True)
 def load_all_series_title_cards_(
-        request: Request,
         series_id: int,
         reload: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Load the Title Cards for the given Series into all libraries.
@@ -417,9 +437,7 @@ def load_all_series_title_cards_(
     # Get this Series and Interface, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    load_all_series_title_cards(
-        series, db, force_reload=reload, log=request.state.log,
-    )
+    load_all_series_title_cards(series, db, force_reload=reload, log=log)
 
 
 @card_router.put('/series/{series_id}/load/library', deprecated=True)

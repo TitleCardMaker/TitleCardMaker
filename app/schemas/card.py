@@ -1,5 +1,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportIncompatibleVariableOverride=false
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Any, Literal, Union
 
@@ -192,3 +193,16 @@ class TitleCardReduced(Base):
     filesize: int
     library_name: str | None = None
     loaded: LoadedDetails | None = None
+
+class _SeriesData(Base):
+    name: str
+    year: int
+
+class TitleCardExtended(Base):
+    id: int
+    series_id: int
+    series: _SeriesData
+    episode: EpisodeData
+    file_url: str
+    loaded: LoadedDetails | None = None
+    created: datetime
