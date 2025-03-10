@@ -89,6 +89,11 @@
  */
 
 /**
+ * @typedef {Object} LoadedDetails
+ * @property {string} library_name
+ */
+
+/**
  * @typedef {Object} PreviewTitleCard
  * @property {string} card_type - The type of the card.
  * @property {string} title_text - The text for the title.
@@ -141,6 +146,12 @@
  */
 
 /**
+ * @typedef {Object} _SeriesData
+ * @property {string} name
+ * @property {number} year
+ */
+
+/**
  * @typedef {Object} TitleCard
  * @property {number} id
  * @property {number} series_id
@@ -151,11 +162,30 @@
  * @property {number} filesize
  * @property {Object} model_json
  * @property {?string} library_name
+ * @property {?LoadedDetails} loaded
  */
 
 /**
  * @typedef {Object} TitleCardPage
  * @property {TitleCard[]} items
+ * @property {number} total
+ * @property {number} size
+ * @property {number} page
+ * @property {number} pages
+ */
+
+/**
+ * @typedef {Object} TitleCardExtended
+ * @property {number} id
+ * @property {number} series_id
+ * @property {_SeriesData} series
+ * @property {EpisodeData} episode
+ * @property {string} file_url
+ */
+
+/**
+ * @typedef {Object} TitleCardExtendedPage
+ * @property {TitleCardExtended[]} items
  * @property {number} total
  * @property {number} size
  * @property {number} page

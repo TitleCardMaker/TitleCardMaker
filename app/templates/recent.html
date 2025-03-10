@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Recently Added - TitleCardMaker</title>
+  {% include "./html_boilerplate.html" %}
+
+  <script type="text/javascript" defer>
+    {% include "./js/recent.js" %}
+  </script>
+
+  <link rel="stylesheet" type="text/css" href="/templates/css/recent.css?v={{preferences.current_version}}">
+
+  <!-- Templates -->
+  <template id="card-template">
+    <a class="ui card" href="">
+      <div class="image">
+        <img src="">
+      </div>
+      <div class="content">
+        <div class="header" data-label="series_name"></div>
+        <div class="meta">
+          <span data-label="episode">S02E04</span>
+          <span class="right floated" data-label="creation">13 minutes ago</span>
+        </div>
+      </div>
+    </a>
+  </template>
+</head>
+
+<body onload="initAll();">
+  <div class="pusher">
+    <!-- Static header and sidebar -->
+    <div id="page-header">
+      {% include "./header.html" %}
+    </div>
+    <div id="nav-menu">
+      {% include "./home_sidebar.html" %}
+    </div>
+
+    <!-- Actual page content -->
+    <div id="main-content" class="article" style="overflow-x: scroll; min-height: 100%;">
+      <h1 class="ui header">Recently Added</h1>
+
+      <div class="ui form">
+        <div class="three fields">
+          <div class="field">
+            <label>Since</label>
+            <div class="ui calendar" id="after">
+              <div class="ui fluid input left icon">
+                <input type="text" placeholder="Date/Time">
+                <i class="calendar icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="ui header">Title Cards</h2>
+      <div class="ui link cards" data-label="cards"></div>
+      <br>
+      <div class="ui pagination menu" id="card-pagination"><!-- Added asynchronously --></div>
+    </div>
+  </div>
+</body>
+</html>

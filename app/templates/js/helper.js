@@ -605,9 +605,10 @@ function populateBlueprintCard(card, blueprint, blueprintId) {
  * @param {?boolean} addAgo When to add "ago" to the end of the text.
  * @param {?string} defaultText Default text to display when the difference
  * text cannot be generated.
+ * @param {?number} maxUnits Maximum number of time units to include.
  * @returns String describing how along ago `previousRun` was.
  */
-function timeDiffString(previousRun, addAgo=true, defaultText='Some time') {
+function timeDiffString(previousRun, addAgo=true, defaultText='Some time', maxUnits=2) {
   const previous = new Date(previousRun);
 
   // Get current time
@@ -627,7 +628,7 @@ function timeDiffString(previousRun, addAgo=true, defaultText='Some time') {
   if (diffSeconds % 60 > 1) { timeUnits.push(`${diffSeconds%60} seconds`); }
   else if (diffSeconds % 60 > 0) { timeUnits.push(`<${diffSeconds%60} second`); }
 
-  return (timeUnits.slice(0, 2).join(', ') || defaultText) + (addAgo ? ' ago' : '');
+  return (timeUnits.slice(0, maxUnits).join(', ') || defaultText) + (addAgo ? ' ago' : '');
 }
 
 /**
