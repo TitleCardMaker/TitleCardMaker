@@ -1,7 +1,8 @@
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey, JSON, func
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -31,6 +32,10 @@ class Card(Base):
     interface_id: Mapped[Optional[int]] = mapped_column(ForeignKey('connection.id'))
     series_id: Mapped[int] = mapped_column(ForeignKey('series.id'))
     episode_id: Mapped[int] = mapped_column(ForeignKey('episode.id'))
+
+    created: Mapped[datetime] = mapped_column(
+        default=func.now(), # pylint: disable=not-callable
+    )
 
     connection: Mapped['Connection'] = relationship(back_populates='cards')
     series: Mapped['Series'] = relationship(back_populates='cards')

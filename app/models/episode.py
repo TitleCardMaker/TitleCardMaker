@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, TYPE_CHECKING, TypedDict
 
-from sqlalchemy import Column, ForeignKey, String, JSON
+from sqlalchemy import Column, ForeignKey, String, JSON, func
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
@@ -44,6 +44,10 @@ class Episode(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     font_id: Mapped[Optional[int]] = mapped_column(ForeignKey('font.id'))
     series_id: Mapped[int] = mapped_column(ForeignKey('series.id'))
+
+    created: Mapped[datetime] = mapped_column(
+        default=func.now(), # pylint: disable=not-callable
+    )
 
     cards: Mapped[list['Card']] = relationship(
         back_populates='episode',

@@ -1,4 +1,5 @@
 # pyright: reportRedeclaration=false
+from datetime import datetime
 from pathlib import Path
 from re import sub as regex_replace, IGNORECASE
 from typing import (
@@ -67,6 +68,10 @@ class Series(Base):
     sync_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('sync.id'),
         default=None,
+    )
+
+    created: Mapped[datetime] = mapped_column(
+        default=func.now(), # pylint: disable=not-callable
     )
 
     cards: Mapped[list['Card']] = relationship(
