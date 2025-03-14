@@ -121,6 +121,10 @@ function addRichFormatting(message, searchText='') {
  * @param {number} [page=1] - Page number of logs to query.
  */
 function queryForLogs(page=1) {
+  // Mark icon as loadin
+  const $icon = $('.button[data-action="refresh"] .icon');
+  setLoadingIcon($icon);
+
   // Prepare Form
   const form = new FormData(document.getElementById('log-filters'));
 
@@ -211,6 +215,7 @@ function queryForLogs(page=1) {
       $('.ui.dropdown').dropdown();
     },
     error: response => showErrorToast({type: 'Error Querying Logs', response}),
+    complete: () => removeLoadingIcon($icon),
   });
 }
 
