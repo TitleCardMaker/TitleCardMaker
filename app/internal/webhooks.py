@@ -58,10 +58,15 @@ def process_rating_key(
     episodes_to_load: list[Episode] = []
     new_episodes: list[Episode] = []
     for series_info, episode_info, watched_status in details:
-        # Find all matching Episodes
-        episodes = db.query(Episode)\
-            .filter(episode_info.filter_conditions(Episode))\
-            .all()
+        # Find all matching Episodes, filter out false matches for other Series
+        episodes = [
+            episode
+            for episode in
+            db.query(Episode)
+                .filter(episode_info.filter_conditions(Episode))
+                .all()
+            if episode.series.as_series_info == series_info
+        ]
 
         # Episode does not exist, refresh episode data and try again
         if not episodes:
@@ -80,9 +85,14 @@ def process_rating_key(
             # Series found, refresh data and look for Episode again
             sleep(5)
             new_episodes = refresh_episode_data(db, series, log=log)
-            episodes = db.query(Episode)\
-                .filter(episode_info.filter_conditions(Episode))\
-                .all()
+            episodes = [
+                episode
+                for episode in
+                db.query(Episode)\
+                    .filter(episode_info.filter_conditions(Episode))\
+                    .all()
+                if episode.series.as_series_info == series_info
+            ]
             if not episodes:
                 log.info(f'Cannot find Episode for {series_info} {episode_info}')
                 continue
