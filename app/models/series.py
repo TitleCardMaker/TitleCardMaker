@@ -2,6 +2,7 @@
 from datetime import datetime
 from pathlib import Path
 from re import sub as regex_replace, IGNORECASE
+from string import ascii_letters, digits
 from typing import (
     Any,
     Iterator,
@@ -43,6 +44,17 @@ class Library(TypedDict): # pylint: disable=missing-class-docstring
     name: str
 
 INTERNAL_ASSET_DIRECTORY = Path(__file__).parent.parent / 'assets'
+
+
+def get_sort_name(name: str) -> str:
+    # Get clean (uni-decoded) version of the name
+    clean = unidecode(name.lower(), errors='preserve')
+    
+    # Apply "custom" replacements
+    clean = clean.replace('&', 'and')
+
+    # Remove any non "standard" characters (a-z 0-9)
+    return ''.join(c for c in clean if c in ascii_letters + digits)
 
 
 # pylint: disable=no-self-argument,comparison-with-callable
@@ -892,7 +904,10 @@ def set_series_names(
     target.clean_name = unidecode(value, errors='preserve')
     target.full_name = f'{value} ({target.year})'
     target.sort_name = regex_replace(
-        r'^(a|an|the)(\s)', '', value.lower(), flags=IGNORECASE
+        r'^(a|an|the)(\s)',
+        '',
+        get_sort_name(target),
+        flags=IGNORECASE
     )
 
 @event.listens_for(Series.year, 'set')
