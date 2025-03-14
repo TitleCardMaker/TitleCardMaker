@@ -409,20 +409,22 @@ class LandscapeTitleCard(BaseCardType):
             True if the given font is custom, False otherwise.
         """
 
-        custom_extras = (
-            ('box_adjustments' in extras
-                and extras['box_adjustments'] != '0 0 0 0')
-            or ('box_color' in extras
-                and extras['box_color'] != LandscapeTitleCard.TITLE_COLOR)
+        custom_extras = LandscapeTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'box_adjustments': '0 0 0 0',
+                'box_color': LandscapeTitleCard.TITLE_COLOR,
+            }
         )
 
-        return (custom_extras
-            or ((font.color != LandscapeTitleCard.TITLE_COLOR)
-            or (font.file != LandscapeTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0))
+        return (
+            custom_extras
+            or font.color != LandscapeTitleCard.TITLE_COLOR
+            or font.file != LandscapeTitleCard.TITLE_FONT
+            or font.interline_spacing != 0
+            or font.interword_spacing != 0
+            or font.kerning != 1.0
+            or font.size != 1.0
         )
 
 
