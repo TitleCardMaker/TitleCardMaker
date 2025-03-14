@@ -73,6 +73,7 @@ function queryLatestCards(page=1) {
         page: cardPage.page,
         pages: cardPage.pages,
         amountVisible: isSmallScreen() ? 5 : 15,
+        hideIfSinglePage: false,
       });
     },
     error: response => showErrorToast({response, title: 'Error Querying Recent Cards'}),
