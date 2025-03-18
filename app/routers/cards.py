@@ -308,14 +308,15 @@ def get_recently_created_title_cards(
     ) -> Page[TitleCardExtended]: # type: ignore
     """Get all recently created Title Cards after the given date."""
 
-    # Convert to UTC timezone for DB comparison
+    # Convert to UTC timezone for DB comparison - assume after is in TZ
+    # timezone if none was provided
     if after.tzinfo is None:
         after = local_tz.localize(after)
     after = after.astimezone(pytz.timezone('UTC'))
 
     return paginate(
         db.query(Card)
-            .filter(Card.created > after)
+            .filter(Card.created > after, not_(Card.episode_id.is_(None)))
             .order_by(Card.created.desc())
     )
 
