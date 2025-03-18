@@ -357,8 +357,10 @@ def download_episode_source_image(
 
         # Art can only be sourced from TMDb and TVDb; skip servers
         if ('art' in style and interface.INTERFACE_TYPE not in ('TMDb', 'TVDb')):
-            log.trace(f'Cannot source Art images from '
-                      f'{interface.INTERFACE_TYPE} - skipping')
+            log.trace(
+                f'Cannot source Art images from {interface.INTERFACE_TYPE} - '
+                f'skipping'
+            )
             continue
 
         # Try each library of each media servers
@@ -426,8 +428,10 @@ def download_episode_source_image(
 
         # Source image is valid, download - error if download fails
         if WebInterface.download_image(source_image, source_file, log=log):
-            log.debug(f'{episode} Downloaded "{source_file.name}" from '
-                      f'{interface.INTERFACE_TYPE}')
+            log.debug(
+                f'{episode} Downloaded "{source_file.name}" from '
+                f'{interface.INTERFACE_TYPE}'
+            )
             return f'/source/{series.path_safe_name}/{source_file.name}'
 
         if raise_exc:
