@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+from pydantic import FilePath
+
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, CardTypeDescription
 from modules.Debug import log # noqa: F401
@@ -150,6 +152,6 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardModel):
-        source_file: Path # Optional source file for importing w/o sources
+        source_file: FilePath # Optional source file for importing w/o sources
 
     return CardModel
