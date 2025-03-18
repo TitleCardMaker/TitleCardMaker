@@ -906,7 +906,7 @@ def set_series_names(
     target.sort_name = regex_replace(
         r'^(a|an|the)(\s)',
         '',
-        get_sort_name(target),
+        get_sort_name(value),
         flags=IGNORECASE
     )
 
