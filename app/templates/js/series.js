@@ -1473,10 +1473,45 @@ function editSeriesPoster() {
      * @param {string} url URI to the new poster.
      */
     success: url => {
-      showInfoToast('Updated poster');
+      showInfoToast('Updated Poster');
       document.getElementById('poster').src = `${url}?${new Date().getTime()}`;
     },
-    error: response => showErrorToast({title: 'Error updating poster', response}),
+    error: response => showErrorToast({title: 'Error Updating Poster', response}),
+    complete: () => $('#poster-dialog').toggleClass('loading', false),
+  });
+}
+
+/**
+ * Submit an API request to delete a Series' poster and download a new one from
+ * either a media server or TMDb.
+ */
+function downloadSeriesPoster() {
+  // Mark the popup as loading
+  $('#poster-dialog').toggleClass('loading', true)
+
+  // Submit API request to delete existing poster(s)
+  $.ajax({
+    type: 'DELETE',
+    url: '/api/series/series/{{ series.id }}/poster',
+    /** Poster deleted, query for new one */
+    success: () => {
+      // showInfoToast('Deleted Series Poster');
+      $.ajax({
+        type: 'GET',
+        url: '/api/series/series/{{ series.id}}/poster',
+        /**
+         * Poster downloaded successfully. Update the poster image URL.
+         * @param {string} posterUrl URL to the new poster file.
+         */
+        success: posterUrl => {
+          showInfoToast('Updated Poster');
+          document.getElementById('poster').src = `${posterUrl}?${new Date().getTime()}`;
+        },
+        error: () => response => showErrorToast({title: 'Error Updating Poster', response}),
+        complete: () => $('#poster-dialog').toggleClass('loading', false),
+      });
+    },
+    error: response => showErrorToast({title: 'Error Deleting Poster', response}),
     complete: () => $('#poster-dialog').toggleClass('loading', false),
   });
 }
