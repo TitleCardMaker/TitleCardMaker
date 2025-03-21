@@ -19,6 +19,7 @@ from unidecode import unidecode
 
 from app.dependencies import (
     get_database,
+    get_logger,
     get_preferences,
     require_interface,
     require_tmdb_interface,
@@ -26,7 +27,7 @@ from app.dependencies import (
     TMDbInterface
 )
 from app.database.session import Page
-from app.database.query import get_interface, get_series
+from app.database.query import get_interface, get_series, require_series
 from app import models
 from app.internal.series import (
     add_series,
@@ -454,20 +455,37 @@ def remove_series_labels(
 
 @series_router.get('/series/{series_id}/poster')
 def download_series_poster_(
-        series_id: int,
-        request: Request,
+        series: SeriesModel = Depends(require_series),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+    ) -> str:
+    """
+    Download a poster for the given Series.
+
+    - series_id: ID of the Series whose poster to download.
+    """
+
+    download_series_poster(db, series, log=log)
+
+    return series.poster_url
+
+
+@series_router.delete('/series/{series_id}/poster')
+def delete_series_poster(
+        series: SeriesModel = Depends(require_series),
+        preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
-    Download and return a poster for the given Series.
+    Delete the poster for the given Series.
 
-    - series_id: Series being queried.
+    - series_id: ID of the Series to delete the poster of.
     """
 
-    # Find Series with this ID, raise 404 if DNE
-    series = get_series(db, series_id, raise_exc=True)
+    poster_path = preferences.asset_directory / str(series.id) / 'poster.jpg'
+    small_poster = poster_path.parent / 'poster-750.jpg'
 
-    download_series_poster(db, series, log=request.state.log)
+    poster_path.unlink(missing_ok=True)
+    small_poster.unlink(missing_ok=True)
 
 
 @series_router.get('/series/{series_id}/poster/query')
@@ -489,11 +507,11 @@ def query_series_poster(
 
 @series_router.put('/series/{series_id}/poster')
 async def set_series_poster(
-        request: Request,
         series_id: int,
         url: str | None = Form(default=None),
         file: UploadFile | None = None,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> str:
     """
@@ -532,9 +550,7 @@ async def set_series_poster(
 
     # If only URL was required, attempt to download, error if unable
     if url is not None:
-        poster_content = WebInterface.download_image_raw(
-            url, log=request.state.log,
-        )
+        poster_content = WebInterface.download_image_raw(url, log=log)
         if poster_content is None:
             raise HTTPException(
                 status_code=400,
