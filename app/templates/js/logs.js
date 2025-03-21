@@ -305,6 +305,12 @@ function queryLogErrors() {
      * @param {LogInternalServerError[]} logErrors 
      */
     success: logErrors => {
+      // If there are no errors, exit
+      if (logErrors.length === 0) { return; }
+
+      // There are some errors, remove the "no errors" info message
+      document.getElementById('no-internal-errors').remove();
+
       const errorList = document.getElementById('error-list');
       const template = document.getElementById('internal-error-template');
       logErrors.forEach(error => {
