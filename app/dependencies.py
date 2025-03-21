@@ -20,7 +20,6 @@ from app.database.session import (
     TVDbInterfaces,
 )
 from app.models.preferences import Preferences
-
 from modules.Debug import Logger, log
 from modules.EmbyInterface2 import EmbyInterface
 from modules.ImageMagickInterface import ImageMagickInterface
@@ -173,7 +172,7 @@ def get_preferences() -> Preferences:
 
 def get_logger(request: Request) -> Logger:
     """
-    Get the contextualized Logger from the Requet object.
+    Get the contextualized Logger from the Request object.
 
     Returns:
         Contextualized logger with a (pseudo)random context ID for this
