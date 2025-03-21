@@ -1,6 +1,6 @@
 from typing import Literal, TypeVar, Union, overload
 
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.session import Base
@@ -16,7 +16,8 @@ from app.dependencies import (
     TMDbInterface,
     TMDbInterfaces,
     TVDbInterface,
-    TVDbInterfaces
+    TVDbInterfaces,
+    get_database
 )
 from app.models.blueprint import Blueprint, BlueprintSet
 from app.models.card import Card
@@ -291,6 +292,18 @@ def get_series(
     """
 
     return _get_obj(db, Series, 'Series', series_id, raise_exc)
+
+
+def require_series(
+        series_id: int,
+        db: Session = Depends(get_database),
+    ) -> Series:
+    """
+    Dependency to get the Series with the given ID. This raises a 404
+    exception if there is no object.
+    """
+
+    return get_series(db, series_id, raise_exc=True)
 
 
 @overload
