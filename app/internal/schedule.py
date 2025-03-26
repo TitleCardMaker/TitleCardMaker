@@ -1,21 +1,25 @@
 """
-This code is from
+Much of this code is from
 https://fastapi-utils.davidmontague.xyz/user-guide/repeated-tasks/.
 """
 
 import asyncio
-from logging import Logger
 from asyncio import ensure_future
 from functools import wraps
 from traceback import format_exception
-from typing import Any, Callable, Coroutine, Union
+from typing import Any, Callable, Coroutine
 
 from starlette.concurrency import run_in_threadpool
+
+from modules.Debug import Logger
 
 
 NoArgsNoReturnFuncT = Callable[[], None]
 NoArgsNoReturnAsyncFuncT = Callable[[], Coroutine[Any, Any, None]]
-NoArgsNoReturnDecorator = Callable[[NoArgsNoReturnFuncT | NoArgsNoReturnAsyncFuncT], NoArgsNoReturnAsyncFuncT]
+NoArgsNoReturnDecorator = Callable[
+    [NoArgsNoReturnFuncT | NoArgsNoReturnAsyncFuncT],
+    NoArgsNoReturnAsyncFuncT
+]
 
 
 def repeat_every(
@@ -58,7 +62,8 @@ def repeat_every(
         func: NoArgsNoReturnAsyncFuncT | NoArgsNoReturnFuncT
     ) -> NoArgsNoReturnAsyncFuncT:
         """
-        Converts the decorated function into a repeated, periodically-called version of itself.
+        Converts the decorated function into a repeated, periodically-called
+        version of itself.
         """
         is_coroutine = asyncio.iscoroutinefunction(func)
 
