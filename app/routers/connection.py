@@ -838,8 +838,8 @@ def delete_interface_libraries(
         return (
             library['interface_id'] != interface_id
             or (
-                (unlinked and library['name'] not in keep_list)
-                or library['name'] != library_name
+                (unlinked and library['name'] in keep_list)
+                or (not unlinked and library['name'] != library_name)
             )
         )
 
