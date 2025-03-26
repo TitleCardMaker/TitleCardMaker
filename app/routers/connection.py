@@ -787,6 +787,7 @@ def refresh_interface_libraries(
 @connection_router.delete('/{interface_id}/libraries')
 def delete_interface_libraries(
         interface_id: int,
+        backup: bool = Query(default=True),
         unlinked: bool = Query(default=False),
         library_name: str | None = Query(default=None),
         db: Session = Depends(get_database),
@@ -800,11 +801,17 @@ def delete_interface_libraries(
     returns the total number of modified Series.
 
     - interface_id: ID of the Connection whose libraries to delete.
+    - backup: Whether to back up the database before deleting any
+    libraries.
     - unlinked: Whether to delete unlinked libraries for the given
     Connection. Mutually exclusive with `library_name`.
     - library_name: Name of the library in the given Connection to
     delete . Mutually exclusive with `unlinked`.
     """
+
+    # Perform backup if indicated
+    if backup:
+        backup_data(preferences.current_version, log=log)
 
     # If deleting unlinked then query any Series with at least one library
     keep_list: list[str] = []
