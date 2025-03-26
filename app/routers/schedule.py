@@ -102,7 +102,8 @@ def wrap_scheduled_function(
                 )
                 return None
 
-            BaseJobs[job_id].previous_start_time = datetime.now()
+            # Mark task as running, log start time
+            BaseJobs[job_id].previous_start_time = datetime.now(tz)
             BaseJobs[job_id].running = True
 
             # Run wrapped task
@@ -114,7 +115,7 @@ def wrap_scheduled_function(
 
             # Log task finishing
             log.info(f'Task[{job_id}] finished execution')
-            BaseJobs[job_id].previous_end_time = datetime.now()
+            BaseJobs[job_id].previous_end_time = datetime.now(tz)
             BaseJobs[job_id].running = False
             return None
         return wrapper
