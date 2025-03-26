@@ -7,6 +7,7 @@ from app.database.query import get_connection
 from app.dependencies import *
 from app.dependencies import get_logger
 from app.internal.auth import get_current_user
+from app.internal.backup import backup_data
 from app.internal.cards import delete_cards
 from app.internal.connection import add_connection, update_connection
 from app.models.card import Card
@@ -422,6 +423,7 @@ def update_plex_connection(
         interface_id: int,
         update_object: UpdatePlex = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
     ) -> PlexConnection:
     """
@@ -432,16 +434,16 @@ def update_plex_connection(
     """
 
     return update_connection(
-        db, interface_id, plex_interfaces, update_object, log=request.state.log
+        db, interface_id, plex_interfaces, update_object, log=log
     ) # type: ignore
 
 
 @connection_router.patch('/sonarr/{interface_id}')
 def update_sonarr_connection(
-        request: Request,
         interface_id: int,
         update_object: UpdateSonarr = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(get_sonarr_interfaces),
     ) -> SonarrConnection:
     """
@@ -452,17 +454,16 @@ def update_sonarr_connection(
     """
 
     return update_connection(
-        db, interface_id, sonarr_interfaces, update_object,
-        log=request.state.log
+        db, interface_id, sonarr_interfaces, update_object, log=log
     ) # type: ignore
 
 
 @connection_router.patch('/tmdb/{interface_id}')
 def update_tmdb_connection(
-        request: Request,
         interface_id: int,
         update_object: UpdateTMDb = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         tmdb_interfaces: InterfaceGroup[int, TMDbInterface] = Depends(get_tmdb_interfaces),
     ) -> TMDbConnection:
     """
@@ -473,17 +474,16 @@ def update_tmdb_connection(
     """
 
     return update_connection(
-        db, interface_id, tmdb_interfaces, update_object,
-        log=request.state.log
+        db, interface_id, tmdb_interfaces, update_object, log=log
     ) # type: ignore
 
 
 @connection_router.patch('/tvdb/{interface_id}')
 def update_tvdb_connection(
-        request: Request,
         interface_id: int,
         update_object: UpdateTVDb = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         tvdb_interfaces: InterfaceGroup[int, TVDbInterface] = Depends(get_tvdb_interfaces),
     ) -> TVDbConnection:
     """
@@ -494,17 +494,16 @@ def update_tvdb_connection(
     """
 
     return update_connection(
-        db, interface_id, tvdb_interfaces, update_object,
-        log=request.state.log
+        db, interface_id, tvdb_interfaces, update_object, log=log
     ) # type: ignore
 
 
 @connection_router.delete('/{interface_id}')
 def delete_connection(
-        request: Request,
         interface_id: int,
         delete_title_cards: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
         emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
         jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
@@ -526,9 +525,6 @@ def delete_connection(
     - delete_title_cards: Whether to delete Title Cards associated with
     this Connection as well.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get Connection with this ID
     connection = get_connection(db, interface_id, raise_exc=True)
@@ -670,9 +666,9 @@ def get_potential_sonarr_libraries(
 
 @connection_router.post('/tautulli/check', tags=['Tautulli'])
 def check_tautulli_integration(
-        request: Request,
         tautulli_connection: NewTautulliConnection = Body(...),
         plex_interface_id: int = Query(...),
+        log: Logger = Depends(get_logger),
     ) -> TautulliIntegrationStatus:
     """
     Check whether Tautulli is integrated with TCM.
@@ -688,7 +684,7 @@ def check_tautulli_integration(
         plex_interface_id=plex_interface_id,
         use_ssl=tautulli_connection.use_ssl,
         agent_name=tautulli_connection.agent_name,
-        log=request.state.log,
+        log=log,
     )
 
     status = interface.is_integrated()
