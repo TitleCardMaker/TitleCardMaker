@@ -22,7 +22,7 @@ from app.internal.series import (
     set_all_series_ids
 )
 from app.internal.sources import download_all_series_logos
-from app.internal.snapshot import snapshot_database
+from app.internal.snapshot import add_task_duration, snapshot_database
 from app.internal.sync import sync_all
 from app.models.preferences import Preferences
 from app.schemas.schedule import (
@@ -117,6 +117,14 @@ def wrap_scheduled_function(
             log.info(f'Task[{job_id}] finished execution')
             BaseJobs[job_id].previous_end_time = datetime.now(tz)
             BaseJobs[job_id].running = False
+
+            # Attempt to add TaskDuration record to database
+            try:
+                with next(get_database()) as db:
+                    add_task_duration(db, BaseJobs[job_id])
+            except Exception:
+                pass
+
             return None
         return wrapper
     return decorator
