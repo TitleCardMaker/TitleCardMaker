@@ -700,9 +700,9 @@ def check_tautulli_integration(
 
 @connection_router.post('/tautulli/integrate', tags=['Tautulli'])
 def add_tautulli_integration(
-        request: Request,
         tautulli_connection: NewTautulliConnection = Body(...),
         plex_interface_id: int = Query(...),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Integrate Tautulli with TitleCardMaker by creating a Notification
@@ -722,8 +722,8 @@ def add_tautulli_integration(
         agent_name=tautulli_connection.agent_name,
         trigger_watched=tautulli_connection.trigger_watched,
         username=tautulli_connection.username,
-        log=request.state.log,
-    ).integrate(log=request.state.log)
+        log=log,
+    ).integrate(log=log)
 
 
 @connection_router.get('/{interface_id}/libraries')
@@ -835,6 +835,7 @@ def delete_interface_libraries(
 
     def keep_library(library: SeriesLibrary) -> bool:
         """Whether to keep the given library in the Series assignment"""
+
         return (
             library['interface_id'] != interface_id
             or (
