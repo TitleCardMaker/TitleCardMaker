@@ -1511,8 +1511,10 @@ function downloadSeriesPoster() {
         complete: () => $('#poster-dialog').toggleClass('loading', false),
       });
     },
-    error: response => showErrorToast({title: 'Error Deleting Poster', response}),
-    complete: () => $('#poster-dialog').toggleClass('loading', false),
+    error: response => {
+      showErrorToast({title: 'Error Deleting Poster', response});
+      $('#poster-dialog').toggleClass('loading', false);
+    },
   });
 }
 
