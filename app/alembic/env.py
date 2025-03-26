@@ -36,7 +36,7 @@ Schema Version History (oldest to newest):
 - 84971838f3fc | Encrypt Connection URLs and API keys
 - db6a1eda7d21 | Add Sync.add_as_monitored column
 - a1520b6160c4 | Add Series per-season asset toggle and Series/Template ISP settings
-- a1520b6160c4 | Add indexing, and explicit sort, clean, and full name columns
+- 2dc1e976a801 | Add indexing, and explicit sort, clean, and full name columns
 - e290ff7005ff | Add object timestamp columns
 """
 
@@ -52,6 +52,7 @@ if config.config_file_name is not None:
 from app.models.card import Card
 from app.models.connection import Connection
 from app.models.episode import Episode
+from app.models.duration import TaskDuration
 from app.models.font import Font
 from app.models.loaded import Loaded
 from app.models.preferences import Preferences
@@ -79,7 +80,7 @@ def run_migrations_offline() -> None:
     output.
     """
 
-    url = config.get_main_option("sqlalchemy.url")
+    url = config.get_main_option('sqlalchemy.url')
     if IS_DOCKER:
         url = '/config/db.sqlite'
 
@@ -87,7 +88,7 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        dialect_opts={'paramstyle': 'named'},
         compare_server_default=True,
         render_as_batch=True,
     )
@@ -106,7 +107,7 @@ def run_migrations_online() -> None:
 
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+        prefix='sqlalchemy.',
         poolclass=pool.NullPool,
     )
 

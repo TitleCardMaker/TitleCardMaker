@@ -155,6 +155,7 @@ class Series(Base):
     tmdb_id: Mapped[Optional[int]]
     tvdb_id: Mapped[Optional[int]]
     tvrage_id: Mapped[Optional[int]]
+    set_url: Mapped[Optional[str]]
 
     # Font arguments
     font_color: Mapped[Optional[str]]
