@@ -35,7 +35,7 @@ class Font(Base):
     templates: Mapped[list['Template']] = relationship(back_populates='font')
 
     name: Mapped[str]
-    sort_name: Mapped[str]
+    sort_name: Mapped[str] = mapped_column(index=True)
     color: Mapped[Optional[str]]
     file_name: Mapped[Optional[str]]
     interline_spacing: Mapped[int] = mapped_column(default=0)

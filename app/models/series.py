@@ -116,7 +116,7 @@ class Series(Base):
     name: Mapped[str]
     clean_name: Mapped[str]
     full_name: Mapped[str]
-    sort_name: Mapped[str]
+    sort_name: Mapped[str] = mapped_column(index=True)
     year: Mapped[int]
     monitored: Mapped[bool]
     poster_file: Mapped[str] = mapped_column(

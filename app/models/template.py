@@ -176,7 +176,7 @@ class Template(Base):
     )
 
     name: Mapped[str]
-    sort_name: Mapped[str]
+    sort_name: Mapped[str] = mapped_column(index=True)
     filters: Mapped[list[Filter]] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=[],
