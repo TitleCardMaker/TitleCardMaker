@@ -1319,7 +1319,7 @@ def get_validator_model() -> type[Base]:
             # If no album cover is indicated and not in basic mode, error
             if (values.get('album_cover') is None
                 and values['player_style'] != 'basic'):
-                raise ValueError(f'Cover must exist')
+                raise ValueError('Cover must exist')
 
             return values
 
