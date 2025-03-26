@@ -137,3 +137,9 @@ def get_remote_card_hash(
         return None
 
     return None
+
+
+def expire_cache() -> None:
+    """Expire the remote card type cache."""
+
+    _cache['expires'] = datetime.now()

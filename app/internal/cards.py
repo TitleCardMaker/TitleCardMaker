@@ -11,7 +11,7 @@ from sqlalchemy.orm.session import object_session
 
 from app.database.query import get_font, get_media_interface
 from app.dependencies import get_database, get_preferences
-from app.internal.availability import get_remote_card_hash
+from app.internal.availability import expire_cache, get_remote_card_hash
 from app.internal.episodes import refresh_episode_data
 from app.internal.sources import download_episode_source_images
 from app.internal.templates import get_effective_templates
@@ -270,6 +270,7 @@ def refresh_remote_card_types(
     # Reset loaded remote file(s)
     if reset:
         RemoteFile.reset_loaded_database()
+        expire_cache()
 
     # Refresh all remote card types
     for card_identifier in card_identifiers:
