@@ -30,6 +30,7 @@ from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
 from modules.Debug import (
     InvalidCardSettings,
+    InvalidFormatString,
     Logger,
     MissingSourceImage,
     UnknownCardType,
@@ -53,174 +54,166 @@ def create_all_title_cards(*, log: Logger = log) -> None:
         log: Logger for all log messages.
     """
 
-    try:
-        # Get the Database
-        with next(get_database()) as db:
-            # Get all Series
-            failures = 0 
-            for series in db.query(Series).all():
-                log.trace(f'Starting to process {series}')
-                try:
-                    # Refresh Episode data if Series is monitored
-                    if series.monitored:
-                        try:
-                            refresh_episode_data(
-                                db, series, refresh_all_ids=True, log=log
-                            )
-                        except HTTPException:
-                            log.exception(
-                                f'Cannot refresh Episode data of {series}'
-                            )
-                    else:
-                        log.trace(
-                            f'{series} is unmonitored, not refreshing Episode '
-                            f'data'
-                        )
-
-                    # Set watch statuses of all Episodes
+    with next(get_database()) as db:
+        # Get all Series
+        failures = 0 
+        for series in db.query(Series).all():
+            log.trace(f'Starting to process {series}')
+            try:
+                # Refresh Episode data if Series is monitored
+                if series.monitored:
                     try:
-                        get_watched_statuses(db, series,series.episodes,log=log)
-                    except HTTPException as exc:
-                        log.debug(
-                            f'Cannot query watched statuses of {series} - {exc}'
+                        refresh_episode_data(
+                            db, series, refresh_all_ids=True, log=log
                         )
+                    except HTTPException:
+                        log.exception(f'Cannot refresh Episode data of {series}')
+                else:
+                    log.trace(
+                        f'{series} is unmonitored, not refreshing Episode '
+                        f'data'
+                    )
 
-                    # Add translations if monitored
-                    if series.monitored:
-                        for episode in series.episodes:
-                            translate_episode(db, episode, commit=False, log=log)
-                        db.commit()
-                    else:
-                        log.trace(
-                            f'{series} is unmonitored, skipping translations'
-                        )
+                # Set watch statuses of all Episodes
+                try:
+                    get_watched_statuses(db, series,series.episodes,log=log)
+                except HTTPException as exc:
+                    log.debug(
+                        f'Cannot query watched statuses of {series} - {exc}'
+                    )
 
-                    # Download Source Images
-                    if series.monitored:
-                        for episode in series.episodes:
-                            download_episode_source_images(
-                                db, episode, raise_exc=False, log=log
-                            )
-                        db.commit()
-                    else:
-                        log.trace(
-                            f'{series} is unmonitored, skipping Source Image '
-                            f'selection'
-                        )
-
-                    # Create Cards for all Episodes
+                # Add translations if monitored
+                if series.monitored:
                     for episode in series.episodes:
-                        try:
-                            create_episode_cards(
-                                db, episode, raise_exc=False, log=log
-                            )
-                        except InvalidCardSettings:
-                            log.trace(f'{episode} - skipping Card creation')
-                            continue
-                        except HTTPException as exc:
-                            if exc.status_code != 404:
-                                log.exception(f'{episode} - skipping Card')
-                except (PendingRollbackError, OperationalError):
-                    if failures > 10:
-                        log.exception('Database is extremely busy, stopping Task')
-                        break
-                    failures += 1
-                    log.exception('Database is busy, sleeping..')
-                    sleep(30)
-                except Exception as exc:
-                    if failures > 10:
-                        log.critical('Many errors have occurred - exiting')
-                        raise exc 
+                        translate_episode(db, episode, commit=False, log=log)
+                    db.commit()
+                else:
+                    log.trace(f'{series} is unmonitored, skipping translations')
 
-                    failures += 1
-                    log.exception('Error ocurred while processing Series')
-                    sleep(10)
-    except Exception:
-        log.exception('Failed to create title cards')
+                # Download Source Images
+                if series.monitored:
+                    for episode in series.episodes:
+                        download_episode_source_images(
+                            db, episode, raise_exc=False, log=log
+                        )
+                    db.commit()
+                else:
+                    log.trace(
+                        f'{series} is unmonitored, skipping Source Image '
+                        f'selection'
+                    )
+
+                # Create Cards for all Episodes
+                for episode in series.episodes:
+                    try:
+                        create_episode_cards(
+                            db, episode, raise_exc=False, log=log
+                        )
+                    except InvalidCardSettings:
+                        log.trace(f'{episode} - skipping Card creation')
+                        continue
+                    except HTTPException as exc:
+                        if exc.status_code != 404:
+                            log.exception(f'{episode} - skipping Card')
+            except (PendingRollbackError, OperationalError):
+                if failures > 10:
+                    log.exception('Database is extremely busy, stopping Task')
+                    break
+                failures += 1
+                log.exception('Database is busy, sleeping..')
+                sleep(30)
+            except Exception as exc:
+                if failures > 10:
+                    log.critical('Many errors have occurred - exiting')
+                    raise exc 
+
+                failures += 1
+                log.exception('Error ocurred while processing Series')
+                sleep(10)
 
 
 def clean_database(*, log: Logger = log) -> None:
     """
     Schedule-able function to remove bad / stale Loaded objects from the
     database.
+
+    Args:
+        log: Logger for all log messages.
     """
 
-    try:
-        with next(get_database()) as db:
-            # Delete Loaded assets with no associated Card
-            bad_loaded = db.query(Loaded).filter(Loaded.card_id.is_(None))
-            if (bad_count := bad_loaded.count()) > 0:
-                log.debug(f'Deleting {bad_count} outdated Loaded records')
-                bad_loaded.delete()
-            db.commit()
+    with next(get_database()) as db:
+        # Delete Loaded assets with no associated Card
+        bad_loaded = db.query(Loaded).filter(Loaded.card_id.is_(None))
+        if (bad_count := bad_loaded.count()) > 0:
+            log.debug(f'Deleting {bad_count} outdated Loaded records')
+            bad_loaded.delete()
+        db.commit()
 
-            # Delete Cards with no Series ID, Series, Episode ID, or Episode
-            unlinked_cards = db.query(Card)\
-                .filter(or_(Card.episode_id.is_(None),
-                            Card.series_id.is_(None)))\
-                .all()
-            unlinked_cards += [
-                card for card in db.query(Card)
-                if card.episode is None or card.series is None
-            ]
-            for card in set(unlinked_cards):
-                log.debug(f'Deleting unlinked {card}')
+        # Delete Cards with no Series ID, Series, Episode ID, or Episode
+        unlinked_cards = db.query(Card)\
+            .filter(or_(Card.episode_id.is_(None),
+                        Card.series_id.is_(None)))\
+            .all()
+        unlinked_cards += [
+            card for card in db.query(Card)
+            if card.episode is None or card.series is None
+        ]
+        for card in set(unlinked_cards):
+            log.debug(f'Deleting unlinked {card}')
+            card.file.unlink(missing_ok=True)
+            db.delete(card)
+        db.commit()
+
+        # Delete Episodes with no Series ID, or Series
+        for episode in db.query(Episode).all():
+            if episode.series_id is None or episode.series is None:
+                log.debug(f'Deleting unlinked Episode {episode.id}')
+                db.delete(episode)
+        db.commit()
+
+        # Delete Episodes which are duplicates
+        subquery = db\
+            .query(
+                Episode.series_id,
+                Episode.season_number,
+                Episode.episode_number,
+                func.min(Episode.id).label('min_id')
+            )\
+            .group_by(
+                Episode.series_id,
+                Episode.season_number,
+                Episode.episode_number
+            )\
+            .subquery()
+        to_delete = db.query(Episode).filter(
+            Episode.series_id == subquery.c.series_id,
+            Episode.season_number == subquery.c.season_number,
+            Episode.episode_number == subquery.c.episode_number,
+            Episode.id != subquery.c.min_id,
+        )
+        for episode in to_delete.all():
+            log.trace(f'Deleting duplicate Episode {episode}')
+            db.delete(episode)
+        db.commit()
+
+        # Delete duplicate Cards
+        if not get_preferences().library_unique_cards:
+            subquery = db\
+                .query(
+                    Card.episode_id,
+                    func.max(Card.id).label('max_id'),
+                )\
+                .group_by(Card.episode_id)\
+                .subquery()
+            to_delete = db.query(Card).filter(
+                Card.episode_id == subquery.c.episode_id,
+                Card.id != subquery.c.max_id,
+            )
+            for card in to_delete.all():
+                log.debug(f'Deleting duplicate {card}')
                 card.file.unlink(missing_ok=True)
                 db.delete(card)
             db.commit()
-
-            # Delete Episodes with no Series ID, or Series
-            for episode in db.query(Episode).all():
-                if episode.series_id is None or episode.series is None:
-                    log.debug(f'Deleting unlinked Episode {episode.id}')
-                    db.delete(episode)
-            db.commit()
-
-            # Delete Episodes which are duplicates
-            subquery = db\
-                .query(
-                    Episode.series_id,
-                    Episode.season_number,
-                    Episode.episode_number,
-                    func.min(Episode.id).label('min_id')
-                )\
-                .group_by(
-                    Episode.series_id,
-                    Episode.season_number,
-                    Episode.episode_number
-                )\
-                .subquery()
-            to_delete = db.query(Episode).filter(
-                Episode.series_id == subquery.c.series_id,
-                Episode.season_number == subquery.c.season_number,
-                Episode.episode_number == subquery.c.episode_number,
-                Episode.id != subquery.c.min_id,
-            )
-            for episode in to_delete.all():
-                log.trace(f'Deleting duplicate Episode {episode}')
-                db.delete(episode)
-            db.commit()
-
-            # Delete duplicate Cards
-            if not get_preferences().library_unique_cards:
-                subquery = db\
-                    .query(
-                        Card.episode_id,
-                        func.max(Card.id).label('max_id'),
-                    )\
-                    .group_by(Card.episode_id)\
-                    .subquery()
-                to_delete = db.query(Card).filter(
-                    Card.episode_id == subquery.c.episode_id,
-                    Card.id != subquery.c.max_id,
-                )
-                for card in to_delete.all():
-                    log.debug(f'Deleting duplicate {card}')
-                    card.file.unlink(missing_ok=True)
-                    db.delete(card)
-                db.commit()
-    except Exception:
-        log.exception('Failed to clean the database')
 
 
 def refresh_all_remote_card_types(*, log: Logger = log) -> None:
@@ -231,13 +224,10 @@ def refresh_all_remote_card_types(*, log: Logger = log) -> None:
         log: Logger for all log messages.
     """
 
-    try:
-        get_preferences().parse_local_card_types(log=log)
+    get_preferences().parse_local_card_types(log=log)
 
-        with next(get_database()) as db:
-            refresh_remote_card_types(db, reset=True, log=log)
-    except Exception:
-        log.exception('Failed to refresh RemoteCardTypes')
+    with next(get_database()) as db:
+        refresh_remote_card_types(db, reset=True, log=log)
 
 
 def refresh_remote_card_types(
@@ -696,7 +686,7 @@ def resolve_card_settings(
     # If no episode text was indicated, determine using ETF
     if card_settings.get('episode_text') is None:
         card_settings['episode_text'] = FormatString.new(
-            card_settings.get(
+            card_settings.pop(
                 'episode_text_format', CardClass.EPISODE_TEXT_FORMAT,
             ),
             data=card_settings,

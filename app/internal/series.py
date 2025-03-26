@@ -155,24 +155,21 @@ def set_all_series_ids(*, log: Logger = log) -> None:
         log: Logger for all log messages.
     """
 
-    try:
-        with next(get_database()) as db:
-            # Get all Series
-            changed = False
-            for series in db.query(Series).all():
-                try:
-                    changed |= set_series_database_ids(
-                        series, db, commit=False, log=log,
-                    )
-                except HTTPException:
-                    log.warning(f'{series} Skipping ID assignment')
-                    continue
+    with next(get_database()) as db:
+        # Get all Series
+        changed = False
+        for series in db.query(Series).all():
+            try:
+                changed |= set_series_database_ids(
+                    series, db, commit=False, log=log,
+                )
+            except HTTPException:
+                log.warning(f'{series} skipping ID assignment')
+                continue
 
-            # Commit changes if any were made
-            if changed:
-                db.commit()
-    except Exception:
-        log.exception('Failed to set Series IDs')
+        # Commit changes if any were made
+        if changed:
+            db.commit()
 
 
 def load_all_media_servers(*, log: Logger = log) -> None:
@@ -184,31 +181,27 @@ def load_all_media_servers(*, log: Logger = log) -> None:
         log: Logger for all log messages.
     """
 
-    try:
-        # Get the Database
-        with next(get_database()) as db:
-            retries = 0
-            # Get all Series
-            for series in db.query(Series).all():
-                # Skip this Series if it has no library
-                if not series.libraries:
-                    log.debug(f'{series} has no Library, not loading Title Cards')
-                    continue
+    with next(get_database()) as db:
+        retries = 0
+        # Get all Series
+        for series in db.query(Series).all():
+            # Skip this Series if it has no library
+            if not series.libraries:
+                log.debug(f'{series} has no Library, not loading Title Cards')
+                continue
 
-                # Load Title Cards for this Series
-                try:
-                    load_all_series_title_cards(series, db, log=log)
-                except HTTPException:
-                    log.warning(f'{series} Skipping Title Card loading')
-                    continue
-                except OperationalError:
-                    if (retries := retries + 1) > 10:
-                        log.warning('Database is very busy - stopping Task')
-                        break
-                    log.debug('Database is busy, sleeping..')
-                    sleep(30)
-    except Exception:
-        log.exception('Failed to load Title Cards')
+            # Load Title Cards for this Series
+            try:
+                load_all_series_title_cards(series, db, log=log)
+            except HTTPException:
+                log.warning(f'{series} Skipping Title Card loading')
+                continue
+            except OperationalError:
+                if (retries := retries + 1) > 10:
+                    log.warning('Database is very busy - stopping Task')
+                    break
+                log.debug('Database is busy, sleeping..')
+                sleep(30)
 
 
 def download_all_series_posters(*, log: Logger = log) -> None:
@@ -220,18 +213,14 @@ def download_all_series_posters(*, log: Logger = log) -> None:
         log: Logger for all log messages.
     """
 
-    try:
-        # Get the Database
-        with next(get_database()) as db:
-            # Get all Series
-            for series in db.query(Series).all():
-                try:
-                    download_series_poster(db, series, log=log)
-                except HTTPException:
-                    log.warning(f'{series} Skipping poster selection')
-                    continue
-    except Exception:
-        log.exception('Failed to download Series posters')
+    with next(get_database()) as db:
+        # Get all Series
+        for series in db.query(Series).all():
+            try:
+                download_series_poster(db, series, log=log)
+            except HTTPException:
+                log.warning(f'{series} Skipping poster selection')
+                continue
 
 
 def set_series_database_ids(

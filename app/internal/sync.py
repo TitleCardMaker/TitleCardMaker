@@ -36,42 +36,39 @@ def sync_all(*, log: Logger = log) -> None:
         sleep(60)
         attempts -= 1
 
-    try:
-        with next(get_database()) as db:
-            # Exit if there are no Syncs
-            if not (syncs := db.query(Sync).all()):
-                return None
+    with next(get_database()) as db:
+        # Exit if there are no Syncs
+        if not (syncs := db.query(Sync).all()):
+            return None
 
-            # Run each Sync
-            for sync in syncs:
-                try:
-                    run_sync(db, sync, log=log)
-                except HTTPException as exc:
-                    log.exception(f'{sync} Error Syncing - {exc.detail}')
-                except OperationalError:
-                    log.debug('Database is busy, sleeping..')
-                    sleep(30)
+        # Run each Sync
+        for sync in syncs:
+            try:
+                run_sync(db, sync, log=log)
+            except HTTPException as exc:
+                log.exception(f'{sync} Error Syncing - {exc.detail}')
+            except OperationalError:
+                log.debug('Database is busy, sleeping..')
+                sleep(30)
 
-            # Remove un-synced Series if toggled
-            if preferences.delete_unsynced_series:
-                # Delete all Series which do not have an associated Sync
-                to_delete = db.query(Series)\
-                    .filter(Series.sync_id.is_(None))\
-                    .all()
-                for series in to_delete:
-                    # Delete Cards and Loaded objects
-                    delete_cards(
-                        db,
-                        db.query(Card).filter_by(series_id=series.id),
-                        db.query(Loaded).filter_by(series_id=series.id),
-                        commit=False,
-                        log=log,
-                    )
-                    # Delete Series itself
-                    delete_series(db, series, commit_changes=False, log=log)
-                db.commit()
-    except Exception:
-        log.exception('Failed to run all Syncs')
+        # Remove un-synced Series if toggled
+        if preferences.delete_unsynced_series:
+            # Delete all Series which do not have an associated Sync
+            to_delete = db.query(Series)\
+                .filter(Series.sync_id.is_(None))\
+                .all()
+            for series in to_delete:
+                # Delete Cards and Loaded objects
+                delete_cards(
+                    db,
+                    db.query(Card).filter_by(series_id=series.id),
+                    db.query(Loaded).filter_by(series_id=series.id),
+                    commit=False,
+                    log=log,
+                )
+                # Delete Series itself
+                delete_series(db, series, commit_changes=False, log=log)
+            db.commit()
 
     preferences.currently_running_sync = None
 

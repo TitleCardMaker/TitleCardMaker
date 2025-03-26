@@ -8,7 +8,7 @@ from apscheduler.triggers.cron import CronTrigger
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 
 from app.internal.backup import backup_data
-from app.dependencies import get_preferences, get_scheduler
+from app.dependencies import get_database, get_preferences, get_scheduler
 from app.internal.auth import get_current_user
 from app.internal.availability import get_latest_version
 from app.internal.cards import (
@@ -75,21 +75,44 @@ Wrap all periodically called functions to set the runnin attributes when
 the job is started and finished.
 """
 # pylint: disable=missing-function-docstring,redefined-outer-name
-def wrap_scheduled_function(job_id: str) -> Callable[..., Callable[[Logger], None]]:
+def wrap_scheduled_function(
+        job_id: str,
+        error_message: str,
+    ) -> Callable[..., Callable[[Logger], None]]:
+    """
+    Decorator to "wrap" a schedulable function. This adds boilerplate
+    logic to the scheduled task function, including adding a contextual
+    logger, logging execution start/ending, exiting the function if it
+    is already running, marking the task as running in the global
+    BaseJobs map, and catching any top-level exceptions.
+    """
+
     def decorator(func: Callable[[Logger | None], None]) -> Callable[[Logger], None]:
         @wraps(func)
         def wrapper(log: Logger | None = None) -> None:
+            # Get/generate contextualized logger, log task start
             log = log or contextualize()
             log.info(f'Task[{job_id}] started execution')
+
+            # Exit if the task is already running
             if BaseJobs[job_id].running:
-                log.info(f'Task[{job_id}] finished execution - Task is already running')
+                log.info(
+                    f'Task[{job_id}] finished execution - Task is already '
+                    f'running'
+                )
                 return None
 
             BaseJobs[job_id].previous_start_time = datetime.now()
             BaseJobs[job_id].running = True
 
-            func(log)
+            # Run wrapped task
+            try:
+                func(log)
+            # Any high-level exceptions should be caught
+            except Exception:
+                log.exception(error_message)
 
+            # Log task finishing
             log.info(f'Task[{job_id}] finished execution')
             BaseJobs[job_id].previous_end_time = datetime.now()
             BaseJobs[job_id].running = False
@@ -97,53 +120,62 @@ def wrap_scheduled_function(job_id: str) -> Callable[..., Callable[[Logger], Non
         return wrapper
     return decorator
 
-@wrap_scheduled_function(JOB_CREATE_TITLE_CARDS)
+@wrap_scheduled_function(JOB_CREATE_TITLE_CARDS, 'Failed to create title cards')
 def wrapped_create_all_title_cards(log: Logger | None = None) -> None:
     create_all_title_cards(log=log or contextualize())
 
-@wrap_scheduled_function(JOB_DOWNLOAD_SERIES_LOGOS)
+@wrap_scheduled_function(JOB_DOWNLOAD_SERIES_LOGOS, 'Failed to download logos')
 def wrapped_download_all_series_logos(log: Logger | None = None) -> None:
     download_all_series_logos(log=log or contextualize())
 
-@wrap_scheduled_function(JOB_DOWNLOAD_SERIES_POSTERS)
+@wrap_scheduled_function(
+    JOB_DOWNLOAD_SERIES_POSTERS, 'Failed to download posters'
+)
 def wrapped_download_all_series_posters(log: Logger | None = None) -> None:
     download_all_series_posters(log=log or contextualize())
 
-@wrap_scheduled_function(JOB_LOAD_MEDIA_SERVERS)
+@wrap_scheduled_function(JOB_LOAD_MEDIA_SERVERS, 'Failed to load Title Cards')
 def wrapped_load_media_servers(log: Logger | None = None) -> None:
     load_all_media_servers(log=log or contextualize())
 
-@wrap_scheduled_function(JOB_SYNC_INTERFACES)
+@wrap_scheduled_function(JOB_SYNC_INTERFACES, 'Failed to run all Syncs')
 def wrapped_sync_all(log: Logger | None = None) -> None:
     sync_all(log=log or contextualize())
 
-@wrap_scheduled_function(INTERNAL_JOB_CHECK_FOR_NEW_RELEASE)
+@wrap_scheduled_function(
+    INTERNAL_JOB_CHECK_FOR_NEW_RELEASE, 'Failed to get latest version'
+)
 def wrapped_get_latest_version(log: Logger | None = None) -> None:
     get_latest_version(log=log or contextualize())
 
-@wrap_scheduled_function(INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES)
+@wrap_scheduled_function(
+    INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES, 'Failed to refresh card types'
+)
 def wrapped_refresh_all_remote_cards(log: Logger | None = None) -> None:
     refresh_all_remote_card_types(log=log or contextualize())
 
-@wrap_scheduled_function(INTERNAL_JOB_SET_SERIES_IDS)
+@wrap_scheduled_function(
+    INTERNAL_JOB_SET_SERIES_IDS, 'Failed to set Series IDs'
+)
 def wrapped_set_series_ids(log: Logger | None = None) -> None:
     set_all_series_ids(log=log or contextualize())
 
-@wrap_scheduled_function(JOB_BACKUP_DATABASE)
+@wrap_scheduled_function(JOB_BACKUP_DATABASE, 'Failed to backup database')
 def wrapped_backup_database(log: Logger | None = None) -> None:
     backup_data(get_preferences().current_version, log=log or contextualize())
 
-@wrap_scheduled_function(INTERNAL_JOB_CLEAN_DATABASE)
+@wrap_scheduled_function(
+    INTERNAL_JOB_CLEAN_DATABASE, 'Failed to clean the database'
+)
 def wrapped_clean_database(log: Logger | None = None) -> None:
     clean_database(log=log or contextualize())
 
+@wrap_scheduled_function(
+    INTERNAL_JOB_SNAPSHOT_DATABASE,
+    'Failed to snapshot database'
+)
 def wrapped_snapshot_database(log: Logger | None = None):
-    log = log or contextualize()
-    BaseJobs[INTERNAL_JOB_SNAPSHOT_DATABASE].previous_start_time =datetime.now()
-    BaseJobs[INTERNAL_JOB_SNAPSHOT_DATABASE].running = True
-    snapshot_database(log=log)
-    BaseJobs[INTERNAL_JOB_SNAPSHOT_DATABASE].previous_end_time = datetime.now()
-    BaseJobs[INTERNAL_JOB_SNAPSHOT_DATABASE].running = False
+    snapshot_database(log=log or contextualize())
 # pylint: enable=missing-function-docstring,redefined-outer-name
 
 """

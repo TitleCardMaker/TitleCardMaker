@@ -30,26 +30,25 @@ def download_all_series_logos(*, log: Logger = log) -> None:
     """
     Schedule-able function to download all Logos for all monitored
     Series in the Database.
+
+    Args:
+        log: Logger for all log messages.
     """
 
-    try:
-        # Get the Database
-        with next(get_database()) as db:
-            # Get all Series
-            all_series = db.query(Series).all()
-            for series in all_series:
-                # If Series is unmonitored, skip
-                if not series.monitored:
-                    log.debug(f'{series} is not monitored, skipping')
-                    continue
+    with next(get_database()) as db:
+        # Get all Series
+        all_series = db.query(Series).all()
+        for series in all_series:
+            # If Series is unmonitored, skip
+            if not series.monitored:
+                log.trace(f'{series} is not monitored, skipping')
+                continue
 
-                try:
-                    download_series_logo(series, log=log)
-                except HTTPException:
-                    log.warning(f'{series} Skipping logo selection')
-                    continue
-    except Exception:
-        log.exception('Failed to download series logos')
+            try:
+                download_series_logo(series, log=log)
+            except HTTPException:
+                log.warning(f'{series} skipping logo selection')
+                continue
 
 
 def resolve_source_settings(
