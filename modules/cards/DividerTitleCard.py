@@ -9,9 +9,7 @@ from modules.BaseCardType import (
     CardTypeDescription,
     Extra,
     ImageMagickCommands,
-    TextCase,
 )
-from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences

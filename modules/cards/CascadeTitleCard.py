@@ -1001,7 +1001,7 @@ def get_validator_model() -> type[Base]:
         font_size: PositiveFloat = 1.0
         font_vertical_shift: int = 0
         allow_kanji_episode_text: bool = False
-        alt_text: str | None = '{series_name}'
+        alt_text: str | None = '{series_name.upper()}'
         alt_text_color: str | None = None
         cascade_count: conint(ge=0, le=25) = CascadeTitleCard.DEFAULT_CASCADE_COUNT
         cascade_alphas: str = CascadeTitleCard.DEFAULT_CASCADE_ALPHAS
