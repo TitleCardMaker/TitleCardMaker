@@ -654,7 +654,7 @@ def resolve_card_settings(
     )
 
     # Apply title text format if indicated
-    if (title_format := card_settings.get('title_text_format')) is not None:
+    if (title_format := card_settings.pop('title_text_format', None)) is not None:
         card_settings['title_text'] = FormatString.new(
             title_format, data=card_settings,
             name='title text format', series=series, episode=episode, log=log
@@ -673,13 +673,14 @@ def resolve_card_settings(
 
     # If no season text was indicated, determine
     if card_settings.get('season_text') is None:
-        # Apply season text formatting if indicated
+        # Season text defaults to the season title
         card_settings['season_text'] = card_settings['season_title']
-        if card_settings.get('season_text_format') is not None:
+
+        # If a custom season text format was provided, use
+        if (stf := card_settings.pop('season_text_format', None)) is not None:
             card_settings['season_text'] = FormatString.new(
-                card_settings['season_text_format'], data=card_settings,
-                name='season text format', series=series, episode=episode,
-                log=log,
+                stf, data=card_settings, name='season text format',
+                series=series, episode=episode, log=log,
             )
     card_settings['season_text'] = card_settings['season_text'].replace('\\n','\n')
 
@@ -755,7 +756,7 @@ def resolve_card_settings(
     if card_settings.get('card_file') is None:
         card_settings['title'] = card_settings['title'].replace('\\n', '')
         filename = FormatString.new_path(
-            card_settings['card_filename_format'], data=card_settings,
+            card_settings.pop('card_filename_format'), data=card_settings,
             name='title card filename', series=series, episode=episode, log=log,
         )
         # Add library-specific identifier to filename if indicated
@@ -778,6 +779,25 @@ def resolve_card_settings(
 
     # Perform any card-class specific format string evaluations
     card_settings = CardClass.resolve_format_strings(card_settings)
+
+    # Perform any generic format string evaluations
+    for key, value in card_settings.items():
+        if isinstance(value, str) and '{' in value and '}' in value:
+            key_name = str(key).replace('_', ' ')
+            try:
+                card_settings[key] = FormatString.new(
+                    value,
+                    data=card_settings,
+                    name=key_name,
+                    series=series,
+                    episode=episode,
+                    log=log,
+                )
+                if value != card_settings[key]:
+                    log.trace(f'Resolved {key_name} "{value}" -> "{card_settings[key]}"')
+            except InvalidFormatString:
+                log.exception(f'Cannot parse {key_name} as a FormatString')
+                continue
 
     return card_settings
 
