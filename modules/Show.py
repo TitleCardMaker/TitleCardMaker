@@ -358,8 +358,10 @@ class Show(YamlReader):
                 self.title_languages = [value]
             # List of translations
             elif isinstance(value, list):
-                if all(isinstance(t, dict) and t.keys() == {'language', 'key'}
-                       for t in value):
+                if all(
+                    isinstance(t, dict) and t.keys() == {'language', 'key'}
+                    for t in value
+                ):
                     self.title_languages = value
                 else:
                     log.error(f'Invalid language translations in series {self}')
@@ -621,7 +623,7 @@ class Show(YamlReader):
             if (existing_ep := self.episodes.get(episode.key)) is not None:
                 if (self.refresh_titles and not
                     existing_ep.episode_info.title.matches(episode.title)):
-                    existing_ep.delete_card(reason='updating title')
+                    existing_ep.delete_card(reason=f'updating title ("{existing_ep.episode_info.title}" -> "{episode.title}")')
                     return True
                 return False
 
@@ -746,8 +748,10 @@ class Show(YamlReader):
                 )
 
                 # Adding translated title, log it
-                log.debug(f'Added "{language_title}" to "{translation["key"]}" '
-                          f'for {self} {episode}')
+                log.debug(
+                    f'Added "{language_title}" to "{translation["key"]}" for '
+                    f'{self} {episode}'
+                )
 
                 # Delete old card
                 episode.delete_card(reason='adding translation')
@@ -900,7 +904,8 @@ class Show(YamlReader):
             return None
 
         # Query TMDb for the backdrop if one does not exist and is needed
-        if (download_backdrop and self.tmdb_interface
+        if (download_backdrop
+            and self.tmdb_interface
             and not self.backdrop.exists()):
             url = self.tmdb_interface.get_series_backdrop(
                 self.series_info,
@@ -912,22 +917,29 @@ class Show(YamlReader):
         # Whether to always check each interface
         always_check_emby = (
             bool(self.emby_interface)
-            and ('emby' in self.image_source_priority)
-            and self.emby_interface.has_series(self.library_name,
-                                               self.series_info))
+            and 'emby' in self.image_source_priority
+            and self.emby_interface.has_series(
+                self.library_name, self.series_info
+            )
+        )
         always_check_jellyfin = (
             bool(self.jellyfin_interface)
-            and ('jellyfin' in self.image_source_priority)
-            and self.jellyfin_interface.has_series(self.library_name,
-                                                   self.series_info))
+            and 'jellyfin' in self.image_source_priority
+            and self.jellyfin_interface.has_series(
+                self.library_name, self.series_info
+            )
+        )
         always_check_tmdb = (
             bool(self.tmdb_interface)
-            and ('tmdb' in self.image_source_priority))
+            and 'tmdb' in self.image_source_priority
+        )
         always_check_plex = (
             bool(self.plex_interface)
             and ('plex' in self.image_source_priority)
-            and self.plex_interface.has_series(self.library_name,
-                                               self.series_info))
+            and self.plex_interface.has_series(
+                self.library_name, self.series_info
+            )
+        )
 
         # For each episode, query interfaces (in priority order) for source
         for episode in (pbar := tqdm(self.episodes.values(), **TQDM_KWARGS)):
@@ -992,12 +1004,15 @@ class Show(YamlReader):
                 # Attempt to download image, log status and exit loop
                 if image:
                     if WebInterface.download_image(image, episode.source):
-                        log.debug(f'Downloaded {episode.source.name} for {self} '
-                                f'from {source_interface}')
+                        log.debug(
+                            f'Downloaded {episode.source.name} for {self} from '
+                            f'{source_interface}'
+                        )
                     else:
-                        log.error(f'Unable to download image '
-                                  f'{episode.source.name} for {self} from '
-                                  f'{source_interface}')
+                        log.error(
+                            f'Unable to download image {episode.source.name} '
+                            f'for {self} from {source_interface}'
+                        )
                     break
 
         return None
