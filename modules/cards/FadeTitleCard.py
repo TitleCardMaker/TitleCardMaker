@@ -40,6 +40,13 @@ class FadeTitleCard(BaseCardType):
                 tooltip='Default is <c>rgb(163, 163, 163)</c>.',
                 default='rgb(163, 163, 163)',
             ),
+            Extra(
+                name='Logo Size',
+                identifier='logo_size',
+                description='How much to scale the size of the logo',
+                tooltip='Number ><v>0.0</v>. Default is <v>1.0</v>.',
+                default=1.0,
+            ),
         ],
         description=[
             'Modification of the Standard style that is intended to be used '
@@ -91,6 +98,7 @@ class FadeTitleCard(BaseCardType):
         'font_vertical_shift',
         'index_text',
         'logo',
+        'logo_size',
         'output_file',
         'source_file',
         'title_text',
@@ -116,6 +124,7 @@ class FadeTitleCard(BaseCardType):
             logo_file: Path | None = None,
             episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
+            logo_size: float = 1.0,
             separator: str = '•',
             preferences: 'Preferences | None' = None,
             **unused: Any,
@@ -154,6 +163,7 @@ class FadeTitleCard(BaseCardType):
         # Extras
         self.episode_text_color = episode_text_color
         self.episode_text_font_size = episode_text_font_size
+        self.logo_size = logo_size
 
 
     @property
@@ -164,11 +174,13 @@ class FadeTitleCard(BaseCardType):
         if self.logo is None or not self.logo.exists():
             return []
 
+        logo_size = 500 * self.logo_size
+
         return [
             fr'\(',
             f'"{self.logo.resolve()}"',
             f'-resize 900x',
-            fr'-resize x500\>',
+            fr'-resize x{logo_size}\>',
             fr'\)',
             f'-gravity west',
             f'-geometry +100-550',
@@ -181,7 +193,7 @@ class FadeTitleCard(BaseCardType):
         """Subcommand to add the title text to the source image."""
 
         # No title, return blank command
-        if len(self.title_text) == 0:
+        if not self.title_text:
             return []
 
         size = 115 * self.font_size
@@ -320,6 +332,7 @@ def get_validator_model() -> type[Base]:
         logo_file: Path | None = None
         episode_text_color: str = FadeTitleCard.EPISODE_TEXT_COLOR
         episode_text_font_size: PositiveFloat = 1.0
+        logo_size: PositiveFloat = 1.0
         separator: str = '•'
 
     return CardModel
