@@ -168,8 +168,10 @@ def run_sync(
                     .filter_by(id=interface_id)\
                     .first()
                 if interface is None:
-                    log.error(f'No Connection of ID {interface_id} - cannot '
-                              f'assign library')
+                    log.error(
+                        f'No Connection of ID {interface_id} - cannot assign '
+                        f'library'
+                    )
                     continue
 
                 libraries.append({
