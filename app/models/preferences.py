@@ -6,7 +6,7 @@ from typing import Any, TYPE_CHECKING, Literal
 
 from app.schemas.base import UNSPECIFIED
 from modules.BaseCardType import BaseCardType
-from modules.Debug import Logger, log
+from modules.Debug import Logger, log, tz
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.FormatString import FormatString
 from modules.ImageMagickInterface import ImageMagickInterface
@@ -150,7 +150,7 @@ class Preferences:
 
         # Parse file
         self.parse_file(self.read_file())
-        self.server_boot_time = datetime.now()
+        self.server_boot_time = datetime.now(tz=tz)
 
         # Initialize paths
         self.asset_directory: Path = Path(self.asset_directory)
