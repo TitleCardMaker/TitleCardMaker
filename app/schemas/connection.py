@@ -104,6 +104,25 @@ class NewSonarrConnection(BaseNewServer):
     downloaded_only: bool = True
     libraries: list[SonarrLibrary] = []
 
+    @validator('libraries', pre=False)
+    def validate_library_path_conflicts(
+            cls,
+            v: list[SonarrLibrary],
+        ) -> list[SonarrLibrary]:
+
+        for index, library in enumerate(v):
+            for other_library in v[index+1:]:
+                if other_library.path.startswith(library.path):
+                    separator = '/' if '/' in library.path else '\\'
+                    raise ValueError(
+                        f'Library path ({other_library.path}) contains '
+                        f'other path ({library.path}) - this will cause '
+                        f'Library assignment to fail. Add a trailing separator '
+                        f'({separator}) to distinguish the two.'
+                    )
+
+        return v
+
 class NewTautulliConnection(BaseNewServer):
     api_key: SecretStr
     tcm_url: str
@@ -165,8 +184,30 @@ class UpdateSonarr(BaseUpdateServer):
     libraries: list[SonarrLibrary] = UNSPECIFIED
 
     @validator('libraries', pre=False)
-    def remove_empty_strings(cls, v):
+    def remove_empty_strings(
+            cls,
+            v: list[SonarrLibrary],
+        ) -> list[SonarrLibrary]:
         return [library for library in v if library.name and library.path]
+
+    @validator('libraries', pre=False)
+    def validate_library_path_conflicts(
+            cls,
+            v: list[SonarrLibrary],
+        ) -> list[SonarrLibrary]:
+
+        for index, library in enumerate(v):
+            for other_library in v[index+1:]:
+                if other_library.path.startswith(library.path):
+                    separator = '/' if '/' in library.path else '\\'
+                    raise ValueError(
+                        f'Library path ({other_library.path}) contains '
+                        f'other path ({library.path}) - this will cause '
+                        f'Library assignment to fail. Add a trailing separator '
+                        f'({separator}) to distinguish the two.'
+                    )
+
+        return v
 
 class UpdateTMDb(UpdateBase):
     enabled: bool = UNSPECIFIED
