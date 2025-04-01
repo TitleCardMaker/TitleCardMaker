@@ -48,16 +48,46 @@ class Show(YamlReader):
     BACKDROP_FILENAME = 'backdrop.jpg'
 
     __slots__ = (
-        'preferences', 'info_set', 'series_info', 'card_filename_format',
-        'episode_text_format', 'library_name', 'library', 'media_directory',
-        'archive', 'archive_name', 'archive_all_variations',
-        'episode_data_source', 'refresh_titles', 'sonarr_sync', 'sync_specials',
-        'tmdb_sync', 'tmdb_skip_localized_images', 'style_set', 'hide_seasons',
-        'title_languages', 'extras', '__episode_map', 'font','source_directory',
-        'logo', 'backdrop', 'file_interface', 'profile', 'season_poster_set',
-        'episodes', 'emby_interface', 'jellyfin_interface', 'plex_interface',
-        'sonarr_interface', 'tmdb_interface', '__is_archive', 'media_server',
-        'image_source_priority', '_auto_hide_seasons',
+        'archive',
+        'archive_name',
+        'archive_all_variations',
+        '_auto_hide_seasons',
+        'backdrop',
+        'card_filename_format',
+        'episode_data_source',
+        '__episode_map', 
+        'episode_text_format',
+        'episodes',
+        'emby_interface',
+        'extras',
+        'file_interface',
+        'font',
+        'hide_seasons',
+        'image_source_priority',
+        'info_set',
+        '__is_archive',
+        'jellyfin_interface',
+        'library_name',
+        'library',
+        'load_title_cards',
+        'logo',
+        'media_directory',
+        'media_server',
+        'plex_interface',
+        'preferences',
+        'profile',
+        'refresh_titles',
+        'season_poster_set',
+        'series_info',
+        'sonarr_interface',
+        'sonarr_sync',
+        'source_directory',
+        'style_set', 
+        'sync_specials',
+        'title_languages',
+        'tmdb_interface',
+        'tmdb_sync',
+        'tmdb_skip_localized_images',
     )
 
     def __init__(self,
@@ -105,8 +135,9 @@ class Show(YamlReader):
         self.card_filename_format = preferences.card_filename_format
         self.card_class = preferences.card_class
         self.episode_text_format = self.card_class.EPISODE_TEXT_FORMAT
-        self.library_name: Optional[str] = None
-        self.library: Optional[str] = None
+        self.load_title_cards: bool = True
+        self.library_name: str | None = None
+        self.library: str | None = None
         self.media_directory = None
         self.media_server: MediaServer = preferences.default_media_server
         self.image_source_priority = preferences.image_source_priority
@@ -266,7 +297,7 @@ class Show(YamlReader):
                 self.valid = False
 
         if (value := self.get('emby_id', type_=int)) is not None:
-            emby_id = value if '-' in str(value) else f'0-{value}'
+            emby_id = str(value) if '-' in str(value) else f'0-{value}'
             self.info_set.set_emby_id(self.series_info, emby_id)
 
         if (value := self.get('imdb_id', type_=str)) is not None:
@@ -311,8 +342,9 @@ class Show(YamlReader):
             if value in self.preferences.VALID_EPISODE_DATA_SOURCES:
                 self.episode_data_source = value
             else:
-                log.error(f'Invalid episode data source "{value}" in series '
-                          f'{self}')
+                log.error(
+                    f'Invalid episode data source "{value}" in series {self}'
+                )
                 self.valid = False
 
         if (value := self.get('image_source_priority',
@@ -339,6 +371,9 @@ class Show(YamlReader):
         if (value := self.get('tmdb_skip_localized_images',
                                type_=bool)) is not None:
             self.tmdb_skip_localized_images = value
+
+        if (value := self.get('load_title_cards', type_=bool)) is not None:
+            self.load_title_cards = value
 
         if (value := self.get('seasons', 'hide')) is not None:
             if isinstance(value, bool):
@@ -1113,6 +1148,10 @@ class Show(YamlReader):
         Update this show's media server with all title cards and season
         posters for all Episodes associated with this show.
         """
+
+        # Exit if card loading is disabled or impossible
+        if not self.load_title_cards or not self.library_name:
+            return None
 
         # Get appropriate MediaServer interface
         media_interface = {
