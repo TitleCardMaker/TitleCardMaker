@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from modules.Debug import log
-from modules.ImageMaker import ImageMaker
+from modules.ImageMaker import ImageMagickCommands, ImageMaker
 
 
 class MoviePosterMaker(ImageMaker):
@@ -66,12 +66,9 @@ class MoviePosterMaker(ImageMaker):
 
 
     @property
-    def gradient_command(self) -> list[str]:
+    def gradient_command(self) -> ImageMagickCommands:
         """
         ImageMagick commands to add the gradient to the source image.
-
-        Returns:
-            List of ImageMagick commands.
         """
 
         # If gradient is omitted, return empty command
@@ -87,13 +84,10 @@ class MoviePosterMaker(ImageMaker):
 
 
     @property
-    def index_command(self) -> list[str]:
+    def index_command(self) -> ImageMagickCommands:
         """
         ImageMagick command(s) to add the underlying index text behind
         the title text.
-
-        Returns:
-            List of ImageMagick commands.
         """
 
         # No index, return empty command
@@ -110,13 +104,10 @@ class MoviePosterMaker(ImageMaker):
 
 
     @property
-    def title_font_attributes(self) -> list[str]:
+    def title_font_attributes(self) -> ImageMagickCommands:
         """
         Imagemagick commands to define the font attributes of the title
         text.
-
-        Returns:
-            List of ImageMagick commands.
         """
 
         title_font_size = 190 * self.font_size
@@ -130,13 +121,10 @@ class MoviePosterMaker(ImageMaker):
 
 
     @property
-    def subtitle_font_attributes(self) -> list[str]:
+    def subtitle_font_attributes(self) -> ImageMagickCommands:
         """
         Imagemagick commands to define the font attributes of the
         subtitle text.
-
-        Returns:
-            List of ImageMagick commands.
         """
 
         subtitle_font_size = 95 * self.font_size
@@ -149,12 +137,9 @@ class MoviePosterMaker(ImageMaker):
 
 
     @property
-    def logo_command(self) -> list[str]:
+    def logo_command(self) -> ImageMagickCommands:
         """
         ImageMagick subcommands to add the logo file to the poster.
-
-        Returns:
-            List of Imagemagick commands.
         """
 
         # Logo not indicated, return empty command
@@ -163,10 +148,12 @@ class MoviePosterMaker(ImageMaker):
 
         return [
             # Bring in logo image
-            f'\( "{self.logo.resolve()}"',
+            fr'\(',
+            f'"{self.logo.resolve()}"',
             # Resize to 400px wide, limit to 200px tall
             f'-resize 400x',
-            f'-resize x200\> \)',
+            fr'-resize x200\>',
+            fr'\)',
             # Overlay 100px from top of image
             f'-gravity north',
             f'-geometry +0+100',
@@ -175,12 +162,9 @@ class MoviePosterMaker(ImageMaker):
 
 
     @property
-    def title_command(self) -> list[str]:
+    def title_command(self) -> ImageMagickCommands:
         """
         ImageGagick subcommands to add the title text to the poster.
-
-        Returns:
-            List of ImageMagick commands
         """
 
         # No titles, return empty command
@@ -195,9 +179,11 @@ class MoviePosterMaker(ImageMaker):
         if self.add_drop_shadow:
             y_offset -= 15
             shadow_commands = [
-                f'\( +clone',
+                fr'\(',
+                f'+clone',
                 f'-background None',
-                f'-shadow 90x3+10+10 \)',
+                f'-shadow 90x3+10+10',
+                fr'\)',
                 f'+swap',
                 f'-background None',
                 f'-layers merge',
@@ -211,7 +197,9 @@ class MoviePosterMaker(ImageMaker):
             f'-font "{self.font_file.resolve()}"',
             f'-fill "{self.font_color}"',
             # Create an image for each title
-            f'\( \( -background transparent',
+            fr'\(',
+            fr'\(',
+            f'-background transparent',
             *self.subtitle_font_attributes,
             # Combine in order [TOP SUBTITLE] / [TITLE] / [SUBTITLE]
             f'label:"{self.top_subtitle}"' if len(self.top_subtitle)>0 else '',
@@ -220,11 +208,13 @@ class MoviePosterMaker(ImageMaker):
             *self.subtitle_font_attributes,
             f'label:"{self.subtitle}"' if len(self.subtitle) > 0 else '',
             # Merge images
-            f'-smush 30 \)',
+            f'-smush 30',
+            fr'\)',
             # Add drop shadow to text
             *shadow_commands,
             # Add titles to image
-            f'\) -gravity south',
+            fr'\)',
+            f'-gravity south',
             f'-geometry +0+{y_offset}',
             f'-composite',
         ]
@@ -239,12 +229,16 @@ class MoviePosterMaker(ImageMaker):
 
         # If the source file doesn't exist, exit
         if not self.source.exists():
-            log.error(f'Cannot create movie poster - "{self.source.resolve()}" '
-                      f'does not exist.')
+            log.error(
+                f'Cannot create movie poster - "{self.source.resolve()}" does '
+                f'not exist.'
+            )
             return None
         if isinstance(self.logo, Path) and not self.logo.exists():
-            log.error(f'Cannot create movie poster - "{self.logo.resolve()}" '
-                      f'does not exist.')
+            log.error(
+                f'Cannot create movie poster - "{self.logo.resolve()}" does '
+                f'not exist.'
+            )
             return None
 
         # Command to create collection poster

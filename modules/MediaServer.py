@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Annotated, Any, ClassVar
 from pathlib import Path
 
-from tinydb import where, Query
+from tinydb import where
+from tinydb.queries import QueryInstance
 
 from modules.Debug import log
 from modules.Episode import Episode
@@ -24,21 +25,21 @@ class MediaServer(ABC):
     source images retrieved from them.
     """
 
-    """Maximum time allowed for a single GET request"""
-    REQUEST_TIMEOUT = 30
+    REQUEST_TIMEOUT: Annotated[
+        ClassVar[int],
+        'Maximum time allowed for a single request'
+    ] = 30
 
-    """Default filesize limit for all uploaded assets"""
-    DEFAULT_FILESIZE_LIMIT = '10 MB'
+    DEFAULT_FILESIZE_LIMIT: Annotated[
+        ClassVar[str],
+        'Filesize limit for all uploading assets'
+    ] = '10 MB'
 
-
-    @property
-    @abstractmethod
-    def LOADED_DB(self) -> str:
-        """
-        Filename of the PersistentDatabase of loaded assets within this
-        MediaServer.
-        """
-        raise NotImplementedError('All MediaServer objects must implement this')
+    LOADED_DB: Annotated[
+        ClassVar[str],
+        'File name of the PersistentDatabase of loaded assets within '
+        'this media server'
+    ]
 
 
     @abstractmethod
@@ -99,8 +100,8 @@ class MediaServer(ABC):
     def _get_condition(self,
             library_name: str,
             series_info: SeriesInfo,
-            episode: Episode = None,
-        ) -> Query:
+            episode: Episode | None = None,
+        ) -> QueryInstance:
         """
         Get the tinydb Query condition for the given entry.
 

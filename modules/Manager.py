@@ -31,7 +31,7 @@ def notify(message: str) -> Callable:
         Wrapped decorator.
     """
 
-    def decorator(function: callable) -> callable:
+    def decorator(function: Callable) -> Callable:
         def inner(*args, **kwargs):
             if global_objects.pp.execution_mode == 'batch':
                 log.info(message)

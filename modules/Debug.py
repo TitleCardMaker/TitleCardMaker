@@ -38,8 +38,9 @@ __all__ = (
 """Global tqdm arguments"""
 TQDM_KWARGS = {
     # Progress bar format string
-    'bar_format': ('{desc:.50s} {percentage:2.0f}%|{bar}| {n_fmt}/{total_fmt} '
-                   '[{elapsed}]'),
+    'bar_format': (
+        '{desc:.50s} {percentage:2.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
+    ),
     # Progress bars should disappear when finished
     'leave': False,
     # Progress bars can not be used if no TTY is present

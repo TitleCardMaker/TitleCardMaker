@@ -22,9 +22,18 @@ class Episode:
     """
 
     __slots__ = (
-        'episode_info', 'card_class', '_base_source', 'source', 'destination',
-        'downloadable_source', 'extra_characteristics', 'given_keys', 'watched',
-        'blur', 'grayscale', 'spoil_type',
+        '_base_source',
+        'blur',
+        'card_class',
+        'destination',
+        'downloadable_source',
+        'episode_info',
+        'extra_characteristics',
+        'given_keys',
+        'grayscale',
+        'source',
+        'spoil_type',
+        'watched',
     )
 
 

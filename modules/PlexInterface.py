@@ -389,8 +389,10 @@ class PlexInterface(EpisodeDataSource, MediaServer, SyncInterface):
             # Skip if episode has no season or episode number
             if (plex_episode.parentIndex is None
                 or plex_episode.index is None):
-                log.warning(f'Episode {plex_episode} of {series_info} in '
-                            f'"{library_name}" has no index - skipping')
+                log.warning(
+                    f'Episode {plex_episode} of {series_info} in '
+                    f'"{library_name}" has no index - skipping'
+                )
                 continue
 
             # Skip temporary titles
@@ -398,9 +400,10 @@ class PlexInterface(EpisodeDataSource, MediaServer, SyncInterface):
             if (airdate is not None
                 and self.__TEMP_IGNORE_REGEX.match(plex_episode.title)
                 and airdate + timedelta(days=2) > datetime.now()):
-                log.debug(f'Temporarily ignoring '
-                          f'{plex_episode.seasonEpisode.upper()} of '
-                          f'{series_info} - placeholder title')
+                log.debug(
+                    f'Temporarily ignoring {plex_episode.seasonEpisode.upper()}'
+                    f' of {series_info} - placeholder title'
+                )
                 continue
 
             # Get all ID's for this episode
@@ -509,8 +512,10 @@ class PlexInterface(EpisodeDataSource, MediaServer, SyncInterface):
             spoiler_status = details['spoiler'] if loaded else None
 
             # Delete and reset card if current spoiler type doesn't match
-            delete_and_reset = ((episode.spoil_type != spoiler_status)
-                                and bool(spoiler_status))
+            delete_and_reset = (
+                episode.spoil_type != spoiler_status
+                and bool(spoiler_status)
+            )
 
             # Delete card, reset size in loaded map to force reload
             if delete_and_reset and loaded:
@@ -767,8 +772,10 @@ class PlexInterface(EpisodeDataSource, MediaServer, SyncInterface):
             pl_episode: PlexEpisode = pl_episode
             # If error count is too high, skip this series
             if error_count >= self.SKIP_SERIES_THRESHOLD:
-                log.error(f'Failed to upload {error_count} episodes, skipping '
-                          f'"{series_info}"')
+                log.error(
+                    f'Failed to upload {error_count} episodes, skipping '
+                    f'"{series_info}"'
+                )
                 break
 
             # Skip episodes that aren't in list of cards to update

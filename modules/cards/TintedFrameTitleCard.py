@@ -495,8 +495,9 @@ class TintedFrameTitleCard(BaseCardType):
 
         # Logo not indicated or not available, return empty commands
         if ((self.top_element != 'logo'
-             and self.middle_element != 'logo'
-             and self.bottom_element != 'logo')
+                and self.middle_element != 'logo'
+                and self.bottom_element != 'logo'
+            )
             or self.logo is None or not self.logo.exists()):
             return []
 
@@ -529,9 +530,11 @@ class TintedFrameTitleCard(BaseCardType):
 
         return self.add_drop_shadow(
             [
-                fr'\( "{self.logo.resolve()}"',
+                fr'\(',
+                f'"{self.logo.resolve()}"',
                 *resize_command,
-                fr'\) -gravity center',
+                fr'\)',
+                f'-gravity center',
             ],
             shadow=Shadow(opacity=85, sigma=4),
             x=0, y=vertical_shift,
