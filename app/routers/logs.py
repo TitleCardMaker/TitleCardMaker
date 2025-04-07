@@ -52,7 +52,7 @@ def query_logs(
         after: datetime | None = Query(default=None),
         before: datetime | None = Query(default=None),
         context_id: str | None = Query(default=None, min_length=1),
-        contains: str | None = Query(default=None, min_length=1),
+        contains_: str | None = Query(alias='contains', default=None, min_length=1),
         shallow: bool = Query(default=True),
     ) -> Page[LogEntry]: # type: ignore
     """
@@ -71,7 +71,7 @@ def query_logs(
     logs = read_log_files(after=after, before=before, shallow=shallow)
 
     # Function to filter log results by
-    contains = None if contains is None else contains.lower().split('|')
+    contains = None if contains_ is None else contains_.lower().split('|')
     def meets_filters(data: RawLogData) -> bool:
         # Level
         if _LEVEL_NUMBERS[data['level']] < _LEVEL_NUMBERS[level]:
@@ -79,9 +79,14 @@ def query_logs(
 
         # Context
         if (context_id is not None
-            # Include null context messages if '!' wasn't included in filter ID
-            and (data['context_id'] is not None or '!' in context_id)
-            and data['context_id'] not in context_id):
+            and (
+                ('!' in context_id and data['context_id'] is None)
+                or (data['context_id'] and data['context_id'] not in context_id)
+            )):
+        # if (context_id is not None
+        #     # Include null context messages if '!' wasn't included in filter ID
+        #     and (data['context_id'] is not None or '!' in context_id)
+        #     and data['context_id'] not in context_id):
             return False
 
         # Before/After
