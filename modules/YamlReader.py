@@ -57,7 +57,7 @@ class YamlReader:
 
     def get(self,
             *attributes: str,
-            type_: Callable[[str], _AttributeType] | None = None,
+            type_: Callable[[str], _AttributeType] | type[dict] | None = None,
             default: Any = None,
         ) -> _AttributeType | None:
         """
