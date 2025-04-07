@@ -874,7 +874,7 @@ def create_episode_card(
         return True
 
     # Function to get the existing val
-    def _get_existing(attribute: str):
+    def _get_existing(attribute: str) -> Any:
         return existing_card.model_json.get(
             attribute,
             CardTypeModel.__fields__[attribute].default,
@@ -892,12 +892,15 @@ def create_episode_card(
     new_model_json = _card_type_model_to_json(CardTypeModel)
     different = False
     if card.card_type != existing_card.card_type:
-        log.trace(f'{episode}.card_type = {existing_card.card_type} -> '
-                  f'{card.card_type}')
+        log.trace(
+            f'{episode}.card_type = {existing_card.card_type} -> {card.card_type}'
+        )
         different = True
     elif card.source_file != existing_card.source_file:
-        log.trace(f'{episode}.source_file = {existing_card.source_file} -> '
-                  f'{card.source_file}')
+        log.trace(
+            f'{episode}.source_file = {existing_card.source_file} -> '
+            f'{card.source_file}'
+        )
         different = True
     else:
         for attr in existing_card.model_json:
@@ -909,14 +912,18 @@ def create_episode_card(
             for attr, new_val in new_model_json.items():
                 if (not attr.endswith('_rotation_angle')
                     and str(new_val) != str(_get_existing(attr))):
-                    log.trace(f'{episode}.{attr} = {_get_existing(attr)!r} -> {new_val!r}')
+                    log.trace(
+                        f'{episode}.{attr} = {_get_existing(attr)!r} -> '
+                        f'{new_val!r}'
+                    )
                     different = True
                     break
 
-    # If different, delete existing file, remove from database, create Card
+    # Not different, nothing else to do
     if not different:
         return False
 
+    # If different, delete existing file, remove from database, create Card
     log.debug(f'{episode} Card config changed - recreating')
     Path(existing_card.card_file).unlink(missing_ok=True)
     db.delete(existing_card)
