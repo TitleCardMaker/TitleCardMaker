@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import FilePath, PositiveFloat, confloat, root_validator
 
@@ -9,12 +9,15 @@ from modules.BaseCardType import (
     CardTypeDescription,
     Extra,
     ImageMagickCommands,
+    Shadow,
 )
 from modules.Debug import log # noqa: F401
 
 if TYPE_CHECKING:
     from app.models.preferences import Preferences
     from modules.Font import Font
+
+LogoPosition = Literal['omit', 'top left', 'top right', 'bottom right']
 
 
 class AnimeTitleCard(BaseCardType):
@@ -84,6 +87,24 @@ class AnimeTitleCard(BaseCardType):
                 default=1.0,
             ),
             Extra(
+                name='Logo Position',
+                identifier='logo_position',
+                description='Where to position a logo',
+                tooltip=(
+                    'Either <v>top left</v>, <v>top right</v>, <v>bottom right'
+                    '</v> to position the logo; or <v>omit</v> to not add the '
+                    'logo. Default is <v>omit</v>.'
+                ),
+                default='omit',
+            ),
+            Extra(
+                name='Logo Size',
+                identifier='logo_size',
+                description='Scalar for how much to scale the size of the logo',
+                tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
+                default=1.0,
+            ),
+            Extra(
                 name='Gradient Omission',
                 identifier='omit_gradient',
                 description='Whether to omit the gradient overlay',
@@ -143,7 +164,7 @@ class AnimeTitleCard(BaseCardType):
                 identifier='season_text_color',
                 description='Color of the season text and separator charactor',
                 tooltip='Default is to match the Episode Text Color.',
-            ),
+            )
         ],
         description=[
             'Title card with all text aligned in the lower left of the image.',
@@ -207,6 +228,9 @@ class AnimeTitleCard(BaseCardType):
         'kanji_stroke_color',
         'kanji_stroke_width',
         'kanji_vertical_shift',
+        'logo_file',
+        'logo_position',
+        'logo_size',
         'omit_gradient',
         'output_file',
         'require_kanji',
@@ -242,6 +266,9 @@ class AnimeTitleCard(BaseCardType):
             episode_stroke_color: str = EPISODE_STROKE_COLOR,
             episode_text_color: str = EPISODE_TEXT_COLOR,
             separator: str = '·',
+            logo_file: Path | None = None,
+            logo_position: LogoPosition = 'omit',
+            logo_size: float = 1.0,
             omit_gradient: bool = False,
             require_kanji: bool = False,
             kanji_color: str = TITLE_COLOR,
@@ -290,6 +317,9 @@ class AnimeTitleCard(BaseCardType):
         self.episode_text_size = episode_text_font_size
         self.episode_stroke_color = episode_stroke_color
         self.episode_text_color = episode_text_color
+        self.logo_file = logo_file
+        self.logo_position: LogoPosition = logo_position
+        self.logo_size = logo_size
         self.omit_gradient = omit_gradient
         self.kanji_color = kanji_color
         self.kanji_font_size = kanji_font_size
@@ -486,6 +516,38 @@ class AnimeTitleCard(BaseCardType):
         ]
 
 
+    @property
+    def logo_commands(self) -> ImageMagickCommands:
+        """
+        Subcommands to add the logo file to the image (if indicated).
+        """
+
+        # Logo not provided, does not exist, or unplaced
+        if (self.logo_position == 'omit'
+            or not self.logo_file or not self.logo_file.exists()):
+            return []
+
+        # Determine logo gravity by position
+        if self.logo_position == 'bottom right':
+            gravity = 'southeast'
+        elif self.logo_position == 'top left':
+            gravity = 'northwest'
+        else:
+            gravity = 'northeast'
+
+        return self.add_drop_shadow(
+            [
+                fr'\(',
+                f'"{self.logo_file.resolve()}"',
+                f'-resize x{100 * self.logo_size}',
+                fr'\)',
+                f'-gravity {gravity}',
+            ],
+            shadow=Shadow(opacity=85, sigma=4),
+            x=75, y=75,
+        )
+
+
     @staticmethod
     def modify_extras(
             extras: dict,
@@ -511,6 +573,7 @@ class AnimeTitleCard(BaseCardType):
                 'kanji_stroke_width',
                 'kanji_stroke_color',
                 'kanji_vertical_shift',
+                'logo_size',
                 'stroke_color'
             ):
                 if extra in extras:
@@ -592,6 +655,7 @@ class AnimeTitleCard(BaseCardType):
             *contrast,
             # Overlay gradient
             *gradient_command,
+            *self.logo_commands,
             # Add title and/or kanji
             *self.title_text_command,
             # Add index text
@@ -622,10 +686,14 @@ def get_validator_model() -> type[Base]:
         kanji_stroke_width: confloat(ge=0) = 1.0
         kanji_vertical_shift: int = 0
         separator: str = '·'
+        logo_file: Path | None = None
+        logo_position: LogoPosition = 'omit'
+        logo_size: PositiveFloat = 1.0
         omit_gradient: bool = False
         episode_stroke_color: str = AnimeTitleCard.EPISODE_STROKE_COLOR
         episode_text_color: str = AnimeTitleCard.EPISODE_TEXT_COLOR
         episode_text_font_size: PositiveFloat = 1.0
+        logo_size: PositiveFloat = 1.0
         season_text_color: str | None = None
         stroke_color: str = 'black'
 
@@ -644,6 +712,19 @@ def get_validator_model() -> type[Base]:
 
             if values['kanji_stroke_color'] is None:
                 values['kanji_stroke_color'] = values['stroke_color']
+
+            return values
+
+        @root_validator(skip_on_failure=True)
+        def require_logo(cls, values: dict) -> dict:
+            """"""
+
+            if (values['logo_position'] is not None
+                and (
+                    values['logo_file'] is None
+                    or not values['logo_file'].exists()
+                )):
+                raise ValueError('Logo required but not provided')
 
             return values
 
