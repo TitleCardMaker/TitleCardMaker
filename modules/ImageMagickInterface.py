@@ -536,7 +536,28 @@ class ImageMagickInterface:
             white_threshold: int = 210,
         ) -> list[str]:
         """
-        
+        Get the primary colors from the given image. This uses
+        ImageMagick's histogram functionality to get a list of colors
+        sorted by frequency of occurrence.
+
+        Args:
+            image: Path to the image to analyze.
+            colors: Maximum number of colors to return.
+            alpha_threshold: Threshold for alpha channel transparency.
+                Pixels with alpha values below this are ignored. This
+                is a value between 0 and 100.
+            black_threshold: RGB value threshold for black. Colors with
+                all RGB values below this are considered black and
+                ignored. This is a value between 0 and 255.
+            white_threshold: RGB value threshold for white. Colors with
+                all RGB values above this are considered white and
+                ignored. This is a value between 0 and 255.
+
+        Returns:
+            List of RGB color strings sorted by frequency, with the most
+            common colors first. Colors are formatted as 'rgb(r,g,b)'.
+            Black and white colors are filtered out based on the
+            thresholds.
         """
 
         """
