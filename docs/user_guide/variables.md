@@ -1,16 +1,15 @@
 ---
-title: Available Variables
+title: Custom Variables
 description: >
-    All available internal Title Card variables.
+    Using internal Title Card variables in TitleCardMaker.
 ---
 
-# Available Variables
+# Custom Variables
 
-Throughout TCM, when something is referred to as a "format" or "format string",
-this means that any of the internally defined variables can be used, allowing
-for more fine-tuned customization. Accessing these variables is done by
-specifying the variable name in curly brackets (`{}`), such as
-`{episode_number}`.
+Throughout TCM, all Card variables, inputs, and extras may take advantage of any
+of the internally defined variables can be used, allowing for more fine-tuned
+customization. Accessing these variables is done by specifying the variable name
+in curly brackets (`{}`), such as `{episode_number}`.
 
 This page documents all the available variables.
 
