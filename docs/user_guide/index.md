@@ -25,6 +25,7 @@ below:
 
 - [Series](./series.md)
 - [Adding Series](./new_series.md)
+- [Recently Added](./recent.md)
 - [Missing Summary](./missing.md)
 - [Templates](./templates.md)
 - [Fonts](./fonts.md)

@@ -197,6 +197,7 @@ nav:
     - Pages:
       - Series: user_guide/series.md
       - Adding Series: user_guide/new_series.md
+      - Recently Added: user_guide/recent.md
       - Missing Summary: user_guide/missing.md
       - Templates: user_guide/templates.md
       - Fonts: user_guide/fonts.md
