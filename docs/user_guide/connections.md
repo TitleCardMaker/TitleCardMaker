@@ -183,6 +183,24 @@ Username of the user to query Episode watched statuses from.
 
 Whether to connect with HTTPS instead of HTTP.
 
+### Libraries
+
+!!! warning "Irreversible"
+
+    The bulk library actions cannot be reversed. Because of this, TitleCardMaker
+    automatically takes a backup of your database before performing these
+    operations.
+
+This section lists all currently available libraries in Emby. Each library
+listed has an interactable delete icon which, when clicked, will delete that
+library reference from all Series in TCM. There is also a server-wide delete
+button next to the label which can be used to delete any libraries which are
+"unlinked" - i.e. those which do not appear in the list.
+
+Note this setting does not delete the Series themselves, just the library
+assignments. In addition, make sure your [Syncs](./syncs.md) are not
+reassigning the "bad" libraries when they run.
+
 ---
 
 ## :simple-jellyfin:{ .jellyfin } Jellyfin
@@ -232,6 +250,24 @@ Username of the user to query Episode watched statuses from.
 ### SSL
 
 Whether to connect with HTTPS instead of HTTP.
+
+### Libraries
+
+!!! warning "Irreversible"
+
+    The bulk library actions cannot be reversed. Because of this, TitleCardMaker
+    automatically takes a backup of your database before performing these
+    operations.
+
+This section lists all currently available libraries in Jellyfin. Each library
+listed has an interactable delete icon which, when clicked, will delete that
+library reference from all Series in TCM. There is also a server-wide delete
+button next to the label which can be used to delete any libraries which are
+"unlinked" - i.e. those which do not appear in the list.
+
+Note this setting does not delete the Series themselves, just the library
+assignments. In addition, make sure your [Syncs](./syncs.md) are not
+reassigning the "bad" libraries when they run.
 
 ---
 
@@ -290,6 +326,24 @@ Only check this box if you use (or have used)
 ### Tautulli
 
 The Tautulli agent is covered [here](#tautulli_1).
+
+### Libraries
+
+!!! warning "Irreversible"
+
+    The bulk library actions cannot be reversed. Because of this, TitleCardMaker
+    automatically takes a backup of your database before performing these
+    operations.
+
+This section lists all currently available libraries in Emby. Each library
+listed has an interactable delete icon which, when clicked, will delete that
+library reference from all Series in TCM. There is also a server-wide delete
+button next to the label which can be used to delete any libraries which are
+"unlinked" - i.e. those which do not appear in the list.
+
+Note this setting does not delete the Series themselves, just the library
+assignments. In addition, make sure your [Syncs](./syncs.md) are not
+reassigning the "bad" libraries when they run.
 
 ---
 
