@@ -158,6 +158,7 @@ many functions which allow for more customization. Each is described below.
 | `to_short_ordinal()` | _See above_, but in another language[^2]                 | `{to_short_ordinal(season_number, 'ja')}`  | `13番目`         |
 | `to_roman_numeral()` | Convert the given number to a roman numeral[^4]          | `{to_roman_numeral(episode_number)}`       | `VI`            |
 | `format_date()`      | Write the given date in some specific format[^3]         | `{format_date(airdate, 'Week %-U of 52')}` | `Week 02 of 52` |
+| `get_image_color()`  | See [here](#parse-image-color)                           | `{get_image_color(logo_file)}`             | `rgb(12,20,12)` |
 
 ??? note "Supported Language Codes"
 
@@ -210,6 +211,85 @@ many functions which allow for more customization. Each is described below.
     etc.; while ++o++ordinal starts with ++o++ like ++o++rder - so first,
     second, third, etc.
 
+### Parse Image Color
+
+TCM has the ability to parse images for primary colors and use those in place of
+variables. This is similiar to the in-UI `Analyze Pallette` button. This
+functionality can be used with the `get_image_color()` function, which takes the
+form of:
+
+```python
+get_image_color(
+    image: Path,
+    /,
+    fallback: str,
+    index: int = 0,
+    *,
+    colors: int = 8,
+    alpha_threshold: int = 70,
+    black_threshold: int = 40,
+    white_threshold: int = 256,
+)
+```
+
+If the above function signature does not make sense to you, see the provided
+examples for detail; or use the simplified `{logo_color}` or
+`{logo_color_no_white}` variables to avoid the function call altogether. Each
+available argument is described below:
+
+1. `image` The file to analyze. See the list of [File](#__tabbed_1_6) variables
+for all available options, but generally this is `logo_file` to match the color
+of the logo.
+2. `fallback` The fallback color to use if the color analysis did not yield any
+meaningful results. This can occur if the specified file does not exist or if
+there was no color at the given `index`.
+3. `index` Which color number to return, zero-indexed. `0` meaning the first
+(most primary) color, `1` being the second, etc.
+4. `colors` The number of colors to group the image into. The higher the number
+the finer gradiations in color TCM will determine, which will result in more
+pixel-accurate matches - however this can also mean sequential colors may be
+different variations in the same color (e.g. light green, dark green, etc.). A
+lower number will result in TCM bucketing similiar colors together.
+5. `alpha_threshold` The transparency threshold which to remove colors from the
+analysis. Pixels which are _more_ transparent than this will be removed - for
+example, if set to `75`, pixels which are >25% transparent are ignored. This is
+a number between `0` and `100`.
+6. `black_threshold` The RGB value threshold for determining if a color is
+black. Colors where all RGB values are below this threshold are considered black
+and ignored. This is a value between `0` and `255`. For example, if set to `40`,
+colors like `rgb(30,30,30)` would be ignored.
+7. `white_threshold` The RGB value threshold for determining if a color is
+white. Colors where all RGB values are above this threshold are considered white
+and ignored. This is a value between `0` and `255`. For example, if set to `210`,
+colors like `rgb(220,220,220)` would be ignored. The default being `256` means
+that no white colors are ignored.
+
+=== "Simple Example"
+
+    The following usage will get the single most prominent color of the logo and
+    fallback to `red` if one is not available.
+
+    ```python
+    {get_image_color(logo_file, fallback="red")}
+    ```
+
+=== "Secondary Color"
+
+    The following usage will get the second most common color of the logo.
+
+    ```python
+    get_image_color(logo_file, fallback="blue", index=1)
+    ```
+
+=== "Ignore White Colors"
+
+    The following usage will get the primary color of the poster, ignoring
+    predominately white images.
+
+    ```python
+    get_image_color(poster_file, fallback="white", white_threshold=210)
+    ```
+
 ### Built-in Functions
 
 Beyond the TCM-defined functions, all methods of built-in Python types - e.g.
@@ -231,3 +311,6 @@ available [here](https://strftime.org/).
 
 [^4]: Roman numerals are not defined for values greater than `3999` (blame the
 Romans). These will raise an error during Card creation.
+
+[^5]: If per-season assets are [enabled](...) for the Series __and__ exist,
+these will be used. Otherwise these are the Series-wide assets.
