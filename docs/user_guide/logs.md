@@ -58,7 +58,8 @@ text box to filter messages associated with those contexts.
     To easily add a given ID as a filter, simply click on the ID in the log
     table. This will add the ID to your current filters.
 
-Some messages do not have an ID.
+Some messages do not have an ID - to filter these out, include a ++!++ in the
+filter dialog.
 
 #### Date Range
 
