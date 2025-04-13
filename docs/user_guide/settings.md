@@ -480,7 +480,7 @@ list of the available variables is listed [here](./variables.md).
     specify the format as:
 
     ```
-    {}
+    ""
     ```
 
 ### Season Folder Format
@@ -497,7 +497,7 @@ variable data, see a complete list of the available variables is listed
     specify the format as:
 
     ```
-    {}
+    ""
     ```
 
 ### Multi-Library File Naming
