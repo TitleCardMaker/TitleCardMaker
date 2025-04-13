@@ -148,7 +148,7 @@ def get_image_color(
     ) -> str:
     """
     Get a color from the given image. This is practically a wrapper for
-    the `ImageMagick.get_primary_colors` method.
+    the `ImageMagickInterface.get_primary_colors` method.
     """
 
     # Image does not exist, return fallback

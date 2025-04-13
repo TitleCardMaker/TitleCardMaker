@@ -55,10 +55,20 @@ class MarvelTitleCard(BaseCardType):
                 identifier='border_size',
                 description='Size of the border',
                 tooltip=(
-                    'Size of the left/top/right borders. Default is <v>55</v>. '
-                    'Unit is pixels.'
+                    'Value greater than <v>0</v>. Default is <v>55</v>. Unit '
+                    'is pixels.'
                 ),
                 default=55,
+            ),
+            Extra(
+                name='Border Toggle',
+                identifier='hide_border',
+                description='Whether to hide the left/top/right borders',
+                tooltip=(
+                    'Whether to Either <v>True</v> or <v>False</v>. Default is '
+                    '<v>False</v>.'
+                ),
+                default='False',
             ),
             Extra(
                 name='Episode Text Color',
@@ -88,16 +98,6 @@ class MarvelTitleCard(BaseCardType):
                     '<v>False</v>. Default is <v>True</v>.'
                 ),
                 default='True',
-            ),
-            Extra(
-                name='Hide Border',
-                identifier='hide_border',
-                description='Whether to hide the left/top/right borders.',
-                tooltip=(
-                    'Whether to Either <v>True</v> or <v>False</v>. Default is '
-                    '<v>False</v>.'
-                ),
-                default='False',
             ),
             Extra(
                 name='Text Box Color',
