@@ -550,14 +550,21 @@ def force_reload_episode_cards(
     episode = get_episode(db, episode_id, raise_exc=True)
 
     # Load Cards for all libraries
+    loaded = True
     for library in episode.series.libraries:
-        load_episode_title_card(
+        loaded &= load_episode_title_card(
             episode,
             db,
             library['name'],
             library['interface_id'],
             get_interface(library['interface_id']), # type: ignore
             log=request.state.log,
+        )
+
+    if not loaded:
+        raise HTTPException(
+            status_code=400,
+            detail='Failed to load Title Card',
         )
 
 
@@ -569,6 +576,7 @@ def reload_card(
         library_name: str | None = Query(default=None),
         uid: int | str | None = Query(default=None),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Reload the Title Card. This is a "force" reload.
@@ -594,26 +602,33 @@ def reload_card(
 
     # Load Title Cards into only the specified library
     if library_name and interface_id:
-        load_title_card(
+        loaded = load_title_card(
             card,
             db,
             library_name,
             interface_id,
             get_interface(interface_id), # type: ignore
             uid=uid,
-            log=request.state.log,
+            log=log,
         )
     # Load Cards for all libraries
     else:
+        loaded = True
         for library in card.episode.series.libraries:
-            load_title_card(
+            loaded &= load_title_card(
                 card,
                 db,
                 library['name'],
                 library['interface_id'],
                 get_interface(library['interface_id']), # type: ignore
-                log=request.state.log,
+                log=log,
             )
+
+    if not loaded:
+        raise HTTPException(
+            status_code=400,
+            detail='Failed to load Title Card',
+        )
 
 
 @card_router.get('/episode/{episode_id}', tags=['Episodes'])
