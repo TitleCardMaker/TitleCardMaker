@@ -28,6 +28,8 @@ meaning that it is installed and run on your computer.
     <a href="./blueprints"><img class="no-lightbox" src="./assets/blueprint_all_dark.webp#only-dark"></a>
     <a href="./user_guide/fonts"><img class="no-lightbox" src="./assets/fonts_light.webp#only-light"></a>
     <a href="./user_guide/fonts"><img class="no-lightbox" src="./assets/fonts_dark.webp#only-dark"></a>
+    <a href="./user_guide/recent"><img class="no-lightbox" src="./user_guide/assets/recent-light.webp#only-light"></a>
+    <a href="./user_guide/recent"><img class="no-lightbox" src="./user_guide/assets/recent-dark.webp#only-dark"></a>
     <img class="no-lightbox" src="./assets/home_table_light.webp#only-light">
     <img class="no-lightbox" src="./assets/home_table_dark.webp#only-dark">
   </div>
