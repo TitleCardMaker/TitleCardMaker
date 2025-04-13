@@ -719,7 +719,12 @@ def get_validator_model() -> type[Base]:
         def require_logo(cls, values: dict) -> dict:
             """"""
 
-            if (values['logo_position'] is not None
+            # Set the logo file to None so that existing Cards are not
+            # remade by assigning an unused logo file
+            if values['logo_position'] == 'omit':
+                values['logo_file'] = None
+            # Logo file specified, verify the file exists
+            elif (values['logo_position'] != 'omit'
                 and (
                     values['logo_file'] is None
                     or not values['logo_file'].exists()
