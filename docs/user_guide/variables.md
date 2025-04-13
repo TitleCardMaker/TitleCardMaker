@@ -93,11 +93,18 @@ hypothetical TCM customizations.
 
 === "Files"
 
-    | Variable Name      | Description                          | Example |
-    | ------------------ | ------------------------------------ | --------|
-    | `source_file`      | File path to the Source Image        | `/config/source/Breaking Bad (2008)/s2e6.jpg` |
-    | `card_file`        | File path to the Title Card          | `/config/cards/Breaking Bad (2008)/Season 2/Breaking Bad (2008) - S02E06.jpg` |
-    | `source_directory` | Path to the Series' source directory | `/config/source/Breaking Bad (2008)/` |
+    For more information on the logo color attributes, see [here]()
+
+    | Variable Name         | Description                           | Example |
+    | --------------------- | ------------------------------------- | --------|
+    | `source_file`         | Path to the Source Image              | `/config/source/Breaking Bad (2008)/s2e6.jpg` |
+    | `card_file`           | Path to the Title Card                | `/config/cards/Breaking Bad (2008)/Season 2/Breaking Bad (2008) - S02E06.jpg` |
+    | `source_directory`    | Path to the Series' source directory  | `/config/source/Breaking Bad (2008)/` |
+    | `backdrop_file`       | Path to the backdrop file[^5]         | `/config/source/Breaking Bad (2008)/backdrop.jpg` |
+    | `logo_file`           | Path to the logo file[^5]             | `/config/source/Breaking Bad (2008)/logo.png` |
+    | `poster_file`         | Path to the poster file               | `/config/source/Breaking Bad (2008)/poster.jpg` |
+    | `logo_color`          | Primary color of the logo             | `green` |
+    | `logo_color_no_white` | Primary (non-white) color of the logo | `green` |
 
 === "Database IDs"
 
@@ -152,7 +159,7 @@ many functions which allow for more customization. Each is described below.
 | `to_roman_numeral()` | Convert the given number to a roman numeral[^4]          | `{to_roman_numeral(episode_number)}`       | `VI`            |
 | `format_date()`      | Write the given date in some specific format[^3]         | `{format_date(airdate, 'Week %-U of 52')}` | `Week 02 of 52` |
 
-??? note "Support Language Codes"
+??? note "Supported Language Codes"
 
     | Code    | Language             |
     | ------- | -------------------- |
