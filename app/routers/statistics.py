@@ -16,10 +16,12 @@ from app.models.preferences import Preferences
 from app.models.series import Series
 from app.models.snapshot import Snapshot as SnapshotModel
 from app.models.sync import Sync
+from app.models.duration import TaskDuration
 from app.models.template import Template
 from app.schemas.statistic import (
     AssetSize,
     CardCount,
+    Duration,
     EpisodeCount,
     Snapshot,
     Statistic,
@@ -175,3 +177,26 @@ def get_snapshots(
     )
 
     return db.query(subquery).filter(subquery.c.row % slice_ == 0).all()
+
+
+@statistics_router.get('/task-durations')
+def get_task_durations(
+        after: datetime = Query(default=datetime.now() - timedelta(days=7)),
+        task_name: str | None = Query(default=None),
+        db: Session = Depends(get_database),
+    ) -> list[Duration]:
+    """
+    Get the Task Durations for the given Series.
+
+    - after: Datetime to filter by. All tasks after this datetime will
+    be returned.
+    - task_name: Optional Task name to filter by.
+    """
+
+    filters = []
+    if after:
+        filters.append(TaskDuration.start_time > after)
+    if task_name:
+        filters.append(TaskDuration.task_name == task_name)
+
+    return db.query(TaskDuration).filter(*filters).all()
