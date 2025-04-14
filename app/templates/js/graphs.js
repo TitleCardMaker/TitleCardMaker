@@ -102,10 +102,11 @@ function getSnapshots() {
               type: 'time',
               time: {
                 // Luxon format string
-                tooltipFormat: 'DD T'
+                tooltipFormat: 'DD T',
+                unit: 'day',
               },
               grid: {
-                drawOnChartArea: false,
+                // drawOnChartArea: false,
               },
               title: {
                 display: true,
@@ -200,10 +201,11 @@ function getSnapshots() {
               type: 'time',
               time: {
                 // Luxon format string
-                tooltipFormat: 'DD T'
+                tooltipFormat: 'DD T',
+                unit: 'day',
               },
               grid: {
-                drawOnChartArea: false,
+                // drawOnChartArea: false,
               },
               title: {
                 display: true,
