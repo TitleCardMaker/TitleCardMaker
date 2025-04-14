@@ -38,6 +38,12 @@ class Snapshot(Base):
         values['loaded'] = min(values['loaded'], values['cards'])
         return values
 
+class Duration(Base):
+    task_name: str
+    start_time: datetime
+    end_time: datetime
+    duration: int
+
 class Statistic(Base):
     value: int
     value_text: str

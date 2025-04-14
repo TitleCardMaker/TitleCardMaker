@@ -748,6 +748,14 @@
 // Statistics ------------------------------------------------------------------
 
 /**
+ * @typedef {Object} Duration
+ * @property {string} task_name
+ * @property {Date} start_time
+ * @property {Date} end_time
+ * @property {number} duration
+ */
+
+/**
  * @typedef {Object} Snapshot
  * @property {number} blueprints
  * @property {number} cards
