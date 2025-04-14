@@ -270,7 +270,7 @@ that no white colors are ignored.
     fallback to `red` if one is not available.
 
     ```python
-    {get_image_color(logo_file, fallback="red")}
+    get_image_color(logo_file, fallback="red")
     ```
 
 === "Secondary Color"

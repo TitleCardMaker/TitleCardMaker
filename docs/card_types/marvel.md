@@ -164,7 +164,7 @@ effects.
 !!! example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="17.35"
+        data-starting-point="10.9"
         data-left-label="Mask Image"
         data-right-label="Resulting Title Card">
         <img src="../assets/marvel/mask-raw.webp"/>
