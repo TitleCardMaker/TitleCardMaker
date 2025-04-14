@@ -1274,8 +1274,6 @@ def get_validator_model() -> type[Base]:
                 else:
                     p = float(result)
                     values['percentage'] = max(0.0, min(1.0, p)) # Limit [0.0, 1.0]
-            if (subtitle := values.get('subtitle', '{series_name}')) is not None:
-                values['subtitle'] = FormatString(subtitle, data=values).result
 
             return values
 
