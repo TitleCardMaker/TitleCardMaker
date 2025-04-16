@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pydantic import FilePath, PositiveFloat, confloat, constr
+from pydantic import FilePath, PositiveFloat, confloat, conint, constr
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
@@ -86,6 +86,16 @@ class CutoutTitleCard(BaseCardType):
                 ),
                 default=0,
             ),
+            Extra(
+                name='Title Horizontal Shift',
+                identifier='title_horizontal_shift',
+                description='Horizontal shift to apply to the title text',
+                tooltip=(
+                    'Number between <v>-3200</v> and <v>3200</v>. Default is '
+                    '<v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
         ],
         description=[
             'Title card featuring a solid color overlaying the source image.',
@@ -141,6 +151,7 @@ class CutoutTitleCard(BaseCardType):
         'overlay_color',
         'overlay_transparency',
         'source_file',
+        'title_horizontal_shift',
         'title_text',
         '__text_mask',
     )
@@ -164,6 +175,7 @@ class CutoutTitleCard(BaseCardType):
             cutout_vertical_shift: int = 0,
             overlay_color: str = 'black',
             overlay_transparency: float = 0.0,
+            title_horizontal_shift: int = 0,
             preferences: 'Preferences | None' = None,
             **unused,
         ) -> None:
@@ -197,6 +209,7 @@ class CutoutTitleCard(BaseCardType):
         self.number_blur_profile = blur_profile
         self.overlay_color = overlay_color
         self.overlay_transparency = overlay_transparency
+        self.title_horizontal_shift = title_horizontal_shift
 
         # Implementation details
         self.__text_mask: Path | None = None
@@ -238,6 +251,7 @@ class CutoutTitleCard(BaseCardType):
         font_kerning = 1 * self.font_kerning
         font_interword_spacing = 35 + int(self.font_interword_spacing)
         font_vertical_shift = 100 + self.font_vertical_shift
+        x = self.title_horizontal_shift
 
         return [
             f'-gravity south',
@@ -247,7 +261,7 @@ class CutoutTitleCard(BaseCardType):
             f'-interline-spacing {self.font_interline_spacing}',
             f'-interword-spacing {font_interword_spacing}',
             f'-kerning {font_kerning}',
-            f'-annotate +0+{font_vertical_shift} "{self.title_text}"',
+            f'-annotate {x:+}+{font_vertical_shift} "{self.title_text}"',
         ]
 
 
@@ -440,5 +454,6 @@ def get_validator_model() -> type[Base]:
         cutout_vertical_shift: int = 0
         overlay_color: str = 'black'
         overlay_transparency: confloat(ge=0.0, le=1.0) = 0.0
+        title_horizontal_shift: conint(ge=-3200, le=3200) = 0
 
     return CardModel
