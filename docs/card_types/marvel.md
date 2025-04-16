@@ -18,6 +18,10 @@ edges, with a black text box at the bottom containing all text.
   ![Example Marvel Card](./assets/marvel.webp)
 </figure>
 
+??? note "Labeled Card Elements"
+
+    ![Labeled Marvel Card Elements](./assets/marvel/labeled.webp)
+
 ## Border Customization
 
 The border elements can be customized in several ways.
