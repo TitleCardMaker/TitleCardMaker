@@ -23,6 +23,7 @@ from app.dependencies import (
     Preferences,
     get_blueprint_database,
     get_database,
+    get_logger,
     get_preferences,
 )
 from app.internal.auth import get_current_user
@@ -60,11 +61,11 @@ blueprint_router = APIRouter(
 
 @blueprint_router.get('/export/series/{series_id}')
 def export_series_blueprint(
-        request: Request,
         series_id: int,
         include_episode_overrides: bool = Query(default=True),
         mask_images: bool = Query(default=True),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> ExportBlueprint:
     """
     Generate the Blueprint for the given Series. This Blueprint can be
@@ -89,7 +90,7 @@ def export_series_blueprint(
     if include_episode_overrides:
         episode_data = [
             ei for ei, _ in
-            get_all_episode_data(series, raise_exc=False, log=request.state.log)
+            get_all_episode_data(series, raise_exc=False, log=log)
         ]
 
     return generate_series_blueprint(
