@@ -103,7 +103,7 @@ places the text in the center of the image.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="50"
+        data-starting-point="68.9"
         data-left-label="500"
         data-right-label="0">
         <img src="../assets/cutout/vertical_shift.webp"/>
@@ -120,7 +120,7 @@ effects.
 !!! example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="20"
+        data-starting-point="16.1"
         data-left-label="Mask Image"
         data-right-label="Resulting Title Card">
         <img src="../assets/cutout/mask_raw.png"/>
