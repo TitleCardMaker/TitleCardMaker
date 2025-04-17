@@ -65,10 +65,11 @@ class TintedGlassTitleCard(BaseCardType):
                 identifier='box_adjustments',
                 description='Manual adjustments to the bounds of the glass',
                 tooltip=(
-                    'Specified like <v>{top} {right} {bottom} {left}</v>. For '
-                    'example: <v>-20 10 0 5</v>. Positive values move that '
-                    'face out, negative values move the face in. Unit is '
-                    'pixels. Default is <v>0 0 0 0</v>.'
+                    'Specified as <v>{top} {right} {bottom} {left}</v>; e.g. '
+                    '<v>-20 10 0 5</v>. Positive values move that face out, '
+                    'negative values move the face in. Each value must be '
+                    'between <v>-300</v> and <v>300</v>. Unit is pixels. '
+                    'Default is <v>0 0 0 0</v>.'
                 ),
                 default='0 0 0 0',
             ),
@@ -438,14 +439,13 @@ class TintedGlassTitleCard(BaseCardType):
             True if the given font is custom, False otherwise.
         """
 
-        custom_extras = (
-            ('box_adjustments' in extras
-                and extras['box_adjustments'] != '0 0 0 0')
-            or ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    TintedGlassTitleCard.EPISODE_TEXT_COLOR)
-            or ('glass_color' in extras
-                and extras['glass_color'] != TintedGlassTitleCard.DARKEN_COLOR)
+        custom_extras = TintedGlassTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'box_adjustments': '0 0 0 0',
+                'episode_text_color': TintedGlassTitleCard.EPISODE_TEXT_COLOR,
+                'glass_color': TintedGlassTitleCard.DARKEN_COLOR,
+            }
         )
 
         return (
@@ -545,7 +545,18 @@ def get_validator_model() -> type[Base]:
         def parse_box_adjustments(cls, val: str) -> tuple[int, int, int, int]:
             """Convert box adjustment strings to a tuple of integers"""
 
-            return tuple(map(int, re_match(BoxAdjustmentRegex, val).groups())) # type: ignore
+            adjustments = tuple(
+                map(int, re_match(BoxAdjustmentRegex, val).groups())
+            )
+            if len(adjustments) != 4:
+                raise ValueError(
+                    'Box adjustments must be a space-separated set of four '
+                    'numbers'
+                )
+            if any(abs(a) > 300 for a in adjustments):
+                raise ValueError('Box adjustments must be less than 300 pixels')
+
+            return adjustments
 
         @root_validator(skip_on_failure=True)
         def toggle_text_hiding(cls, values: dict) -> dict:
