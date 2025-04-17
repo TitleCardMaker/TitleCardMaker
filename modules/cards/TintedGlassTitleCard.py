@@ -352,7 +352,7 @@ class TintedGlassTitleCard(BaseCardType):
             x, y = title_coordinates.x0 + 30, 150
         elif self.episode_text_position == 'right':
             gravity = 'southeast'
-            x, y = self.WIDTH - title_coordinates.x1 - 20, 150
+            x, y = self.WIDTH - title_coordinates.x1 + 25, 150
         y += self.vertical_adjustment
         position = f'{x:+.1f}{y:+.1f}'
 
