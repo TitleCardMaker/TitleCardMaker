@@ -873,13 +873,6 @@ def create_episode_card(
         create_card(db, card, CardClass, CardTypeModel, library, log=log)
         return True
 
-    # Function to get the existing val
-    def _get_existing(attribute: str) -> Any:
-        return existing_card.model_json.get(
-            attribute,
-            CardTypeModel.__fields__[attribute].default,
-        )
-
     # Existing Card file doesn't exist anymore, remove from db and recreate
     if not existing_card.exists:
         log.debug(f'{episode} Card not found - creating')
@@ -887,6 +880,13 @@ def create_episode_card(
         db.commit()
         create_card(db, card, CardClass, CardTypeModel, library, log=log)
         return True
+
+    # Function to get the existing val
+    def _get_existing(attribute: str) -> Any:
+        return existing_card.model_json.get(
+            attribute,
+            CardTypeModel.__fields__[attribute].default,
+        )
 
     # Determine if this Card is different than existing Card
     new_model_json = _card_type_model_to_json(CardTypeModel)
