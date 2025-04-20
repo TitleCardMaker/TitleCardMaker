@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
 from plexapi.video import Episode as PlexEpisode
 from sqlalchemy import ColumnElement, and_, false as sql_false, func, or_, not_
@@ -50,6 +50,16 @@ class EpisodeIndices(TypedDict):
     episode_number: int
     absolute_number: int | None
 # pylint: enable=missing-class-docstring
+
+
+def imdb_str(id_: str | int | Any, /) -> str:
+    """Convert an IMDb ID to a string."""
+
+    if isinstance(id_, (int, str)):
+        if (id := str(id_)).startswith('tt'):
+            return id
+        return f'tt{id}'
+    raise ValueError(f'Invalid IMDb ID: {id}')
 
 
 class EpisodeInfo(DatabaseInfoContainer):
@@ -470,7 +480,7 @@ class EpisodeInfo(DatabaseInfoContainer):
     def set_imdb_id(self, imdb_id: str | None) -> None:
         """Set the IMDb ID of this object. See `_update_attribute()`."""
 
-        self._update_attribute('imdb_id', imdb_id, str)
+        self._update_attribute('imdb_id', imdb_id, imdb_str)
 
 
     def set_jellyfin_id(self,
