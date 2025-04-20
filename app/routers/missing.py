@@ -1,18 +1,29 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination import paginate as paginate_sequence
 from sqlalchemy import not_
 from sqlalchemy.orm import Session
 
 from app.database.session import Page
-from app.dependencies import get_database, get_preferences
+from app.dependencies import (
+    AnyInterface,
+    EmbyInterface,
+    JellyfinInterface,
+    PlexInterface,
+    SonarrInterface,
+    get_database,
+    get_logger,
+    get_preferences,
+    require_interface,
+)
 from app.internal.auth import get_current_user
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
 from app.models.preferences import Preferences
 from app.models.series import Series as SeriesModel
 from app.schemas.episode import Episode
-from app.schemas.series import Series
-
+from app.schemas.series import SearchResult, Series
+from modules.Debug import Logger
 
 # Create sub router for all /fonts API requests
 missing_router = APIRouter(
@@ -25,7 +36,7 @@ missing_router = APIRouter(
 @missing_router.get('/cards')
 def get_missing_cards(
         db: Session = Depends(get_database),
-    ) -> Page[Episode]:
+    ) -> Page[Episode]: # type: ignore
     """Get all the Episodes that do not have any associated Cards."""
 
     return paginate(
