@@ -793,8 +793,6 @@ def resolve_card_settings(
                     episode=episode,
                     log=log,
                 )
-                if value != card_settings[key]:
-                    log.trace(f'Resolved {key_name} "{value}" -> "{card_settings[key]}"')
             except InvalidFormatString:
                 log.exception(f'Cannot parse {key_name} as a FormatString')
                 continue
