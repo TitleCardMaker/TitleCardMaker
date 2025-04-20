@@ -369,7 +369,8 @@ def toggle_series_monitored_status(
         db: Session = Depends(get_database),
     ) -> Series:
     """
-    Toggle the monitored attribute of the given Series.
+    Toggle the monitored attribute of the given Series. This cycles
+    statuses like "monitored" -> "unmonitored" -> "disabled" (looping).
 
     - series_id: ID of the Series to toggle the monitored attribute of.
     """
@@ -377,8 +378,10 @@ def toggle_series_monitored_status(
     # Query for this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    # Toggle monitored attribute, update Database
-    series.monitored = not series.monitored
+    # Toggle status, update Database
+    statuses = ['monitored', 'unmonitored', 'disabled']
+    current_index = statuses.index(series.status)
+    series.status = statuses[(current_index + 1) % len(statuses)]
     db.commit()
 
     return series
@@ -604,11 +607,11 @@ def batch_update_series(
     return all_series
 
 
-@series_router.put('/batch/monitor')
+@series_router.put('/batch/monitor', deprecated=True)
 def batch_monitor_series(
-        request: Request,
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> list[Series]:
     """
     Mark the Series with the given IDs as monitored.
@@ -623,19 +626,19 @@ def batch_monitor_series(
         all_series.append(series)
 
         # Update monitored attribute
-        series.monitored = True
-        request.state.log.debug(f'{series}.monitored = True')
+        series.status = 'monitored'
+        log.debug(f'{series}.status = "monitored"')
 
     db.commit()
 
     return all_series
 
 
-@series_router.put('/batch/unmonitor')
+@series_router.put('/batch/unmonitor', deprecated=True)
 def batch_unmonitor_series(
-        request: Request,
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> list[Series]:
     """
     Mark the Series with the given IDs as unmonitored.
@@ -650,8 +653,35 @@ def batch_unmonitor_series(
         all_series.append(series)
 
         # Update monitored attribute
-        series.monitored = False
-        request.state.log.debug(f'{series}.monitored = False')
+        series.status = 'unmonitored'
+        log.debug(f'{series}.status = "unmonitored"')
+
+    db.commit()
+
+    return all_series
+
+
+@series_router.patch('/batch/status/{status}')
+def batch_update_series_status(
+        status: str,
+        series_ids: list[int] = Body(...),
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+    ) -> list[Series]:
+    """
+    Update the status of all the given Series.
+
+    - status: Status to set all the given Series to.
+    - series_ids: List of IDs of Series to update the status of.
+    """
+
+    all_series = []
+    for series_id in series_ids:
+        series = get_series(db, series_id, raise_exc=True)
+        all_series.append(series)
+
+        series.status = status
+        log.debug(f'{series}.status = {status}')
 
     db.commit()
 

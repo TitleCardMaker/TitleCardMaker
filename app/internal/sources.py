@@ -40,7 +40,7 @@ def download_all_series_logos(*, log: Logger = log) -> None:
         all_series = db.query(Series).all()
         for series in all_series:
             # If Series is unmonitored, skip
-            if not series.monitored:
+            if series.status != 'monitored':
                 log.trace(f'{series} is not monitored, skipping')
                 continue
 
