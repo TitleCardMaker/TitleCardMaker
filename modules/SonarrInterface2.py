@@ -28,7 +28,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
     connects to an instance of Sonarr.
     """
 
-    INTERFACE_TYPE: str = 'Sonarr'
+    INTERFACE_TYPE = 'Sonarr'
 
     """Use a longer request timeout for Sonarr to handle slow databases"""
     REQUEST_TIMEOUT = 600
@@ -280,6 +280,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
     def query_series(self,
             query: str,
             *,
+            return_all: bool = False,
             log: Logger = log,
         ) -> list[SearchResult]:
         """
@@ -287,6 +288,8 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
 
         Args:
             query: Series name or substring to look up.
+            return_all: Whether to return all Series, instead of those
+                returned by the given query.
             log: Logger for all log messages.
 
         Returns:
@@ -298,10 +301,15 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
         """
 
         # Perform query
-        search_results = self.get(
-            url=f'{self.url}series/lookup',
-            params={'term': query} | self.__standard_params,
-        )
+        if return_all:
+            search_results = self.get(
+                f'{self.url}series', self.__standard_params
+            )
+        else:
+            search_results = self.get(
+                url=f'{self.url}series/lookup',
+                params={'term': query} | self.__standard_params,
+            )
 
         def get_poster_proxy(images: list[dict[str, str]]) -> str | None:
             """

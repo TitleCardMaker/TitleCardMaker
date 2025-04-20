@@ -430,6 +430,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def query_series(self,
             query: str,
             *,
+            return_all: bool = False,
             log: Logger = log,
         ) -> list[SearchResult]:
         """
@@ -437,6 +438,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         Args:
             query: Series name or substring to look up.
+            return_all: Whether to return all Series, instead of those
+                returned by the given query.
             log: Logger for all log messages.
 
         Returns:
@@ -450,7 +453,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             params=self.__params | {
                 'Recursive': True,
                 'IncludeItemTypes': 'Series',
-                'SearchTerm': query,
+                'SearchTerm': '' if return_all else query,
                 'Fields': 'ProviderIds,Overview,ProductionYear,Status',
                 'EnableImages': True,
                 'ImageTypes': 'Primary',

@@ -98,7 +98,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     and episode data, along with other attributes
     """
 
-    INTERFACE_TYPE: str = 'Plex'
+    INTERFACE_TYPE = 'Plex'
 
     """Series ID's that can be set by TMDb"""
     SERIES_IDS = ('imdb_id', 'tmdb_id', 'tvdb_id') # type: ignore
@@ -605,6 +605,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def query_series(self,
             query: str,
             *,
+            return_all: bool = False,
             log: Logger = log,
         ) -> list[SearchResult]:
         """
@@ -612,6 +613,8 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         Args:
             query: Series name or substring to look up.
+            return_all: Whether to return all Series, instead of those
+                returned by the given query.
             log: Logger for all log messages.
 
         Returns:
@@ -620,10 +623,22 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             proxy API endpoint to obfuscate this Server's token.
         """
 
-        # Search Plex for this query
-        results: list[PlexShow] = self.__server.search(
-            query, mediatype='show', limit=50
-        )
+        if return_all:
+            results = cast(
+                list[PlexShow],
+                [
+                    show
+                    for library in self.__server.library.sections()
+                    for show in library.all()
+                    if library.type == 'show' and show.year is not None
+                ]
+            )
+        else:
+            # Search Plex for this query
+            results = cast(
+                list[PlexShow],
+                self.__server.search(query, mediatype='show', limit=50)
+            )
 
         def parse_ids(show: PlexShow) -> dict:
             """

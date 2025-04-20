@@ -30,7 +30,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     cards can be loaded into).
     """
 
-    INTERFACE_TYPE: str = 'Jellyfin'
+    INTERFACE_TYPE = 'Jellyfin'
 
     """Series ID's that can be set by Jellyfin"""
     SERIES_IDS = ('imdb_id', 'jellyfin_id', 'tmdb_id', 'tvdb_id')
@@ -471,6 +471,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
     def query_series(self,
             query: str,
             *,
+            return_all: bool = False,
             log: Logger = log,
         ) -> list[SearchResult]:
         """
@@ -478,6 +479,8 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
 
         Args:
             query: Series name or substring to look up.
+            return_all: Whether to return all Series, instead of those
+                returned by the given query.
             log: Logger for all log messages.
 
         Returns:
@@ -491,7 +494,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             params=self.__params | {
                 'recursive': True,
                 'includeItemTypes': 'Series',
-                'searchTerm': query,
+                'searchTerm': '' if return_all else query,
                 'fields': 'ParentId,ProviderIds,Overview',
                 'enableImages': False,
             },

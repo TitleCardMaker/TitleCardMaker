@@ -65,3 +65,29 @@ def get_missing_logos(
             .all()
         if not (source_directory / series.path_safe_name / 'logo.png').exists()
     ]
+
+
+@missing_router.get('/series')
+def get_missing_series(
+        db: Session = Depends(get_database),
+        interface: AnyInterface = Depends(require_interface),
+        log: Logger = Depends(get_logger),
+    ) -> Page[SearchResult]: # type: ignore
+    """Get a list of Series which are not added to the Database."""
+
+    if not isinstance(
+        interface,
+        (EmbyInterface, JellyfinInterface, PlexInterface, SonarrInterface)
+    ):
+        raise HTTPException(status_code=400, detail='Interface type not supported')
+
+    missing_series: list[SearchResult] = []
+    for result in interface.query_series(query='', return_all=True, log=log):
+        series = db.query(SeriesModel)\
+            .filter(result.series_info.filter_conditions(SeriesModel))\
+            .first()
+
+        if not series:
+            missing_series.append(result)
+
+    return paginate_sequence(missing_series)
