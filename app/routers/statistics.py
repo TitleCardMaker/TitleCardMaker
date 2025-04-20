@@ -48,8 +48,9 @@ def get_system_statistics(
     font_count = db.query(Font.id).count()
     loaded_count = db.query(Loaded.id).count()
     series_count = db.query(Series.id).count()
-    monitored_count = db.query(Series.id).filter_by(monitored=True).count()
-    unmonitored_count = db.query(Series.id).filter_by(monitored=False).count()
+    monitored_count = db.query(Series.id).filter_by(status='monitored').count()
+    unmonitored_count = db.query(Series.id).filter_by(status='unmonitored').count()
+    disabled_count = db.query(Series.id).filter_by(status='disabled').count()
     sync_count = db.query(Sync.id).count()
     template_count = db.query(Template.id).count()
 
@@ -78,6 +79,11 @@ def get_system_statistics(
             value=unmonitored_count, value_text=f'{unmonitored_count:,}',
             unit='Unmonitored',
             description='Number of Unmonitored Series',
+        ),
+        Statistic(
+            value=disabled_count, value_text=f'{disabled_count:,}',
+            unit='Disabled',
+            description='Number of Disabled Series',
         ),
         Statistic(
             value=episode_count, value_text=f'{episode_count:,}',

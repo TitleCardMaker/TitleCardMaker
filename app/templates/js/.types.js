@@ -535,7 +535,7 @@
  * @property {?number} font_id
  * @property {number[]} template_ids
  * @property {?number[]} image_source_priority
- * @property {boolean} monitored
+ * @property {"monitored" | "unmonitored" | "disabled"} status
  * @property {boolean} match_titles
  * @property {boolean} auto_split_title
  * @property {?boolean} sync_specials

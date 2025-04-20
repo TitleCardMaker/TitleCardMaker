@@ -32,6 +32,7 @@ DictKey = constr(regex=r'^[a-zA-Z]+[^ -]*$', min_length=1)
 """
 Base classes
 """
+Status = Literal['disabled', 'monitored', 'unmonitored']
 FilterOperation = Literal[tuple(OPERATIONS.keys())]
 FilterArgument = Literal[tuple(ARGUMENT_KEYS)]
 SeriesOrder = Literal[
@@ -86,7 +87,7 @@ class BaseTemplate(BaseConfig):
 class BaseSeries(BaseConfig):
     name: constr(min_length=1)
     year: conint(ge=1900)
-    monitored: bool = True
+    status: Status = 'monitored'
     template_ids: list[int] | None = None
     match_titles: bool = True
     auto_split_title: bool = True
@@ -114,7 +115,7 @@ class BaseSeries(BaseConfig):
 
 class BaseUpdate(UpdateBase):
     name: constr(min_length=1) | None = UNSPECIFIED
-    monitored: bool = UNSPECIFIED
+    status: Status = UNSPECIFIED
     font_id: int | None = UNSPECIFIED
     sync_specials: bool | None = UNSPECIFIED
     skip_localized_images: bool | None = UNSPECIFIED
@@ -363,7 +364,7 @@ class SeriesOverview(Base):
     poster_url: str
     # small_poster_url: str
     libraries: list[MediaServerLibrary] = []
-    monitored: bool
+    status: Status
 
 class SeriesOverviewWithCounts(Base):
     id: int
@@ -376,7 +377,7 @@ class SeriesOverviewWithCounts(Base):
     libraries: list[MediaServerLibrary] = []
     episode_count: int
     card_count: int
-    monitored: bool
+    status: Status
 
 class SeriesSearchResult(Base):
     id: int

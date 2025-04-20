@@ -57,11 +57,11 @@ def create_all_title_cards(*, log: Logger = log) -> None:
     with next(get_database()) as db:
         # Get all Series
         failures = 0 
-        for series in db.query(Series).all():
+        for series in db.query(Series).filter(Series.status !='disabled').all():
             log.trace(f'Starting to process {series}')
             try:
                 # Refresh Episode data if Series is monitored
-                if series.monitored:
+                if series.status == 'monitored':
                     try:
                         refresh_episode_data(
                             db, series, refresh_all_ids=True, log=log
@@ -83,7 +83,7 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                     )
 
                 # Add translations if monitored
-                if series.monitored:
+                if series.status == 'monitored':
                     for episode in series.episodes:
                         translate_episode(db, episode, commit=False, log=log)
                     db.commit()
@@ -91,7 +91,7 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                     log.trace(f'{series} is unmonitored, skipping translations')
 
                 # Download Source Images
-                if series.monitored:
+                if series.status == 'monitored':
                     for episode in series.episodes:
                         download_episode_source_images(
                             db, episode, raise_exc=False, log=log

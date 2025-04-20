@@ -94,7 +94,7 @@ ConditionFieldAttributes: dict[str, InstrumentedAttribute[Any]] = {
     'libraries': Series.libraries,
     'match_titles': Series.match_titles,
     # 'missing_cards': ..., # This must be handled separately
-    'monitored': Series.monitored,
+    'status': Series.status,
     'name': Series.name,
     'season_titles': Series.season_titles,
     'skip_localized_images': Series.skip_localized_images,
@@ -375,9 +375,14 @@ def process_series(
         log: Logger for all log messages.
     """
 
+    # Nothing to process if disabled
+    if series.status == 'disabled':
+        log.debug(f'{series} is disabled, skipping processing')
+        return None
+
     # Begin processing the Series
     # Refresh episode data
-    if series.monitored:
+    if series.status == 'monitored':
         log.debug(f'{series} Started refreshing Episode data')
         refresh_episode_data(db, series, log=log)
 
@@ -385,7 +390,7 @@ def process_series(
     get_watched_statuses(db, series, series.episodes, log=log)
 
     # Begin downloading Source images
-    if series.monitored:
+    if series.status == 'monitored':
         log.debug(f'{series} Started downloading source images')
         for episode in series.episodes:
             background_tasks.add_task(
@@ -394,7 +399,7 @@ def process_series(
             )
 
     # Begin Episode translation
-    if series.monitored:
+    if series.status == 'monitored':
         log.debug(f'{series} Started adding translations')
         for episode in series.episodes:
             background_tasks.add_task(
@@ -409,6 +414,8 @@ def process_series(
             create_episode_cards,
             db, episode, raise_exc=False, log=log
         )
+
+    return None
 
 
 def update_series_config(
@@ -913,7 +920,7 @@ def add_series(
     refresh_remote_card_types(db, reset=False, log=log)
 
     # Refresh Episode data
-    if series.monitored:
+    if series.status == 'monitored':
         if background_tasks:
             background_tasks.add_task(
                 refresh_episode_data,
@@ -1060,7 +1067,7 @@ def query_and_filter_series(
             Series.poster_url,
             Series.libraries,
             Series.sync_id,
-            Series.monitored,
+            Series.status,
         )
     )
 

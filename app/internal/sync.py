@@ -26,6 +26,9 @@ from modules.Debug import Logger, log
 def sync_all(*, log: Logger = log) -> None:
     """
     Schedule-able function to run all defined Syncs in the Database.
+
+    Args:
+        log: Logger for all log messages.
     """
 
     # Wait if there is a Sync currently running
@@ -211,7 +214,7 @@ def run_sync(
             added.append(NewSeries(
                 name=series_info.name,
                 year=series_info.year,
-                monitored=not sync.add_as_unmonitored,
+                status='unmonitored' if sync.add_as_unmonitored else 'monitored',
                 libraries=libraries,
                 **series_info.ids,
                 sync_id=sync.id, template_ids=sync.template_ids,
