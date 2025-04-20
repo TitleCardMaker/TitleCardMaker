@@ -799,7 +799,7 @@ const filterSettings = [
   ['List of Libraries',         'libraries',              'list'            ],
   ['Match Titles',              'match_titles',           'boolean'         ],
   ['Has Missing Title Cards',   'missing_cards',          'boolean',        ],
-  ['Monitored Status',          'monitored',              'boolean'         ],
+  ['Series Status',             'status',                 'string'          ],
   ['Series Name',               'name',                   'string'          ],
   ['Season Title List',         'season_titles',          'nullable list'   ],
   ['Localized Image Rejection', 'skip_localized_images',  'nullable boolean'],
