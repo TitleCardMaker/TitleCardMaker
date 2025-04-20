@@ -382,7 +382,7 @@ async function initAll() {
   const query = new URLSearchParams(window.location.search).get('q');
   if (query) {
     document.getElementById('search-query').value = query;
-    querySeries();
+    querySeries(false);
   }
 
   // Add custom right-click action to Browse Blueprints button
@@ -403,22 +403,27 @@ async function initAll() {
  * Query for a series. This reads the input, makes the API call and then
  * displays the results as cards.
  */
-function querySeries() {
+function querySeries(missing=false) {
   const resultTemplate = document.getElementById('search-result-template');
   const resultSegment = document.getElementById('search-results');
   let query = $('#search-query').val();
 
   // Exit if are no HTML elements or query
-  if (resultTemplate === null || resultSegment === null || !query) { return; }
+  if (resultTemplate === null || resultSegment === null || (!query && !missing)) { return; }
 
   // Add placeholders while searching
   addPlaceholders(resultSegment, 10);
   const interfaceId = $('input[name="interface_id"]').val() || {{preferences.episode_data_source}};
 
   // Submit API request
+  const params = new URLSearchParams({
+    name: query,
+    interface_id: interfaceId,
+  });
+  const url = missing ? '/api/missing/series' : '/api/series/lookup';
   $.ajax({
     type: 'GET',
-    url: `/api/series/lookup?name=${query}&interface_id=${interfaceId}`,
+    url: `${url}?${params.toString()}`,
     /**
      * Lookup successful, populate page.
      * @param {SearchResultsPage} allResults - Search results for this query.
