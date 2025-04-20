@@ -38,6 +38,7 @@ Schema Version History (oldest to newest):
 - a1520b6160c4 | Add Series per-season asset toggle and Series/Template ISP settings
 - 2dc1e976a801 | Add indexing, and explicit sort, clean, and full name columns
 - e290ff7005ff | Add object timestamp columns
+- f4afea8860cf | Change Series.monitored column to status
 """
 
 # this is the Alembic Config object, which provides

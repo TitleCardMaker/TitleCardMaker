@@ -12,7 +12,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from sqlalchemy import ColumnElement, ForeignKey, JSON, event, func
+from sqlalchemy import ColumnElement, ForeignKey, JSON, String, event, func
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.ext.mutable import MutableDict, MutableList
@@ -42,6 +42,8 @@ class Library(TypedDict): # pylint: disable=missing-class-docstring
     interface: ServerName
     interface_id: int
     name: str
+
+Status = Literal['disabled', 'monitored', 'unmonitored']
 
 INTERNAL_ASSET_DIRECTORY = Path(__file__).parent.parent / 'assets'
 
@@ -118,7 +120,7 @@ class Series(Base):
     full_name: Mapped[str]
     sort_name: Mapped[str] = mapped_column(index=True)
     year: Mapped[int]
-    monitored: Mapped[bool]
+    status: Mapped[Status] = mapped_column(String)
     poster_file: Mapped[str] = mapped_column(
         default=str(INTERNAL_ASSET_DIRECTORY / 'placeholder.jpg'),
     )
