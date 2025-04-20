@@ -66,10 +66,10 @@ series_router = APIRouter(
 
 @series_router.get('/all')
 def get_all_series(
-        request: Request,
         db: Session = Depends(get_database),
         order_by: SeriesOrder = Query(default='alphabetical'),
         filter_: str = Query(alias='filter', default=None),
+        log: Logger = Depends(get_logger),
     ) -> Page[SeriesOverview]: # type: ignore
     """
     Get all defined Series.
@@ -78,9 +78,6 @@ def get_all_series(
     - filter: Optional filter conditions to apply the list of returned
     Series.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     try:
         filter = SeriesFilter.parse_raw(filter_) if filter_ else None
@@ -277,11 +274,11 @@ def search_existing_series(
 
 @series_router.get('/lookup')
 def lookup_new_series(
-        request: Request,
         name: str = Query(..., min_length=1),
         db: Session = Depends(get_database),
         interface = Depends(require_interface),
-    ) -> Page[SearchResult]:
+        log: Logger = Depends(get_logger),
+    ) -> Page[SearchResult]: # type: ignore
     """
     Look up the given Series name on the indicated Interface. Returned
     results are not necessary already added to TCM - use the `/search`
@@ -291,9 +288,7 @@ def lookup_new_series(
     - interface_id: ID of the interface to query.
     """
 
-    return paginate_sequence(
-        lookup_series(db, interface, name, log=request.state.log)
-    )
+    return paginate_sequence(lookup_series(db, interface, name, log=log))
 
 
 @series_router.get('/series/{series_id}')
