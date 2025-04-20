@@ -57,13 +57,17 @@ function toggleMonitoredStatus(seriesId) {
     url: `/api/series/series/${seriesId}/toggle-monitor`,
     success: series => {
       // Show toast, toggle text and icon to show new status
-      $(`#series-id${series.id} img`).toggleClass('unmonitored', !series.monitored);
-      if (series.monitored) {
+      $(`#series-id${series.id} img`).toggleClass('unmonitored', series.status !== 'monitored');
+      const statusRow = document.querySelector(`#series-id${series.id} td[data-row="status"] a`);
+      if (series.status === 'monitored') {
         showInfoToast(`Started Monitoring ${series.name}`);
-        $(`#series-id${series.id} td[data-row="monitored"] a`)[0].innerHTML = '<i class="ui eye outline green icon"></i>';
-      } else {
+        statusRow.innerHTML = '<i class="ui eye outline green icon"></i>';
+      } else if (series.status === 'unmonitored') {
         showInfoToast(`Stopped Monitoring ${series.name}`);
-        $(`#series-id${series.id} td[data-row="monitored"] a`)[0].innerHTML = '<i class="ui eye slash outline red icon">';
+        statusRow.innerHTML = '<i class="ui eye slash outline yellow icon"></i>';
+      } else {
+        showInfoToast(`Disabled ${series.name}`);
+        statusRow.innerHTML = '<i class="ui times circle outline red icon"></i>';
       }
       refreshTheme();
     }, error: response => showErrorToast({title: 'Error Changing Status', response}),
@@ -246,7 +250,7 @@ function _populateSeriesRow(series, template) {
   }
 
   // Add unmonitored class if styling
-  if (stylize_unmonitored_posters && !series.monitored) {
+  if (stylize_unmonitored_posters && series.status !== 'monitored') {
     poster.classList.add('unmonitored');
   }
 
@@ -273,17 +277,19 @@ function _populateSeriesRow(series, template) {
     row.querySelector('td[data-row="card_count"]').remove();
   }
 
-  // Toggle monitored status when cell is clicked
-  row.querySelector('td[data-row="monitored"] a').onclick = () => toggleMonitoredStatus(series.id);
+  // Toggle status when cell is clicked
+  row.querySelector('td[data-row="status"] a').onclick = () => toggleMonitoredStatus(series.id);
 
   // Sort by monitored boolean status
-  row.querySelector('td[data-row="monitored"]').dataset.sortValue = series.monitored;
+  row.querySelector('td[data-row="status"]').dataset.sortValue = series.status;
 
   // Set icon for monitored cell
-  if (series.monitored) {
-    row.querySelector('td[data-row="monitored"] a').innerHTML = '<i class="ui eye outline green icon"></i>';
+  if (series.status === 'monitored') {
+    row.querySelector('td[data-row="status"] a').innerHTML = '<i class="ui eye outline green icon"></i>';
+  } else if (series.status === 'unmonitored') {
+    row.querySelector('td[data-row="status"] a').innerHTML = '<i class="ui eye slash outline yellow icon"></i>';
   } else {
-    row.querySelector('td[data-row="monitored"] a').innerHTML = '<i class="ui eye slash outline red icon">';
+    row.querySelector('td[data-row="status"] a').innerHTML = '<i class="ui times circle outline red icon"></i>';
   }
 
   // Process Series when process cell is clicked
@@ -308,7 +314,7 @@ function _populateSeriesCard(series, template) {
   img.src = series.small_poster_url || `/assets/${series.id}/poster-750.jpg`;
 
   // Grayscale if unmonitored (and enabled)
-  if (stylize_unmonitored_posters && !series.monitored) {
+  if (stylize_unmonitored_posters && series.status !== 'monitored') {
     img.classList.add('unmonitored'); 
   }
 
@@ -334,7 +340,7 @@ function _populateSeriesCard(series, template) {
   if (includeCounts) {
     const cardVal = Math.min(series.card_count, series.episode_count);
     if (cardVal > 0) {
-      if (series.monitored) {
+      if (series.status === 'monitored') {
         progressBar.setAttribute('data-value', `${cardVal},${series.episode_count-cardVal},0,0`);
       } else {
         progressBar.setAttribute('data-value', `0,0,${cardVal},${series.episode_count-cardVal}`);
@@ -488,6 +494,7 @@ const statisticMap = [
   {description: 'Number of Series', dataValue: 'series'},
   {description: 'Number of Monitored Series', dataValue: 'monitored'},
   {description: 'Number of Unmonitored Series', dataValue: 'unmonitored'},
+  {description: 'Number of Disabled Series', dataValue: 'disabled'},
   //
   {description: 'Number of Named Fonts', dataValue: 'fonts'},
   {description: 'Number of Templates', dataValue: 'templates'},
@@ -560,40 +567,27 @@ function sortSeries(sortBy) {
 }
 
 /**
- * Submit an API request to mark all the currently selected Series as monitored.
+ * Submit an API request to change the status of all the currently selected Series.
+ * @param {"monitored" | "unmonitored" | "disabled"} status The status to set
+ * all the currently selected Series to.
  */
-function batchMonitor() {
+function batchChangeStatus(status) {
   if (selectedSeries.length === 0) { return; }
-  $.ajax({
-    type: 'PUT',
-    url: '/api/series/batch/monitor',
-    data: JSON.stringify(selectedSeries),
-    contentType: 'application/json',
-    success: updatedSeries => {
-      showInfoToast(`Monitored ${updatedSeries.length} Series`);
-      getAllSeries(undefined, true);
-      getAllStatistics();
-    },
-    error: response => showErrorToast({title: 'Error Updating Series', response}),
-  });
-}
 
-/**
- * Submit an API request to mark all the currently selected Series as unmonitored.
- */
-function batchUnmonitor() {
-  if (selectedSeries.length === 0) { return; }
+  const $icon = setLoadingIcon($('#toolbar [data-action="edit"] > .icon'));
+
   $.ajax({
-    type: 'PUT',
-    url: '/api/series/batch/unmonitor',
+    type: 'PATCH',
+    url: `/api/series/batch/status/${status}`,
     data: JSON.stringify(selectedSeries),
     contentType: 'application/json',
     success: updatedSeries => {
-      showInfoToast(`Unmonitored ${updatedSeries.length} Series`);
+      showInfoToast(`Updated the Status of ${updatedSeries.length} Series`);
       getAllSeries(undefined, true);
       getAllStatistics();
     },
     error: response => showErrorToast({title: 'Error Updating Series', response}),
+    complete: () => removeLoadingIcon($icon),
   });
 }
 

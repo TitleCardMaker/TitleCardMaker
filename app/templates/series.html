@@ -444,12 +444,14 @@
             <i data-action="previous-series" class="ui arrow alternate circle left outline link icon"></i>
           </a>
         </span>
-        <span data-tooltip="Toggle Monitored Status" data-position="bottom center">
-          <a class="item" id="monitor-status" onclick="toggleMonitorStatus();">
-            {% if series.monitored %}
+        <span data-tooltip="Toggle Status" data-position="bottom center">
+          <a class="item" id="status" onclick="toggleStatus();">
+            {% if series.status == 'monitored' %}
             <i class="ui eye outline green icon"></i>
+            {% elif series.status == 'unmonitored' %}
+            <i class="ui eye slash outline yellow icon"></i>
             {% else %}
-            <i class="ui eye slash outline red icon"></i>
+            <i class="ui times circle outline red icon"></i>
             {% endif %}
           </a>
         </span>
@@ -1307,8 +1309,8 @@
 
           <h2 class="ui dividing header">
             Source Images
-            {% if not series.monitored %}
-            <span data-tooltip="Unmonitored Series will not automatically download Source Images." data-position="right center">
+            {% if series.status != 'monitored' %}
+            <span data-tooltip="Series must be monitored to automatically download Source Images" data-position="right center">
               <i class="small yellow exclamation triangle icon"></i>
             </span>
             {% else %}

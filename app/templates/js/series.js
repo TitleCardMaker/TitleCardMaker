@@ -1553,12 +1553,11 @@ function deleteListValues(attribute) {
 }
 
 /**
- * Submit an API request to toggle the monitored status of this Series. If
- * successful, this updates the HTML of the monitored icon.
+ * Submit an API request to toggle the status of this Series. If successful,
+ * this updates the HTML of the status icon.
  */
-function toggleMonitorStatus() {
-  const $icon = $('#monitor-status .icon');
-  setLoadingIcon($icon);
+function toggleStatus() {
+  const $icon = setLoadingIcon($('#status .icon'));
 
   // Submit API request
   $.ajax({
@@ -1570,12 +1569,15 @@ function toggleMonitorStatus() {
      */
     success: response => {
       // Show toast, toggle text and icon to show new status
-      if (response.monitored) {
+      if (response.status === 'monitored') {
         showInfoToast('Started Monitoring Series');
-        $icon.toggleClass('red slash', false).toggleClass('green', true);
-      } else {
+        $icon.parent().html('<i class="ui eye outline green icon"></i>');
+      } else if (response.status === 'unmonitored') {
         showInfoToast('Stopped Monitoring Series');
-        $icon.toggleClass('red slash', true).toggleClass('green', false);
+        $icon.parent().html('<i class="ui eye slash outline yellow icon"></i>');
+      } else {
+        showInfoToast('Disabled Series');
+        $icon.parent().html('<i class="ui times circle outline red icon"></i>');
       }
       refreshTheme();
     },
