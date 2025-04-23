@@ -761,7 +761,7 @@ function replaceFileNameWithMask(imageSrc) {
 /**
  * Submit an API request to delete the Source Image of the given Episode. If
  * successful, then re-query the File and Card data.
- * @param {number} episodeId: ID of the Episode whose Source Image is being
+ * @param {number} episodeId ID of the Episode whose Source Image is being
  * deleted.
  */
 function deleteSourceImage(episodeId) {
@@ -772,12 +772,34 @@ function deleteSourceImage(episodeId) {
   $.ajax({
     type: 'DELETE',
     url: `/api/sources/episode/${episodeId}`,
+    /** Source image deleted, show toast and refresh source and card data. */
     success: () => {
       showInfoToast('Deleted Source Image');
       getSourceFileData();
       getCardData();
     },
     error: response => showErrorToast({title: 'Error Deleting Source Image', response}),
+  });
+}
+
+/**
+ * Submit an API request to set the card type of the given Episode to Textless.
+ * @param {number} episodeId ID of the Episode whose card type is being set.
+ */
+function setEpisodeTextless(episodeId) {
+  $.ajax({
+    type: 'PATCH',
+    url: `/api/episodes/episode/${episodeId}`,
+    data: JSON.stringify({card_type: 'textless'}),
+    contentType: 'application/json',
+    /**
+     * Episode card type set, show toast and refresh episode data.
+     */
+    success: () => {
+      showInfoToast('Episode Card Type set to Textless');
+      getEpisodeData();
+    },
+    error: response => showErrorToast({title: 'Error Setting Episode Card Type', response}),
   });
 }
 
@@ -875,6 +897,7 @@ async function getSourceFileData(page=currentFilePage) {
         image.querySelector('.popup [data-action="delete"]').onclick = () => deleteSourceImage(source.episode_id);
         image.querySelector('.popup [data-action="download"]').href = source.source_url;
         image.querySelector('.popup [data-action="mirror"]').onclick = () => mirrorSourceImage(source.episode_id);
+        image.querySelector('.popup [data-action="textless"]').onclick = () => setEpisodeTextless(source.episode_id);
         image.querySelector('.popup [data-action="upload"]').onclick = () => uploadEpisodeSource(source.episode_id);
         
         // image.querySelector('.popup [data-action="view-mask"]').onclick = () => {
