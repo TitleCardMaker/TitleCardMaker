@@ -583,7 +583,7 @@ function batchChangeStatus(status) {
     contentType: 'application/json',
     success: updatedSeries => {
       showInfoToast(`Updated the Status of ${updatedSeries.length} Series`);
-      getAllSeries(undefined, true);
+      getAllSeries(undefined, false);
       getAllStatistics();
     },
     error: response => showErrorToast({title: 'Error Updating Series', response}),
