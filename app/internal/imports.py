@@ -1627,8 +1627,9 @@ def import_card_files(
         try:
             card_settings = resolve_card_settings(episode, library, log=log)
         except (HTTPException, InvalidCardSettings) as exc:
-            log.exception(f'{episode} Cannot import Card - settings are '
-                          f'invalid {exc}')
+            log.exception(
+                f'{episode} Cannot import Card - settings are invalid {exc}'
+            )
             continue
 
         # Get a validated card class, and card type Pydantic model

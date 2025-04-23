@@ -158,7 +158,7 @@ def set_all_series_ids(*, log: Logger = log) -> None:
     with next(get_database()) as db:
         # Get all Series
         changed = False
-        for series in db.query(Series).all():
+        for series in db.query(Series).filter(Series.status != 'disabled').all():
             try:
                 changed |= set_series_database_ids(
                     series, db, commit=False, log=log,
@@ -184,10 +184,10 @@ def load_all_media_servers(*, log: Logger = log) -> None:
     with next(get_database()) as db:
         retries = 0
         # Get all Series
-        for series in db.query(Series).all():
+        for series in db.query(Series).filter(Series.status != 'disabled').all():
             # Skip this Series if it has no library
             if not series.libraries:
-                log.debug(f'{series} has no Library, not loading Title Cards')
+                log.debug(f'{series} has no libraries, not loading Title Cards')
                 continue
 
             # Load Title Cards for this Series
