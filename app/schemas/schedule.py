@@ -6,7 +6,7 @@ from typing import Callable
 from pydantic import conint, constr, PositiveInt
 
 from app.schemas.base import Base
-
+from modules.Debug import Logger
 """
 Base classes
 """
@@ -19,7 +19,7 @@ def Days(v: int, /) -> int: return Hours(v * 24)
 
 class NewJob(Base):
     id: str
-    function: Callable[..., None]
+    function: Callable[[Logger], None]
     seconds: conint(gt=Minutes(10))
     crontab: CronExpression
     description: str
