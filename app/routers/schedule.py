@@ -8,7 +8,12 @@ from apscheduler.triggers.cron import CronTrigger
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 
 from app.internal.backup import backup_data
-from app.dependencies import get_database, get_preferences, get_scheduler
+from app.dependencies import (
+    get_database,
+    get_logger,
+    get_preferences,
+    get_scheduler,
+)
 from app.internal.auth import get_current_user
 from app.internal.availability import get_latest_version
 from app.internal.cards import (
@@ -537,8 +542,10 @@ def reschedule_task(
 
         # Ensure interval is not below minimum
         if new_interval < MINIMUM_TASK_INTERVAL:
-            log.warning(f'Task[{job.id}] Cannot schedule Task more frequently '
-                        f'than 10 minutes')
+            log.warning(
+                f'Task[{job.id}] Cannot schedule Task more frequently than '
+                f'{MINIMUM_TASK_INTERVAL} seconds'
+            )
             update_schedule.seconds = 0
             update_schedule.minutes = 10
 
@@ -557,9 +564,9 @@ def reschedule_task(
 
 @schedule_router.put('/{task_id}')
 def run_task(
-        request: Request,
         task_id: TaskID,
         scheduler: BackgroundScheduler = Depends(get_scheduler),
+        log: Logger = Depends(get_logger),
     ) -> ScheduledTask:
     """
     Run the given Task immediately. This __does not__ reschedule or
@@ -576,6 +583,6 @@ def run_task(
         )
 
     # Run this Task's function
-    job.function(request.state.log)
+    job.function(log)
 
     return _scheduled_task_from_job(scheduler.get_job(task_id))
