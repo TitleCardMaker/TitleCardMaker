@@ -37,8 +37,7 @@ def download_all_series_logos(*, log: Logger = log) -> None:
 
     with next(get_database()) as db:
         # Get all Series
-        all_series = db.query(Series).all()
-        for series in all_series:
+        for series in db.query(Series).filter(Series.status != 'disabled').all():
             # If Series is unmonitored, skip
             if series.status != 'monitored':
                 log.trace(f'{series} is not monitored, skipping')
@@ -225,8 +224,10 @@ def download_series_logo(
 
         # Skip interfaces which cannot provide logos
         if isinstance(interface, (PlexInterface, SonarrInterface)):
-            log.trace(f'{interface.INTERFACE_TYPE}[{interface_id}] cannot '
-                      f'provide logos')
+            log.trace(
+                f'{interface.INTERFACE_TYPE}[{interface_id}] cannot provide '
+                f'logos'
+            )
             continue
 
         # Handle TMDb and TVDb separately
@@ -245,8 +246,10 @@ def download_series_logo(
 
         # If no logo was returned, move on to next image source
         if logo is None:
-            log.trace(f'{interface.INTERFACE_TYPE}[{interface_id}] did not '
-                      f'return a logo')
+            log.trace(
+                f'{interface.INTERFACE_TYPE}[{interface_id}] did not return a '
+                f'logo'
+            )
             continue
 
         # If logo is an svg, convert
@@ -255,8 +258,10 @@ def download_series_logo(
 
         # Logo is png and valid, download
         if WebInterface.download_image(logo, logo_file, log=log):
-            log.info(f'{series} Downloaded logo from '
-                     f'{interface.INTERFACE_TYPE}[{interface_id}]')
+            log.info(
+                f'{series} Downloaded logo from {interface.INTERFACE_TYPE}'
+                f'[{interface_id}]'
+            )
             return f'/source/{series.path_safe_name}/{logo_file.name}'
 
         # Download failed, raise 400
