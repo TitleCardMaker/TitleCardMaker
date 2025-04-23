@@ -3,7 +3,7 @@ from os import environ
 from pathlib import Path
 from shutil import copy as file_copy
 from sqlite3 import connect, OperationalError
-from typing import NamedTuple
+from typing import Annotated, NamedTuple
 
 from fastapi import HTTPException
 
@@ -12,17 +12,25 @@ from modules.Debug import Logger, log
 from modules.Version import Version
 
 
-"""Naming scheme for backup subfolders"""
-BACKUP_DT_FORMAT = '%Y-%m-%d_%H-%M-%S'
+BACKUP_DT_FORMAT: Annotated[
+    str,
+    'Naming scheme for backup subfolders'
+] = '%Y-%m-%d_%H-%M-%S'
 
-"""How long to keep old backups"""
-BACKUP_RETENTION = timedelta(days=int(environ.get('TCM_BACKUP_RETENTION', 21)))
+BACKUP_RETENTION: Annotated[
+    timedelta,
+    'How long to keep old backups'
+] = timedelta(days=int(environ.get('TCM_BACKUP_RETENTION', 21)))
 
-"""Whether executing in Docker mode"""
-IS_DOCKER = environ.get('TCM_IS_DOCKER', 'false').lower() == 'true'
+IS_DOCKER: Annotated[
+    bool,
+    'Whether executing in Docker mode'
+] = environ.get('TCM_IS_DOCKER', 'false').lower() == 'true'
 
-"""Directory for all backups"""
-BACKUP_DIRECTORY = Path('/config/backups' if IS_DOCKER else './config/backups')
+BACKUP_DIRECTORY: Annotated[
+    Path,
+    'Directory for all backups'
+] = Path('/config/backups' if IS_DOCKER else './config/backups')
 BACKUP_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
 
