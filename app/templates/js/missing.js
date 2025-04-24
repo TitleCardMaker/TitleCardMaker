@@ -8,10 +8,10 @@ import {
 /**
  * Query all Episodes which are missing a Card and display them all on the page.
  */
-function queryMissingCards() {
+function queryMissingCards(page=1) {
   $.ajax({
     type: 'GET',
-    url: '/api/missing/cards',
+    url: `/api/missing/cards?page=${page}`,
     /**
      * Missing Episodes queried, populate table.
      * @param {EpisodePage} episodeData - Episodes missing Cards.
@@ -53,6 +53,16 @@ function queryMissingCards() {
           table.appendChild(row);
         }
       }
+
+      // Update pagination
+      updatePagination({
+        paginationElementId: 'card-pagination',
+        navigateFunction: queryMissingCards,
+        page: episodeData.page,
+        pages: episodeData.pages,
+        amountVisible: isSmallScreen() ? 5 : 10,
+        hideIfSinglePage: true,
+      });
 
       refreshTheme();
     },
