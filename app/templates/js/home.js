@@ -52,6 +52,7 @@ function refreshCardData(seriesId) {
  * @param {number} seriesId - ID of the Series to toggle.
  */
 function toggleMonitoredStatus(seriesId) {
+  const $icon = setLoadingIcon($(`#series-id${seriesId} [data-row="status"] .icon`));
   $.ajax({
     type: 'PUT',
     url: `/api/series/series/${seriesId}/toggle-monitor`,
@@ -70,7 +71,9 @@ function toggleMonitoredStatus(seriesId) {
         statusRow.innerHTML = '<i class="ui times circle outline red icon"></i>';
       }
       refreshTheme();
-    }, error: response => showErrorToast({title: 'Error Changing Status', response}),
+    },
+    error: response => showErrorToast({title: 'Error Changing Status', response}),
+    complete: () => removeLoadingIcon($icon),
   });
 }
 
@@ -96,13 +99,13 @@ const updateSeriesConfig = debounce((...args) => _updateSeriesConfig(...args));
  * @param {number} seriesId - ID of the Series to process.
  */
 function processSeries(seriesId) {
-  $(`#series-id${seriesId} td[data-row="process"]`).toggleClass('disabled', true);
+  const $icon = setLoadingIcon($(`#series-id${seriesId} td[data-row="process"] .icon`));
   $.ajax({
     type: 'POST',
     url: `/api/series/series/${seriesId}/process`,
     success: () => showInfoToast('Started Processing Series'),
     error: response => showErrorToast({title: 'Error Processing Series', response}),
-    complete: () => $(`#series-id${seriesId} td[data-row="process"]`).toggleClass('disabled', false),
+    complete: () => removeLoadingIcon($icon),
   });
 }
 
