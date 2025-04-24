@@ -20,6 +20,7 @@ from app.database.query import (
 )
 from app.database.session import Page
 from app.dependencies import *
+from app.dependencies import get_logger
 from app.internal.auth import get_current_user
 from app.internal.cards import delete_cards, refresh_remote_card_types
 from app.internal.episodes import (
@@ -103,9 +104,9 @@ def get_episode_by_id(
 
 @episodes_router.delete('/episode/{episode_id}')
 def delete_episode(
-        request: Request,
         episode_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Episode with the ID.
@@ -121,7 +122,7 @@ def delete_episode(
         db,
         db.query(Card).filter_by(episode_id=episode_id),
         db.query(Loaded).filter_by(episode_id=episode_id),
-        log=request.state.log,
+        log=log,
     )
 
     # Delete Episode itself
