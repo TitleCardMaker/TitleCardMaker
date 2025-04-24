@@ -745,7 +745,7 @@ def create_card_for_episode(
     except MissingSourceImage as exc:
         raise HTTPException(
             status_code=404,
-            detail=f'Missing the required Source Image',
+            detail='Missing the required Source Image',
         ) from exc
     except InvalidCardSettings as exc:
         raise HTTPException(
@@ -758,9 +758,7 @@ def create_card_for_episode(
 def get_missing_cards(
         db: Session = Depends(get_database),
     ) -> Page[EpisodeSchema]: # type: ignore
-    """
-    Get all the Episodes that do not have any associated Cards.
-    """
+    """Get all the Episodes that do not have any associated Cards."""
 
     return paginate(
         db.query(Episode)\
