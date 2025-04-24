@@ -253,6 +253,7 @@ def refresh_episode_data(
                 if (card_file := Path(card.card_file)).exists():
                     card_file.unlink(missing_ok=True)
                     log.info(f'Deleted "{card_file.resolve()}" Title Card')
+                db.delete(card)
 
             # Delete Episode (also deleted associated Loaded + Card objects)
             db.delete(all_existing[delete_key])
