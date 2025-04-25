@@ -51,7 +51,7 @@ class Episode(Base):
 
     cards: Mapped[list['Card']] = relationship(
         back_populates='episode',
-        cascade='all,delete-orphan'
+        cascade='all,delete',
     )
     font: Mapped['Font'] = relationship(back_populates='episodes')
     series: Mapped['Series'] = relationship(back_populates='episodes')

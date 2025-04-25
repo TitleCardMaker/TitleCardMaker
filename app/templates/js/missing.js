@@ -27,8 +27,9 @@ function queryMissingCards(page=1) {
       });
 
       // Templates
-      const template = document.getElementById('missing-card-template');
       const table = document.getElementById('missing-cards');
+      table.replaceChildren();
+      const template = document.getElementById('missing-card-template');
       const rowTemplate = document.getElementById('missing-card-row-template');
 
       // Add rows to the table
