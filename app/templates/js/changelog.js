@@ -23,3 +23,17 @@ const addMessage = (message) => {
     });
   }, 5000);
 };
+
+function initializePage() {
+  $('.ui.dropdown').dropdown({
+    onChange: function(value, text, $selectedItem) {
+      const id = $selectedItem.data('id');
+      if (id) {
+        const target = document.getElementById(id);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    }
+  });
+}

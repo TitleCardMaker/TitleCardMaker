@@ -14,7 +14,7 @@
   <link rel="stylesheet" type="text/css" href="/templates/css/changelog.css?v={{preferences.current_version}}"/>
 </head>
 
-<body>
+<body onload="initializePage();">
   <div class="pusher">
     <!-- Static header and sidebar -->
     <div id="page-header">
@@ -25,39 +25,237 @@
     </div>
 
     <!-- Actual page content -->
-    <div id="main-content" class="article">
+    <div id="main-content" class="article" >
       <h1 class="ui header">Changelog</h1>
 
-      <div class="ui small blue labels">
-        {% set versions = [
-          "v2.0-alpha.1.0",
-          "v2.0-alpha.2.0",
-          "v2.0-alpha.2.1",
-          "v2.0-alpha.2.2",
-          "v2.0-alpha.3.0",
-          "v2.0-alpha.4.0",
-          "v2.0-alpha.4.1",
-          "v2.0-alpha.5.0",
-          "v2.0-alpha.5.1",
-          "v2.0-alpha.5.2",
-          "v2.0-alpha.6.0",
-          "v2.0-alpha.7.0",
-          "v2.0-alpha.8.0",
-          "v2.0-alpha.8.1",
-          "v2.0-alpha.9.0",
-          "v2.0-alpha.9.1",
-          "v2.0-alpha.10.0",
-          "v2.0-alpha.10.1",
-          "v2.0-alpha.11.0",
-          "v2.0-alpha.12.0",
-          "v2.0-alpha.12.1",
-          "v2.0-alpha.13.0",
-          "v2.0-alpha.14.0",
-          "v2.0-alpha.14.1",
-        ] %}
-        {% for version in versions[::-1] %}
-          <a class="ui label" href="#{{version}}">{{version}}</a>
-        {% endfor %}
+      <span>
+        Scroll to Version
+        <div class="ui inline scrolling dropdown">
+          <i class="dropdown icon"></i>
+          <div class="default text">version</div>
+          <div class="menu">
+            {% set versions = [
+              "v2.0-alpha.1.0",
+              "v2.0-alpha.2.0",
+              "v2.0-alpha.2.1",
+              "v2.0-alpha.2.2",
+              "v2.0-alpha.3.0",
+              "v2.0-alpha.4.0",
+              "v2.0-alpha.4.1",
+              "v2.0-alpha.5.0",
+              "v2.0-alpha.5.1",
+              "v2.0-alpha.5.2",
+              "v2.0-alpha.6.0",
+              "v2.0-alpha.7.0",
+              "v2.0-alpha.8.0",
+              "v2.0-alpha.8.1",
+              "v2.0-alpha.9.0",
+              "v2.0-alpha.9.1",
+              "v2.0-alpha.10.0",
+              "v2.0-alpha.10.1",
+              "v2.0-alpha.11.0",
+              "v2.0-alpha.12.0",
+              "v2.0-alpha.12.1",
+              "v2.0-alpha.13.0",
+              "v2.0-alpha.14.0",
+              "v2.0-alpha.14.1",
+              "v2.0-alpha.15.0",
+            ] %}
+            {% for version in versions[::-1] %}
+              <div class="item" data-id="{{version}}">{{version}}</div>
+            {% endfor %}
+          </div>
+        </div>
+      </span>
+      <br><br>
+
+      <h2 id="v2.0-alpha.15.0" class="ui top attached header">
+        v2.0-alpha.15.0
+        <div class="sub header">Released April 27, 2025</div>
+      </h2>
+      <div data-version="v2.0-alpha.15.0" class="ui bottom attached segment">
+        <h3>Major Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Add native support to extract colors from an image and use it in Format Strings and colors
+            <div class="list">
+              <div class="item"><b>get_image_color</b> can be used in any extras which support Format Strings - like so: <b>{get_image_color(logo_file, fallback='white')}</b> would get the first (primary) color of the logo file - and if one cannot be determined (or is too white/black) then white is used instead</div>
+              <div class="item">This is documented <a href="https://titlecardmaker.com/user_guide/variables/#parse-image-color" target="_blank">here</a></div>
+            </div>
+          </div>
+          <div class="item">Add a quick-toggle button to the Series page to swap between advanced and basic mode for the Episode data tables</div>
+          <div class="item">Improve watched status and style-toggles in Card creation
+            <div class="list">
+              <div class="item">Properly assign a card's style if the watched status is indeterminate</div>
+              <div class="item">Properly use style-specific Source Images if the watched status is indeterminate</div>
+            </div>
+          </div>
+          <div class="item">Add the ability to mass-remove libraries from all Series
+            <div class="list">
+              <div class="item">This can be done to automatically remove all "unlinked" libraries (typically as a result of typing a bad library name in a Sonarr Sync), or to remove all assignments of a valid library </div>
+            </div>
+          </div>
+          <div class="item">Create a new "Recently Added" page which displays all recently created Title Cards
+            <div class="list">
+              <div class="item">Accessed at <b>/recent</b>, or via the sidebar</div>
+              <div class="item">Requires SQL schema <b>e290ff7005ff</b> to add creation timestamp columns to various tables</div>
+              <div class="item">Existing objects will be populated with "fake" (but sequential) creation timestamps - but objects added/created after this change will be accurate
+                <div class="list">
+                  <img width="50%" src="https://titlecardmaker.com/user_guide/assets/recent-dark.webp#only-dark" width="50%">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="item">Allow <b>all</b> card settings to be specified as Format Strings
+            <div class="list">
+              <div class="item">This means any setting (including extras) can use the dynamic/conditional logic and variables available to explicit format strings like the episode text format, filename format, etc.</div>
+              <div class="item">For example, rather than creating a custom Template with conditions to change the font color based on a season, this can be done by setting the Font Color setting to (for example) <b>{"red" if season_number == 0 else "blue"}</b></div>
+            </div>
+          </div>
+          <div class="item">Add button to query/display all "missing" Series in a given Connection not added to TCM - this is currently untested for Emby or Jellyfin</div>
+          <div class="item">Allow a Series to be completely disabled
+            <div class="list">
+              <div class="item">A Series can now have a "Status" of Monitored, Unmonitored, or Disabled</div>
+              <div class="item">Unmonitored Series will not add new content (Source Images, translations, etc.) but still maintain up-to-date Cards; Disabled Series will be completely ignored during all scheduled Tasks (Card creation, poster downloads, etc.)</div>
+              <div class="item">Requires SQL schema <b>f4afea8860cf</b> to migrate <b>Series.monitored</b> to <b>Series.status</b></div>
+              <div class="item">Existing Series filters on the home page which refer to the <b>Monitored Status</b> field will be removed and should be replaced with a variation of the <b>Series Status</b> filter</div>
+              <div class="item">Toggling a Series' status works generally the same, but now cycles through Monitored -> Unmonitored -> Disabled -> (loop)</div>
+              <div class="item">Disabling any Series which you do not plan to adjust or add content to <i>at all</i> can significantly speed up TCM</div>
+            </div>
+          </div>
+        </div>
+        <h3>Major Fixes</h3>
+        <div class="ui ordered list">
+          <div class="item">Fix the alternate gradient overlay in the Olivier card</div>
+          <div class="item">Handle null episode titles from TVDb</div>
+          <div class="item">Manually editing Episode translations within the UI no longer deletes the translation completely</div>
+          <div class="item">Fix a mismatch of Episodes with the same index and airdate from different Series causing the Plex webhook to incorrectly fail</div>
+          <div class="item">Require Source Images in the Textless card - this should fix the setup in which users are using the Textless card <i>by default</i> - e.g. only applying un/watched styles</div>
+          <div class="item">Correctly utilize the local <b>TZ</b> timezone when storing Task start/end times</div>
+          <div class="item">Add rudimentary library path validation when editing Sonarr connections - TCM will now check if one library path contains another, e.g. <b>/path/1</b> and <b>/path/12</b></div>
+          <div class="item">Reset Series selection on the home page when performing batch status changes</div>
+          <div class="item">Add pagination to the Missing Cards page/table</div>
+        </div>
+        <h3>Minor Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Add ability to re-download a Series' poster via the UI</div>
+          <div class="item">Significantly improve the Episode match algorithm to require at least 2 exact database ID matches, or an index match and either a title, single database ID, or airdate match</div>
+          <div class="item">Relocate the log context ID field on the logs tab of the Series page</div>
+          <div class="item">Trace log bad image content when downloading images</div>
+          <div class="item">Allow adding <b>!</b> to a context ID filter string to remove all non-contextual log messages when filtering logs</div>
+          <div class="item">Contextually blur unrelated log messages when hovering over a context ID on the logs tab of the Series page</div>
+          <div class="item">Display the relevant database IDs for Series displayed on the Add Series page</div>
+          <div class="item">Use improved (faster) slicing when querying Snapshots - no longer query all results and then slice the list in Python; instead use a SQL subquery to slice directly</div>
+          <div class="item">Change the "Remove Counts" button text to "Hide Counts"</div>
+          <div class="item">Add loading indicator when querying logs on the Logs page</div>
+          <div class="item">Display an info message to indicate there are no internal server logs</div>
+          <div class="item">Begin tracking how long scheduled Tasks take
+            <div class="list">
+              <div class="item">This requires SQL schema <b>753b403e12d2</b> to create the <b>task_durations</b> table</div>
+              <div class="item">These can now be displayed on the Graphs page
+              <div class="list">
+                <img width="50%" src="https://github.com/user-attachments/assets/a5591c3e-4b81-4d35-92e9-daa285d3e07a">
+              </div>
+              </div>
+            </div>
+          </div>
+          <div class="item">Display an error within the UI if a manual Card loading fails</div>
+          <div class="item">Add daily vertical axis lines on the Graphs page (to delineate days)</div>
+          <div class="item">Add button to the Source Image popup to quickly set an Episode's card type to Textless</div>
+          <div class="item">Display loading icons on the home page when performing actions on a Series</div>
+          <div class="item">Add new "has no Episodes" Series filter condition</div>
+          <div class="item"><div class="ui mini circular green label">v1</div> Update the "Created by TitleCardMaker" image used in summary image creation</div>
+          <div class="item"><div class="ui mini circular green label">v1</div> Add a mini maker command for batch show summary creation</div>
+        </div>
+        <h3>Minor Fixes</h3>
+        <div class="ui ordered list">
+          <div class="item">Properly assign unwatched flag when new Episodes are added via Sonarr webhook</div>
+          <div class="item">Remove the scroll overflow for posters on the Add Series page</div>
+          <div class="item">Improve the Series sort name logic to account for non-alphanumeric characters (including Unicode and &)</div>
+          <div class="item">Force expire the request cache when manually refreshing remote card type data</div>
+          <div class="item">Log server start time in localized timezone</div>
+          <div class="item">Improve handling of "bad" IMDb ID's not formatted as <b>tt____</b> in the database source</div>
+          <div class="item">Properly delete Card records from the database when removing Episodes which are no longer in the Episode Data Source</div>
+          <div class="item"><div class="ui mini circular green label">v1</div> Fix manual summary image creation with the mini maker</div>
+        </div>
+        <h3>Title Card Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Anime
+            <div class="list">
+              <div class="item">Allow positioning a logo on the Anime card type; adding the logo position and size extras</div>
+            </div>
+          </div>
+          <div class="item">Cutout
+            <div class="list">
+              <div class="item">Add title horizontal shift extra</div>
+            </div>
+          </div>
+          <div class="item">Fade
+            <div class="list">
+              <div class="item">Add logo size extra</div>
+            </div>
+          </div>
+          <div class="item">Landscape
+            <div class="list">
+              <div class="item">Correctly utilize custom darken and shadow colors (were being ignored)</div>
+            </div>
+          </div>
+          <div class="item">Logo
+            <div class="list">
+              <div class="item">Add new logo horizontal shift extra</div>
+            </div>
+          </div>
+          <div class="item">Skeleton Crew
+            <div class="list">
+              <div class="item">Fix text sizing on some versions of ImageMagick</div>
+            </div>
+          </div>
+          <div class="item">Tinted Glass
+            <div class="list">
+              <div class="item">Fix right-positioned episode text</div>
+              <div class="item">Limit glass adjustments between -300 and 300 pixels on any face</div>
+            </div>
+          </div>
+        </div>
+        <h3>Documentation Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Added documentation on Jellyfin Webhook integration</div>
+          <div class="item">Document mass library deletion interactions</div>
+          <div class="item">Correct documentation on how to disable season subfolders</div>
+          <div class="item">Update <a href="https://titlecardmaker.com/user_guide/variables/" target="_blank">Variables</a> docs to reflect the ability to use variables/format strings in any card setting</div>
+          <div class="item">Add documentation on the <b>backdrop_file</b>, <b>logo_file</b>, and <b>poster_file</b> file variables</div>
+          <div class="item">Document new <b>get_image_color()</b> function</div>
+          <div class="item">Create new page on the <a href="https://titlecardmaker.com/user_guide/recent/" target="_blank">Recently Added</a> page</div>
+          <div class="item">Create new page on the <a href="https://titlecardmaker.com/user_guide/missing/" target="_blank">Missing Summary</a> page</div>
+          <div class="item">Document use of the <b>!</b> in log context ID filters</div>
+          <div class="item">Create pages on various card types:
+            <div class="list">
+              <div class="item"><a href="https://titlecardmaker.com/card_types/marvel/" target="_blank">Marvel</a></div>
+              <div class="item"><a href="https://titlecardmaker.com/card_types/cutout/" target="_blank">Cutout</a></div>
+              <div class="item"><a href="https://titlecardmaker.com/card_types/tinted_glass/" target="_blank">Tinted Glass</a></div>
+            </div>
+          </div>
+        </div>
+        <h3>API Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Create API endpoint to delete library references from all Series
+            <div class="list">
+              <div class="item"><b>DELETE</b> <b>/api/connections/{id}/libraries</b> can accept either an <b>unlinked</b> boolean query to delete all unlinked libraries (e.g. those not present in the current library list), or a <b>library_name</b> string query to delete all references to a specific library</div>
+            </div>
+          </div>
+          <div class="item">Create <b>GET</b> <b>/api/cards/recent</b> API endpoint to get all Title Cards which were created after a specified date/time</div>
+          <div class="item">Create <b>DELETE</b> <b>/api/series/series/{series_id}/poster</b> endpoint to delete a Series poster</div>
+          <div class="item">Raise <b>400</b> exceptions if card loading fails in various Card loading endpoints</div>
+          <div class="item">Create <b>GET</b> <b>/api/statistics/task-durations</b> endpoint to query task run durations</div>
+          <div class="item">Create <b>GET</b> <b>/api/missing/series</b> to get all Series in a given Connection which are <i>not</i> added to TCM</div>
+          <div class="item">API changes to reflect new Series <b>status</b> field
+            <div class="list">
+              <div class="item">All <b>Series</b>-related models no longer return the <b>monitored</b> boolean field, now returning the <b>status</b> string</div>
+              <div class="item">Deprecate <b>PUT</b> <b>/api/series/batch/monitor</b> and <b>/api/series/batch/unmonitor</b> endpoints</div>
+              <div class="item">Create new <b>PATCH</b> <b>/api/series/batch/status/{status}</b> endpoint</div>
+              <div class="item">Change behavior of <b>PUT</b> <b>/api/series/{series_id}/toggle-monitor</b> endpoint to now cycle through statuses</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <h2 id="v2.0-alpha.14.1" class="ui top attached header">
