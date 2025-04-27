@@ -21,6 +21,7 @@ ConditionField = Literal[
    'font_stroke_width',
    'font_title_case',
    'font_vertical_shift',
+   'has_no_episodes',
    'hide_episode_text',
    'hide_season_text',
    'id',

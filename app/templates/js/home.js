@@ -817,6 +817,7 @@ const filterSettings = [
   ['Per-Season Assets',         'use_per_season_assets',  'boolean'         ],
   ['Watched Card Style',        'watched_style',          'nullable string' ],
   ['Series Year',               'year',                   'numeric'         ],
+  ['Has No Episodes',           'has_no_episodes',        'boolean'         ],
 ].sort((a, b) => a[0].localeCompare(b[0])).map(setting => {
   return { name: setting[0], value: setting[1], type: setting[2] };
 });

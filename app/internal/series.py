@@ -1015,14 +1015,27 @@ def apply_filter(
                     .all()
             ]
 
-            # Filter Series which ARE missing Cards
-            if condition.expression == 'is true':
-                criterion.append(Series.id.in_(missing_series_ids))
-                continue
-            # Filter Series which ARE NOT missing cards
-            elif condition.expression == 'is false':
-                criterion.append(not_(Series.id.in_(missing_series_ids)))
-                continue
+            criterion.append(
+                Series.id.in_(missing_series_ids)
+                if condition.expression == 'is true'
+                else Series.id.notin_(missing_series_ids)
+            )
+            continue
+        # Special handling for the "has no episodes" criteria
+        elif condition.field == 'has_no_episodes':
+            # Series IDs of Series which have Episodes
+            series_ids = [
+                id_[0] for id_ in db.query(Episode.series_id).distinct().all()
+            ]
+
+            # Filter Series which have no Episodes; No episodes = true
+            # means include Series which are not in the above list
+            criterion.append(
+                Series.id.notin_(series_ids)
+                if condition.expression == 'is true'
+                else Series.id.in_(series_ids)
+            )
+            continue
 
         # Get attribute which will be operated on
         if (attribute := ConditionFieldAttributes.get(condition.field)) is None:
