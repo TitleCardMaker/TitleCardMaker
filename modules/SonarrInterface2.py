@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from re import IGNORECASE, compile as re_compile
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import HTTPException
 
@@ -30,8 +30,10 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
 
     INTERFACE_TYPE = 'Sonarr'
 
-    """Use a longer request timeout for Sonarr to handle slow databases"""
-    REQUEST_TIMEOUT = 600
+    REQUEST_TIMEOUT: Annotated[
+        int,
+        'Use a longer request timeout for Sonarr to handle slow databases'
+    ] = 600
 
     """Series ID's that can be set by Sonarr"""
     SERIES_IDS = ('imdb_id', 'sonarr_id', 'tvdb_id', 'tvrage_id')
@@ -491,3 +493,17 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
         """
 
         return self.get(f'{self.url}tag', self.__standard_params)
+
+
+    def get_series_path(self, series_id: int) -> str | None:
+        """
+        Get the path of the series with the given ID.
+
+        Returns:
+            Path of the series with the given ID, if found. None if the
+            series is not found.
+        """
+
+        return self.get(
+            f'{self.url}series/{series_id}', self.__standard_params
+        ).get('path')
