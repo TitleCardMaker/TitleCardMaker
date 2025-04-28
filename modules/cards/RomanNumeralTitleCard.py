@@ -236,6 +236,13 @@ class RomanNumeralTitleCard(BaseCardType):
                 tooltip='Default is <c>rgb(200, 200, 200)</c>.',
                 default='rgb(200, 200, 200)',
             ),
+            Extra(
+                name='Season Text Size',
+                identifier='season_text_size',
+                description='Size adjustment for the season text',
+                tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
+                default=1.0,
+            ),
         ],
         description=[
             'Imageless title cards featuring large roman numerals indicating '
@@ -309,6 +316,7 @@ class RomanNumeralTitleCard(BaseCardType):
         '__roman_numeral_lines',
         'season_text',
         'season_text_color',
+        'season_text_size',
         'title_text',
     )
 
@@ -329,6 +337,7 @@ class RomanNumeralTitleCard(BaseCardType):
             background: str = BACKGROUND_COLOR,
             roman_numeral_color: str = ROMAN_NUMERAL_TEXT_COLOR,
             season_text_color: str = SEASON_TEXT_COLOR,
+            season_text_size: float = 1.0,
             preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
@@ -351,6 +360,7 @@ class RomanNumeralTitleCard(BaseCardType):
         self.background = background
         self.roman_numeral_color = roman_numeral_color
         self.season_text_color = season_text_color
+        self.season_text_size = season_text_size
 
         # Parse roman digits from the episode number
         self.__assign_roman_numeral(int(episode_text))
@@ -500,7 +510,7 @@ class RomanNumeralTitleCard(BaseCardType):
             f'-gravity center',
             f'-font "{self.TITLE_FONT}"',
             f'-fill "{color}"',
-            f'-pointsize 50',
+            f'-pointsize {50 * self.season_text_size}',
             f'+interword-spacing',
             f'+interline-spacing',
             f'-annotate {rotation}{offset} "{self.season_text}"',
@@ -538,10 +548,11 @@ class RomanNumeralTitleCard(BaseCardType):
         random_index = choice(range(len(self.roman_numeral)))
         if self.roman_numeral[random_index] == '\n':
             random_index -= 1
-        random_letter = self.roman_numeral[random_index]
-        random_position = choice(POSITIONS[random_letter])
+        # random_letter = self.roman_numeral[random_index]
+        # random_position = choice(POSITIONS[random_letter])
+        random_letter = self.roman_numeral[0]
+        random_position = POSITIONS[random_letter][4]
 
-        # Offset of season text - center of roman numerals is +0-30
         offset = Offset('+0-30')
 
         # If the roman numeral has multiple lines, adjust accordingly
@@ -720,7 +731,8 @@ class RomanNumeralTitleCard(BaseCardType):
             for extra in (
                 'background',
                 'roman_numeral_color',
-                'season_text_color'
+                'season_text_color',
+                'season_text_size',
             ):
                 if extra in extras:
                     del extras[extra]
@@ -740,16 +752,14 @@ class RomanNumeralTitleCard(BaseCardType):
             False, as custom fonts aren't used.
         """
 
-        custom_extras = (
-            ('background' in extras
-                and extras['background'] != \
-                    RomanNumeralTitleCard.BACKGROUND_COLOR)
-            or ('roman_numeral_color' in extras
-                and extras['roman_numeral_color'] != \
-                    RomanNumeralTitleCard.ROMAN_NUMERAL_TEXT_COLOR)
-            or ('season_text_color' in extras
-                and extras['season_text_color'] != \
-                    RomanNumeralTitleCard.SEASON_TEXT_COLOR)
+        custom_extras = RomanNumeralTitleCard._is_custom_extras(
+            extras,
+            default_extras={
+                'background': RomanNumeralTitleCard.BACKGROUND_COLOR,
+                'roman_numeral_color': RomanNumeralTitleCard.ROMAN_NUMERAL_TEXT_COLOR,
+                'season_text_color': RomanNumeralTitleCard.SEASON_TEXT_COLOR,
+                'season_text_size': 1.0,
+            }
         )
 
         return (
@@ -829,6 +839,7 @@ def get_validator_model() -> type[Base]:
         background: str = RomanNumeralTitleCard.BACKGROUND_COLOR
         roman_numeral_color: str = RomanNumeralTitleCard.ROMAN_NUMERAL_TEXT_COLOR
         season_text_color: str = RomanNumeralTitleCard.SEASON_TEXT_COLOR
+        season_text_size: PositiveFloat = 1.0
 
         @validator('episode_text')
         def validate_episode_text_numeral(cls, val: str) -> str:
