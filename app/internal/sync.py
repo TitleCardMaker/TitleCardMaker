@@ -13,7 +13,7 @@ from app.models.connection import Connection
 from app.models.loaded import Loaded
 from app.models.series import Series
 from app.models.sync import Sync
-from app.schemas.series import NewSeries
+from app.schemas.series import MediaServerLibrary, NewSeries
 from app.schemas.sync import (
     NewEmbySync,
     NewJellyfinSync,
@@ -110,6 +110,50 @@ def add_sync(
     return sync
 
 
+def get_sonarr_libraries(
+        db: Session,
+        directory: str,
+        connection: Connection,
+        *,
+        log: Logger = log,
+    ) -> list[MediaServerLibrary]:
+    """
+    Get all Sonarr libraries for the given directory, as determined by
+    the given Connection.
+
+    Args:
+        db: Database to query for Connections.
+        directory: Directory to get libraries for.
+        connection: Connection to use to get libraries.
+        log: Logger for all log messages.
+
+    Returns:
+        List of all Sonarr libraries for the given directory.
+    """
+
+    # Determine libraries using this Connection
+    libraries: list[MediaServerLibrary] = []
+    for interface_id, library in connection.determine_libraries(directory):
+        # Get Connection of this library
+        interface = db.query(Connection)\
+            .filter_by(id=interface_id)\
+            .first()
+        if interface is None:
+            log.error(
+                f'No Connection of ID {interface_id} - cannot assign '
+                f'library'
+            )
+            continue
+
+        libraries.append({
+            'interface': interface.interface_type,
+            'interface_id': interface_id,
+            'name': library,
+        })
+
+    return libraries
+
+
 def run_sync(
         db: Session,
         sync: Sync,
@@ -161,33 +205,16 @@ def run_sync(
             .first()
 
         # Determine this Series' libraries
-        libraries = []
         if sync.interface == 'Sonarr':
-            # Determine libraries using this Connection
-            library_data = connection.determine_libraries(lib_or_dir)
-            for interface_id, library in library_data:
-                # Get Connection of this library
-                interface = db.query(Connection)\
-                    .filter_by(id=interface_id)\
-                    .first()
-                if interface is None:
-                    log.error(
-                        f'No Connection of ID {interface_id} - cannot assign '
-                        f'library'
-                    )
-                    continue
-
-                libraries.append({
-                    'interface': interface.interface_type,
-                    'interface_id': interface_id,
-                    'name': library,
-                })
+            libraries = get_sonarr_libraries(
+                db, lib_or_dir, connection, log=log
+            )
         else:
-            libraries.append({
+            libraries = [{
                 'interface': sync.interface,
                 'interface_id': sync.interface_id,
                 'name': lib_or_dir
-            })
+            }]
 
         # If already exists in Database, update IDs and libraries then skip
         if existing:

@@ -18,7 +18,15 @@ from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
 
 from app.database.query import get_episode, get_media_interface
-from app.dependencies import get_database, require_plex_interface, PlexInterface
+from app.dependencies import (
+    get_database,
+    get_logger,
+    get_sonarr_interfaces,
+    require_plex_interface,
+    InterfaceGroup,
+    SonarrInterface,
+    PlexInterface
+)
 from app.internal.cards import create_episode_cards, delete_cards
 from app.internal.episodes import refresh_episode_data
 from app.internal.series import (
@@ -27,9 +35,11 @@ from app.internal.series import (
     load_episode_title_card,
 )
 from app.internal.sources import download_episode_source_images
+from app.internal.sync import get_sonarr_libraries
 from app.internal.translate import translate_episode
 from app.internal.webhooks import process_rating_key
 from app.models.card import Card
+from app.models.connection import Connection
 from app.models.episode import Episode
 from app.models.loaded import Loaded
 from app.models.series import Series
@@ -155,9 +165,9 @@ async def process_plex_webhook(
 
 @webhook_router.post('/sonarr/cards', tags=['Sonarr'])
 def create_cards_for_sonarr_webhook(
-        request: Request,
         webhook: SonarrWebhook = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Create the Title Card for the items associated with the given Sonarr
@@ -171,9 +181,6 @@ def create_cards_for_sonarr_webhook(
     # Skip if payload has no Episodes to create Cards for
     if not webhook.episodes:
         return None
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Create SeriesInfo for this payload's series
     series_info = SeriesInfo(
@@ -278,10 +285,10 @@ def create_cards_for_sonarr_webhook(
 
 @webhook_router.post('/sonarr/series/delete', tags=['Sonarr'])
 def delete_series_via_sonarr_webhook(
-        request: Request,
         webhook: SonarrWebhook,
         delete_title_cards: bool = Query(default=True),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Series defined in the given Webhook.
@@ -322,18 +329,22 @@ def delete_series_via_sonarr_webhook(
             db,
             db.query(Card).filter_by(series_id=series.id),
             db.query(Loaded).filter_by(series_id=series.id),
-            log=request.state.log,
+            log=log,
         )
-    delete_series(db, series, log=request.state.log)
+    delete_series(db, series, log=log)
     return None
 
 
 @webhook_router.post('/sonarr/series/add', tags=['Sonarr'])
 def add_series_via_sonarr_webhook(
         background_tasks: BackgroundTasks,
-        request: Request,
         webhook: SonarrWebhook,
+        connection_id: int | None = Query(default=None),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+        sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(
+            get_sonarr_interfaces
+        ),
     ) -> None:
     """
     Add the Series defined in the given Webhook.
@@ -343,10 +354,11 @@ def add_series_via_sonarr_webhook(
     """
 
     if webhook.eventType != 'SeriesAdd':
-        request.state.log.debug(f'Skipping Webhook type "{webhook.eventType}"')
+        log.debug(f'Skipping Webhook type "{webhook.eventType}"')
         return None
 
-    add_series(
+    # Add Series to the page
+    series = add_series(
         NewSeries(
             name=webhook.series.title,
             year=webhook.series.year,
@@ -356,8 +368,35 @@ def add_series_via_sonarr_webhook(
         ),
         background_tasks=background_tasks,
         db=db,
-        log=request.state.log
+        log=log
     )
+
+    # If a Connection ID is provided, use it to assign libraries to the
+    # new Series
+    if connection_id is not None:
+        # Get Connection of this ID
+        connection = db.query(Connection).filter_by(id=connection_id).first()
+        if connection is None:
+            log.error(f'Connection with ID {connection_id} not found')
+            return None
+        if (interface := sonarr_interfaces.get(connection_id)) is None:
+            log.error(
+                f'SonarrInterface with ID {connection.interface_id} not found'
+            )
+            return None
+
+        # Get the path of the series from Sonarr
+        if (directory := interface.get_series_path(series.id)) is None:
+            log.error(f'Series with ID {series.id} not found')
+            return None
+
+        libraries = get_sonarr_libraries(db, directory, connection, log=log)
+        if libraries:
+            series.libraries = libraries
+            log.debug(f'Series[{series.id}].libraries = {libraries}')
+            db.commit()
+
+    return None
 
 
 from requests import post
