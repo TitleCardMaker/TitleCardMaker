@@ -64,6 +64,7 @@ function queryLatestCards(page=1) {
       });
 
       // Add elements to the page
+      document.getElementById('loader')?.remove();
       document.querySelector('.cards[data-label="cards"]').replaceChildren(...cards);
 
       // Update pagination
@@ -82,7 +83,7 @@ function queryLatestCards(page=1) {
 
 function initAll() {
   // Initialize calendar with last login time
-  const lastLogin = getLastLoginTime();
+  getLastLoginTime();
   $('.ui.calendar').calendar({
     initialDate: getLastLoginTime(),
     maxDate: new Date(),
