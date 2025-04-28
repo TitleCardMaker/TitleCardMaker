@@ -151,7 +151,6 @@ def get_series_statistics(
 @statistics_router.get('/snapshots')
 def get_snapshots(
         previous_days: float = Query(default=14, ge=0.0),
-        previous_hours: float = Query(default=0, ge=0.0),
         slice_: PositiveInt = Query(alias='slice', default=1),
         db: Session = Depends(get_database),
     ) -> list[Snapshot]:
@@ -160,17 +159,13 @@ def get_snapshots(
 
     - previous_days: How many days of past snapshots to return. Added to
     previous hours.
-    - previous_hours: How many hours of past snapshots to return. Added
-    to previous days.
     - slice: How to "slice" the return - e.g. `1` would be every
     Snapshot, `2` would be every other, etc.
     """
 
-    previous = datetime.now() \
-        - timedelta(days=previous_days, hours=previous_hours)
-
     # Get subquery on Snapshots which includes the row number column for
     # slicing
+    previous = datetime.now() - timedelta(days=previous_days)
     subquery = (
         # Add row number as new column
         select(
