@@ -25,7 +25,7 @@ from app.database.query import (
     get_media_interface,
     get_series
 )
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database, get_logger, get_preferences
 from app.internal.auth import get_current_user
 from app.internal.imports import (
     download_image,
@@ -362,13 +362,13 @@ def import_series_yaml(
 @import_router.post('/series/{series_id}/cards/files',
                     tags=['Title Cards', 'Series'])
 async def import_card_files_for_series(
-        request: Request,
         series_id: int,
         cards: list[UploadFile] = [],
         force_reload: bool = Query(default=True),
         textless: bool = Query(default=True),
         library_name: str | None = Query(default=None),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import any existing Title Cards for the given Series. This finds
@@ -396,13 +396,12 @@ async def import_card_files_for_series(
         None if library_name is None else series.get_library(library_name),
         force_reload=force_reload,
         as_textless=textless,
-        log=request.state.log
+        log=log,
     )
 
 
 @import_router.post('/series/{series_id}/cards/mediux')
 async def import_mediux_yaml_for_series(
-        request: Request,
         series_id: int,
         yaml_str: str = Body(..., alias='yaml'),
         import_poster: bool = Query(default=False),
@@ -412,6 +411,7 @@ async def import_mediux_yaml_for_series(
         textless: bool = Query(default=True),
         library_names: list[str] = Query(default=[]),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import Cards, posters, and backgrounds from the given Kometa YAML
@@ -429,9 +429,6 @@ async def import_mediux_yaml_for_series(
     provided, then these assets are loaded into the associated
     server(s).
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Validate provided string as YAML
     try:
@@ -480,8 +477,10 @@ async def import_mediux_yaml_for_series(
                                 episode_number=episode_number)\
                     .first()
                 if not episode:
-                    log.debug(f'No associated Episode for S{season_number:02}'
-                              f'E{episode_number:02}')
+                    log.debug(
+                        f'No associated Episode for S{season_number:02}'
+                        f'E{episode_number:02}'
+                    )
                     continue
 
                 # Skip if not forcing and has Cards
@@ -511,8 +510,10 @@ async def import_mediux_yaml_for_series(
             cards.append((episode, card_file))
             if textless:
                 if (source := episode.get_source_file('unique')).exists():
-                    log.debug(f'{episode} Source Image ({source.name}) exists '
-                              f'- replacing')
+                    log.debug(
+                        f'{episode} Source Image ({source.name}) exists - '
+                        f'replacing'
+                    )
                 try:
                     copyfile(card_file, source)
                 except OSError:

@@ -318,6 +318,8 @@ def add_card_to_database(
         CardTypeModel: Base,
         card_file: Path,
         library: Library | None,
+        *,
+        commit: bool = True,
     ) -> Card:
     """
     Add the given Card to the Database.
@@ -329,6 +331,7 @@ def add_card_to_database(
         card_file: Path to the Card associated with the given model
             being added to the Database.
         library: Library the Card is associated with.
+        commit: Whether to commit the Database transaction.
 
     Returns:
         Card entry created within the Database.
@@ -346,7 +349,8 @@ def add_card_to_database(
     if library:
         card.interface_id = library['interface_id']
         card.library_name = library['name']
-    db.commit()
+    if commit:
+        db.commit()
 
     return card
 
@@ -439,7 +443,7 @@ def create_card(
     # If file exists, card was created successfully - add to database
     if (card_file := CardTypeModel.card_file).exists():
         card = add_card_to_database(
-            db, card_model, CardTypeModel, card_file, library
+            db, card_model, CardTypeModel, card_file, library, commit=True
         )
         log.info(f'Created {card}')
     # Card file does not exist, log failure
