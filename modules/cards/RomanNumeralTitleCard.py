@@ -548,10 +548,8 @@ class RomanNumeralTitleCard(BaseCardType):
         random_index = choice(range(len(self.roman_numeral)))
         if self.roman_numeral[random_index] == '\n':
             random_index -= 1
-        # random_letter = self.roman_numeral[random_index]
-        # random_position = choice(POSITIONS[random_letter])
-        random_letter = self.roman_numeral[0]
-        random_position = POSITIONS[random_letter][4]
+        random_letter = self.roman_numeral[random_index]
+        random_position = choice(POSITIONS[random_letter])
 
         offset = Offset('+0-30')
 
