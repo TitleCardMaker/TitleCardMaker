@@ -70,7 +70,7 @@ class StandardSummary(BaseSummary):
                 pass
 
         # If a filepath that exists, use as image
-        self.background: Union[str, Path] = background
+        self.background: str | Path = background
         self.__background_is_image = False
         if Path(background).exists():
             self.background = Path(background)
