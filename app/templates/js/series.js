@@ -1067,6 +1067,47 @@ async function getEpisodeData(page=1) {
   });
   episodeTable.replaceChildren(...rows);
 
+  // Add arrow key navigation to swap between rows and columns
+  episodeTable.addEventListener('keydown', (event) => {
+    // Handle shift and tab keys
+    if (!['ArrowDown', 'ArrowUp', 'Shift', 'Tab'].includes(event.key)) { return; }
+
+    const currentCell = event.target.closest('td');
+    const currentRow = event.target.closest('tr');
+    const cellIdentifier = currentCell.dataset.column;
+
+    // Shift + Tab moves to previous input in the row
+    if (event.shiftKey && event.key === 'Tab') {
+      const columnIndex = currentCell.cellIndex;
+      const nextInput = currentRow.querySelectorAll('input')[columnIndex + 1];
+      if (nextInput) {
+        nextInput.focus();
+      }
+    }
+    // Tab moves to next input in the row
+    else if (event.key === 'Tab') {
+      const columnIndex = currentCell.cellIndex;
+      const previousInput = currentRow.querySelectorAll('input')[columnIndex - 1];
+      if (previousInput) {
+        previousInput.focus();
+      }
+    }
+    // Arrow down moves to next row
+    else if (event.key === 'ArrowDown') {
+      const nextRow = currentRow.nextElementSibling.querySelector(`[data-column="${cellIdentifier}"] input`);
+      if (nextRow) {
+        nextRow.focus();
+      }
+    }
+    // Arrow up moves to previous row
+    else if (event.key === 'ArrowUp') {
+      const previousRow = currentRow.previousElementSibling.querySelector(`[data-column="${cellIdentifier}"] input`);
+      if (previousRow) {
+        previousRow.focus();
+      }
+    }
+  });
+
   // Initialize card type dropdowns
   await getAllCardTypes();
   episodeData.items.forEach(episode => {
