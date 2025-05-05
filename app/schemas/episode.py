@@ -171,8 +171,6 @@ class EpisodeData(Base):
 
 class Episode(Base):
     id: int
-    series_id: int
-    series: SeriesData
     template_ids: list[int]
     font_id: int | None
 
@@ -213,4 +211,33 @@ class Episode(Base):
 
     extras: dict[str, Any] | None
     translations: dict[str, str]
-    cards: list[TitleCard]
+
+class ReducedEpisodeData(Base):
+    id: int
+    series_id: int
+    series: SeriesData
+    season_number: int
+    episode_number: int
+    title: str
+
+class ExtendedEpisodeData(Episode):
+    pass
+
+class SimplifiedEpisodeData(Base):
+    id: int
+
+    season_number: int
+    episode_number: int
+    absolute_number: int | None
+
+    title: str
+    match_title: bool | None
+    auto_split_title: bool | None
+
+    season_text: str | None
+    hide_season_text: bool | None
+    episode_text: str | None
+    hide_episode_text: bool | None
+
+    extras: dict[str, Any] | None
+    translations: dict[str, str]

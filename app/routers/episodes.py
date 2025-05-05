@@ -284,6 +284,61 @@ def get_all_series_episodes(
     return paginate(sorted_query)
 
 
+@episodes_router.get('/series/{series_id}/extended', tags=['Series'])
+def get_series_extended_episode_data(
+        series_id: int,
+        db: Session = Depends(get_database),
+    ) -> Page[ExtendedEpisodeData]: # type: ignore
+    """
+    Get all the episodes associated with the given series. This returns
+    the extended episode data for each Episode.
+
+    - series_id: Series being queried.
+    """
+
+    return paginate(
+        db.query(EpisodeModel)
+            .filter_by(series_id=series_id)
+            .order_by(EpisodeModel.season_number, EpisodeModel.episode_number)
+    )
+
+
+@episodes_router.get('/series/{series_id}/simplified', tags=['Series'])
+def get_series_simplified_episode_data(
+        series_id: int,
+        db: Session = Depends(get_database),
+    ) -> Page[SimplifiedEpisodeData]: # type: ignore
+    """
+    Get all the episodes associated with the given series. This returns
+    the simplified episode data for each Episode.
+
+    - series_id: Series being queried.
+    """
+
+    return paginate(
+        db.query(EpisodeModel)
+            .filter_by(series_id=series_id)
+            .order_by(EpisodeModel.season_number, EpisodeModel.episode_number)
+            .options(
+                load_only(
+                    EpisodeModel.id,
+                    EpisodeModel.season_number,
+                    EpisodeModel.episode_number,
+                    EpisodeModel.absolute_number,
+                    EpisodeModel.title,
+                    EpisodeModel.match_title,
+                    EpisodeModel.auto_split_title,
+                    EpisodeModel.season_text,
+                    EpisodeModel.episode_text,
+                    EpisodeModel.hide_season_text,
+                    EpisodeModel.hide_episode_text,
+                    EpisodeModel.extras,
+                    EpisodeModel.translations,
+                )
+            )
+    )
+
+
 @episodes_router.get('/series/{series_id}/overview', tags=['Series'])
 def get_series_episode_overview_data(
         series_id: int,
