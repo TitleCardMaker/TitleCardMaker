@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import paginate as paginate_sequence
 from sqlalchemy import not_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, load_only
 
 from app.database.session import Page
 from app.dependencies import (
@@ -21,7 +21,7 @@ from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
 from app.models.preferences import Preferences
 from app.models.series import Series as SeriesModel
-from app.schemas.episode import Episode
+from app.schemas.episode import ReducedEpisodeData
 from app.schemas.series import SearchResult, Series
 from modules.Debug import Logger
 
@@ -36,11 +36,21 @@ missing_router = APIRouter(
 @missing_router.get('/cards')
 def get_missing_cards(
         db: Session = Depends(get_database),
-    ) -> Page[Episode]: # type: ignore
+    ) -> Page[ReducedEpisodeData]: # type: ignore
     """Get all the Episodes that do not have any associated Cards."""
 
     return paginate(
         db.query(EpisodeModel)\
+            .options(
+                load_only(
+                    EpisodeModel.id,
+                    EpisodeModel.series_id,
+                    EpisodeModel.season_number,
+                    EpisodeModel.episode_number,
+                    EpisodeModel.title,
+                ),
+            )
+            .outerjoin(EpisodeModel.series)
             .filter(not_(EpisodeModel.id.in_(
                 db.query(CardModel.episode_id).distinct()
             )))
@@ -90,7 +100,10 @@ def get_missing_series(
         interface,
         (EmbyInterface, JellyfinInterface, PlexInterface, SonarrInterface)
     ):
-        raise HTTPException(status_code=400, detail='Interface type not supported')
+        raise HTTPException(
+            status_code=400,
+            detail='Interface type not supported'
+        )
 
     missing_series: list[SearchResult] = []
     for result in interface.query_series(query='', return_all=True, log=log):

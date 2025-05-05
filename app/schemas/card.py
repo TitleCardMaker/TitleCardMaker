@@ -201,8 +201,8 @@ class _SeriesData(Base):
 class TitleCardExtended(Base):
     id: int
     series_id: int
-    series: _SeriesData
-    episode: EpisodeData
+    series: _SeriesData | None = None
+    episode: EpisodeData | None = None
     file_url: str
     loaded: LoadedDetails | None = None
     created: datetime
