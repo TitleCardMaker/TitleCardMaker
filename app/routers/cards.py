@@ -745,20 +745,6 @@ def create_card_for_episode(
         ) from exc
 
 
-@card_router.get('/missing', deprecated=True)
-def get_missing_cards(
-        db: Session = Depends(get_database),
-    ) -> Page[EpisodeSchema]: # type: ignore
-    """Get all the Episodes that do not have any associated Cards."""
-
-    return paginate(
-        db.query(Episode)\
-            .filter(not_(Episode.id.in_(
-                db.query(Card.episode_id).distinct()
-            )))
-    )
-
-
 @card_router.delete('/batch')
 def batch_delete_title_cards(
         series_ids: list[int] = Body(...),
