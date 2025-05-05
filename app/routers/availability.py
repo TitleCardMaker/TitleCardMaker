@@ -106,6 +106,7 @@ def get_latest_available_version(
 def get_all_available_card_types(
         request: Request,
         show_excluded: bool = Query(default=False),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> list[CardTypeDescription]:
     """
