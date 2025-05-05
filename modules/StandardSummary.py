@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 from modules.Debug import log
 from modules.BaseSummary import BaseSummary
@@ -75,8 +75,9 @@ class StandardSummary(BaseSummary):
         if Path(background).exists():
             self.background = Path(background)
             self.__background_is_image = True
-            log.debug(f'Identified summary background image '
-                      f'{self.background.resolve()}')
+            log.debug(
+                f'Identified summary background image {self.background.resolve()}'
+            )
 
 
     def _create_montage(self) -> Path:
@@ -219,7 +220,7 @@ class StandardSummary(BaseSummary):
 
         y_offset = (self.number_rows == 2) * 35 + (self.number_rows == 1) * 15
 
-        command = ' '.join([
+        self.image_magick.run([
             f'composite',
             f'-gravity south',
             f'-geometry +0+{35+y_offset}',
@@ -227,8 +228,6 @@ class StandardSummary(BaseSummary):
             f'"{montage_and_logo.resolve()}"',
             f'"{self.output.resolve()}"',
         ])
-
-        self.image_magick.run(command)
 
         return self.output
 
@@ -268,7 +267,7 @@ class StandardSummary(BaseSummary):
         )
 
         # Add background behind transparent montage
-        command = ' '.join([
+        self.image_magick.run([
             f'convert',
             f'"{self.background.resolve()}"',
             f'-gravity center',
@@ -277,8 +276,6 @@ class StandardSummary(BaseSummary):
             f'-composite',
             f'"{self.output.resolve()}"',
         ])
-
-        self.image_magick.run(command)
 
         return self.output
 

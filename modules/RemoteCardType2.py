@@ -18,7 +18,7 @@ class RemoteCardType:
     """
     This class defines a remote (or local) CardType. This is an
     encapsulation of a CardType class that, rather than being built-in,
-    either queries the Maker GitHub for Python classes to dynamically
+    either queries the TCM GitHub for Python classes to dynamically
     inject in the modules namespace, or loads an arbitrary Python file.
     """
 
