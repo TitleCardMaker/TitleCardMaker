@@ -94,8 +94,9 @@ class PreferenceParser(YamlReader):
 
         # Check for required source directory
         if (value := self.get('options', 'source', type_=str)) is None:
-            log.critical(f'Preference file missing required options/source '
-                         f'attribute')
+            log.critical(
+                'Preference file missing required options/source attribute'
+            )
             sys_exit(1)
         self.source_directory = CleanPath(value).sanitize()
 
@@ -187,8 +188,10 @@ class PreferenceParser(YamlReader):
         if (not self._is_specified('emby')
             and not self._is_specified('plex')
             and not self._is_specified('jellyfin')):
-            log.warning(f'No Media Servers indicated - TitleCardMaker will not '
-                        f'automatically load any cards')
+            log.warning(
+                'No Media Servers indicated - TitleCardMaker will not '
+                'automatically load any cards'
+            )
             self.default_media_server = 'plex'
         if (self._is_specified('emby')
             and not self._is_specified('plex')
@@ -761,7 +764,7 @@ class PreferenceParser(YamlReader):
 
         if (value := self.get('tmdb', 'retry_count', type_=int)) is not None:
             if value < 0:
-                log.critical(f'Cannot have a negative TMDb retry count')
+                log.critical('Cannot have a negative TMDb retry count')
                 self.valid = False
             else:
                 self.tmdb_retry_count = value
@@ -771,8 +774,9 @@ class PreferenceParser(YamlReader):
                 width, height = map(int, value.lower().split('x'))
                 self.tmdb_minimum_resolution = {'width': width, 'height':height}
             except Exception:
-                log.critical(f'Invalid minimum resolution - specify as '
-                             f'WIDTHxHEIGHT')
+                log.critical(
+                    'Invalid minimum resolution - specify as WIDTHxHEIGHT'
+                )
                 self.valid = False
 
         if (value := self.get('tmdb', 'skip_localized_images',
@@ -785,8 +789,13 @@ class PreferenceParser(YamlReader):
                 self.tmdb_logo_language_priority = codes
             else:
                 opts = '"' + '", "'.join(TMDbInterface.LANGUAGE_CODES) + '"'
-                log.critical(f'Invalid TMDb logo language codes - must be comma'
-                             f'-separated list of any of the following: {opts}')
+                log.critical(
+                    f'Invalid TMDb logo language codes - must be comma'
+                    f'-separated list of any of the following: {opts}'
+                )
+                self.valid = False
+
+        return None
                 self.valid = False
 
         return None
@@ -843,8 +852,10 @@ class PreferenceParser(YamlReader):
 
         # Warn if ImageMagick provided in a Docker environment
         if self.is_docker:
-            log.warning(f'Specifying the "imagemagick" section is not '
-                        f'recommended when using TitleCardMaker in Docker')
+            log.warning(
+                'Specifying the "imagemagick" section is not recommended when '
+                'using TitleCardMaker in Docker'
+            )
 
         if (value := self.get('imagemagick', 'container', type_=str)):
             self.imagemagick_container = value
@@ -913,8 +924,9 @@ class PreferenceParser(YamlReader):
             # Libraries must specify a media server if there is no default
             if (self.default_media_server is None
                 and spec.get('media_server') is None):
-                log.error(f'Library "{name}" is missing required "media_server"'
-                          f' {err}')
+                log.error(
+                    f'Library "{name}" is missing required "media_server" {err}'
+                )
                 return False
 
             # Media server must be Plex or Emby
@@ -951,15 +963,17 @@ class PreferenceParser(YamlReader):
         for name, spec in font_yaml.items():
             # All fonts must be dictionaries
             if not isinstance(spec, dict):
-                log.error(f'Font "{name}" is invalid for series file '
-                          f'"{file.resolve()}"')
+                log.error(
+                    f'Font "{name}" is invalid for series file "{file.resolve()}"'
+                )
                 return False
 
             # All fonts must provide valid font attributes
             for attrib in spec.keys():
                 if attrib not in Font.VALID_ATTRIBUTES:
-                    log.error(f'Font "{name}" has unrecognized attribute '
-                              f'"{attrib}"')
+                    log.error(
+                        f'Font "{name}" has unrecognized attribute "{attrib}"'
+                    )
                     return False
 
         return True
@@ -1070,8 +1084,9 @@ class PreferenceParser(YamlReader):
         """
 
         # Apply template to series, stop if invalid
-        if not PreferenceParser.apply_template(templates, show_yaml, show_name,
-                                               raise_exc=raise_exc):
+        if not PreferenceParser.apply_template(
+            templates, show_yaml, show_name, raise_exc=raise_exc
+        ):
             return None
 
         # Parse library from map
@@ -1080,8 +1095,10 @@ class PreferenceParser(YamlReader):
             # If library identifier is not in the map, error and exit
             if (library_yaml := library_map.get(library_name)) is None:
                 library_names = '"' + '", "'.join(library_map.keys()) + '"'
-                log.error(f'Library "{library_name}" of series "{show_name}" is'
-                          f' not present in libraries list')
+                log.error(
+                    f'Library "{library_name}" of series "{show_name}" is  not '
+                    f'present in libraries list'
+                )
                 log.info(f'Listed library names are {library_names}')
                 return None
             # Library identifier in map, merge YAML
@@ -1100,8 +1117,10 @@ class PreferenceParser(YamlReader):
             # If font identifier is not in map, error and exit
             if (font_yaml := font_map.get(font_name)) is None:
                 font_names = '"' + '", "'.join(font_map.keys()) + '"'
-                log.error(f'Font "{font_name}" of series "{show_name}" is '
-                            f'not present in font list')
+                log.error(
+                    f'Font "{font_name}" of series "{show_name}" is not '
+                    f'present in font list'
+                )
                 log.info(f'Listed font names are {font_names}')
                 return None
             # Font identifier in map, merge YAML
@@ -1119,8 +1138,9 @@ class PreferenceParser(YamlReader):
 
         # If the file doesn't exist, error and exit
         if not self.file.exists():
-            log.critical(f'Preference file "{self.file.resolve()}" does not '
-                         f'exist')
+            log.critical(
+                f'Preference file "{self.file.resolve()}" does not exist'
+            )
             sys_exit(1)
 
         # Read file
@@ -1191,8 +1211,9 @@ class PreferenceParser(YamlReader):
                     templates[name] = Template(name, template)
 
             # Go through each series in this file
-            for show_name in tqdm(file_yaml['series'], desc='Reading entries',
-                                  **TQDM_KWARGS):
+            for show_name in tqdm(
+                file_yaml['series'], desc='Reading entries', **TQDM_KWARGS
+            ):
                 # Skip if not a dictionary
                 if not isinstance(file_yaml['series'][show_name], dict):
                     log.error(f'Skipping "{show_name}" from "{file_}"')

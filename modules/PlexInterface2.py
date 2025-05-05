@@ -1020,11 +1020,13 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 if self.integrate_with_kometa:
                     season.removeLabel(['Overlay'])
                     log.trace(f'Removed "Overlay" label from {season}')
-                log.debug(f'{series_info} loaded poster into season '
-                          f'{season.index}')
+                log.debug(
+                    f'{series_info} loaded poster into season {season.index}'
+                )
             except Exception:
-                log.exception(f'Failed to upload {poster} to season '
-                              f'{season.index}')
+                log.exception(
+                    f'Failed to upload {poster} to season {season.index}'
+                )
                 continue
 
         return None
