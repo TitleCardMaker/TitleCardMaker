@@ -22,6 +22,12 @@ class BaseSummary(ImageMaker):
     This object cannot be instantiated directly, and only provides very
     few methods that can/should be used by all Summary subclasses.
     """
+    show: 'Show'
+    logo: Path
+    created_by: str | None
+    output: Path
+    inputs: list[str]
+    number_rows: int
 
     """Directory where all reference files are stored"""
     REF_DIRECTORY = Path(__file__).parent / 'ref' / 'summary'
