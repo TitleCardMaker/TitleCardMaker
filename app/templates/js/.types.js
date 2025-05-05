@@ -334,6 +334,25 @@
  */
 
 /**
+ * @typedef {Object} ReducedEpisodeData
+ * @property {number} id
+ * @property {number} series_id
+ * @property {SeriesData} series
+ * @property {number} season_number
+ * @property {number} episode_number
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} ReducedEpisodeDataPage
+ * @property {ReducedEpisodeData[]} items
+ * @property {number} total
+ * @property {number} size
+ * @property {number} page
+ * @property {number} pages
+ */
+
+/**
  * @typedef {Episode} UpdateEpisode
  */
 

@@ -988,8 +988,9 @@ async function getEpisodeData(page=1) {
   if (rowTemplate === null) { return; }
 
   // Get page of episodes via API
+  const url = simplified_data_table ? '/api/episodes/series/{{ series.id }}/simplified' : '/api/episodes/series/{{ series.id }}';
   /** @type {EpisodePage} */
-  const episodeData = await fetch(`/api/episodes/series/{{ series.id }}?size={{preferences.episode_data_page_size}}&page=${page}`).then(resp => resp.json());
+  const episodeData = await fetch(`${url}?size={{ preferences.episode_data_page_size }}&page=${page}`).then(resp => resp.json());
   if (episodeData === null || episodeData.items.length === 0) { return; }
 
   // Different HTML for each togglable boolean icon
@@ -1013,7 +1014,7 @@ async function getEpisodeData(page=1) {
     row.querySelector('tr').id = `${getEpisodeElementId(episode.id)}`;
     row.querySelector('tr').dataset.episodeId = episode.id;
     // Add red mark if no Card is present
-    if (episode.cards.length == 0) { row.querySelector('tr').classList.add('left', 'red', 'marked'); }
+    if (episode.cards?.length == 0) { row.querySelector('tr').classList.add('left', 'red', 'marked'); }
     // Assign functions to onclick of <a> element
     row.querySelector('td[data-column="create"] a').onclick = () => createEpisodeCard(episode.id);
     row.querySelector('td[data-column="edit"] a').onclick = () => saveEpisodeConfig(episode.id);
@@ -2595,7 +2596,7 @@ function deleteAllEpisodes() {
  * Submit an API request to delete the Episode with the given ID. If successful,
  * then the statistics are re-queried and the Episode and file associated with
  * this Episode are removed from the DOM.
- * @param {number} id - Episode ID of the Episode to delete.
+ * @param {number} id ID of the Episode to delete.
  */
 function deleteEpisode(id) {
   $.ajax({
