@@ -332,11 +332,10 @@ class LandscapeTitleCard(BaseCardType):
         ]
 
         # Get dimensions of text - since text is stacked, do max/sum operations
-        width, height = self.image_magick.get_text_dimensions(
-            text_command,
-            interline_spacing=interline_spacing,
-            line_count=len(self.title_text.splitlines()),
+        width, height = self.image_magick.get_text_label_dimensions(
+            ['-background none'] + text_command
         )
+        height += 20 # Add 20px margin
 
         # Get start coordinates of the bounding box
         x_start, x_end = (self.WIDTH - width) / 2, (self.WIDTH + width) / 2
