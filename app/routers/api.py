@@ -6,7 +6,7 @@ from sqlalchemy import MetaData, text
 from sqlalchemy.orm import Session
 
 from app.database.session import engine
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database, get_logger, get_preferences
 from app.models.preferences import Preferences
 from app.routers.auth import auth_router
 from app.routers.availability import availablility_router
@@ -82,9 +82,9 @@ def health_check(
 
 @api_router.post('/reset')
 def reset_database(
-        request: Request,
         db: Session = Depends(get_database),
         preferences: Preferences = Depends(get_preferences),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Reset the entire database and system state. This DOES NOT clear any
@@ -93,8 +93,6 @@ def reset_database(
 
     Intended only for testing setup and teardown.
     """
-
-    log: Logger = request.state.log
 
     if getenv('TCM_TESTING', 'false') != 'TRUE':
         raise HTTPException(
@@ -118,4 +116,4 @@ def reset_database(
     preferences.reset(log=log)
 
     # Re-initialize the scheduler
-    initialize_scheduler(override=True)
+    initialize_scheduler(override=True, log=log)

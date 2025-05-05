@@ -2,11 +2,11 @@ from datetime import timedelta
 from logging import Logger
 from os import environ
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database, get_logger, get_preferences
 from app.internal.auth import (
     authenticate_user,
     create_access_token,
@@ -31,17 +31,14 @@ auth_router = APIRouter(
 
 @auth_router.post('/enable', dependencies=[Depends(get_current_user)])
 def enable_authentication(
-        request: Request,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> User:
     """
     Enable Authentication on this server. If there are no existing Users
     when enabled then a temporary User is created.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Enable auth globally
     preferences.require_auth = True
@@ -67,9 +64,9 @@ def enable_authentication(
 
 @auth_router.post('/disable', dependencies=[Depends(get_current_user)])
 def disable_authentication(
-        request: Request,
         revoke_access: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
@@ -77,9 +74,6 @@ def disable_authentication(
 
     - revoke_access: Whether to revoke access from all existing Users.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Disable authentication requirement
     preferences.require_auth = False
@@ -95,9 +89,9 @@ def disable_authentication(
 
 @auth_router.post('/new-user', dependencies=[Depends(get_current_user)])
 def add_new_user(
-        request: Request,
         db: Session = Depends(get_database),
         new_user: NewUser = Body(...),
+        log: Logger = Depends(get_logger),
     ) -> User:
     """
     Add a new User - must be called by an already authenticated User.
@@ -122,16 +116,16 @@ def add_new_user(
     )
     db.add(user)
     db.commit()
-    request.state.log.info(f'Created new User({new_user.username})')
+    log.info(f'Created new User({new_user.username})')
 
     return user
 
 
 @auth_router.delete('/user', dependencies=[Depends(get_current_user)])
 def delete_user(
-        request: Request,
         username: str = Query(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
@@ -141,9 +135,6 @@ def delete_user(
 
     - username: Username of the User to delete.
     """
-
-    # Get contextual logger
-    log = request.state.log
 
     # Find this User
     user = db.query(UserModel).filter_by(username=username).first()
@@ -183,10 +174,10 @@ def get_active_username(
 
 @auth_router.post('/edit')
 def update_user_credentials(
-        request: Request,
         update_user: UpdateUser = Body(...),
         db: Session = Depends(get_database),
         user: User | None = Depends(get_current_user),
+        log: Logger = Depends(get_logger),
     ) -> User:
     """
     Update the credentials of the current User.
@@ -218,7 +209,7 @@ def update_user_credentials(
         )
 
     # Change username/password
-    request.state.log.warning(f'Modified credentials for User({user.username})')
+    log.warning(f'Modified credentials for User({user.username})')
     user.username = update_user.username
     user.hashed_password = get_password_hash(update_user.password)
     db.commit()
@@ -228,9 +219,9 @@ def update_user_credentials(
 
 @auth_router.post('/authenticate')
 def login_for_access_token(
-        request: Request,
         db: Session = Depends(get_database),
         form_data: OAuth2PasswordRequestForm = Depends(),
+        log: Logger = Depends(get_logger),
     ) -> Token:
     """
     Authenticate the given User and return an appropriate access token.
@@ -253,9 +244,7 @@ def login_for_access_token(
         data={'sub': user.username, 'uid': user.hashed_password},
         expires_delta=_EXPIRATION_TIME,
     )
-    request.state.log.info(
-        f'Authenticated User({user.username}) for {_EXPIRATION_TIME}'
-    )
+    log.info(f'Authenticated User({user.username}) for {_EXPIRATION_TIME}')
 
     return Token(
         access_token=access_token,
@@ -265,9 +254,9 @@ def login_for_access_token(
 
 @auth_router.post('/reset')
 def reset_all_authentication(
-        request: Request,
         db: Session = Depends(get_database),
         preferences: Preferences = Depends(get_preferences),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Reset all authentication of the current server. This requires the
@@ -283,7 +272,7 @@ def reset_all_authentication(
         )
 
     # Delete all Users from the database
-    request.state.log.warning('Resetting all authentication')
+    log.warning('Resetting all authentication')
     db.query(User).delete()
     db.commit()
 

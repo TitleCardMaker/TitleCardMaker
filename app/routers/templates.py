@@ -6,14 +6,14 @@ from sqlalchemy.orm import Session
 
 from app.database.query import get_connection, get_font, get_template
 from app.database.session import Page
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database, get_logger, get_preferences
 from app.internal.auth import get_current_user
 from app.internal.cards import refresh_remote_card_types
 from app.models.preferences import Preferences
 from app.models.template import Template as TemplateModel
 from app.schemas.base import UNSPECIFIED
 from app.schemas.series import NewTemplate, Template, UpdateTemplate
-from modules.Debug import Logger, log # noqa: F401
+from modules.Debug import Logger
 
 
 # Create sub router for all /templates API requests
@@ -26,9 +26,9 @@ template_router = APIRouter(
 
 @template_router.post('/new')
 def create_template(
-        request: Request,
         new_template: NewTemplate = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Template:
     """
     Create a new Template. Any referenced font_id must exist.
@@ -44,7 +44,7 @@ def create_template(
     db.commit()
 
     # Refresh card types in case new remote type was specified
-    refresh_remote_card_types(db, log=request.state.log)
+    refresh_remote_card_types(db, log=log)
 
     return template
 
@@ -87,6 +87,7 @@ def update_template_(
         template_id: int,
         update_template: UpdateTemplate = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Template:
     """
     Update the Template with the given ID. Only provided fields are
@@ -95,9 +96,6 @@ def update_template_(
     - template_id: ID of the Template to update.
     - update_template: UpdateTemplate containing fields to update.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Query for Template, raise 404 if DNE
     template = get_template(db, template_id, raise_exc=True)

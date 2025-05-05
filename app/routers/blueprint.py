@@ -10,7 +10,6 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
-    Request
 )
 from fastapi.responses import FileResponse
 from fastapi_pagination import paginate as paginate_sequence
@@ -138,11 +137,11 @@ def get_series_blueprint_font_files(
 @blueprint_router.get('/export/series/{series_id}/zip')
 async def export_series_blueprint_as_zip(
         background_tasks: BackgroundTasks,
-        request: Request,
         series_id: int,
         include_episode_overrides: bool = Query(default=True),
         mask_images: bool = Query(default=True),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> FileResponse:
     """
@@ -156,9 +155,6 @@ async def export_series_blueprint_as_zip(
     - mask_images: Whether to include a list of mask images in the
     export.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Query for this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
@@ -252,7 +248,7 @@ async def export_series_blueprint_as_zip(
 @blueprint_router.put('/blacklist/{blueprint_id}')
 def blacklist_blueprint(
         blueprint_id: int,
-        request: Request,
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
@@ -266,7 +262,7 @@ def blacklist_blueprint(
     preferences.blacklisted_blueprints.add(blueprint_id)
     preferences.commit()
 
-    request.state.log.debug(f'Blacklisted Blueprint[{blueprint_id}]')
+    log.debug(f'Blacklisted Blueprint[{blueprint_id}]')
 
 
 @blueprint_router.delete('/blacklist/{blueprint_id}')
@@ -428,10 +424,10 @@ def query_blueprints_by_info(
 @blueprint_router.post('/import/blueprint/{blueprint_id}', status_code=201)
 def import_blueprint_and_series(
         background_tasks: BackgroundTasks,
-        request: Request,
         blueprint_id: int,
         db: Session = Depends(get_database),
         blueprint_db: Session = Depends(get_blueprint_database),
+        log: Logger = Depends(get_logger),
     ) -> Series:
     """
     Import the given Blueprint - creating the associated Series if it
@@ -439,9 +435,6 @@ def import_blueprint_and_series(
 
     - blueprint_id: ID of the Blueprint to import.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get this Blueprint, raise 404 if DNE
     blueprint = get_blueprint(blueprint_db, blueprint_id, raise_exc=True)
@@ -471,11 +464,11 @@ def import_blueprint_and_series(
 
 @blueprint_router.put('/import/series/{series_id}/blueprint/{blueprint_id}')
 def import_series_blueprint_by_id(
-        request: Request,
         series_id: int,
         blueprint_id: int,
         db: Session = Depends(get_database),
         blueprint_db: Session = Depends(get_blueprint_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import the Blueprint with the given ID to the given Series.
@@ -491,15 +484,15 @@ def import_series_blueprint_by_id(
     blueprint = get_blueprint(blueprint_db, blueprint_id, raise_exc=True)
 
     # Import Blueprint
-    import_blueprint(db, series, blueprint, log=request.state.log)
+    import_blueprint(db, series, blueprint, log=log)
 
 
 @blueprint_router.put('/import/series/{series_id}')
 def import_series_blueprint_(
-        request: Request,
         series_id: int,
         blueprint: RemoteBlueprint = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import the given Blueprint object into the given Series.
@@ -511,8 +504,8 @@ def import_series_blueprint_(
     import_blueprint(
         db,
         get_series(db, series_id, raise_exc=True),
-        blueprint, # type: ignore
-        log=request.state.log
+        blueprint,
+        log=log
     )
 
 

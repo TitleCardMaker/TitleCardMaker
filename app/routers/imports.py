@@ -12,7 +12,6 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
-    Request,
     UploadFile,
 )
 from pydantic.error_wrappers import ValidationError
@@ -78,8 +77,8 @@ import_router = APIRouter(
 
 @import_router.post('/preferences/options')
 def import_global_options_yaml(
-        request: Request,
         import_yaml: ImportYaml = Body(...),
+        log: Logger = Depends(get_logger),
         preferences: PrefencesModel = Depends(get_preferences),
     ) -> Preferences:
     """
@@ -88,9 +87,6 @@ def import_global_options_yaml(
 
     - import_yaml: The YAML string to parse.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Parse raw YAML into dictionary
     if not (yaml_dict := parse_raw_yaml(import_yaml.yaml)):
@@ -109,10 +105,10 @@ def import_global_options_yaml(
 
 @import_router.post('/preferences/connection/{connection}')
 def import_connection_yaml(
-        request: Request,
         connection: Literal['all', 'emby', 'jellyfin', 'plex', 'sonarr', 'tmdb'],
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import the connection preferences defined in the given YAML. This
@@ -121,9 +117,6 @@ def import_connection_yaml(
     - connection: Which connection is being modified.
     - import_yaml: The YAML string to parse.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Parse raw YAML into dictionary
     if not (yaml_dict := parse_raw_yaml(import_yaml.yaml)):
@@ -150,18 +143,15 @@ def import_connection_yaml(
 
 @import_router.post('/preferences/sync')
 def import_sync_yaml(
-        request: Request,
         import_yaml: ImportYaml = Body(...),
-        db: Session = Depends(get_database)
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> list[Sync]:
     """
     Import all Syncs defined in the given YAML.
 
     - import_yaml: The YAML string to parse.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Parse raw YAML into dictionary
     if not (yaml_dict := parse_raw_yaml(import_yaml.yaml)):
@@ -197,9 +187,9 @@ def import_sync_yaml(
 
 @import_router.post('/fonts')
 def import_fonts_yaml(
-        request: Request,
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: PrefencesModel = Depends(get_preferences),
     ) -> list[NamedFont]:
     """
@@ -209,9 +199,6 @@ def import_fonts_yaml(
     - import_yaml: The YAML string to parse.
     import.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Parse raw YAML into dictionary
     if not (yaml_dict := parse_raw_yaml(import_yaml.yaml)):
@@ -254,19 +241,16 @@ def import_fonts_yaml(
 
 @import_router.post('/templates')
 def import_template_yaml(
-        request: Request,
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
-        preferences: PrefencesModel = Depends(get_preferences)
+        log: Logger = Depends(get_logger),
+        preferences: PrefencesModel = Depends(get_preferences),
     ) -> list[Template]:
     """
     Import all Templates defined in the given YAML.
 
     - import_yaml: The YAML string to parse.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Parse raw YAML into dictionary
     if not (yaml_dict := parse_raw_yaml(import_yaml.yaml)):
@@ -297,9 +281,9 @@ def import_template_yaml(
 @import_router.post('/series')
 def import_series_yaml(
         background_tasks: BackgroundTasks,
-        request: Request,
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: PrefencesModel = Depends(get_preferences),
     ) -> list[Series]:
     """
@@ -307,9 +291,6 @@ def import_series_yaml(
 
     - import_yaml: The YAML string and default library name to parse.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Parse raw YAML into dictionary
     if not (yaml_dict := parse_raw_yaml(import_yaml.yaml)):
@@ -579,10 +560,10 @@ async def import_mediux_yaml_for_series(
 @import_router.post('/series/{series_id}/cards/directory',
                     tags=['Title Cards', 'Series'])
 def import_card_directory_for_series(
-        request: Request,
         series_id: int,
         card_directory: ImportCardDirectory = Body(...),
-        db: Session = Depends(get_database)
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import any existing Title Cards for the given Series. This finds
@@ -594,17 +575,20 @@ def import_card_directory_for_series(
     """
 
     import_cards(
-        db, get_series(db, series_id, raise_exc=True), card_directory.directory,
-        card_directory.image_extension, card_directory.force_reload,
-        log=request.state.log,
+        db,
+        get_series(db, series_id, raise_exc=True),
+        card_directory.directory,
+        card_directory.image_extension,
+        card_directory.force_reload,
+        log=log,
     )
 
 
 @import_router.post('/series/cards', tags=['Title Cards', 'Series'])
 def import_cards_for_multiple_series(
-        request: Request,
         card_import: MultiCardImport = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import any existing Title Cards for all the given Series. This finds
@@ -616,9 +600,11 @@ def import_cards_for_multiple_series(
 
     # Import Card for each identified Series
     for series_id in card_import.series_ids:
-        # Import Cards for this Series
         import_cards(
-            db, get_series(db, series_id, raise_exc=True), None,
-            card_import.image_extension, card_import.force_reload,
-            log=request.state.log,
+            db,
+            get_series(db, series_id, raise_exc=True),
+            None,
+            card_import.image_extension,
+            card_import.force_reload,
+            log=log,
         )

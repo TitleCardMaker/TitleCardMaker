@@ -8,7 +8,6 @@ from fastapi import (
     Form,
     HTTPException,
     Query,
-    Request,
     UploadFile,
 )
 from fastapi_pagination.ext.sqlalchemy import paginate
@@ -18,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.database.query import get_connection, get_episode, get_series
 from app.database.session import Page
 from app.dependencies import *
+from app.dependencies import get_logger
 from app.internal.auth import get_current_user
 from app.internal.cards import delete_cards
 from app.internal.sources import (
@@ -47,10 +47,10 @@ source_router = APIRouter(
 @source_router.post('/series/{series_id}')
 def download_series_source_images(
         background_tasks: BackgroundTasks,
-        request: Request,
         series_id: int,
         # ignore_blacklist: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Download a Source image for all Episodes in the given Series. This
@@ -68,17 +68,17 @@ def download_series_source_images(
             # Function
             download_episode_source_images,
             # Arguments
-            db, episode, raise_exc=False, log=request.state.log,
+            db, episode, raise_exc=False, log=log,
         )
 
 
 @source_router.post('/series/{series_id}/backdrop/tmdb')
 def download_series_backdrop_from_tmdb(
         series_id: int,
-        request: Request,
         # ignore_blacklist: bool = Query(default=False),
         db: Session = Depends(get_database),
         tmdb_interfaces: InterfaceGroup[int, TMDbInterface] = Depends(get_tmdb_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> str:
     """
     Download a backdrop (art image) for the given Series from TMDb.
@@ -87,10 +87,8 @@ def download_series_backdrop_from_tmdb(
     - ignore_blacklist: Whether to force a download from TMDb, even if
     the associated Series backdrop has been internally blacklisted.
     """
-    # TODO add ability to download art from a media server
-    # Get contextual logger
-    log: Logger = request.state.log
 
+    # TODO add ability to download art from a media server
     # Get this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
@@ -119,9 +117,9 @@ def download_series_backdrop_from_tmdb(
 @source_router.post('/series/{series_id}/backdrop/tvdb')
 def download_series_backdrop_from_tvdb(
         series_id: int,
-        request: Request,
         db: Session = Depends(get_database),
         tvdb_interfaces: InterfaceGroup[int, TVDbInterface] = Depends(get_tvdb_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> str:
     """
     Download a backdrop (art image) for the given Series from TVDb.
@@ -129,8 +127,6 @@ def download_series_backdrop_from_tvdb(
     - series_id: ID of the Series to download a backdrop for.
     """
     # TODO add ability to download art from a media server
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
@@ -160,8 +156,8 @@ def download_series_backdrop_from_tvdb(
 @source_router.post('/series/{series_id}/logo')
 def download_series_logo_(
         series_id: int,
-        request: Request,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> str | None:
     """
     Download a logo for the given Series. This uses the most relevant
@@ -174,14 +170,14 @@ def download_series_logo_(
     # Get this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    return download_series_logo(series, log=request.state.log)
+    return download_series_logo(series, log=log)
 
 
 @source_router.post('/episode/{episode_id}')
 def download_episode_source_images_(
         episode_id: int,
-        request: Request,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> list[str | None]:
     """
     Download the Source Images for the given Episode. This uses the most
@@ -194,14 +190,11 @@ def download_episode_source_images_(
     # Get the Episode with this ID, raise 404 if DNE
     episode = get_episode(db, episode_id, raise_exc=True)
 
-    return download_episode_source_images(
-        db, episode, raise_exc=True, log=request.state.log,
-    )
+    return download_episode_source_images(db, episode, raise_exc=True, log=log)
 
 
 @source_router.get('/episode/{episode_id}/browse')
 def get_all_episode_source_images(
-        request: Request,
         episode_id: int,
         db: Session = Depends(get_database),
         emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
@@ -209,15 +202,13 @@ def get_all_episode_source_images(
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
         tmdb_interface: TMDbInterface = Depends(require_tmdb_interface),
         tvdb_interface: TVDbInterface | None = Depends(get_first_tvdb_interface),
+        log: Logger = Depends(get_logger),
     ) -> list[ExternalSourceImage]:
     """
     Get all Source Images on all interfaces for the given Episode.
 
     - episode_id: ID of the Episode to get the Source Images of.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get the Episode, raise 404 if DNE
     episode = get_episode(db, episode_id, raise_exc=True)
@@ -251,8 +242,10 @@ def get_all_episode_source_images(
             images.append({'url': tvdb_image, 'interface_type': 'TVDb'})
 
     # Grab raw image bytes from Emby and Jellyfin
-    for interface_type, interface_group in (('Emby', emby_interfaces),
-                                            ('Jellyfin', jellyfin_interfaces)):
+    for interface_type, interface_group in (
+        ('Emby', emby_interfaces),
+        ('Jellyfin', jellyfin_interfaces)
+    ):
         for library in episode.series.libraries:
             if not (interface := interface_group[library['interface_id']]):
                 continue
@@ -283,7 +276,7 @@ def get_all_episode_source_images(
             episode.series.as_series_info,
             episode.as_episode_info,
             proxy_url=True,
-            log=request.state.log,
+            log=log,
         )
         if url:
             images.append({'url': url, 'interface_type': 'Plex'})
@@ -295,10 +288,10 @@ def get_all_episode_source_images(
 
 @source_router.get('/series/{series_id}/logo/browse')
 def get_all_series_logos_on_tmdb(
-        request: Request,
         series_id: int,
         db: Session = Depends(get_database),
         tmdb_interface: TMDbInterface = Depends(require_tmdb_interface),
+        log: Logger = Depends(get_logger),
     ) -> list[ExternalSourceImage]:
     """
     Get a list of all the logos available for the specified Series on
@@ -310,18 +303,15 @@ def get_all_series_logos_on_tmdb(
     # Get the Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    return tmdb_interface.get_all_logos(
-        series.as_series_info,
-        log=request.state.log,
-    ) or [] # type: ignore
+    return tmdb_interface.get_all_logos(series.as_series_info, log=log) or []
 
 
 @source_router.get('/series/{series_id}/backdrop/browse')
 def get_all_series_backdrops_on_tmdb(
-        request: Request,
         series_id: int,
         db: Session = Depends(get_database),
         tmdb_interface: TMDbInterface = Depends(require_tmdb_interface),
+        log: Logger = Depends(get_logger),
     ) -> list[ExternalSourceImage]:
     """
     Get a list of all the backdrops available for the specified Series
@@ -334,10 +324,7 @@ def get_all_series_backdrops_on_tmdb(
     series = get_series(db, series_id, raise_exc=True)
 
     # Get all backdrops
-    return tmdb_interface.get_all_backdrops(
-        series.as_series_info,
-        log=request.state.log,
-    ) or []# type: ignore
+    return tmdb_interface.get_all_backdrops(series.as_series_info,log=log) or []
 
 
 @source_router.get('/series/{series_id}')
@@ -354,8 +341,10 @@ def get_existing_series_source_images(
     return paginate(
         db.query(EpisodeModel)\
             .filter_by(series_id=series_id)\
-            .order_by(EpisodeModel.season_number,
-                      EpisodeModel.episode_number),
+            .order_by(
+                EpisodeModel.season_number,
+                EpisodeModel.episode_number,
+            ),
         transformer=lambda episodes: [
             get_source_image(episode) for episode in episodes
         ]
@@ -364,10 +353,10 @@ def get_existing_series_source_images(
 
 @source_router.put('/series/{series_id}/upload')
 async def upload_series_source_images(
-        request: Request,
         series_id: int,
         images: list[UploadFile] = [],
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Process any of the given uploaded source images and write them to
@@ -376,9 +365,6 @@ async def upload_series_source_images(
     - series_id: ID of the Series whose images are provided.
     - images: List of images to write and process.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get Series with this ID, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
@@ -404,9 +390,9 @@ async def upload_series_source_images(
 
 @source_router.delete('/series/{series_id}')
 def delete_series_source_images(
-        request: Request,
         series_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete all the Source Images for the given Series.
@@ -414,13 +400,7 @@ def delete_series_source_images(
     - series_id: ID of the Series whose Source Images are being deleted.
     """
 
-    # Get contextual logger
-    log: Logger = request.state.log
-
-    # Get Series with this ID, raise 404 if DNE
-    series = get_series(db, series_id, raise_exc=True)
-
-    for episode in series.episodes:
+    for episode in get_series(db, series_id, raise_exc=True).episodes:
         for _, source_file in resolve_all_source_settings(episode):
             if source_file.exists():
                 log.debug(f'Deleting {episode} "{source_file.name}"')
@@ -444,8 +424,8 @@ def get_existing_episode_source_image(
 @source_router.delete('/episode/{episode_id}')
 def delete_episode_source_images(
         episode_id: int,
-        request: Request,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Source Image(s) for the given Episode.
@@ -453,9 +433,6 @@ def delete_episode_source_images(
     - episode_id: ID of the Episode to whose Source Images are being
     deleted.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get the Episode with this ID, raise 404 if DNE
     episode = get_episode(db, episode_id, raise_exc=True)
@@ -470,13 +447,13 @@ def delete_episode_source_images(
 
 @source_router.put('/episode/{episode_id}/upload')
 async def set_episode_source_image(
-        request: Request,
         episode_id: int,
         url: str | None = Form(default=None),
         file: UploadFile | None = None,
         interface_id: int | None = Query(default=None),
         db: Session = Depends(get_database),
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> SourceImage:
     """
     Set the Source Image for the given Episode. If there is an existing
@@ -490,9 +467,6 @@ async def set_episode_source_image(
     - interface_id: ID of the interface associated with the proxy URL;
     only required if `url` is a proxied API URL from Plex.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get Episode with this ID, raise 404 if DNE
     episode = get_episode(db, episode_id, raise_exc=True)
@@ -572,9 +546,9 @@ async def set_episode_source_image(
 
 @source_router.put('/episode/{episode_id}/mirror')
 def mirror_episode_source_image(
-        request: Request,
         episode_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> SourceImage:
     """
     Mirror the Source Image for the given Episode. This flips the image
@@ -603,7 +577,7 @@ def mirror_episode_source_image(
         db,
         db.query(CardModel).filter_by(episode_id=episode_id),
         db.query(LoadedModel).filter_by(episode_id=episode_id),
-        log=request.state.log,
+        log=log,
     )
 
     return get_source_image(episode)
@@ -611,12 +585,12 @@ def mirror_episode_source_image(
 
 @source_router.put('/series/{series_id}/logo/upload')
 async def set_series_logo(
-        request: Request,
         series_id: int,
         url: str | None = Form(default=None),
         file: UploadFile | None = None,
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Set the logo for the given Series. If there is an existing logo
@@ -628,9 +602,6 @@ async def set_series_logo(
     - season_number: Season number to associate the given logo with. If
     omitted the file is assumed to be for the entire series.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get Series with this ID, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
@@ -684,12 +655,12 @@ async def set_series_logo(
 
 @source_router.put('/series/{series_id}/backdrop/upload')
 async def set_series_backdrop(
-        request: Request,
         series_id: int,
         url: str | None = Form(default=None),
         file: UploadFile | None = None,
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Set the backdrop for the given Series. If there is an existing
@@ -701,9 +672,6 @@ async def set_series_backdrop(
     - season_number: Season number to associate the given logo with. If
     omitted the file is assumed to be for the entire series.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get Series with this ID, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
@@ -751,10 +719,10 @@ async def set_series_backdrop(
 
 @source_router.delete('/series/{series_id}/logo')
 def delete_series_logo(
-        request: Request,
         series_id: int,
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the logo for the given Series.
@@ -774,15 +742,15 @@ def delete_series_logo(
         )
 
     file.unlink(missing_ok=True)
-    request.state.log.debug(f'Deleted file ({file.resolve()})')
+    log.debug(f'Deleted file ({file.resolve()})')
 
 
 @source_router.delete('/series/{series_id}/backdrop')
 def delete_series_backdrop(
-        request: Request,
         series_id: int,
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the backdrop for the given Series.
@@ -804,15 +772,15 @@ def delete_series_backdrop(
         )
 
     file.unlink(missing_ok=True)
-    request.state.log.debug(f'Deleted file ({file.resolve()})')
+    log.debug(f'Deleted file ({file.resolve()})')
 
 
 @source_router.put('/episode/{episode_id}/mask')
 async def upload_episode_mask_image(
-        request: Request,
         episode_id: int,
         file: UploadFile,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Upload the mask image to the given Episode.
@@ -820,9 +788,6 @@ async def upload_episode_mask_image(
     - episode_id: ID of the Episode whose file is provided.
     - file: Mask file.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get Episode with this ID, raise 404 if DNE
     episode = get_episode(db, episode_id, raise_exc=True)
@@ -853,9 +818,9 @@ async def upload_episode_mask_image(
 
 @source_router.delete('/episode/{episode_id}/mask')
 def delete_episode_mask_image(
-        request: Request,
         episode_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the mask image for the given Episode.
@@ -873,4 +838,4 @@ def delete_episode_mask_image(
         )
 
     mask_file.unlink(missing_ok=True)
-    request.state.log.debug(f'Deleting {episode} "{mask_file}"')
+    log.debug(f'Deleting {episode} "{mask_file}"')

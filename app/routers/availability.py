@@ -5,6 +5,7 @@ from app.dependencies import (
     get_database,
     get_emby_interfaces,
     get_jellyfin_interfaces,
+    get_logger,
     get_plex_interfaces,
     get_preferences,
     get_sonarr_interfaces,
@@ -40,6 +41,7 @@ from app.schemas.preferences import StyleOption
 from app.schemas.series import MediaServerLibrary
 from app.schemas.sync import Tag
 
+from modules.Debug import Logger
 from modules.EmbyInterface2 import EmbyInterface
 from modules.InterfaceGroup import InterfaceGroup
 from modules.JellyfinInterface2 import JellyfinInterface
@@ -47,7 +49,6 @@ from modules.PlexInterface2 import PlexInterface
 from modules.SonarrInterface2 import SonarrInterface
 from modules.TMDbInterface2 import TMDbInterface
 from modules.cards.available import LocalCards
-from modules.Debug import log
 
 
 # Extra variable overrides
@@ -93,10 +94,12 @@ availablility_router = APIRouter(
 
 
 @availablility_router.get('/version')
-def get_latest_available_version(request: Request) -> str:
+def get_latest_available_version(
+        log: Logger = Depends(get_logger),
+    ) -> str:
     """Get the latest version number for TitleCardMaker."""
 
-    return str(get_latest_version(log=request.state.log))
+    return str(get_latest_version(log=log))
 
 
 @availablility_router.get('/card-types')
@@ -142,11 +145,13 @@ def get_local_card_types_(
 
 
 @availablility_router.get('/card-types/remote', tags=['Title Cards'])
-def get_remote_card_types_(request: Request) -> list[RemoteCardType]:
+def get_remote_card_types_(
+        log: Logger = Depends(get_logger),
+    ) -> list[RemoteCardType]:
     """Get all available remote card types."""
 
     try:
-        return get_remote_cards(log=request.state.log)
+        return get_remote_cards(log=log)
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -156,8 +161,8 @@ def get_remote_card_types_(request: Request) -> list[RemoteCardType]:
 
 @availablility_router.get('/extras')
 def get_all_supported_extras(
-        request: Request,
         show_excluded: bool = Query(default=False),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> list[Extra]:
     """
@@ -177,7 +182,7 @@ def get_all_supported_extras(
 
     return [
         {'card_type': card_type.identifier} | extra.dict()
-        for card_type in LocalCards + get_remote_cards(log=request.state.log)
+        for card_type in LocalCards + get_remote_cards(log=log)
         if (show_excluded
             or card_type.identifier not in preferences.excluded_card_types)
         for extra in card_type.supported_extras
@@ -326,7 +331,9 @@ def get_jellyfin_usernames(
 
 @availablility_router.get('/tags/sonarr', tags=['Sonarr'])
 def get_sonarr_tags(
-        sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(get_sonarr_interfaces)
+        sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(
+            get_sonarr_interfaces
+        ),
     ) -> list[Tag]:
     """Get all tags defined in all Sonarr interfaces."""
 

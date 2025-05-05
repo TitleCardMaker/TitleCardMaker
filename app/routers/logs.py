@@ -7,20 +7,19 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
-    Request
 )
 from fastapi.responses import FileResponse
 from fastapi_pagination import paginate
 from fastapi_pagination.utils import FastAPIPaginationWarning
 
 from app.database.session import Page
-from app.dependencies import get_preferences
+from app.dependencies import get_logger, get_preferences
 from app.internal.auth import get_current_user
 from app.internal.logs import RawLogData, read_log_files
 from app.models.preferences import Preferences
 from app.schemas.logs import LogEntry, LogInternalServerError, LogLevel
 
-from modules.Debug import log, Logger, LOG_FILE
+from modules.Debug import Logger, LOG_FILE
 from modules.TemporaryZip import TemporaryZip # noqa: F401
 
 
@@ -125,8 +124,8 @@ def get_log_files() -> list[str]:
 @log_router.get('/files/{filename}/zip')
 def get_zipped_log_file(
         background_tasks: BackgroundTasks,
-        request: Request,
         filename: str,
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> FileResponse:
     """
@@ -134,9 +133,6 @@ def get_zipped_log_file(
 
     - filename: Name of the file to zip.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Find associated log file, raise 404 if DNE
     if not (file := LOG_FILE.parent / filename).exists():

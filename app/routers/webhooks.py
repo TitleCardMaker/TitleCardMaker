@@ -61,11 +61,11 @@ webhook_router = APIRouter(
 
 @webhook_router.post('/plex/rating-key', tags=['Plex'])
 def create_cards_for_plex_rating_key(
-        request: Request,
         key: int = Body(...),
         snapshot: bool = Query(default=True),
         db: Session = Depends(get_database),
         plex_interface: PlexInterface = Depends(require_plex_interface),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Create the Title Card for the item associated with the given Plex
@@ -82,7 +82,7 @@ def create_cards_for_plex_rating_key(
     """
 
     return process_rating_key(
-        db, plex_interface, key, snapshot=snapshot, log=request.state.log
+        db, plex_interface, key, snapshot=snapshot, log=log
     )
 
 
@@ -98,6 +98,7 @@ async def process_plex_webhook(
         timeout: int = Query(min=5, max=600, default=300),
         db: Session = Depends(get_database),
         plex_interface: PlexInterface = Depends(require_plex_interface),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Process the items defined in the given Plex Webhook. The Webhook
@@ -113,9 +114,6 @@ async def process_plex_webhook(
     - timeout: Maximum amount of time allowed for the API request before
     the request is terminated.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Parse Webhook from payload
     try:
@@ -408,6 +406,7 @@ def remove_image_background(
         url: str = Query(...),
         timeout: int = Query(default=30, min=5, max=240),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> StreamingResponse:
     """"""
 
@@ -426,7 +425,7 @@ def remove_image_background(
                 },
             )
         except ConnectionError as exc:
-            request.state.log.exception('Unable to submit BGR API request')
+            log.exception('Unable to submit BGR API request')
             raise HTTPException(
                 status_code=400,
                 detail='Invalid BGR Request',
@@ -443,7 +442,7 @@ def remove_image_background(
                     files={ 'file': file_io }
                 )
             except ConnectionError as exc:
-                request.state.log.exception('Unable to submit BGR API request')
+                log.exception('Unable to submit BGR API request')
                 raise HTTPException(
                     status_code=400,
                     detail='Invalid BGR Request',

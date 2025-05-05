@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy import func
 
 from app.database.query import get_connection
@@ -56,10 +56,10 @@ connection_router = APIRouter(
 
 @connection_router.post('/emby/new')
 def add_emby_connection(
-        request: Request,
         new_connection: NewEmbyConnection = Body(...),
         db: Session = Depends(get_database),
         interface_group: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> EmbyConnection:
     """
     Create a new Connection to Emby; adding it to the Database and
@@ -68,17 +68,15 @@ def add_emby_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(
-        db, new_connection, interface_group, log=request.state.log,
-    )
+    return add_connection(db, new_connection, interface_group, log=log)
 
 
 @connection_router.post('/jellyfin/new')
 def add_jellyfin_connection(
-        request: Request,
         new_connection: NewJellyfinConnection = Body(...),
         db: Session = Depends(get_database),
         interface_group: InterfaceGroup[int, EmbyInterface] = Depends(get_jellyfin_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> JellyfinConnection:
     """
     Create a new Connection to Jellyfin; adding it to the Database and
@@ -87,17 +85,15 @@ def add_jellyfin_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(
-        db, new_connection, interface_group, log=request.state.log,
-    )
+    return add_connection(db, new_connection, interface_group, log=log)
 
 
 @connection_router.post('/plex/new')
 def add_plex_connection(
-        request: Request,
         new_connection: NewPlexConnection = Body(...),
         db: Session = Depends(get_database),
         interface_group: InterfaceGroup[int, EmbyInterface] = Depends(get_plex_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> PlexConnection:
     """
     Create a new Connection to Sonarr; adding it to the Database and
@@ -106,17 +102,15 @@ def add_plex_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(
-        db, new_connection, interface_group, log=request.state.log,
-    )
+    return add_connection(db, new_connection, interface_group, log=log)
 
 
 @connection_router.post('/sonarr/new')
 def add_sonarr_connection(
-        request: Request,
         new_connection: NewSonarrConnection = Body(...),
         db: Session = Depends(get_database),
         interface_group: InterfaceGroup[int, SonarrInterface] = Depends(get_sonarr_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> SonarrConnection:
     """
     Create a new Connection to sonarr; adding it to the Database and
@@ -125,17 +119,15 @@ def add_sonarr_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(
-        db, new_connection, interface_group, log=request.state.log,
-    )
+    return add_connection(db, new_connection, interface_group, log=log)
 
 
 @connection_router.post('/tmdb/new')
 def add_tmdb_connection(
-        request: Request,
         new_connection: NewTMDbConnection = Body(...),
         db: Session = Depends(get_database),
         interface_group: InterfaceGroup[int, TMDbInterface] = Depends(get_tmdb_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> TMDbConnection:
     """
     Create a new Connection to TMDb; adding it to the Database and
@@ -144,17 +136,15 @@ def add_tmdb_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(
-        db, new_connection, interface_group, log=request.state.log,
-    )
+    return add_connection(db, new_connection, interface_group, log=log)
 
 
 @connection_router.post('/tvdb/new')
 def add_tvdb_connection(
-        request: Request,
         new_connection: NewTVDbConnection = Body(...),
         db: Session = Depends(get_database),
         interface_group: InterfaceGroup[int, TVDbInterface] = Depends(get_tvdb_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> TVDbConnection:
     """
     Create a new Connection to TVDb; adding it to the Database and
@@ -163,14 +153,11 @@ def add_tvdb_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(
-        db, new_connection, interface_group, log=request.state.log,
-    )
+    return add_connection(db, new_connection, interface_group, log=log)
 
 
 @connection_router.put('/{connection_type}/{interface_id}/{status}')
 def enable_or_disable_connection_by_id(
-        request: Request,
         connection_type: Literal['emby', 'jellyfin', 'plex', 'sonarr', 'tmdb'],
         interface_id: int,
         status: Literal['enable', 'disable'],
@@ -181,6 +168,7 @@ def enable_or_disable_connection_by_id(
         sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(get_sonarr_interfaces),
         tmdb_interfaces: InterfaceGroup[int, TMDbInterface] = Depends(get_tmdb_interfaces),
         tvdb_interfaces: InterfaceGroup[int, TVDbInterface] = Depends(get_tvdb_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> AnyConnection:
     """
     Set the enabled/disabled status of the given connection.
@@ -206,9 +194,7 @@ def enable_or_disable_connection_by_id(
 
     # Refresh or disable interface within group
     if connection.enabled:
-        group.refresh(
-            interface_id, connection.interface_kwargs, log=request.state.log
-        )
+        group.refresh(interface_id, connection.interface_kwargs, log=log)
     else:
         group.disable(interface_id)
 
@@ -378,11 +364,11 @@ def get_tvdb_connection_details_by_id(
 
 @connection_router.patch('/emby/{interface_id}')
 def update_emby_connection(
-        request: Request,
         interface_id: int,
         update_object: UpdateEmby = Body(...),
         db: Session = Depends(get_database),
         emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> EmbyConnection:
     """
     Update the Connection details for the given Emby interface.
@@ -392,17 +378,17 @@ def update_emby_connection(
     """
 
     return update_connection(
-        db, interface_id, emby_interfaces, update_object, log=request.state.log
+        db, interface_id, emby_interfaces, update_object, log=log
     ) # type: ignore
 
 
 @connection_router.patch('/jellyfin/{interface_id}')
 def update_jellyfin_connection(
-        request: Request,
         interface_id: int,
         update_object: UpdateJellyfin = Body(...),
         db: Session = Depends(get_database),
         jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> JellyfinConnection:
     """
     Update the Connection details for the given Jellyfin interface.
@@ -412,14 +398,12 @@ def update_jellyfin_connection(
     """
 
     return update_connection(
-        db, interface_id, jellyfin_interfaces, update_object,
-        log=request.state.log
+        db, interface_id, jellyfin_interfaces, update_object, log=log
     ) # type: ignore
 
 
 @connection_router.patch('/plex/{interface_id}')
 def update_plex_connection(
-        request: Request,
         interface_id: int,
         update_object: UpdatePlex = Body(...),
         db: Session = Depends(get_database),

@@ -7,10 +7,9 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
-    Request
 )
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 
 from app.database.query import (
     get_all_templates,
@@ -37,7 +36,9 @@ from app.schemas.episode import (
     Episode,
     EpisodeData,
     EpisodeOverview,
+    ExtendedEpisodeData,
     NewEpisode,
+    SimplifiedEpisodeData,
     UpdateEpisode
 )
 from modules.Debug import Logger
@@ -52,9 +53,9 @@ episodes_router = APIRouter(
 
 @episodes_router.post('/new')
 def add_new_episode(
-        request: Request,
         new_episode: NewEpisode = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Episode:
     """
     Add a new episode to the given series.
@@ -76,14 +77,14 @@ def add_new_episode(
     db.commit()
 
     # Assign Templates
-    episode.assign_templates(templates, log=request.state.log)
+    episode.assign_templates(templates, log=log)
     db.commit()
 
     # Refresh card types in case new remote type was specified
-    refresh_remote_card_types(db, log=request.state.log)
+    refresh_remote_card_types(db, log=log)
 
     # Add ID's for this Episode
-    set_episode_ids(db, series, [episode], log=request.state.log)
+    set_episode_ids(db, series, [episode], log=log)
 
     return episode
 
@@ -132,9 +133,9 @@ def delete_episode(
 
 @episodes_router.delete('/series/{series_id}', tags=['Series'])
 def delete_all_series_episodes(
-        request: Request,
         series_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> list[int]:
     """
     Delete all Episodes for the Series with the given ID.
@@ -151,7 +152,7 @@ def delete_all_series_episodes(
         db,
         db.query(Card).filter_by(series_id=series_id),
         db.query(Loaded).filter_by(series_id=series_id),
-        log=request.state.log,
+        log=log,
     )
 
     # Delete all associated Episodes
@@ -164,10 +165,10 @@ def delete_all_series_episodes(
 @episodes_router.post('/series/{series_id}/refresh')
 def refresh_episode_data_(
         background_tasks: BackgroundTasks,
-        request: Request,
         series_id: int,
         db: Session = Depends(get_database),
         refresh_all_ids: bool = Query(default=True),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Refresh the episode data associated with the given series. This
@@ -184,16 +185,19 @@ def refresh_episode_data_(
 
     # Refresh episode data, use BackgroundTasks for ID assignment
     refresh_episode_data(
-        db, series, background_tasks, refresh_all_ids=refresh_all_ids,
-        log=request.state.log
+        db,
+        series,
+        background_tasks,
+        refresh_all_ids=refresh_all_ids,
+        log=log
     )
 
 
 @episodes_router.patch('/batch')
 def update_multiple_episode_configs(
-        request: Request,
         update_episodes: list[BatchUpdateEpisode] = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> list[Episode]:
     """
     Update all the Epiodes at once. Only provided fields are updated.
@@ -201,9 +205,6 @@ def update_multiple_episode_configs(
     - update_episodes: List of BatchUpdateEpisode containing fields to
     update.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Update each Episode in the list
     episodes, changed = [], False
@@ -229,10 +230,10 @@ def update_multiple_episode_configs(
 
 @episodes_router.patch('/episode/{episode_id}')
 def update_episode_config_(
-        request: Request,
         episode_id: int,
         update_episode: UpdateEpisode = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Episode:
     """
     Update the Epiode with the given ID. Only provided fields are
@@ -241,9 +242,6 @@ def update_episode_config_(
     - episode_id: ID of the Episode to update.
     - update_episode: UpdateEpisode containing fields to update.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get this Episode, raise 404 if DNE
     episode = get_episode(db, episode_id, raise_exc=True)
@@ -258,7 +256,7 @@ def update_episode_config_(
     return episode
 
 
-@episodes_router.get('/series/{series_id}', tags=['Series'])
+@episodes_router.get('/series/{series_id}', tags=['Series'], deprecated=True)
 def get_all_series_episodes(
         series_id: int,
         order_by: Literal['index', 'absolute', 'id'] = 'index',
@@ -291,7 +289,7 @@ def get_series_episode_overview_data(
         series_id: int,
         order_by: Literal['index', 'absolute', 'id'] = 'index',
         db: Session = Depends(get_database),
-    ) -> Page[EpisodeOverview]:
+    ) -> Page[EpisodeOverview]: # type: ignore
     """
     Get all the episodes associated with the given series.
 
@@ -322,10 +320,10 @@ def get_series_episode_overview_data(
 
 @episodes_router.delete('/batch/delete')
 def batch_delete_episodes(
-        request: Request,
         series_ids: list[int] = Body(...),
         delete_title_cards: bool = Query(default=True),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Perform a batch operation to delete all the Episodes, Cards, and
@@ -338,7 +336,7 @@ def batch_delete_episodes(
                 db,
                 db.query(Card).filter_by(series_id=series.id),
                 db.query(Loaded).filter_by(series_id=series.id),
-                log=request.state.log,
+                log=log,
             )
         db.query(EpisodeModel).filter_by(series_id=series.id).delete()
         db.commit()
@@ -346,7 +344,6 @@ def batch_delete_episodes(
 
 @episodes_router.get('/series/{series_id}/connection/{interface_id}', tags=['Connections'])
 def get_all_episodes_on_connection(
-        request: Request,
         series_id: int,
         interface_id: int,
         library_name: str = Query(...),
@@ -354,6 +351,7 @@ def get_all_episodes_on_connection(
         emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
         jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
+        log: Logger = Depends(get_logger),
     ) -> list[EpisodeData]:
     """
     Get a list of all episode data for the given Series on the given
@@ -405,6 +403,6 @@ def get_all_episodes_on_connection(
         for episode_info, _ in interface.get_all_episodes(
             library_name,
             series.as_series_info,
-            log=request.state.log,
+            log=log,
         )
     ]

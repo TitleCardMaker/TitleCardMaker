@@ -46,7 +46,7 @@ from app.schemas.card import (
     TitleCardExtended,
     TitleCardReduced,
 )
-from app.schemas.episode import Episode as EpisodeSchema, UpdateEpisode
+from app.schemas.episode import UpdateEpisode
 from app.schemas.font import DefaultFont
 from app.schemas.series import UpdateSeries
 
@@ -75,6 +75,7 @@ def create_preview_card(
         request: Request,
         card: PreviewTitleCard = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> str:
     """
@@ -84,9 +85,6 @@ def create_preview_card(
 
     - card: Card definition to create.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get the effective card class
     CardClass = preferences.get_card_type_class(card.card_type, log=log)
@@ -201,12 +199,12 @@ def create_preview_card(
 
 @card_router.post('/preview/episode/{episode_id}', tags=['Episodes'])
 def create_preview_card_for_episode(
-        request: Request,
         episode_id: int,
         update_episode: UpdateEpisode = Body(...),
         update_series: UpdateSeries = Body(...),
         query_watched_statuses: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> str:
     """
@@ -217,9 +215,6 @@ def create_preview_card_for_episode(
     - query_watched_statuses: Whether to query the watched statuses
     associated with this Episode.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Find associated Episode, raise 404 if DNE
     episode = get_episode(db, episode_id, raise_exc=True)
@@ -443,12 +438,12 @@ def load_all_series_title_cards_(
 
 @card_router.put('/series/{series_id}/load/library', deprecated=True)
 def load_series_title_cards_into_library(
-        request: Request,
         series_id: int,
         interface_id: int = Query(...),
         library_name: str = Query(...),
         reload: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Load the Title Cards for the given Series into the library with the
@@ -476,19 +471,18 @@ def load_series_title_cards_into_library(
 
     # Load Cards
     load_series_title_cards(
-        series, library_name, interface_id, db, interface, # type: ignore
-        reload, log=request.state.log,
+        series, library_name, interface_id, db, interface, reload, log=log,
     )
 
 
 @card_router.put('/series/{series_id}/load', tags=['Series'])
 def load_series_title_cards_(
-        request: Request,
         series_id: int,
         interface_id: int | None = Query(default=None),
         library_name: str | None = Query(default=None),
         reload: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Load the Title Cards for the given Series into the library of the
@@ -523,21 +517,18 @@ def load_series_title_cards_(
             )
         # Load Cards
         load_series_title_cards(
-            series, library_name, interface_id, db, interface, # type: ignore
-            reload, log=request.state.log,
+            series, library_name, interface_id, db, interface, reload, log=log,
         )
     # Load Title Cards into all libraries
     else:
-        load_all_series_title_cards(
-            series, db, force_reload=reload, log=request.state.log,
-        )
+        load_all_series_title_cards(series, db, force_reload=reload, log=log)
 
 
 @card_router.put('/episode/{episode_id}/load', tags=['Episodes'])
 def force_reload_episode_cards(
-        request: Request,
         episode_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Reload the Title Cards associated with the given Episode. This is a
@@ -558,7 +549,7 @@ def force_reload_episode_cards(
             library['name'],
             library['interface_id'],
             get_interface(library['interface_id']), # type: ignore
-            log=request.state.log,
+            log=log,
         )
 
     if not loaded:
@@ -648,8 +639,8 @@ def get_episode_cards(
 @card_router.delete('/series/{series_id}', tags=['Series'])
 def delete_series_title_cards(
         series_id: int,
-        request: Request,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> CardActions:
     """
     Delete all TitleCards for the given Series. Return a list of the
@@ -663,7 +654,7 @@ def delete_series_title_cards(
     loaded_query = db.query(Loaded).filter_by(series_id=series_id)
 
     # Delete cards
-    deleted = delete_cards(db, card_query, loaded_query, log=request.state.log)
+    deleted = delete_cards(db, card_query, loaded_query, log=log)
 
     return CardActions(deleted=len(deleted))
 
@@ -671,8 +662,8 @@ def delete_series_title_cards(
 @card_router.delete('/episode/{episode_id}', tags=['Episodes'])
 def delete_episode_title_cards(
         episode_id: int,
-        request: Request,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> CardActions:
     """
     Delete all Title Cards for the given Episode. Return a list of the
@@ -686,7 +677,7 @@ def delete_episode_title_cards(
     loaded_query = db.query(Loaded).filter_by(episode_id=episode_id)
 
     # Delete cards
-    deleted = delete_cards(db, card_query, loaded_query, log=request.state.log)
+    deleted = delete_cards(db, card_query, loaded_query, log=log)
 
     return CardActions(deleted=len(deleted))
 
@@ -694,8 +685,8 @@ def delete_episode_title_cards(
 @card_router.delete('/card/{card_id}')
 def delete_title_card(
         card_id: int,
-        request: Request,
-        db: Session = Depends(get_database)
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> CardActions:
     """
     Delete the Title Card with the given ID. Also removes the associated
@@ -709,17 +700,17 @@ def delete_title_card(
     loaded_query = db.query(Loaded).filter_by(id=card_id)
 
     # Delete cards
-    deleted = delete_cards(db, card_query, loaded_query, log=request.state.log)
+    deleted = delete_cards(db, card_query, loaded_query, log=log)
 
     return CardActions(deleted=len(deleted))
 
 
 @card_router.post('/episode/{episode_id}', tags=['Episodes'])
 def create_card_for_episode(
-        request: Request,
         episode_id: int,
         query_watched_statuses: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Create the Title Cards for the given Episode. This deletes and
@@ -736,12 +727,12 @@ def create_card_for_episode(
     # Set watch status of the Episode
     if query_watched_statuses:
         get_watched_statuses(
-            db, episode.series, [episode], log=request.state.log,
+            db, episode.series, [episode], log=log,
         )
 
     # Create Card for this Episode
     try:
-        create_episode_cards(db, episode, log=request.state.log)
+        create_episode_cards(db, episode, log=log)
     except MissingSourceImage as exc:
         raise HTTPException(
             status_code=404,
@@ -770,9 +761,9 @@ def get_missing_cards(
 
 @card_router.delete('/batch')
 def batch_delete_title_cards(
-        request: Request,
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> CardActions:
     """
     Batch delete all the Title Cards associated with the given Series.
@@ -784,17 +775,15 @@ def batch_delete_title_cards(
     cards = db.query(Card)\
         .filter(Card.series_id.in_(series_ids))
 
-    return CardActions(
-        deleted=len(delete_cards(db, cards, log=request.state.log)),
-    )
+    return CardActions(deleted=len(delete_cards(db, cards, log=log)))
 
 
 @card_router.put('/batch/load')
 def batch_load_title_cards_into_all_libraries(
-        request: Request,
         series_ids: list[int] = Body(...),
         reload: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Batch operation to load all Title Cards for all Series into all
@@ -811,5 +800,5 @@ def batch_load_title_cards_into_all_libraries(
             get_series(db, series_id, raise_exc=True),
             db,
             force_reload=reload,
-            log=request.state.log,
+            log=log,
         )

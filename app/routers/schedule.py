@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from typing import Callable, Literal
 
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 
 from app.internal.backup import backup_data
 from app.dependencies import (
@@ -285,7 +285,7 @@ BaseJobs = {
 
 
 # Initialize scheduler with starting jobs
-def initialize_scheduler(override: bool = False) -> None:
+def initialize_scheduler(override: bool = False, *, log: Logger = log) -> None:
     """
     Initialize the Scheduler by creating any Jobs in BaseJobs that do
     not already exist. This can also be called to reinitialize all "bad"
@@ -293,6 +293,7 @@ def initialize_scheduler(override: bool = False) -> None:
 
     Args:
         override: Whether to override any existing scheduled jobs.
+        log: Logger to use for logging.
     """
 
     scheduler, preferences = get_scheduler(), get_preferences()
@@ -391,7 +392,7 @@ def _scheduled_task_from_job(job: Job,) -> ScheduledTask:
 
 @schedule_router.post('/type/toggle')
 def toggle_schedule_type(
-        request: Request,
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
@@ -402,20 +403,20 @@ def toggle_schedule_type(
 
     # Toggle scheduling method
     if preferences.advanced_scheduling:
-        request.state.log.info('Disabling advanced Task scheduling')
+        log.info('Disabling advanced Task scheduling')
     else:
-        request.state.log.info('Enabling advanced Task scheduling')
+        log.info('Enabling advanced Task scheduling')
     preferences.advanced_scheduling = not preferences.advanced_scheduling
     preferences.commit()
 
     # Reset Scheduler
-    initialize_scheduler(override=True)
+    initialize_scheduler(override=True, log=log)
 
 
 @schedule_router.put('/type/{mode}')
 def set_the_scheduler_type(
-        request: Request,
         mode: Literal['advanced', 'basic'],
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
@@ -426,14 +427,14 @@ def set_the_scheduler_type(
 
     # Toggle scheduling method
     if mode == 'advanced':
-        request.state.log.info('Enabling advanced Task scheduling')
+        log.info('Enabling advanced Task scheduling')
     else:
-        request.state.log.info('Disabling advanced Task scheduling')
+        log.info('Disabling advanced Task scheduling')
     preferences.advanced_scheduling = mode == 'advanced'
     preferences.commit()
 
     # Reset Scheduler
-    initialize_scheduler(override=True)
+    initialize_scheduler(override=True, log=log)
 
 
 @schedule_router.get('/scheduled')
@@ -479,9 +480,9 @@ def get_scheduled_task(
 
 @schedule_router.put('/update/{task_id}')
 def reschedule_task(
-        request: Request,
         task_id: TaskID,
         update_schedule: UpdateSchedule = Body(...),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
         scheduler: BackgroundScheduler = Depends(get_scheduler),
     ) -> ScheduledTask:
@@ -491,9 +492,6 @@ def reschedule_task(
     - task_id: ID of the Task being rescheduled.
     - update_schedule: New interval/schedule to reschedule this Task.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log # pylint: disable=redefined-outer-name
 
     # Verify job exists, raise 404 if DNE
     if (job := scheduler.get_job(task_id)) is None:

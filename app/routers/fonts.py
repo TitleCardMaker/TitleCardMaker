@@ -7,14 +7,13 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
-    Request,
     UploadFile
 )
 from sqlalchemy.orm import Session
 from unidecode import unidecode
 
 from app.database.query import get_font
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database, get_logger, get_preferences
 from app.internal.auth import get_current_user
 from app.internal.font import delete_font_files
 from app.models.episode import Episode
@@ -71,10 +70,10 @@ def create_font(
 
 @font_router.put('/{font_id}/file')
 async def add_font_file(
-        request: Request,
         font_id: int,
         file: UploadFile,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> NamedFont:
     """
@@ -99,7 +98,7 @@ async def add_font_file(
         try:
             existing_font.unlink(missing_ok=True)
         except OSError as exc:
-            request.state.log.exception('Unable to delete Font file')
+            log.exception('Unable to delete Font file')
             raise HTTPException(
                 status_code=400,
                 detail=f'Error deleting Font file - {exc}',
@@ -120,18 +119,15 @@ async def add_font_file(
 
 @font_router.delete('/{font_id}/file')
 def delete_font_file(
-        request: Request,
         font_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> NamedFont:
     """
     Delete the font file associated with the given Font.
 
     - font_id: ID of the Font to delete the file of.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get existing font object, raise 404 if DNE
     font = get_font(db, font_id, raise_exc=True)
@@ -153,10 +149,10 @@ def delete_font_file(
 
 @font_router.patch('/{font_id}')
 def update_font(
-        request: Request,
         font_id: int,
         update_font: UpdateNamedFont = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> NamedFont:
     """
     Update the Font with the given ID. Only provided fields are updated.
@@ -164,9 +160,6 @@ def update_font(
     - font_id: ID of the Font to update.
     - update_font: UpdateFont containing fields to update.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get existing font object, raise 404 if DNE
     font = get_font(db, font_id, raise_exc=True)
@@ -193,9 +186,11 @@ def get_all_fonts(
     ) -> list[NamedFont]:
     """Get all defined Fonts."""
 
-    return db.query(Font)\
-        .order_by(Font.id if order == 'id' else Font.sort_name)\
-        .all() # type: ignore
+    return (
+        db.query(Font)
+            .order_by(Font.id if order == 'id' else Font.sort_name)
+            .all()
+    )
 
 
 @font_router.get('/{font_id}')
@@ -214,9 +209,9 @@ def get_font_by_id(
 
 @font_router.delete('/{font_id}', status_code=204)
 def delete_font(
-        request: Request,
         font_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
@@ -225,9 +220,6 @@ def delete_font(
 
     - font_id: ID of the Font to delete.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get specified Font, raise 404 if DNE
     font = get_font(db, font_id, raise_exc=True)
@@ -250,9 +242,9 @@ def delete_font(
 
 @font_router.get('/{font_id}/analysis')
 def get_suggested_font_replacements(
-        request: Request,
         font_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> FontAnalysis:
     """
     Analyze the Font file associated with the Font with the given ID and
@@ -265,9 +257,6 @@ def get_suggested_font_replacements(
     - font_id: ID of the Font to analyze. If this Font does not have a
     custom Font file, then no analysis is performed.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get Font with this ID, raise 404 if DNE
     font = get_font(db, font_id, raise_exc=True)
@@ -386,11 +375,11 @@ def get_suggested_font_replacements(
 
 @font_router.put('/transfer')
 def transfer_font_references(
-        request: Request,
         to_id: int = Query(..., alias='to'),
         from_id: int = Query(..., alias='from'),
         delete_from: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
     ) -> NamedFont:
     """
@@ -402,9 +391,6 @@ def transfer_font_references(
     - delete_from: Whether to delete the _from_ Font after the
     references are reassigned.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Get specified Fonts, raise 404 if DNE
     to_font = get_font(db, to_id, raise_exc=True)

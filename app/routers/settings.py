@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Body, Depends, Request
+from fastapi import APIRouter, Body, Depends
 from sqlalchemy.orm import Session
 
 from app.database.query import get_font, get_template
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database, get_logger, get_preferences
 from app.internal.auth import get_current_user
 from app.internal.backup import list_available_backups
 from app.internal.cards import refresh_remote_card_types
@@ -51,9 +51,9 @@ def get_current_version(
 
 @settings_router.patch('/update')
 def update_global_settings(
-        request: Request,
         update_preferences: UpdatePreferences = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: PreferencesModel = Depends(get_preferences),
     ) -> Preferences:
     """
@@ -61,9 +61,6 @@ def update_global_settings(
 
     - update_preferences: UpdatePreferences containing fields to update.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     # Verify any specified Fonts/Templates exist
     if (hasattr(update_preferences, 'default_fonts')
@@ -96,8 +93,8 @@ def get_global_episode_data_source(
 
 @settings_router.get('/image-source-priority')
 def get_image_source_priority(
-        request: Request,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
         preferences: PreferencesModel = Depends(get_preferences),
     ) -> list[ImageSourceToggle]:
     """Get the global image source priority."""
@@ -106,7 +103,7 @@ def get_image_source_priority(
     sources, source_ids = [], []
     for interface_id in preferences.image_source_priority:
         if (isp_connection := db.get(Connection, interface_id)) is None:
-            request.state.log.warning(f'No Connection with ID {interface_id}')
+            log.warning(f'No Connection with ID {interface_id}')
             continue
 
         source_ids.append(interface_id)
@@ -134,10 +131,12 @@ def get_image_source_priority(
 
 
 @settings_router.get('/backups', deprecated=True)
-def get_available_system_backups(request: Request) -> list[SystemBackup]:
+def get_available_system_backups(
+        log: Logger = Depends(get_logger),
+    ) -> list[SystemBackup]:
     """Get a list detailing all the available system backups."""
 
-    return list_available_backups(log=request.state.log)
+    return list_available_backups(log=log)
 
 
 @settings_router.get('/background-tasks')

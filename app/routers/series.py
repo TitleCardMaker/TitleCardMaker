@@ -6,7 +6,6 @@ from fastapi import (
     Form,
     HTTPException,
     Query,
-    Request,
     UploadFile
 )
 from fastapi_pagination.ext.sqlalchemy import paginate
@@ -93,10 +92,10 @@ def get_all_series(
 
 @series_router.get('/all-extended')
 def get_all_series_including_counts(
-        request: Request,
         db: Session = Depends(get_database),
         order_by: SeriesOrder = Query(default='alphabetical'),
         filter_: str = Query(alias='filter', default=None),
+        log: Logger = Depends(get_logger),
     ) -> Page[SeriesOverviewWithCounts]: # type: ignore
     """
     Get all defined Series.
@@ -105,9 +104,6 @@ def get_all_series_including_counts(
     - filter: Optional filter conditions to apply the list of returned
     Series.
     """
-
-    # Get contextual logger
-    log: Logger = request.state.log
 
     try:
         filter = SeriesFilter.parse_raw(filter_) if filter_ else None
@@ -178,9 +174,9 @@ def get_next_series(
 @series_router.post('/new')
 def add_new_series(
         background_tasks: BackgroundTasks,
-        request: Request,
         new_series: NewSeries = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Series:
     """
     Create a new Series. This also creates background tasks to set the
@@ -189,14 +185,14 @@ def add_new_series(
     - new_series: Series definition to create.
     """
 
-    return add_series(new_series, background_tasks, db, log=request.state.log)
+    return add_series(new_series, background_tasks, db, log=log)
 
 
 @series_router.delete('/series/{series_id}')
 def delete_series_(
         series_id: int,
-        request: Request,
-        db: Session = Depends(get_database)
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Series with the given ID. This also deletes the poster.
@@ -208,7 +204,7 @@ def delete_series_(
     series = get_series(db, series_id, raise_exc=True)
 
     # Delete Series and all child content
-    delete_series(db, series, log=request.state.log)
+    delete_series(db, series, log=log)
 
 
 @series_router.get('/search')
@@ -307,10 +303,10 @@ def get_series_config(
 
 @series_router.patch('/series/{series_id}')
 def update_series(
-        request: Request,
         series_id: int,
         update: UpdateSeries = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Series:
     """
     Update the config of the given Series.
@@ -323,19 +319,19 @@ def update_series(
     series = get_series(db, series_id, raise_exc=True)
 
     # Modify Series
-    update_series_config(db, series, update, commit=True, log=request.state.log)
+    update_series_config(db, series, update, commit=True, log=log)
 
     return series
 
 
 @series_router.put('/series/{series_id}/copy')
 def copy_series_config(
-        request: Request,
         series_id: int,
         from_series_id: int = Query(...),
         reset_series: bool = Query(default=True),
         reset_episodes: bool = Query(default=False),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Series:
     """
 
@@ -348,15 +344,15 @@ def copy_series_config(
     # Reset Series/Episode if indicated
     if reset_series:
         to_series.reset_card_config()
-        request.state.log.debug(f'Reset {to_series}')
+        log.debug(f'Reset {to_series}')
     if reset_episodes:
         for episode in to_series.episodes:
             episode.reset_card_config()
-            request.state.log.debug(f'Reset {episode}')
+            log.debug(f'Reset {episode}')
 
     # Copy config over
     to_series.copy_card_config(from_series)
-    request.state.log.info(f'Copied Card config from {from_series} to {to_series}')
+    log.info(f'Copied Card config from {from_series} to {to_series}')
 
     # Commit changes
     db.commit()
@@ -390,9 +386,9 @@ def toggle_series_monitored_status(
 @series_router.post('/series/{series_id}/process')
 def process_series_(
         background_tasks: BackgroundTasks,
-        request: Request,
         series_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Completely process the given Series. This does all major "tasks,"
@@ -411,18 +407,18 @@ def process_series_(
         db,
         get_series(db, series_id, raise_exc=True),
         background_tasks,
-        log=request.state.log,
+        log=log,
     )
 
 
 @series_router.delete('/series/{series_id}/plex-labels/library')
 def remove_series_labels(
-        request: Request,
         series_id: int,
         interface_id: int = Query(...),
         library_name: str = Query(...),
         labels: list[str] = Query(default=['TCM', 'Overlay']),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Remove the given labels from the given Series' Episodes within Plex.
@@ -446,8 +442,7 @@ def remove_series_labels(
 
     # Remove labels from specified library
     interface.remove_series_labels(
-        library_name, series.as_series_info, labels,
-        log=request.state.log
+        library_name, series.as_series_info, labels, log=log
     )
 
 
@@ -577,9 +572,9 @@ async def set_series_poster(
 
 @series_router.patch('/batch')
 def batch_update_series(
-        request: Request,
         updates: list[BatchUpdateSeries] = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> list[Series]:
     """
     Update the config of all the given Series.
@@ -597,7 +592,7 @@ def batch_update_series(
 
         # Update this Series
         changed |= update_series_config(
-            db, series, update.update, commit=False, log=request.state.log
+            db, series, update.update, commit=False, log=log
         )
 
     # Commit changes to DB if necessary
@@ -690,9 +685,9 @@ def batch_update_series_status(
 
 @series_router.delete('/batch/delete')
 def batch_delete_series(
-        request: Request,
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Batch operation to delete all the given Series.
@@ -702,15 +697,15 @@ def batch_delete_series(
 
     for series_id in series_ids:
         series = get_series(db, series_id, raise_exc=True)
-        delete_series(db, series, log=request.state.log)
+        delete_series(db, series, log=log)
 
 
 @series_router.post('/batch/process')
 def batch_process_series(
         background_tasks: BackgroundTasks,
-        request: Request,
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Completely process all the given Series.
@@ -723,5 +718,5 @@ def batch_process_series(
             db,
             get_series(db, series_id, raise_exc=True),
             background_tasks,
-            log=request.state.log,
+            log=log,
         )
