@@ -484,8 +484,10 @@ class DatabaseInfoContainer(ABC):
                 try:
                     setattr(self, attribute, type_(value))
                 except ValueError:
-                    log.exception(f'Invalid ID {attribute} of {value} - cannot '
-                                  f'be converted to type {type_}')
+                    log.exception(
+                        f'Invalid ID {attribute} of {value} - cannot be '
+                        f'converted to type {type_}'
+                    )
 
         return None
 
