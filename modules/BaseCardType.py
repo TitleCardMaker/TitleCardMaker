@@ -819,13 +819,16 @@ class BaseCardType(ImageMaker, ABC):
         return [
             fr'\(',
             *commands,
-            fr'\( +clone',
-            fr'-background "{shadow_color}"',
-            fr'-shadow {shadow} \)',
-            fr'+swap',
-            fr'-background None',
-            fr'-layers merge',
-            fr'+repage \)',
+            fr'\(',
+            f'+clone',
+            f'-background "{shadow_color}"',
+            f'-shadow {shadow}',
+            fr'\)',
+            f'+swap',
+            f'-background None',
+            f'-layers merge',
+            f'+repage',
+            fr'\)',
             *compose_commands,
         ] if commands else []
 
