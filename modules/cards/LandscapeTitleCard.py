@@ -81,6 +81,16 @@ class LandscapeTitleCard(BaseCardType):
                 default=10,
             ),
             Extra(
+                name='Blur Box',
+                identifier='blur_box',
+                description='Whether to blur behind the bounding box',
+                tooltip=(
+                    'Either <v>True</v> or <v>False</v>. Default is '
+                    '<v>False</v>.'
+                ),
+                default='False',
+            ),
+            Extra(
                 name='Image Darkening',
                 identifier='darken',
                 description='Whether to dark all or parts of the image',
@@ -155,6 +165,7 @@ class LandscapeTitleCard(BaseCardType):
 
     __slots__ = (
         'add_bounding_box',
+        'blur_box',
         'box_adjustments',
         'box_color',
         'box_width',
@@ -187,6 +198,7 @@ class LandscapeTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             add_bounding_box: bool = True,
+            blur_box: bool = False,
             box_adjustments: tuple[int, int, int, int] = (0, 0, 0, 0),
             box_color: str = TITLE_COLOR,
             box_width: int = BOX_WIDTH,
@@ -216,6 +228,7 @@ class LandscapeTitleCard(BaseCardType):
 
         # Store extras
         self.add_bounding_box = add_bounding_box
+        self.blur_box = blur_box
         self.box_adjustments = box_adjustments
         self.box_color = box_color
         self.box_width = box_width
@@ -253,11 +266,43 @@ class LandscapeTitleCard(BaseCardType):
 
         return [
             # Create image the size of the title card filled with darken color
-            fr'\( -size "{self.TITLE_CARD_SIZE}"',
-            fr'xc:"{self.darken_color}" \)',
+            fr'\(',
+            f'-size "{self.TITLE_CARD_SIZE}"',
+            f'xc:"{self.darken_color}"',
+            fr'\)',
             # Compose atop of source image
-            fr'-gravity center',
-            fr'-composite',
+            f'-gravity center',
+            f'-composite',
+        ]
+
+
+    def blur_commands(self,
+            coordinates: BoxCoordinates,
+        ) -> ImageMagickCommands:
+        """
+        Subcommand to add the blurred image behind the bounding box.
+
+        Args:
+            coordinates: Tuple of coordinates to that indicate where to
+                darken.
+
+        Returns:
+            List of ImageMagick commands.
+        """
+
+        if self.blur or not self.blur_box:
+            return []
+
+        x_start, y_start, x_end, y_end = coordinates
+
+        return  [
+            fr'\(',
+            f'-clone 0',
+            f'-crop {x_end - x_start}x{y_end - y_start}+0+0',
+            f'-blur 0x12',
+            fr'\)',
+            f'-geometry -{self.box_width / 2}-20',
+            f'-composite',
         ]
 
 
@@ -276,14 +321,14 @@ class LandscapeTitleCard(BaseCardType):
 
         # Text-relevant commands
         text_command = [
-            fr'-font "{self.font_file}"',
-            fr'-gravity center',
-            fr'-pointsize {font_size:.1f}',
-            fr'-interline-spacing {interline_spacing:.1f}',
-            fr'-interword-spacing {interword_spacing:.1f}',
-            fr'-kerning {kerning:.2f}',
-            fr'-fill "{self.font_color}"',
-            fr'label:"{self.title_text}"',
+            f'-font "{self.font_file}"',
+            f'-gravity center',
+            f'-pointsize {font_size:.1f}',
+            f'-interline-spacing {interline_spacing:.1f}',
+            f'-interword-spacing {interword_spacing:.1f}',
+            f'-kerning {kerning:.2f}',
+            f'-fill "{self.font_color}"',
+            f'label:"{self.title_text}"',
         ]
 
         # Get dimensions of text - since text is stacked, do max/sum operations
@@ -333,12 +378,12 @@ class LandscapeTitleCard(BaseCardType):
 
         return self.add_drop_shadow(
             [
-                fr'-size {self.TITLE_CARD_SIZE}',
-                fr'xc:None',
-                fr'-fill transparent',
-                fr'-strokewidth {self.box_width}',
-                fr'-stroke "{self.box_color}"',
-                fr'-draw "rectangle {x_start},{y_start},{x_end},{y_end}"',
+                f'-size {self.TITLE_CARD_SIZE}',
+                f'xc:None',
+                f'-fill transparent',
+                f'-strokewidth {self.box_width}',
+                f'-stroke "{self.box_color}"',
+                f'-draw "rectangle {x_start},{y_start},{x_end},{y_end}"',
             ],
             Shadow(opacity=85, sigma=3, x=10, y=10),
             x=0, y=0,
@@ -465,11 +510,14 @@ class LandscapeTitleCard(BaseCardType):
         bounding_box = self.bounding_box_coordinates
 
         self.image_magick.run([
-            fr'convert "{self.source_file.resolve()}"',
+            f'convert',
+            f'"{self.source_file.resolve()}"',
             # Resize and apply any style modifiers
             *self.resize_and_style,
             # Add box or image darkening
             *self.darken_commands(bounding_box),
+            # Add blurred image behind bounding box
+            *self.blur_commands(bounding_box),
             # Add title text
             *self.title_text_commands,
             # Optionally add bounding box
@@ -500,6 +548,7 @@ def get_validator_model() -> type[Base]:
         font_size: PositiveFloat = 1.0
         font_vertical_shift: int = 0
         add_bounding_box: bool = True
+        blur_box: bool = False
         box_adjustments: BoxAdjustments = (0, 0, 0, 0)
         box_color: str | None = None
         box_width: PositiveInt = LandscapeTitleCard.BOX_WIDTH
