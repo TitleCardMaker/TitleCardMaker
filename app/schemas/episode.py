@@ -11,7 +11,6 @@ from app.schemas.base import (
     UNSPECIFIED,
     validate_argument_lists_to_dict
 )
-from app.schemas.card import TitleCard
 from app.schemas.ids import EmbyID, IMDbID, JellyfinID, TMDbID, TVDbID, TVRageID
 from app.schemas.preferences import Style
 
