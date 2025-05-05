@@ -28,7 +28,7 @@ function queryMissingCards(page=1) {
 
       // Templates
       const table = document.getElementById('missing-cards');
-      table.replaceChildren();
+      table.querySelector('tbody').replaceChildren();
       const template = document.getElementById('missing-card-template');
       const rowTemplate = document.getElementById('missing-card-row-template');
 
