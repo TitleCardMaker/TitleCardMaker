@@ -302,15 +302,23 @@ def initialize_scheduler(override: bool = False, *, log: Logger = log) -> None:
     # Schedule all defined Jobs
     changed = False
     for job in BaseJobs.values():
-        # Skip if Job is running
-        if BaseJobs[job.id].running:
+        # Determine if the job schedule is bad
+        now = datetime.now(tz=tz)
+        last_start = BaseJobs[job.id].previous_start_time
+        running_too_long = (
+            last_start is not None and (last_start - now > timedelta(hours=12))
+        )
+
+        # Skip if Job is running (but not stuck running)
+        if BaseJobs[job.id].running and not running_too_long:
             log.debug(f'Skipping Task[{job.id}] - currently running')
             continue
 
         # Determine if the job schedule is bad
         bad_job = (
             scheduler.get_job(job.id) is not None
-            and scheduler.get_job(job.id).next_run_time < datetime.now(tz=tz)
+            and scheduler.get_job(job.id).next_run_time < now
+            or running_too_long
         )
 
         # If overriding, job is not already scheduled, or job schedule
