@@ -1635,6 +1635,10 @@ def import_card_files(
         if as_textless:
             episode.card_type = 'textless'
             log.debug(f'{episode}.card_type = textless')
+            content = file.read_bytes()
+            source_file = episode.get_source_file('unique')
+            source_file.write_bytes(content)
+            log.trace(f'Wrote {len(content):,} bytes to {source_file.resolve()}')
 
         # Get finalized Card settings for this Episode, override card file
         try:
