@@ -1,15 +1,25 @@
 from collections import namedtuple
 from pathlib import Path
 from re import match as re_match
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Annotated, Any, Literal
 
 from pydantic import (
-    FilePath, PositiveFloat, PositiveInt, constr, root_validator, validator
+    FilePath,
+    PositiveFloat,
+    PositiveInt,
+    conint,
+    constr,
+    root_validator,
+    validator,
 )
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
-    BaseCardType, ImageMagickCommands, Extra, CardTypeDescription, Shadow
+    BaseCardType,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
+    Shadow,
 )
 from modules.Debug import log # noqa: F401
 
@@ -81,7 +91,7 @@ class LandscapeTitleCard(BaseCardType):
                 default=10,
             ),
             Extra(
-                name='Blur Box',
+                name='Box Blurring',
                 identifier='blur_box',
                 description='Whether to blur behind the bounding box',
                 tooltip=(
@@ -89,6 +99,27 @@ class LandscapeTitleCard(BaseCardType):
                     '<v>False</v>.'
                 ),
                 default='False',
+            ),
+            Extra(
+                name='Box Rounding Radius',
+                identifier='rounding_radius',
+                description='Radius of the rounded corners',
+                tooltip=(
+                    'Value between <v>0</v> and <v>500</v>.Default is '
+                    '<v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
+            Extra(
+                name='Blur Profile',
+                identifier='blur_profile',
+                description='How to blur the area behind the bounding box',
+                tooltip=(
+                    'Blur formatted as <v>{radius}x{sigma}</v>. Higher '
+                    '<v>{sigma}</v> values has the effect of a "stronger" '
+                    'blur. Default is <v>0x12</v>.'
+                ),
+                default='0x12',
             ),
             Extra(
                 name='Image Darkening',
@@ -154,19 +185,29 @@ class LandscapeTitleCard(BaseCardType):
     """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Landscape Style'
 
-    """Additional spacing (in pixels) between bounding box and title text"""
-    BOUNDING_BOX_SPACING = 150
-    """Default box width (in pixels)"""
-    BOX_WIDTH = 10
-    """Color for darkening is black at 30% transparency"""
-    DARKEN_COLOR = '#00000030'
-    """Color of the drop shadow"""
-    SHADOW_COLOR = 'black'
+    BOUNDING_BOX_SPACING: Annotated[
+        int,
+        'Additional spacing between bounding box and title text'
+    ] = 150
+
+    BOX_WIDTH: Annotated[int, 'Default box width (in pixels)'] = 10
+
+    DARKEN_COLOR: Annotated[
+        str,
+        'Color for darkening is black at 30% transparency'
+    ] = '#00000030'
+
+    SHADOW_COLOR: Annotated[str, 'Color of the drop shadow'] = 'black'
+
+    BOX_BLUR_PROFILE: Annotated[str, 'Blur profile for the box'] = '0x12'
+
+    ROUNDING_RADIUS: Annotated[int, 'Radius of the rounded corners'] = 0
 
     __slots__ = (
         'add_bounding_box',
         'blur_box',
         'box_adjustments',
+        'box_blur_profile',
         'box_color',
         'box_width',
         'darken',
@@ -179,6 +220,7 @@ class LandscapeTitleCard(BaseCardType):
         'font_size',
         'font_vertical_shift',
         'output_file',
+        'rounding_radius',
         'shadow_color',
         'source_file',
         'title_text',
@@ -199,11 +241,13 @@ class LandscapeTitleCard(BaseCardType):
             grayscale: bool = False,
             add_bounding_box: bool = True,
             blur_box: bool = False,
+            box_blur_profile: str = BOX_BLUR_PROFILE,
             box_adjustments: tuple[int, int, int, int] = (0, 0, 0, 0),
             box_color: str = TITLE_COLOR,
             box_width: int = BOX_WIDTH,
             darken: DarkenOption = 'box',
             darken_color: str = DARKEN_COLOR,
+            rounding_radius: int = 0,
             shadow_color: str = SHADOW_COLOR,
             preferences: 'Preferences | None' = None,
             **unused: Any,
@@ -230,11 +274,13 @@ class LandscapeTitleCard(BaseCardType):
         self.add_bounding_box = add_bounding_box
         self.blur_box = blur_box
         self.box_adjustments = box_adjustments
+        self.box_blur_profile = box_blur_profile
         self.box_color = box_color
         self.box_width = box_width
         self.darken = darken
         self.darken_color = darken_color
         self.shadow_color = shadow_color
+        self.rounding_radius = rounding_radius
 
 
     def darken_commands(self,
@@ -258,10 +304,17 @@ class LandscapeTitleCard(BaseCardType):
         # Darken only the bounding box coorindates
         if self.darken == 'box':
             x_start, y_start, x_end, y_end = coordinates
+            if self.rounding_radius > 0:
+                rect = (
+                    f'roundrectangle {x_start},{y_start},{x_end},{y_end} '
+                    f'{self.rounding_radius},{self.rounding_radius}'
+                )
+            else:
+                rect = f'rectangle {x_start},{y_start},{x_end},{y_end}'
 
             return [
                 fr'-fill "{self.darken_color}"',
-                fr'-draw "rectangle {x_start},{y_start},{x_end},{y_end}"',
+                fr'-draw "{rect}"',
             ]
 
         return [
@@ -299,7 +352,7 @@ class LandscapeTitleCard(BaseCardType):
             fr'\(',
             f'-clone 0',
             f'-crop {x_end - x_start}x{y_end - y_start}+0+0',
-            f'-blur 0x12',
+            f'-blur {self.box_blur_profile}',
             fr'\)',
             f'-geometry -{self.box_width / 2}-20',
             f'-composite',
@@ -374,6 +427,13 @@ class LandscapeTitleCard(BaseCardType):
             return []
 
         x_start, y_start, x_end, y_end = coordinates
+        if self.rounding_radius > 0:
+            rect = (
+                f'roundrectangle {x_start},{y_start},{x_end},{y_end} '
+                f'{self.rounding_radius},{self.rounding_radius}'
+            )
+        else:
+            rect = f'rectangle {x_start},{y_start},{x_end},{y_end}'
 
         return self.add_drop_shadow(
             [
@@ -382,7 +442,7 @@ class LandscapeTitleCard(BaseCardType):
                 f'-fill transparent',
                 f'-strokewidth {self.box_width}',
                 f'-stroke "{self.box_color}"',
-                f'-draw "rectangle {x_start},{y_start},{x_end},{y_end}"',
+                f'-draw "{rect}"',
             ],
             Shadow(opacity=85, sigma=3, x=10, y=10),
             x=0, y=0,
@@ -549,10 +609,12 @@ def get_validator_model() -> type[Base]:
         add_bounding_box: bool = True
         blur_box: bool = False
         box_adjustments: BoxAdjustments = (0, 0, 0, 0)
+        box_blur_profile: constr(regex=r'^\d+x\d+$') = LandscapeTitleCard.BOX_BLUR_PROFILE
         box_color: str | None = None
         box_width: PositiveInt = LandscapeTitleCard.BOX_WIDTH
         darken: DarkenOption = 'box'
         darken_color: str = LandscapeTitleCard.DARKEN_COLOR
+        rounding_radius: conint(ge=0, le=500) = LandscapeTitleCard.ROUNDING_RADIUS
         shadow_color: str = LandscapeTitleCard.SHADOW_COLOR
 
         @validator('box_adjustments')
