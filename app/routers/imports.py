@@ -431,9 +431,9 @@ async def import_mediux_yaml_for_series(
 
     # Parse all indicated files
     background, poster = None, None
-    if import_backdrop:
+    if import_backdrop and yaml.url_background:
         background = str(yaml.url_background)
-    if import_poster:
+    if import_poster and yaml.url_poster:
         poster = str(yaml.url_poster)
     cards: list[tuple[Episode, Path]] = []
     season_posters: dict[int, str] = {}
