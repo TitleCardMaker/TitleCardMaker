@@ -1658,7 +1658,7 @@ def import_card_files(
             move_file(file, card_settings['card_file'])
         except OSError: # Can be caused by cross-platform move on Linux/Docker
             log.exception('Error occurred while moving Card file - skipping')
-            return None
+            continue
 
         # Card is valid, create and add to Database
         title_card = NewTitleCard(
