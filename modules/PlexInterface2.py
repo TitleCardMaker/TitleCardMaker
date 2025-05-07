@@ -938,7 +938,9 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         library.batchMultiEdits([ep[0] for ep in matched_episodes])
         if self.integrate_with_kometa:
             library.removeLabel(['Overlay'])
-            log.trace('Removed "Overlay" label')
+            log.trace(
+                f'Removed "Overlay" label from {len(library.multiEdits)} episodes'
+            )
         library.addLabel(['TCM'])
 
         # Upload card for all matched episodes
@@ -956,11 +958,14 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
                 # Upload card
                 self.__retry_upload(plex_episode, image.resolve(), log=log)
-                log.debug(f'{series_info} {plex_episode.seasonEpisode} loaded '
-                          f'Card {image.name} into "{library_name}"')
+                log.debug(
+                    f'{series_info} {plex_episode.seasonEpisode} loaded Card '
+                    f'"{image.name}" into "{library_name}"'
+                )
             except Exception:
-                log.exception(f'Unable to upload {image.resolve()} to '
-                              f'{series_info}')
+                log.exception(
+                    f'Unable to upload {image.resolve()} to {series_info}'
+                )
                 continue
             else:
                 loaded.append((episode, card))
