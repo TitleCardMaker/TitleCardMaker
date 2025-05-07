@@ -490,6 +490,8 @@ async def import_mediux_yaml_for_series(
         for card_file, episode in contents:
             cards.append((episode, card_file))
             if textless:
+                episode.card_type = 'textless'
+                log.debug(f'{episode}.card_type = textless')
                 if (source := episode.get_source_file('unique')).exists():
                     log.debug(
                         f'{episode} Source Image ({source.name}) exists - '
@@ -500,6 +502,10 @@ async def import_mediux_yaml_for_series(
                 except OSError:
                     log.exception('Error occurred while copying Card file')
                     continue
+
+    # Commit any changes to the Episode card types
+    if cards and textless:
+        db.commit()
 
     # Import content into all specified libraries
     log.debug(f'Identified {len(cards)} Cards to import')
@@ -512,8 +518,7 @@ async def import_mediux_yaml_for_series(
 
         if cards:
             import_card_files(
-                db, series, cards, library,
-                force_reload=force_reload, as_textless=textless, log=log,
+                db, series, cards, library, force_reload=force_reload, log=log,
             )
 
             # Load Cards into library
@@ -545,8 +550,7 @@ async def import_mediux_yaml_for_series(
     # No libraries specified import Cards without a library
     if not library_names:
         import_card_files(
-            db, series, cards, library=None,
-            force_reload=force_reload, as_textless=textless, log=log,
+            db, series, cards, library=None, force_reload=force_reload, log=log,
         )
         if season_posters or poster or background:
             log.warning('Cannot import non-Card images without a library')

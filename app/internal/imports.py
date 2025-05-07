@@ -1597,7 +1597,6 @@ def import_card_files(
         files: list[tuple[Episode, Path]],
         library: Library | None = None,
         force_reload: bool = True,
-        as_textless: bool = False,
         *,
         log: Logger = log,
     ) -> None:
@@ -1610,8 +1609,6 @@ def import_card_files(
         files: List of tuples of the Episode, and card files to import.
         force_reload: Whether to replace any existing Card entries for
             Episodes identified while importing.
-        as_textless: Whether to set the imported Episode's card type to
-            textless.
         log: Logger for all log messages.
     """
 
@@ -1630,15 +1627,6 @@ def import_card_files(
                     log.debug(f'{card} deleting record')
                     db.query(CardModel).filter_by(id=card.id).delete()
                     log.debug(f'{episode} has associated Card - reloading')
-
-        # If setting textless, change card type
-        if as_textless:
-            episode.card_type = 'textless'
-            log.debug(f'{episode}.card_type = textless')
-            content = file.read_bytes()
-            source_file = episode.get_source_file('unique')
-            source_file.write_bytes(content)
-            log.trace(f'Wrote {len(content):,} bytes to {source_file.resolve()}')
 
         # Get finalized Card settings for this Episode, override card file
         try:
@@ -1675,8 +1663,9 @@ def import_card_files(
             library,
             commit=False,
         )
-        log.debug(f'{episode} Imported {episode.index_str}')
+        log.debug(f'{episode} imported "{file.resolve()}"')
 
+    # Commit any changes to the Database
     db.commit()
 
 
