@@ -678,6 +678,7 @@ function batchDeleteSeries() {
     data: JSON.stringify(selectedSeries),
     contentType: 'application/json',
     success: () => {
+      selectedSeries.forEach(id => document.querySelector(`#series-table [data-id="${id}"]`).remove());
       showInfoToast(`Deleted ${selectedSeries.length} Series`);
       getAllStatistics();
     },
