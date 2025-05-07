@@ -796,9 +796,6 @@ class PreferenceParser(YamlReader):
                 self.valid = False
 
         return None
-                self.valid = False
-
-        return None
 
 
     def __parse_yaml_tautulli(self) -> None:
