@@ -189,10 +189,11 @@ function openSeries(seriesId) {
 }
 
 /**
- * 
+ * Toggle the display of count data on the home page.
  * @param {boolean} toggle New state of displaying count data.
+ * @param {boolean} [requerySeries=true] Whether to requery all Series.
  */
-function toggleCounts(toggle) {
+function toggleCounts(toggle, requerySeries=true) {
   // Write new state to the localstorage
   window.localStorage.setItem('home:include-counts', toggle);
   if (toggle) {
@@ -202,7 +203,9 @@ function toggleCounts(toggle) {
     document.querySelector('#toolbar .item[data-action="enable-counts"]').classList.remove('invisible');
     document.querySelector('#toolbar .item[data-action="disable-counts"]').classList.add('invisible');
   }
-  getAllSeries();
+  if (requerySeries) {
+    getAllSeries();
+  }
 }
 
 /**
@@ -537,10 +540,11 @@ function getAllStatistics() {
 
 /** Initialize the page by querying for Series and statistics */
 function initAll() {
-  toggleCounts(window.localStorage.getItem('home:include-counts') === 'true'); // This calls getAllSeries
+  toggleCounts(window.localStorage.getItem('home:include-counts') === 'true', false);
+  initializeFilterTemplate();
+  serializeAllFilters(); // This queries all Series
   getAllStatistics();
   $('.ui.dropdown').dropdown();
-  initializeFilterTemplate();
 }
 
 const sortStates = {
@@ -736,7 +740,6 @@ function addTab(filter=null) {
     newTab.querySelector('input[name="filter_name"]').value = filter.name;
   }
   document.querySelector('#filter-modal .content').appendChild(newTab);
-  $('#filter-modal .tabular.menu .item').tab();
 
   const tabs = document.querySelectorAll('#filter-modal .content .tab.segment');
   return tabs[tabs.length - 1];
@@ -991,13 +994,20 @@ function initializeFilterTemplate() {
     });
   });
   $('#filter-modal div.dropdown').dropdown();
-
-  // Set active tab
+  
+  // Initialize tabs; set active tab if needed
+  $('#filter-modal .tabular.menu .item').tab();
   if (filterData?.activeTab !== undefined) {
-    $('#filter-modal .tabular.menu').tab('change tab', `tab${filterData.activeTab}`);
+    $('#filter-modal .tabular.menu .item').tab('change tab', `tab${filterData.activeTab}`);
   }
 }
 
+/**
+ * Add a new condition to the current filter.
+ * @param {HTMLButtonElement} addButton Button which was clicked.
+ * @param {boolean} removeLabels Whether to remove the labels for all but the
+ * first condition.
+ */
 function addFilterCondition(addButton, removeLabels=true) {
   const newFields = document.getElementById('filter-template').content.cloneNode(true);
   if (removeLabels) {
@@ -1009,7 +1019,10 @@ function addFilterCondition(addButton, removeLabels=true) {
   $('#filter-modal .form .dropdown').dropdown();
 }
 
-// Function to serialize form inputs into a list of objects
+/**
+ * Serialize all filters into a list of objects, and then apply the filter
+ * and re-query all Series.
+ */
 function serializeAllFilters() {
   const filters = [];
   let activeTab = null;
