@@ -592,7 +592,7 @@
           <a class="item" data-tab="blueprints">Blueprints<span data-value="blueprint-count"></span></a>
           <a class="item" data-tab="episodes">Episode Data</a>
           <a class="item" data-tab="files">Files</a>
-          <a class="item" data-tab="ids">Database IDs</a>
+          <a class="item" data-tab="ids">External</a>
           <a class="item" data-tab="logs">Logs</a>
         </div>
 
@@ -1597,6 +1597,16 @@
               {% endif %}
             </div>
             {% endif %}
+
+            <div class="field">
+              {% if series.set_url %}
+              <label>Set URL <a href="{{ series.set_url }}" target="_blank"><i class="external alternate small icon"></i></a></label></label>
+              <input name="set_url" type="text" placeholder="None" value="{{ series.set_url }}">
+              {% else %}
+              <label>Set URL</label>
+              <input name="set_url" type="text" placeholder="None">
+              {% endif %}
+            </div>
 
             <button class="ui animated primary button" onclick="updateSeries('ids');">
               <div class="visible content">Save</div>

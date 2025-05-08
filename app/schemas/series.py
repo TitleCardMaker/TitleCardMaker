@@ -111,6 +111,7 @@ class BaseSeries(BaseConfig):
     tmdb_id: TMDbID = None
     tvdb_id: TVDbID = None
     tvrage_id: TVRageID = None
+    set_url: str | None = None
     directory: str | None = None
 
 class BaseUpdate(UpdateBase):
@@ -286,6 +287,7 @@ class UpdateSeries(BaseUpdate):
     tmdb_id: TMDbID = UNSPECIFIED
     tvdb_id: TVDbID = UNSPECIFIED
     tvrage_id: TVRageID = UNSPECIFIED
+    set_url: str | None = UNSPECIFIED
 
     @validator('emby_id', 'jellyfin_id', 'sonarr_id', pre=False)
     def validate_ids(cls, v):

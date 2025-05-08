@@ -2483,6 +2483,7 @@ function updateSeries(formName) {
       tmdb_id: document.querySelector('#series-ids-form input[name="tmdb_id"]')?.value || null,
       tvdb_id: document.querySelector('#series-ids-form input[name="tvdb_id"]')?.value || null,
       tvrage_id: document.querySelector('#series-ids-form input[name="tvrage_id"]')?.value || null,
+      set_url: document.querySelector('#series-ids-form input[name="set_url"]')?.value || null,
     };
   }
 
