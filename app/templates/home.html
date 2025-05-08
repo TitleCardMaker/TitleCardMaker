@@ -124,8 +124,8 @@
   </template>
   
   <template id="filter-template">
-    <div class="three fields">
-      <div class="field" data-label="field">
+    <div class="fields">
+      <div class="five wide field" data-label="field">
         <label>Field</label>
         <div class="ui selection clearable search dropdown">
           <input type="hidden" name="field" onchange="updateConditions(this);">
@@ -135,7 +135,7 @@
         </div>
       </div>
   
-      <div class="field" data-label="condition">
+      <div class="five wide field" data-label="condition">
         <label>Condition</label>
         <div class="ui selection dropdown">
           <input type="hidden" name="condition">
@@ -145,9 +145,16 @@
         </div>
       </div>
   
-      <div class="disabled field" data-label="reference">
+      <div class="five wide disabled field" data-label="reference">
         <label>Reference</label>
         <input type="text" name="reference" placeholder="Reference Value">
+      </div>
+
+      <div class="one wide field" data-label="reference">
+        <label></label>
+        <button class="ui icon tertiary red button" onclick="deleteCondition(this);" data-tooltip="Delete Condition">
+          <i class="times circle icon"></i>
+        </button>
       </div>
     </div>
   </template>

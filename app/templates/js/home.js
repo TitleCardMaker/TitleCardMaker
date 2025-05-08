@@ -930,6 +930,16 @@ function updateConditions(obj) {
   });
 }
 
+/**
+ * Delete the condition associated with the clicked button.
+ * @param {HTMLButtonElement} deleteButton Button which was clicked.
+ */
+function deleteCondition(deleteButton) {
+  const field = deleteButton.closest('.fields');
+  field.remove();
+}
+
+/** Initialize the Filter template with the appropriate dropdown items. */
 function initializeFilterTemplate() {
   const template = document.getElementById('filter-template').content;
   filterSettings.forEach(filter => {
