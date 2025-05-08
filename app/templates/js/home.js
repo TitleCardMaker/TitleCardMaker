@@ -357,6 +357,7 @@ function _populateSeriesCard(series, template) {
   return clone;
 }
 
+/** @type {?Filter} */
 let currentFilter = null;
 
 /**
@@ -538,8 +539,6 @@ function getAllStatistics() {
 function initAll() {
   toggleCounts(window.localStorage.getItem('home:include-counts') === 'true'); // This calls getAllSeries
   getAllStatistics();
-  // Initialize table sorting and dropdowns
-  $('table').tablesort();
   $('.ui.dropdown').dropdown();
   initializeFilterTemplate();
 }
