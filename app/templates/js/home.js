@@ -1059,3 +1059,10 @@ function serializeAllFilters() {
   getAllSeries();
   $('#filter-modal').modal('hide');
 }
+
+/** Unapply the current filter and re-query all Series. */
+function unapplyFilter() {
+  currentFilter = null;
+  getAllSeries();
+  $('#filter-modal').modal('hide');
+}
