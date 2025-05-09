@@ -184,7 +184,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             raw_obj: Literal[True] = True,
             log: Logger = log
         ) -> SeriesInfo | None: ...
-
     def __get_series_id(self,
             library_name: str,
             series_info: SeriesInfo,
@@ -222,8 +221,10 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 return id_
 
             # No item found, ID must be invalid - reset and re-query
-            log.trace(f'Emby ID ({id_}) has been dynamically re-assigned. '
-                      f'Querying for new one..')
+            log.trace(
+                f'Emby ID ({id_}) has been dynamically re-assigned. Querying '
+                f'for new one..'
+            )
             del series_info.emby_id[self._interface_id, library_name]
 
         # Get ID of this library
@@ -292,15 +293,18 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 'recursive': True,
                 'includeItemTypes': 'Season',
                 'parentId': series_id,
-                'startIndex': season_number-1,
-                'limit': 1,
             } | self.__params,
         )
 
         if not isinstance(response, dict) or not response.get('Items'):
             return None
 
-        return response['Items'][0]['Id']
+        for season in response['Items']:
+            if (season.get('SeriesId') == series_id
+                and season.get('IndexNumber') == season_number):
+                return season['Id']
+
+        return None
 
 
     def __get_episodes(self,
@@ -763,8 +767,9 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 )
                 loaded.append((episode, card))
             except Exception:
-                log.exception(f'Unable to upload {image.resolve()} to '
-                                f'{series_info}')
+                log.exception(
+                    f'Unable to upload {image.resolve()} to {series_info}'
+                )
         # for emby_ep in self.__get_episodes(library_name, series_info, log=log):
         #     # Create EpisodeInfo object for this episode
         #     emby_info = EpisodeInfo.from_emby_info(
@@ -828,6 +833,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # Load each episode and card
         for season_number, image in posters.items():
             if (sid := self.__get_season_id(series_id, season_number)) is None:
+                log.warning(f'Season {season_number} not found')
                 continue
 
             # Shrink image if necessary, skip if cannot be compressed
@@ -852,8 +858,9 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                     params=self.__params,
                     data=image_base64,
                 )
-                log.debug(f'{series_info} loaded poster into season '
-                          f'{season_number}')
+                log.debug(
+                    f'{series_info} loaded poster into season {season_number}'
+                )
             except Exception:
                 log.exception(f'Unable to upload {image} to {series_info}')
                 continue
