@@ -939,7 +939,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         if self.integrate_with_kometa:
             library.removeLabel(['Overlay'])
             log.trace(
-                f'Removed "Overlay" label from {len(library.multiEdits)} episodes'
+                f'Removed "Overlay" label from {len(matched_episodes)} episodes'
             )
         library.addLabel(['TCM'])
 
