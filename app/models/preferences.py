@@ -423,9 +423,12 @@ class Preferences:
                 # Since cards are typically created in the background
                 # thread; assign prefix only for threaded eval
                 self.use_magick_prefix = use_magick
-                log.debug(f'Using "{prefix}" ImageMagick command prefix '
-                            + ('in the primary thread'))
+                log.debug(
+                    f'Using "{prefix}" ImageMagick command prefix in '
+                    + ('the primary thread' if use_magick else 'all threads')
+                )
                 return None
+            interface.print_command_history(log=log)
 
         # If neither variation worked, IM might not be installed
         log.critical("ImageMagick doesn't appear to be installed")
