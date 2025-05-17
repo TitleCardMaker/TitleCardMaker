@@ -219,12 +219,17 @@ function showEditModel(sync) {
       event.preventDefault();
       // Turn form into object, turning multi selects into arrays
       let form = new FormData(document.getElementById(`edit-sync${sync.id}-form`));
-      let dataObj = {downloaded_only: false, monitored_only: false, add_as_unmonitored: false};
+      let dataObj = {
+        downloaded_only: false,
+        monitored_only: false,
+        add_as_unmonitored: false,
+      };
       for (let [name, value] of [...form.entries()]) {
         if (name.includes('_tags')
             || name.includes('_libraries')
             || name === 'required_root_folders'
-            || name === 'template_ids') {
+            || name === 'template_ids'
+          ) {
           if (value !== '') {
             dataObj[name] = value.split(',');
           } else {
