@@ -98,6 +98,7 @@ class Sync(Base):
                            template_id=template.id,
                            order=index)\
                 .first()
+
             if existing:
                 self.templates.append(existing)
             else:

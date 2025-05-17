@@ -104,7 +104,6 @@ def get_latest_available_version(
 
 @availablility_router.get('/card-types')
 def get_all_available_card_types(
-        request: Request,
         show_excluded: bool = Query(default=False),
         log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
@@ -116,9 +115,11 @@ def get_all_available_card_types(
     the returned list.
     """
 
-    all_cards = LocalCards \
-        + get_local_cards(preferences) \
-        + get_remote_cards(log=getattr(request.state, 'log', log))
+    all_cards = (
+        LocalCards
+        + get_local_cards(preferences)
+        + get_remote_cards(log=log)
+    )
 
     if show_excluded:
         return all_cards
@@ -151,13 +152,7 @@ def get_remote_card_types_(
     ) -> list[RemoteCardType]:
     """Get all available remote card types."""
 
-    try:
-        return get_remote_cards(log=log)
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail='Error encountered while getting remote card types'
-        ) from exc
+    return get_remote_cards(log=log)
 
 
 @availablility_router.get('/extras')
