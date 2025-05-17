@@ -146,6 +146,7 @@ class RemoteFile:
 
         # Verify content is valid
         if not content.ok or not content.content:
+            log.error(f'Failed to download RemoteFile ({content.text})')
             raise ValueError('File does not exist')
 
         # Write content to file
