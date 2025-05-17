@@ -120,7 +120,7 @@ def edit_sync(
     changed = False
     if (template_ids := update_sync_dict.pop('template_ids', None)) is not None:
         if template_ids != sync.template_ids:
-            templates = get_all_templates(db, update_sync_dict)
+            templates = get_all_templates(db, template_ids)
             sync.assign_templates(templates, log=log)
             changed = True
 

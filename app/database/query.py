@@ -369,19 +369,18 @@ def get_template(
 
 @overload
 def get_all_templates(
-        db: Session, obj_dict: dict, *, raise_exc: Literal[True] = True,
-    ) -> list[Template]:
-    ...
+        db: Session, obj_dict: dict | list[int], *, raise_exc: Literal[True],
+    ) -> list[Template]: ...
 
 @overload
 def get_all_templates(
-        db: Session, obj_dict: dict, *, raise_exc: Literal[False],
+        db: Session, obj_dict: dict | list[int], *, raise_exc: Literal[False],
     ) -> list[Template | None]:
     ...
 
 def get_all_templates(
         db: Session,
-        obj_dict: dict,
+        obj_dict: dict | list[int],
         *,
         raise_exc: bool = True,
     ) -> list[Template] | list[Template | None]:
@@ -392,7 +391,8 @@ def get_all_templates(
     Args:
         db: Database to query for Templates by their ID's.
         obj_dict: Dictionary whose "template_ids" key to pop and parse
-            for Template ID's.
+            for Template ID's. If a list of int's is provided, then
+            those ID's are used instead.
 
     Returns:
         List of Template objects whose order and ID correspond to the
@@ -403,8 +403,13 @@ def get_all_templates(
             and `raise_exc` is True.
     """
 
-    if not (template_ids := obj_dict.pop('template_ids', [])):
-        return []
+    if isinstance(obj_dict, list):
+        if not obj_dict:
+            return []
+        template_ids = obj_dict
+    else:
+        if not (template_ids := obj_dict.pop('template_ids', [])):
+            return []
 
     return [
         get_template(db, template_id, raise_exc=raise_exc)
