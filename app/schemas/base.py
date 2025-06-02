@@ -1,7 +1,7 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
-from typing import Literal, Union
 # pyright: reportInvalidTypeForm=false
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, FilePath, PositiveFloat, constr, root_validator
 
@@ -87,9 +87,6 @@ class UpdateBase(Base):
             del values[key]
 
         return values
-
-# Better "Color" class to support "transparent", required until Pydantic v2.0
-BetterColor = Union[str, Literal['transparent']]
 
 # Function to validate two equal length lists are provided
 def validate_argument_lists_to_dict(
