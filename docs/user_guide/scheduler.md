@@ -107,7 +107,7 @@ does the following, in order:
 5. Create or update all Title Cards
 
 It is important to note that Title Card _loading_ is performed in a separate
-[task](...).
+[Task](#load-title-cards).
 
 ### Clean Database
 
@@ -176,8 +176,8 @@ be deleted (including any associated Title Cards).
 
 Take a "snapshot" of the database. This is a count of all Series, Episodes,
 Fonts, etc., as well as a file size summation for all Cards. These snapshots
-can be graphically displayed on the [Graphs](...) page, but serve no functional
-purpose within TCM.
+can be graphically displayed on the [Graphs](../graphs.md) page, but serve no
+_functional_ purpose within TCM.
 
 [^1]: This Task does nothing while the UI is only available to sponsors.
 [^2]:
