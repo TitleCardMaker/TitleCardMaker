@@ -112,7 +112,8 @@ class NewSonarrConnection(BaseNewServer):
 
         for index, library in enumerate(v):
             for other_library in v[index+1:]:
-                if other_library.path.startswith(library.path):
+                if (other_library.path.startswith(library.path)
+                    and other_library.name != library.name):
                     separator = '/' if '/' in library.path else '\\'
                     raise ValueError(
                         f'Library path ({other_library.path}) contains '
