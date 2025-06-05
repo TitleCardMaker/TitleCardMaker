@@ -644,13 +644,17 @@ def load_series_title_cards(
                 library_name=library_name,
             ))
         except InvalidRequestError:
-            log.warning(f'Error creating Loaded asset for {loaded_episode} {card}')
+            log.warning(
+                f'Error creating Loaded asset for {loaded_episode} {card}'
+            )
             continue
 
     # If any cards were (re)loaded, commit updates to database
     if changed or loaded_assets:
         db.commit()
-        log.info(f'{series} Loaded {len(loaded_assets)} Cards into "{library_name}"')
+        log.info(
+            f'{series} Loaded {len(loaded_assets)} Cards into "{library_name}"'
+        )
 
 
 def load_all_series_title_cards(
