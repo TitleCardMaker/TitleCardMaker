@@ -190,6 +190,7 @@ class TitleCardReduced(Base):
     episode_id: int
     episode: EpisodeData
     card_file: str
+    file_url: str
     filesize: int
     library_name: str | None = None
     loaded: LoadedDetails | None = None
