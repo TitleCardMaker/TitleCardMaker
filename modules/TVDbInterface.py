@@ -531,9 +531,17 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         def _query_page(page: int, /) -> list[TVDbEpisode]:
             """Query the episodes on the given page number"""
 
-            url = f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes' \
-                + f'/{self._order_type}?page={page}'
-            return self.get(url).get('data', {}).get('episodes', [])
+            url = (
+                f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes'
+                f'/{self._order_type}?page={page}'
+            )
+            try:
+                return self.get(url).get('data', {}).get('episodes', [])
+            except Exception:
+                log.exception(
+                    f'Failed to query episodes for {tvdb_id} on page {page}'
+                )
+                return []
 
         # Query first page of episodes
         page_number, last_length = 0, 0
