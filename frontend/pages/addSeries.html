@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Add Series - TitleCardMaker</title>
+  {% include "/pages/html_boilerplate.html" %}
+
+  <script type="text/javascript">
+    {% include "/js/addSeries.js" %}
+  </script>
+
+  <link rel="stylesheet" type="text/css" href="/css/addSeries.css?{{preferences.current_version}}"/>
+
+  <template id="search-result-template">
+    <div class="ui horizontal fluid link card transition hidden"> <!-- Start hidden so object can be transitioned in -->
+      <div class="image">
+        <img onerror="this.onerror=null; this.src='/internal_assets/placeholder.jpg'" loading="lazy">
+      </div>
+      <div class="content">
+        <div data-value="name" class="header">{Series Name}</div>
+        <div class="meta">
+          <span data-value="year">{Year}</span>
+          <span data-value="ongoing">{Ongoing}</span>
+          <span class="right floated" data-label="emby_id"></span>
+          <span class="right floated" data-label="imdb_id"></span>
+          <span class="right floated" data-label="jellyfin_id"></span>
+          <span class="right floated" data-label="sonarr_id"></span>
+          <span class="right floated" data-label="tmdb_id"></span>
+          <span class="right floated" data-label="tvdb_id"></span>
+          <span class="right floated" data-label="tvrage_id"></span>
+        </div>
+        <div data-value="overview" class="description">
+          <p>{description}</p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="result-placeholder-template">
+    <div class="ui fluid placeholder">
+      <div class="image header">
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+      <div class="paragraph">
+        <div class="medium line"></div>
+        <div class="short line"></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="blueprint-placeholder-template">
+    <div class="ui horizontal blueprint card">
+      <div class="image">
+        <div class="ui placeholder">
+          <div class="square image"></div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="ui placeholder">
+          <div class="header">
+            <div class="very short line"></div>
+            <div class="medium line"></div>
+          </div>
+          <div class="paragraph">
+            <div class="short line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="all-blueprint-template">
+    <div class="ui raised blueprint card transition hidden"> <!-- Start hidden so object can be transitioned in -->
+      <div class="image">
+        <img loading="lazy">
+      </div>
+      <div class="content">
+        <i data-action="blacklist" class="right floated eye slash outline icon"></i>
+        <i data-action="import" class="right floated cloud download alternate icon"></i>
+        <div data-value="count" class="ui right floated green mini circular label">0</div>
+        <div class="header">
+          <a class="no-link" data-action="search-series">
+            <span data-value="name">{series_name}</span>
+          </a>
+          <span class="ui grey uninvertible text" data-value="year">({series_year})</span>
+        </div>
+        <div class="meta">
+          <span><i>by</span><span data-value="creator">{author}</span></i>
+          <span data-value="font-count"><b>{x}</b> Named Font</span>
+          <span data-value="template-count"><b>{x}</b> Template</span>
+          <span data-value="episode-count"><b>{x}</b> Episode Overrides</span>
+          <span data-value="file-count"><b>{x}</b> Source Files</span>
+          <div class="ui mini uninvertible popup">
+            <div class="header">Imported Source Files</div>
+            <div class="content"></div>
+          </div>
+        </div>
+        <div data-value="description" class="description"><!-- <p>Description</p> --></div>
+      </div>
+      <div class="extra content">
+        <a data-action="view-set" class="left floated">
+          <i class="object group outline icon"></i>
+          <span data-value="set-count">{count} Associated Sets</span>
+        </a>
+      </div>
+    </div>
+  </template>
+</head>
+
+<body onload="initAll();">
+  <div class="pusher">
+    <!-- Static header and sidebar -->
+    <div id="page-header">
+      {% include "/pages/header.html" %}
+    </div>
+    <div id="nav-menu">
+      {% include "/pages/home_sidebar.html" %}
+    </div>
+
+    <!-- Actual page content -->
+    <div id="main-content" class="article">
+      <h1 class="ui header">Add Series or Blueprint</h1>
+
+      <!-- Series Name -->
+      <h4 class="ui horizontal left aligned divider header">
+        <i class="search icon"></i>
+        Browse Series
+      </h4>
+
+      <div class="ui blue right action left icon input">
+        <i class="search icon"></i>
+        <input id="search-query" type="text" placeholder="Search" autofocus>
+        <div data-value="interface_id" class="ui basic floating dropdown button" data-tooltip="Which connection to search">
+          <input name="interface_id" type="hidden">
+          <div class="default text"></div>
+          <i class="dropdown icon"></i>
+          <div class="menu"><!-- Added asynchronously --></div>
+        </div>
+      </div>
+      <button id="startSearch" class="ui primary button" onclick="querySeries(false);">Search</button>
+      <button class="ui primary red button" onclick="querySeries(true);">Display Missing</button>
+
+      <form class="ui form" id="new-series">
+        <!-- <h4 class="ui dividing header">Configuration</h4> -->
+        <div class="ui three fields">
+          <div class="ui field">
+            <label>Libraries</label>
+            <div data-value="libraries" class="ui compact clearable search selection multiple dropdown">
+              <input name="libraries" type="hidden">
+              <div class="default text">None</div>
+              <i class="dropdown icon"></i>
+              <div class="menu"><!-- Added asynchronously --></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Templates</label>
+            <div data-value="template_ids" class="ui compact clearable search selection multiple dropdown">
+              <input data-value="template_ids" name="template_ids" type="hidden">
+              <i class="dropdown icon"></i>
+              <div class="default text">None</div>
+              <div class="menu"><!-- Added asynchronously --></div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div id="search-results" class="ui raised segment"><!-- Added asynchronously --></div>
+
+      <!-- Blueprints -->
+      <h4 class="ui horizontal left aligned divider header">
+        <i class="sitemap icon"></i>
+        Browse Blueprints
+      </h4>
+
+      <div class="ui blue right action left icon input">
+        <i class="search icon"></i>
+        <input type="text" name="blueprint_series_name" placeholder="Filter by Name..">
+        <select data-value="order_by" class="ui compact selection dropdown">
+          <option value="date" selected="">Order by Date</option>
+          <option value="name">Order by Name</option>
+        </select>
+      </div>
+      <button data-action="browse-blueprints" class="ui green button" onclick="queryAllBlueprints();">
+        Browse Blueprints
+      </button>
+
+      <br><br>
+      <div class="ui two fields">
+        <div data-value="include_missing_series" class="ui checkbox field">
+          <label>Only include existing Series</label>
+          <input type="checkbox" name="include_missing_series">
+          <p class="help">Exclude Blueprints for Series not in TitleCardMaker</p>
+        </div>
+        <br>
+        <div data-value="included_imported" class="ui checkbox checkbox">
+          <label>Include previously imported</label>
+          <input type="checkbox" name="included_imported">
+          <p class="help">Include Blueprints that have been previously imported</p>
+        </div>
+      </div>
+
+      <div class="ui raised segment">
+        <div id="all-blueprint-results" class="ui three stackable raised cards"><!-- Added asynchronously --></div>
+      </div>
+      <div id="blueprint-pagination" class="ui centered pagination menu"><!-- Pagination added later --></div>
+
+      <div class="ui raised segment" id="blueprint-sets"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="add-series-modal" class="ui scrolling modal">
+      <i class="close icon"></i>
+      <div data-value="series-name-header" class="header">Add Series</div>
+      <div class="scrolling content">
+        <form class="ui form">
+          <!-- <h4 class="ui dividing header">Configuration</h4> -->
+          <div class="ui two fields">
+            <div class="ui field">
+              <label>Libraries</label>
+              <div data-value="libraries" class="ui compact clearable search selection multiple dropdown">
+                <input name="libraries" type="hidden">
+                <div class="default text">None</div>
+                <i class="dropdown icon"></i>
+                <div class="menu"><!-- Added asynchronously --></div>
+              </div>
+            </div>
+  
+            <div class="field">
+              <label>Templates</label>
+              <div data-value="template_ids" class="ui compact clearable search selection multiple dropdown">
+                <input data-value="template_ids" name="template_ids" type="hidden">
+                <i class="dropdown icon"></i>
+                <div class="default text">None</div>
+                <div class="menu"><!-- Added asynchronously --></div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="actions">
+        <button class="ui cancel button">Cancel</button>
+        <button data-action="add-series" class="ui green right labeled icon button">
+          <i class="plus icon"></i>
+          Add
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

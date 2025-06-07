@@ -1,0 +1,171 @@
+# pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
+# pyright: reportInvalidTypeForm=false, reportAssignmentType=false
+from datetime import datetime
+from json import loads
+from re import sub as re_sub, IGNORECASE
+from typing import Any, Optional, Self
+
+from pydantic import Field, PositiveInt, model_validator, root_validator, validator
+
+from app.schemas.base import Base
+from app.schemas.font import TitleCase
+from app.schemas.series import Condition, SeasonTitleRange, Translation
+
+from modules.CleanPath import CleanPath
+
+"""
+Base classes
+"""
+class BlueprintBase(Base):
+    @model_validator(mode='after')
+    def delete_null_args(self) -> Self:
+        delete_keys = [key for key, value in values.items() if value is None]
+        for key in delete_keys:
+            del values[key]
+
+        return values
+
+class ConfigBase(BlueprintBase): # Base of Series, Episodes, and Templates
+    font_id: Optional[int] = None
+    card_type: Optional[str] = None
+    hide_season_text: Optional[bool] = None
+    hide_episode_text: Optional[bool] = None
+    episode_text_format: Optional[str] = None
+    translations: Optional[list[Translation]] = None
+    season_title_ranges: Optional[list[SeasonTitleRange]] = None
+    season_title_values: Optional[list[str]] = None
+    extra_keys: Optional[list[str]] = None
+    extra_values: Optional[list[Any]] = None
+    skip_localized_images: Optional[bool] = None
+
+class BaseSeriesEpisode(ConfigBase): # Base of Series and Episodes
+    template_ids: list[int] = []
+    match_titles: Optional[bool] = None
+    auto_split_title: Optional[bool] = None
+    font_color: Optional[str] = None
+    font_title_case: Optional[TitleCase] = None
+    font_size: Optional[float] = None
+    font_kerning: Optional[float] = None
+    font_stroke_width: Optional[float] = None
+    font_interline_spacing: Optional[int] = None
+    font_interword_spacing: Optional[int] = None
+    font_vertical_shift: Optional[int] = None
+
+"""
+Creation classes
+"""
+class BlueprintSeries(BaseSeriesEpisode):
+    source_files: list[str] = []
+
+class BlueprintEpisode(BaseSeriesEpisode):
+    title: Optional[str] = None
+    match_title: Optional[bool] = None
+    season_text: Optional[str] = None
+    episode_text: Optional[str] = None
+
+class BlueprintFont(BlueprintBase):
+    name: str
+    color: Optional[str] = None
+    file: Optional[str] = None
+    kerning: float = None
+    interline_spacing: int = None
+    interword_spacing: int = None
+    line_split_modifier: int = None
+    replacements_in: list[str] = None
+    replacements_out: list[str] = None
+    size: float = None
+    stroke_width: float = None
+    title_case: Optional[TitleCase] = None
+    vertical_shift: int = None
+
+class BlueprintTemplate(ConfigBase):
+    name: str
+    filters: list[Condition] = []
+
+class Blueprint(Base):
+    series: BlueprintSeries
+    episodes: dict[str, BlueprintEpisode] = {}
+    templates: list[BlueprintTemplate] = []
+    fonts: list[BlueprintFont] = []
+    previews: list[str] = []
+    description: list[str] = []
+
+"""
+Update classes
+"""
+
+"""
+Return classes
+"""
+class DownloadableFile(Base):
+    url: str
+    filename: str
+
+class ExportBlueprint(Base):
+    series: BlueprintSeries
+    episodes: dict[str, BlueprintEpisode] = {}
+    templates: list[BlueprintTemplate] = []
+    fonts: list[BlueprintFont] = []
+
+    @root_validator(skip_on_failure=True)
+    def delete_null_args(cls, values: dict) -> dict:
+        delete_keys = [key for key, value in values.items() if not value]
+        for key in delete_keys:
+            del values[key]
+
+        return values
+
+class ImportBlueprint(Blueprint):
+    ...
+
+class RemoteBlueprintFont(BlueprintFont):
+    file_download_url: Optional[str] = None
+
+class RemoteBlueprintSeries(Base):
+    name: str
+    year: int
+    imdb_id: Optional[str]
+    tmdb_id: Optional[int]
+    tvdb_id: Optional[int]
+    blueprint_count: PositiveInt = 1
+
+class RemoteBlueprint(Base):
+    id: int
+    blueprint_number: int
+    creator: str
+    created: datetime
+    series: RemoteBlueprintSeries
+    json_: Blueprint = Field(alias='json')
+    set_ids: list[int] = []
+
+    @validator('json_', pre=True)
+    def parse_blueprint_json(cls, v):
+        return v if isinstance(v, dict) else loads(v)
+
+    @model_validator(mode='after')
+    def finalize_preview_urls(self) -> Self:
+        # Remove illegal path characters
+        full_name = f'{self.series.name} ({self.series.year})'
+        clean_name = CleanPath.sanitize_name(full_name)
+
+        # Remove prefix words like A/An/The
+        sort_name = re_sub(r'^(a|an|the)(\s)', '', clean_name, flags=IGNORECASE)
+
+        # Add base repo URL to all preview filenames
+        self.json_.previews = [
+            preview
+            if preview.startswith('https://') else
+            (
+                f'https://github.com/CollinHeist/TCM-Blueprints-v2/raw'
+                + f'/master/blueprints/{sort_name[0].upper()}/{clean_name}/'
+                + f'{self.blueprint_number}/{preview}'
+            )
+            for preview in self.json_.previews
+        ]
+
+        return self
+
+class RemoteBlueprintSet(Base):
+    id: int
+    name: str
+    blueprints: list[RemoteBlueprint]

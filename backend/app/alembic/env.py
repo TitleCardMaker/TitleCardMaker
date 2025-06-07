@@ -1,0 +1,124 @@
+# pylint: skip-file
+from logging.config import fileConfig
+
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+
+from alembic import context
+
+"""
+Auto-detect db changes:
+>>> alembic -c ./app/alembic/alembic.ini revision --autogenerate -m "..."
+Manually perform DB migrations (to latest revision)
+>>> alembic upgrade head
+Manually downgrade DB to specific version
+>>> alembic -c ./app/alembic/alembic.ini downgrade <target-revision>
+
+Schema Version History (oldest to newest):
+- 693dd5aa47cd | Initialize tables
+- 65fd10d8732e | Add User table
+- 0233f2608d72 | Add interword spacing
+- 5861246a49f3 | Change default of Font.interword_spacing
+- 4d7cb48238be | Replace Font.file with Font.file_name
+- 25490125daaf | Add explicit ordering to Templates
+- caec4f618689 | Turn Card attributes into Card.model_json
+- a61f373185d4 | Add support for multiple Connections
+- 5318f59eadbf | Utilize ORM Mappings and finalize Column nullability
+- 48872195483e | Add Snapshot table
+- 32ef3d4633ce | Add Card.source_file column
+- b99ce3bfdfbd | Add Sync.required_root_folder column
+- 3122c0553b1e | Separate Font replacements, migrate cardinal and ordinal formatting
+- f1692007cf8a | Add Series level title split toggle
+- 1be1951acc40 | Add Font.line_split_modifier column
+- 2c1f9a3de797 | Added TVDb as a valid Connection type
+- 248e35b3e455 | Remove the Font.delete_missing column
+- 0a5f4764cd10 | Remove the Episode.image_source_attempts column
+- 84971838f3fc | Encrypt Connection URLs and API keys
+- db6a1eda7d21 | Add Sync.add_as_monitored column
+- a1520b6160c4 | Add Series per-season asset toggle and Series/Template ISP settings
+- 2dc1e976a801 | Add indexing, and explicit sort, clean, and full name columns
+- e290ff7005ff | Add object timestamp columns
+- f4afea8860cf | Change Series.monitored column to status
+"""
+
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
+config = context.config
+
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+from app.models import *
+from app.db.database import Base
+target_metadata = Base.metadata
+
+from os import environ
+IS_DOCKER = environ.get('TCM_IS_DOCKER', 'false').lower() == 'true'
+
+
+def run_migrations_offline() -> None:
+    """
+    Run migrations in 'offline' mode.
+
+    This configures the context with just a URL and not an Engine,
+    though an Engine is acceptable here as well.  By skipping the Engine
+    creation we don't even need a DBAPI to be available.
+
+    Calls to context.execute() here emit the given string to the script
+    output.
+    """
+
+    url = config.get_main_option('sqlalchemy.url')
+    if IS_DOCKER:
+        url = '/config/db.sqlite'
+
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={'paramstyle': 'named'},
+        compare_server_default=True,
+        render_as_batch=True,
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online() -> None:
+    """
+    Run migrations in 'online' mode.
+
+    In this scenario we need to create an Engine and associate a
+    connection with the context.
+    """
+
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix='sqlalchemy.',
+        poolclass=pool.NullPool,
+    )
+
+    url = config.get_main_option('sqlalchemy.url')
+    if IS_DOCKER:
+        url = '/config/db.sqlite'
+
+    with connectable.connect() as connection:
+        context.configure(
+            url=url,
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_server_default=True,
+            render_as_batch=True,
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()

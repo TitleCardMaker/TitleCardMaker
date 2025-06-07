@@ -15,12 +15,8 @@ config/
 cypress/results/
 cypress/screenshots/
 fonts/
-front/node_modules/
-front/
-frontend/
-front_nui/
+front_next/
 modules/.objects/
-node_modules/
 yml/
 *._*
 *.prof

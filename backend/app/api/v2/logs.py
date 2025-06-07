@@ -1,0 +1,180 @@
+from datetime import datetime
+from warnings import simplefilter
+
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+)
+from fastapi.responses import FileResponse
+from fastapi_pagination import paginate
+from fastapi_pagination.utils import FastAPIPaginationWarning
+
+from app.db.pagination import Page
+from app.dependencies import get_logger, get_preferences
+from app.db.users import get_current_user
+from app.core.logs import RawLogData, read_log_files
+from modules.preferences import Preferences
+from app.schemas.logs import LogEntry, LogInternalServerError, LogLevel
+
+from modules.Debug import Logger, LOG_FILE
+from modules.TemporaryZip import TemporaryZip # noqa: F401
+
+
+# Do not warn about SQL pagination, not used for log filtering
+simplefilter('ignore', FastAPIPaginationWarning)
+
+
+# Create sub router for all /logs API requests
+log_router = APIRouter(
+    prefix='/logs',
+    tags=['Logs'],
+    dependencies=[Depends(get_current_user)],
+)
+
+# Map of log level names to numbers for relative comparison
+_LEVEL_NUMBERS: dict[LogLevel, int] = {
+    'TRACE': -1,
+    'DEBUG': 0,
+    'INFO': 1,
+    'WARNING': 2,
+    'ERROR': 3,
+    'CRITICAL': 4,
+}
+
+
+@log_router.get('/query')
+def query_logs(
+        level: LogLevel = Query(default='DEBUG'),
+        after: datetime | None = Query(default=None),
+        before: datetime | None = Query(default=None),
+        context_id: str | None = Query(default=None, min_length=1),
+        contains_: str | None = Query(alias='contains', default=None, min_length=1),
+        shallow: bool = Query(default=True),
+    ) -> Page[LogEntry]: # type: ignore
+    """
+    Query all log entries for the given criteria.
+
+    - level: Minimum log level. All messages of lower levels are removed.
+    - after: Earliest date of logs to return. ISO 8601 format.
+    - before: Latest date of logs to return. ISO 8601 format.
+    - context_id: Comma separated list of contexts to filter by. If `!`
+    is included, logs with no context ID's are excluded.
+    - contains: Required substring. Case insensitive.
+    - shallow: Whether to only do a "shallow" query, which will only
+    evaluate the most recent (active) log file.
+    """
+
+    logs = read_log_files(after=after, before=before, shallow=shallow)
+
+    # Function to filter log results by
+    contains = None if contains_ is None else contains_.lower().split('|')
+    def meets_filters(data: RawLogData) -> bool:
+        # Level
+        if _LEVEL_NUMBERS[data['level']] < _LEVEL_NUMBERS[level]:
+            return False
+
+        # Context
+        if (context_id is not None
+            and (
+                ('!' in context_id and data['context_id'] is None)
+                or (data['context_id'] and data['context_id'] not in context_id)
+            )):
+        # if (context_id is not None
+        #     # Include null context messages if '!' wasn't included in filter ID
+        #     and (data['context_id'] is not None or '!' in context_id)
+        #     and data['context_id'] not in context_id):
+            return False
+
+        # Before/After
+        if ((before is not None and data['time'] > before)
+            or (after is not None and data['time'] < after)):
+            return False
+
+        # Contains substring
+        return (
+            contains is None
+            or any(cont in data['message'].lower() for cont in contains)
+        )
+
+    return paginate(
+        sorted(
+            [data for data in logs if meets_filters(data)],
+            key=lambda data: data['time'],
+            reverse=True
+        )
+    )
+
+
+@log_router.get('/files')
+def get_log_files() -> list[str]:
+    """
+    Get a list of the log files. This returns the log URLs - i.e. /logs
+    prefixed.
+    """
+
+    return [
+        str(file).replace(str(LOG_FILE.parent.resolve()), '/logs')
+        for file in LOG_FILE.parent.glob(f'{LOG_FILE.stem}*{LOG_FILE.suffix}')
+    ]
+
+
+@log_router.get('/files/{filename}/zip')
+def get_zipped_log_file(
+        background_tasks: BackgroundTasks,
+        filename: str,
+        log: Logger = Depends(get_logger),
+        preferences: Preferences = Depends(get_preferences),
+    ) -> FileResponse:
+    """
+    Zip the log file with the given name and return it's contents.
+
+    - filename: Name of the file to zip.
+    """
+
+    # Find associated log file, raise 404 if DNE
+    if not (file := LOG_FILE.parent / filename).exists():
+        raise HTTPException(
+            status_code=404,
+            detail='The specified log file does not exist',
+        )
+
+    # Add log file to a temporary directory
+    tzip = TemporaryZip(preferences.TEMPORARY_DIRECTORY, background_tasks)
+    tzip.add_file(file, 'log.jsonl', log=log)
+
+    return FileResponse(tzip.zip(log=log))
+
+
+@log_router.get('/errors')
+def get_internal_server_errors(
+        after: datetime | None = Query(default=None),
+        before: datetime | None = Query(default=None),
+        shallow: bool = Query(default=False),
+    ) -> list[LogInternalServerError]:
+    """
+    Get a list of all internal server errors listed in the log files.
+
+    - after: Earliest date of logs to return. ISO 8601 format.
+    - before: Latest date of logs to return. ISO 8601 format.
+    - shallow: Whether to only do a "shallow" query, which will only
+    evaluate the most recent (active) log file.
+    """
+
+    return sorted(
+        [
+            LogInternalServerError(
+                context_id=message['context_id'],
+                time=message['time'],
+                file=message['file'].name,
+            )
+            for message in read_log_files(
+                after=after, before=before, shallow=shallow
+            )
+            if message['message'].startswith('Internal Server Error')
+        ],
+        key=lambda message: message.time,
+        reverse=True,
+    )

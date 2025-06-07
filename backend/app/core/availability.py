@@ -1,0 +1,152 @@
+from datetime import datetime, timedelta
+from os import getenv
+from json import loads
+
+from fastapi import HTTPException
+from requests import JSONDecodeError, get
+
+from modules.preferences import Preferences
+from app.schemas.card import LocalCardType, RemoteCardType
+from modules.Debug import log, Logger
+from modules.Version import Version
+
+
+# URL for user card types
+USER_CARD_TYPE_URL = getenv(
+    'TCM_CARD_TYPE_URL',
+    'https://raw.githubusercontent.com/CollinHeist/TitleCardMaker-CardTypes/web-ui'
+).removesuffix('/') + '/cards.json'
+
+
+def get_latest_version(
+        raise_exc: bool = True,
+        *,
+        log: Logger = log,
+    ) -> Version | None:
+    """
+    Get the latest version of TitleCardMaker available.
+
+    Args:
+        raise_exc: Whether to raise an HTTPException if getting the
+            latest version fails for any reason.
+        log: Logger for all log messages.
+
+    Returns:
+        The Version of the latest release. If unable to determine, and
+        `raise_exc` is False, None is returned.
+
+    Raises:
+        HTTPException (500): `raise_exc` is True and the version number
+            cannot be determined.
+    """
+
+    # TODO remove placeholder when repo is public [pylint: disable=unreachable]
+    return Version(f'v2.0-alpha.13.0')
+
+    try:
+        response = get(
+            'https://api.github.com/repos/CollinHeist/'
+            'TitleCardMaker/releases/latest',
+            timeout=10,
+        )
+        assert response.ok
+    except Exception as e:
+        log.exception(f'Error checking for new release')
+        if raise_exc:
+            raise HTTPException(
+                status_code=500,
+                detail=f'Error checking for new release',
+            ) from e
+        return None
+
+    return Version(response.json().get('name', '').strip())
+
+
+def get_local_cards(preferences: Preferences) -> list[LocalCardType]:
+    """
+    Get the list of available locally specified card types.
+
+    Args:
+        preferences: Global preferences.
+
+    Returns:
+        List of LocalCardType objects.
+    """
+
+    return [
+        card_class.API_DETAILS
+        for card_class in preferences.local_card_types.values()
+    ]
+
+
+_cache = {'content': [], 'expires': datetime.now()}
+def get_remote_cards(*, log: Logger = log) -> list[RemoteCardType]:
+    """
+    Get the list of available RemoteCardTypes. This will cache results
+    for 30 minutes. If the available data is older than 12 hours, the
+    GitHub is re-queried.
+
+    Args:
+        log: Logger for all log messages.
+
+    Returns:
+        List of RemoteCardTypes.
+
+    Raises:
+        JSONDecodeError: The remote card content cannot be loaded.
+    """
+
+    # If the cached content has expired, request and update cache
+    try:
+        if _cache['expires'] <= datetime.now():
+            log.debug('Refreshing cached RemoteCardTypes..')
+            log.trace(f'Querying "{USER_CARD_TYPE_URL}"')
+            if not (text := get(USER_CARD_TYPE_URL, timeout=30).text):
+                raise JSONDecodeError
+            response = loads(text)
+            _cache['content'] = response
+            _cache['expires'] = datetime.now() + timedelta(hours=12)
+        # Cache has not expired, use cached content
+        else:
+            response = _cache['content']
+    except JSONDecodeError:
+        log.exception('Error decoding remote card types')
+        return []
+    except Exception:
+        log.exception('Error getting remote card types')
+        return []
+
+    return [RemoteCardType(**card) for card in response]
+
+
+def get_remote_card_hash(
+        identifier: str,
+        *,
+        log: Logger = log,
+    ) -> str | None:    
+    """
+    Get the MD5 hash of the Card with the given identifier.
+
+    Args:
+        identifier: CardType identifier.
+        log: Logger for all log messages.
+
+    Returns:
+        MD5 hash of the card with the given identifier. None if one is
+        not available (e.g. unknown `identifier`).
+    """
+
+    try:
+        for card_type in get_remote_cards(log=log):
+            if card_type.identifier == identifier:
+                return card_type.hash
+    except JSONDecodeError:
+        return None
+
+    return None
+
+
+def expire_cache() -> None:
+    """Expire the remote card type cache."""
+
+    _cache['expires'] = datetime.now()

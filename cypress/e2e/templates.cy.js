@@ -240,11 +240,11 @@ describe('Card Templates', () => {
           cy.wrap($template).find('img[content-type="watched"]')
             .should('be.visible')
             .should('have.attr', 'src')
-            .should('include', '/internal_assets/preview/')
+            .should('include', '/public/preview/')
           cy.wrap($template).find('img[content-type="unwatched"]')
             .should('be.visible')
             .should('have.attr', 'src')
-            .should('include', '/internal_assets/preview/')
+            .should('include', '/public/preview/')
         })
       
       // Refresh watched preview by clicking the image individually
@@ -265,7 +265,7 @@ describe('Card Templates', () => {
             .and('match', /^\/internal_assets\/preview\//)
           cy.wrap($template).find('img[content-type="unwatched"]')
             .should('have.attr', 'src')
-            .should('eq', '/internal_assets/blank.png')
+            .should('eq', '/public/blank.png')
         })
 
         // Refresh unwatched preview by clicking the image individually
@@ -286,7 +286,7 @@ describe('Card Templates', () => {
               .and('match', /^\/internal_assets\/preview\//)
             cy.wrap($template).find('img[content-type="watched"]')
               .should('have.attr', 'src')
-              .should('eq', '/internal_assets/blank.png')
+              .should('eq', '/public/blank.png')
           })
     });
   });
