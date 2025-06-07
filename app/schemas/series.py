@@ -333,7 +333,7 @@ class Series(BaseSeries):
     full_name: str
     sort_name: str
     # clean_name: str
-    poster_path: str | None
+    # poster_path: str | None
     poster_url: str
     small_poster_url: str | None
     episode_count: int
