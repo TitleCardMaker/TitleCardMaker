@@ -57,19 +57,25 @@ def set_episode_ids(
                 f'Skipping Library "{library["name"]}" - no applicable interface'
             )
 
-    # Set from Connections which don't require libraries
+    # Set from Sonarr, only do for Connections which have a Sonarr ID
     for _, interface in get_sonarr_interfaces():
+        if not series.as_series_info.has_id('sonarr_id', interface.interface_id):
+            continue
         interface.set_episode_ids(
             None, series.as_series_info, episode_infos, log=log
         )
+
+    # Set from the first TMDb and TVDb Connection
     for _, interface in get_tmdb_interfaces():
         interface.set_episode_ids(
             None, series.as_series_info, episode_infos, log=log
         )
+        break
     for _, interface in get_tvdb_interfaces():
         interface.set_episode_ids(
             None, series.as_series_info, episode_infos, log=log
         )
+        break
 
     # Update database if new ID's are available
     changed = False
