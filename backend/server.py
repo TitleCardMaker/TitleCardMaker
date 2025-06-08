@@ -10,12 +10,12 @@ from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 from starlette.middleware.cors import CORSMiddleware
 
+from app.api.api import api_router, initialize_scheduler
+from app.api.pages import router as pages_router
 from app.core.boot import initialize_app, teardown_app
 from app.core.schedule import repeat_every
 from app.core.logs import clear_log_data
 from app.middleware import middlewares
-from app.api.api import api_router, initialize_scheduler
-from app.api.pages import router as pages_router
 from app.schemas.schedule import Hours
 
 # Patch rich.pretty.traverse to force no limit on max length/string
