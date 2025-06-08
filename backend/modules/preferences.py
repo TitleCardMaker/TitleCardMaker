@@ -21,8 +21,6 @@ TCM_ROOT = Path(__file__).parent.parent.parent
 BACKEND_ROOT = TCM_ROOT / 'backend'
 CONFIG_ROOT = TCM_ROOT / 'config'
 
-__all__ = ['TCM_ROOT', 'CONFIG_ROOT', 'Preferences']
-
 
 class Preferences:
     """Class defining global Preferences."""
@@ -625,3 +623,10 @@ class Preferences:
 
         log.error(f'Unable to identify card type "{identifier}"')
         return None
+
+
+__all__ = [
+    'TCM_ROOT',
+    'CONFIG_ROOT',
+    'Preferences',
+]
