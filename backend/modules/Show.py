@@ -7,23 +7,23 @@ from tqdm import tqdm
 from modules.CleanPath import CleanPath
 from modules.DataFileInterface import DataFileInterface
 from modules.Debug import log, TQDM_KWARGS
-from modules.EmbyInterface import EmbyInterface
+from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
 from modules.Episode import Episode, MultiEpisode
-from modules.EpisodeInfo import EpisodeInfo
+from modules.EpisodeInfo2 import EpisodeInfoV1
 from modules.EpisodeMap import EpisodeMap
 from modules.Font import Font
 from modules import global_objects
 from modules.ImageMagickInterface import ImageMagickInterface
-from modules.JellyfinInterface import JellyfinInterface
+from modules.JellyfinInterface2 import JellyfinInterfaceV1
 from modules.PlexInterface import PlexInterface
 from modules.Profile import Profile
 from modules.SeasonPosterSet import SeasonPosterSet
-from modules.SeriesInfo import SeriesInfo
-from modules.SonarrInterface import SonarrInterface
+from modules.SeriesInfo2 import SeriesInfoV1
+from modules.SonarrInterface2 import SonarrInterfaceV1
 from modules.StyleSet import StyleSet
 from modules.TitleCard import TitleCard
 from modules.Title import Title
-from modules.TMDbInterface import TMDbInterface
+from modules.TMDbInterface2 import TMDbInterfaceV1
 from modules.WebInterface import WebInterface
 from modules.YamlReader import YamlReader
 
@@ -123,7 +123,7 @@ class Show(YamlReader):
         self.info_set = global_objects.info_set
 
         # Set this show's SeriesInfo object with blank year to start
-        self.series_info = SeriesInfo(name, 0)
+        self.series_info = SeriesInfoV1(name, 0)
         try:
             self.series_info = self.info_set.get_series_info(
                 self.get('name', type_=str, default=name),
@@ -411,11 +411,11 @@ class Show(YamlReader):
 
 
     def assign_interfaces(self,
-            emby_interface: EmbyInterface | None = None,
-            jellyfin_interface: JellyfinInterface | None = None,
+            emby_interface: EmbyInterfaceV1 | None = None,
+            jellyfin_interface: JellyfinInterfaceV1 | None = None,
             plex_interface: PlexInterface | None = None,
-            sonarr_interfaces: list[SonarrInterface] = [],
-            tmdb_interface: TMDbInterface | None = None,
+            sonarr_interfaces: list[SonarrInterfaceV1] = [],
+            tmdb_interface: TMDbInterfaceV1 | None = None,
         ) -> None:
         """
         Assign the given interfaces to attributes of this object for
@@ -519,7 +519,7 @@ class Show(YamlReader):
             interface_function()
 
 
-    def __get_destination(self, episode_info: EpisodeInfo) -> Path | None:
+    def __get_destination(self, episode_info: EpisodeInfoV1) -> Path | None:
         """
         Get the destination filename for the given entry of a datafile.
 
@@ -556,7 +556,7 @@ class Show(YamlReader):
         seasons, episodes = set(), []
         for entry, given_keys in self.file_interface.read():
             # Add season number to set
-            episode_info: EpisodeInfo = entry['episode_info']
+            episode_info: EpisodeInfoV1 = entry['episode_info']
             seasons.add(episode_info.season_number)
 
             # Update episode list(s) for maxima addition
@@ -635,8 +635,8 @@ class Show(YamlReader):
             return None
         interface = cast(
             Union[
-                EmbyInterface, JellyfinInterface, PlexInterface,
-                SonarrInterface, TMDbInterface
+                EmbyInterfaceV1, JellyfinInterfaceV1, PlexInterface,
+                SonarrInterfaceV1, TMDbInterfaceV1
             ],
             interface
         )
@@ -1199,7 +1199,7 @@ class Show(YamlReader):
         if not media_interface:
             return None
         media_interface = cast(
-            EmbyInterface | JellyfinInterface | PlexInterface,
+            EmbyInterfaceV1 | JellyfinInterfaceV1 | PlexInterface,
             media_interface
         )
 

@@ -5,7 +5,7 @@ from typing import Literal, Union
 from pydantic import AnyUrl, SecretStr, constr, validator
 
 from app.schemas.base import Base, InterfaceType, UpdateBase, UNSPECIFIED
-from modules.EmbyInterface2 import EmbyInterface
+from app.interfaces.EmbyInterface2 import EmbyInterface
 from modules.JellyfinInterface2 import JellyfinInterface
 from modules.PlexInterface2 import PlexInterface
 from modules.SonarrInterface2 import SonarrInterface

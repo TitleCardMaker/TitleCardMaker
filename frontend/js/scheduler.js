@@ -77,7 +77,7 @@ function updateScheduledTasks() {
     // Submit API request to reschedule this task
     $.ajax({
       type: 'PUT',
-      url: `/api/schedule/update/${taskId}`,
+      url: `/api/v2/schedule/update/${taskId}`,
       data: JSON.stringify(updateObject),
       contentType: 'application/json',
       error: response => showErrorToast({title: 'Error Recheduling Task', response}),
@@ -94,7 +94,7 @@ function toggleScheduleType() {
   document.getElementById('toggle-button').classList.add('loading');
   $.ajax({
     type: 'POST',
-    url: '/api/schedule/type/toggle',
+    url: '/api/v2/schedule/type/toggle',
     success: () => {
       showInfoToast({title: 'Updated Scheduler', message: 'Reloading page..'});
       setTimeout(() => location.reload(), 2000);
@@ -120,7 +120,7 @@ function runTask(taskId) {
   showInfoToast(`Running Task ${taskId}`);
   $.ajax({
     type: 'PUT',
-    url: `/api/schedule/${taskId}`,
+    url: `/api/v2/schedule/${taskId}`,
     success: task => {
       showInfoToast(`Task ${taskId} Completed`);
       $(`tr[data-id="${taskId}"] td[data-column="previous_duration"]`)[0].innerHTML = timeFreqString(task.previous_duration, 2);
@@ -152,7 +152,7 @@ async function initAll() {
   const rowTemplate = document.getElementById('task-template');
   if (taskTable === null || rowTemplate === null) { return; }
 
-  const allTasks = await fetch('/api/schedule/scheduled').then(resp => resp.json());
+  const allTasks = await fetch('/api/v2/schedule/scheduled').then(resp => resp.json());
   const rows = allTasks.map(task => {
     const row = rowTemplate.content.cloneNode(true);
     row.querySelector('tr').dataset.id = task.id;

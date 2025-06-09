@@ -35,7 +35,7 @@ function getSnapshots() {
 
   $.ajax({
     type: 'GET',
-    url: `/api/statistics/snapshots?previous_days=${previousDays}&slice=${slice}`,
+    url: `/api/v2/statistics/snapshots?previous_days=${previousDays}&slice=${slice}`,
     /**
      * Snapshots queried, populate graph
      * @param {Snapshot} snapshots - Snapshots to populate the graph with.
@@ -254,7 +254,7 @@ function getTaskDurations() {
 
   $.ajax({
     type: 'GET',
-    url: `/api/statistics/task-durations?after=${after.toISOString()}`,
+    url: `/api/v2/statistics/task-durations?after=${after.toISOString()}`,
     /**
      * Task durations queried, populate graph
      * @param {Duration[]} taskDurations - Task durations to populate the graph with.

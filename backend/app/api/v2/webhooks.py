@@ -47,7 +47,7 @@ from app.schemas.series import NewSeries
 from app.schemas.webhooks import PlexWebhook, SonarrWebhook
 
 from modules.Debug import Logger
-from modules.EpisodeDataSource2 import WatchedStatus
+from modules.EpisodeDataSource import WatchedStatus
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.SeriesInfo2 import SeriesInfo
 

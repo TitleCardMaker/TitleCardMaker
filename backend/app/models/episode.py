@@ -14,7 +14,7 @@ from app.schemas.connection import ServerName
 from app.schemas.preferences import Style
 
 from modules.Debug import Logger, log
-from modules.EpisodeDataSource2 import WatchedStatus
+from modules.EpisodeDataSource import WatchedStatus
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.TieredSettings import TieredSettings
 

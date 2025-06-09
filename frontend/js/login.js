@@ -24,7 +24,7 @@ function submitForm() {
   // Submit API request to authenticate this user
   $.ajax({
     type: 'POST',
-    url: '/api/auth/authenticate',
+    url: '/api/v2/auth/authenticate',
     data: data,
     cache: false,
     contentType: false,

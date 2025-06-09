@@ -22,19 +22,7 @@ if TYPE_CHECKING:
     from modules.preferences import Preferences
 
 CardDescription = CardTypeDescription
-
-__all__ = [
-    'BaseCardType',
-    'CardDescription',
-    'CardTypeDescription',
-    'Coordinate',
-    'Dimensions',
-    'Extra',
-    'ImageMagickCommands',
-    'ImageMaker',
-    'Rectangle',
-    'TextCase',
-]
+type TextCase = Literal['blank', 'lower', 'source', 'title', 'upper']
 
 
 class Coordinate:
@@ -277,9 +265,6 @@ class Shadow:
         """Wrapper for `__str__`."""
 
         return str(self)
-
-
-type TextCase = Literal['blank', 'lower', 'source', 'title', 'upper']
 
 
 class BaseCardType(ImageMaker, ABC):
@@ -841,3 +826,17 @@ class BaseCardType(ImageMaker, ABC):
         intermediate files.
         """
         raise NotImplementedError
+
+
+__all__ = [
+    'BaseCardType',
+    'CardDescription',
+    'CardTypeDescription',
+    'Coordinate',
+    'Dimensions',
+    'Extra',
+    'ImageMagickCommands',
+    'ImageMaker',
+    'Rectangle',
+    'TextCase',
+]

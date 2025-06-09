@@ -197,9 +197,11 @@ def query_series_blueprints(
         All defined Blueprints found for the given Series.
     """
 
-    blueprint_series = blueprint_db.query(BlueprintSeries)\
-        .filter(series_info.filter_conditions(BlueprintSeries))\
-        .first()
+    blueprint_series = (
+        blueprint_db.query(BlueprintSeries)
+            .filter(series_info.filter_conditions(BlueprintSeries))
+            .first()
+    )
 
     if blueprint_series is None:
         return []

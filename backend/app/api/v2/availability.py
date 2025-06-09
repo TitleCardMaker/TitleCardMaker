@@ -40,7 +40,7 @@ from app.schemas.preferences import StyleOption
 from app.schemas.series import MediaServerLibrary
 from app.schemas.sync import Tag
 from modules.Debug import Logger
-from modules.EmbyInterface2 import EmbyInterface
+from app.interfaces.EmbyInterface2 import EmbyInterface
 from modules.InterfaceGroup import InterfaceGroup
 from modules.JellyfinInterface2 import JellyfinInterface
 from modules.PlexInterface2 import PlexInterface

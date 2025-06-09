@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from modules.FontValidator import FontValidator
+    from modules.FontValidator import FontValidatorV1
     from modules.MediaInfoSet import MediaInfoSet
     from modules.PreferenceParser import PreferenceParser
     from modules.ShowRecordKeeper import ShowRecordKeeper
@@ -34,7 +34,7 @@ def set_preference_parser(to: 'PreferenceParser') -> None: # type: ignore
     pp = to
 
 fv = None
-def set_font_validator(to: 'FontValidator') -> None: # type: ignore
+def set_font_validator(to: 'FontValidatorV1') -> None: # type: ignore
     """Update the global FontValidator `fv` object."""
 
     global fv

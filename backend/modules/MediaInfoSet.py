@@ -4,9 +4,9 @@ from typing import Any
 from tinydb import where, Query
 
 from modules.Debug import log
-from modules.EpisodeInfo import EpisodeInfo
+from modules.EpisodeInfo2 import EpisodeInfoV1
 from modules.PersistentDatabase import PersistentDatabase
-from modules.SeriesInfo import SeriesInfo
+from modules.SeriesInfo2 import SeriesInfoV1
 
 
 class MediaInfoSet:
@@ -33,7 +33,7 @@ class MediaInfoSet:
         self.series_info_db = PersistentDatabase('series_infos.json')
 
         # Dictionary mapping various database keys to EpisodeInfo objects
-        self.episode_info: dict[str, EpisodeInfo] = {}
+        self.episode_info: dict[str, EpisodeInfoV1] = {}
 
 
     @staticmethod
@@ -105,7 +105,7 @@ class MediaInfoSet:
             tvdb_id: int | None = None,
             tvrage_id: int | None = None,
             match_titles: bool = True,
-        ) -> SeriesInfo:
+        ) -> SeriesInfoV1:
         """
         Get the SeriesInfo object indicated by the given attributes.
         This looks for an existing object mapped under any of the given
@@ -124,7 +124,7 @@ class MediaInfoSet:
         """
 
         # Get condition to search for this series in the database
-        full_name = SeriesInfo(name, year).full_name
+        full_name = SeriesInfoV1(name, year).full_name
         condition = self.__series_info_condition(
             full_name, emby_id, imdb_id, jellyfin_id, sonarr_id, tmdb_id,
             tvdb_id, tvrage_id
@@ -132,7 +132,7 @@ class MediaInfoSet:
 
         # Series doesn't exist, create new info, insert into database, return
         if not (info := self.series_info_db.search(condition)):
-            series_info = SeriesInfo(
+            series_info = SeriesInfoV1(
                 name, year, emby_id=emby_id, imdb_id=imdb_id,
                 jellyfin_id=jellyfin_id, sonarr_id=sonarr_id, tmdb_id=tmdb_id,
                 tvdb_id=tvdb_id, tvrage_id=tvrage_id, match_titles=match_titles
@@ -176,7 +176,7 @@ class MediaInfoSet:
             info = self.series_info_db.get(condition)
 
         # Return SeriesInfo created from finalized data
-        return SeriesInfo(
+        return SeriesInfoV1(
             name, year,
             emby_id=info['emby_id'],
             imdb_id=info['imdb_id'],
@@ -191,7 +191,7 @@ class MediaInfoSet:
 
     def __set_series_id(self,
             id_type: str,
-            series_info: SeriesInfo,
+            series_info: SeriesInfoV1,
             id_: Any
         ) -> None:
         """
@@ -234,38 +234,38 @@ class MediaInfoSet:
         return None
 
 
-    def set_emby_id(self, series_info: SeriesInfo, id_: str) -> None:
+    def set_emby_id(self, series_info: SeriesInfoV1, id_: str) -> None:
         """Set the Emby ID on the given SeriesInfo and within this set."""
         self.__set_series_id('emby', series_info, id_)
 
-    def set_imdb_id(self, series_info: SeriesInfo, id_: str) -> None:
+    def set_imdb_id(self, series_info: SeriesInfoV1, id_: str) -> None:
         """Set the IMDb ID on the given SeriesInfo and within this set."""
         self.__set_series_id('imdb', series_info, id_)
 
-    def set_jellyfin_id(self, series_info: SeriesInfo, id_: str) -> None:
+    def set_jellyfin_id(self, series_info: SeriesInfoV1, id_: str) -> None:
         """Set the Jellyfin ID on the given SeriesInfo and within this set."""
         self.__set_series_id('jellyfin', series_info, id_)
 
-    def set_sonarr_id(self, series_info: SeriesInfo, id_: str) -> None:
+    def set_sonarr_id(self, series_info: SeriesInfoV1, id_: str) -> None:
         """Set the Sonarr ID on the given SeriesInfo and within this set."""
         self.__set_series_id('sonarr', series_info, id_)
 
-    def set_tmdb_id(self, series_info: SeriesInfo, id_: str) -> None:
+    def set_tmdb_id(self, series_info: SeriesInfoV1, id_: str) -> None:
         """Set the TMDb ID on the given SeriesInfo and within this set."""
         self.__set_series_id('tmdb', series_info, id_)
 
-    def set_tvdb_id(self, series_info: SeriesInfo, id_: str) -> None:
+    def set_tvdb_id(self, series_info: SeriesInfoV1, id_: str) -> None:
         """Set the TVDb ID on the given SeriesInfo and within this set."""
         self.__set_series_id('tvdb', series_info, id_)
 
-    def set_tvrage_id(self, series_info: SeriesInfo, id_: str) -> None:
+    def set_tvrage_id(self, series_info: SeriesInfoV1, id_: str) -> None:
         """Set the TVRage ID on the given SeriesInfo and within this set."""
         self.__set_series_id('tvrage', series_info, id_)
 
 
     @staticmethod
     def __get_episode_info_storage_keys(
-            series_info: SeriesInfo,
+            series_info: SeriesInfoV1,
             season_number: int,
             episode_number: int,
             emby_id: str | None,
@@ -301,7 +301,7 @@ class MediaInfoSet:
 
 
     def get_episode_info(self,
-            series_info: SeriesInfo,
+            series_info: SeriesInfoV1,
             title: str,
             season_number: int,
             episode_number: int,
@@ -316,7 +316,7 @@ class MediaInfoSet:
             airdate: datetime | None = None,
             title_match: bool = True,
             **queried_kwargs: dict[str, bool]
-        ) -> EpisodeInfo:
+        ) -> EpisodeInfoV1:
         """
         Get the EpisodeInfo object indicated by the given attributes.
 
@@ -365,7 +365,7 @@ class MediaInfoSet:
             pass
         # No existing EpisodeInfo, create new one
         else:
-            info = EpisodeInfo(
+            info = EpisodeInfoV1(
                 title, season_number, episode_number, abs_number,
                 emby_id=emby_id, imdb_id=imdb_id, jellyfin_id=jellyfin_id,
                 tmdb_id=tmdb_id, tvdb_id=tvdb_id, tvrage_id=tvrage_id,

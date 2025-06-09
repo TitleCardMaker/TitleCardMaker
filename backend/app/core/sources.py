@@ -16,7 +16,7 @@ from app.models.series import Library, Series
 from app.schemas.card import SourceImage
 from app.schemas.preferences import Style
 from modules.Debug import Logger, log
-from modules.EmbyInterface2 import EmbyInterface
+from app.interfaces.EmbyInterface2 import EmbyInterface
 from modules.JellyfinInterface2 import JellyfinInterface
 from modules.PlexInterface2 import PlexInterface
 from modules.SonarrInterface2 import SonarrInterface

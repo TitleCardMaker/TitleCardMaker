@@ -21,7 +21,7 @@ const globalBlurProfiles = {{ DEFAULT_BLUR_PROFILES | tojson }};
 // Get all Connection data
 let allConnections;
 async function getAllConnections() {
-  allConnections = await fetch('/api/connection/all').then(resp => resp.json());
+  allConnections = await fetch('/api/v2/connection/all').then(resp => resp.json());
 }
 
 // Get all available Templates
@@ -34,7 +34,7 @@ let allTemplates = [];
 function getTemplates() {
   $.ajax({
     type: 'GET',
-    url: '/api/available/templates',
+    url: '/api/v2/available/templates',
     /**
      * Initialize the Template ID dropdowns with the given values.
      * @param {AvailableTemplate[]} availableTemplates - All available
@@ -58,7 +58,7 @@ function getTemplates() {
 function getEpisodeDataSources() {
   $.ajax({
     type: 'GET',
-    url: '/api/settings/episode-data-source',
+    url: '/api/v2/settings/episode-data-source',
     /**
      * Episode Data Sources returned, update dropdown.
      * @param {EpisodeDataSourceToggle} sources - Selected Episode Data Sources.
@@ -80,7 +80,7 @@ function getEpisodeDataSources() {
 function getImageSourcePriority() {
   $.ajax({
     type: 'GET',
-    url: '/api/settings/image-source-priority',
+    url: '/api/v2/settings/image-source-priority',
     /**
      * Image source priority returned.
      * @param {ImageSourceToggle[]} sources - Globally enabled image sources.
@@ -136,7 +136,7 @@ async function initCardTypeDropdowns() {
 function initializeGlobalFonts(allCardTypes) {
   $.ajax({
     type: 'GET',
-    url: '/api/available/fonts',
+    url: '/api/v2/available/fonts',
     /**
      * Available fonts queried - populate default dropdowns.
      * @param {AvailableFont[]} allFonts List of all available Fonts which can
@@ -328,7 +328,7 @@ function updateGlobalSettings() {
   // Submit API request
   $.ajax({
     type: 'PATCH',
-    url: '/api/settings/update',
+    url: '/api/v2/settings/update',
     data: JSON.stringify(data),
     contentType: 'application/json',
     success: () => showInfoToast('Updated Settings'),

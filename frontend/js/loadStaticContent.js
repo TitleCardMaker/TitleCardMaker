@@ -37,7 +37,7 @@ $(document).ready(function() {
   // Search bar uses the search API
   $('#search-bar').search({
     apiSettings: {
-      url: '/api/series/search?name={query}&size=10&page=1',
+      url: '/api/v2/series/search?name={query}&size=10&page=1',
       onResponse: serverResponse => { return serverResponse.items; },
     },
   });

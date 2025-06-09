@@ -9,25 +9,25 @@ from tqdm import tqdm
 
 from modules.CleanPath import CleanPath
 from modules.Debug import log, TQDM_KWARGS
-from modules.EmbyInterface import EmbyInterface
+from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
 from modules.Font import Font
 from modules.FormatString import FormatString
 from modules.ImageMagickInterface import ImageMagickInterface
 from modules.ImageMaker import ImageMaker
-from modules.JellyfinInterface import JellyfinInterface
+from modules.JellyfinInterface2 import JellyfinInterfaceV1
 from modules.Manager import Manager
 from modules.PlexInterface import PlexInterface
-from modules.SeriesInfo import SeriesInfo
+from modules.SeriesInfo2 import SeriesInfoV1
 from modules.SeriesYamlWriter import SeriesYamlWriter
 from modules.Show import Show
-from modules.SonarrInterface import SonarrInterface
+from modules.SonarrInterface2 import SonarrInterfaceV1
 from modules.StandardSummary import StandardSummary
 from modules.StyleSet import StyleSet
 from modules.StylizedSummary import StylizedSummary
-from modules.TautulliInterface import TautulliInterface
+from modules.TautulliInterface2 import TautulliInterfaceV1
 from modules.Template import Template
 from modules.TitleCard import TitleCard
-from modules.TMDbInterface import TMDbInterface
+from modules.TMDbInterface2 import TMDbInterfaceV1
 from modules.Version import Version
 from modules.YamlReader import YamlReader
 
@@ -131,7 +131,7 @@ class PreferenceParser(YamlReader):
         self.emby_username = None
         self.emby_verify_ssl = True
         self.emby_filesize_limit = self.filesize_as_bytes(
-            EmbyInterface.DEFAULT_FILESIZE_LIMIT
+            EmbyInterfaceV1.DEFAULT_FILESIZE_LIMIT
         )
         self.emby_style_set = StyleSet()
         self.emby_yaml_writers = []
@@ -143,7 +143,7 @@ class PreferenceParser(YamlReader):
         self.jellyfin_username = None
         self.jellyfin_verify_ssl = True
         self.jellyfin_filesize_limit = self.filesize_as_bytes(
-            JellyfinInterface.DEFAULT_FILESIZE_LIMIT
+            JellyfinInterfaceV1.DEFAULT_FILESIZE_LIMIT
         )
         self.jellyfin_style_set = StyleSet()
         self.jellyfin_yaml_writers = []
@@ -167,7 +167,7 @@ class PreferenceParser(YamlReader):
 
         self.use_tmdb = False
         self.tmdb_api_key = None
-        self.tmdb_retry_count = TMDbInterface.BLACKLIST_THRESHOLD
+        self.tmdb_retry_count = TMDbInterfaceV1.BLACKLIST_THRESHOLD
         self.tmdb_minimum_resolution = {'width': 0, 'height': 0}
         self.tmdb_skip_localized_images = False
         self.tmdb_logo_language_priority = ['en']
@@ -178,8 +178,8 @@ class PreferenceParser(YamlReader):
         self.tautulli_verify_ssl = True
         self.tautulli_username = None
         self.tautulli_update_script = None
-        self.tautulli_agent_name = TautulliInterface.DEFAULT_AGENT_NAME
-        self.tautulli_script_timeout = TautulliInterface.DEFAULT_SCRIPT_TIMEOUT
+        self.tautulli_agent_name = TautulliInterfaceV1.DEFAULT_AGENT_NAME
+        self.tautulli_script_timeout = TautulliInterfaceV1.DEFAULT_SCRIPT_TIMEOUT
 
         self.imagemagick_container = None
         self.imagemagick_timeout = ImageMagickInterface.COMMAND_TIMEOUT_SECONDS
@@ -314,10 +314,10 @@ class PreferenceParser(YamlReader):
                 if (value := sync_yaml.get('downloaded_only', type_=bool)) is not None:
                     update_args['downloaded_only'] = value
                 if (value := sync_yaml.get('series_type', type_=str)) is not None:
-                    if value in SonarrInterface.VALID_SERIES_TYPES:
+                    if value in SonarrInterfaceV1.VALID_SERIES_TYPES:
                         update_args['series_type'] = value
                     else:
-                        vals = ", ".join(SonarrInterface.VALID_SERIES_TYPES)
+                        vals = ", ".join(SonarrInterfaceV1.VALID_SERIES_TYPES)
                         log.error(f'Cannot filter by series_type "{value}" - '
                                   f'must be one of {vals}')
                         sync_yaml.valid = False
@@ -785,10 +785,10 @@ class PreferenceParser(YamlReader):
 
         if (value := self.get('tmdb', 'logo_language_priority', type_=str)):
             codes = list(map(str.strip, value.split(',')))
-            if all(code in TMDbInterface.LANGUAGE_CODES for code in codes):
+            if all(code in TMDbInterfaceV1.LANGUAGE_CODES for code in codes):
                 self.tmdb_logo_language_priority = codes
             else:
-                opts = '"' + '", "'.join(TMDbInterface.LANGUAGE_CODES) + '"'
+                opts = '"' + '", "'.join(TMDbInterfaceV1.LANGUAGE_CODES) + '"'
                 log.critical(
                     f'Invalid TMDb logo language codes - must be comma'
                     f'-separated list of any of the following: {opts}'
@@ -1036,7 +1036,7 @@ class PreferenceParser(YamlReader):
 
         # Parse title/year from the series to add as "built-in" template data
         try:
-            series_info = SeriesInfo(series_name, series_yaml.get('year'))
+            series_info = SeriesInfoV1(series_name, series_yaml.get('year'))
         except Exception as e:
             if raise_exc:
                 raise HTTPException(

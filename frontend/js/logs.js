@@ -142,7 +142,7 @@ function queryForLogs(page=1) {
   // Submit API request
   $.ajax({
     type: 'GET',
-    url: `/api/logs/query?page=${page}&shallow=false&${queryString}`,
+    url: `/api/v2/logs/query?page=${page}&shallow=false&${queryString}`,
     /**
      * Logs queries successfully, add rows for each log message to the DOM.
      * @param {LogEntryPage} messages Log messages to update the table with.
@@ -226,7 +226,7 @@ function queryForLogs(page=1) {
 function queryLogFiles() {
   $.ajax({
     type: 'GET',
-    url: '/api/logs/files',
+    url: '/api/v2/logs/files',
     /**
      * Log files queried, add to page.
      * @param {string[]} files List of file URLs.
@@ -299,7 +299,7 @@ function queryLogErrors() {
 
   $.ajax({
     type: 'GET',
-    url: '/api/logs/errors',
+    url: '/api/v2/logs/errors',
     /**
      * List of errors returned. Populate page.
      * @param {LogInternalServerError[]} logErrors 
@@ -331,7 +331,7 @@ function queryLogErrors() {
         // When the GitHub icon is clicked, query the log zip and open a new tab
         item.querySelector('.icon').onclick = () => $.ajax({
           type: 'GET',
-          url: `/api/logs/files/${error.file}/zip`,
+          url: `/api/v2/logs/files/${error.file}/zip`,
           xhrFields: {responseType: 'blob'},
           success: logBlob => {
             downloadFileBlob('log.zip', logBlob);

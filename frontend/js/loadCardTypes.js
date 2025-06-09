@@ -7,7 +7,7 @@ let allCardTypes;
  */
 async function getAllCardTypes(showExcluded=false) {
   if (allCardTypes === undefined) {
-    allCardTypes = await fetch(`/api/available/card-types?show_excluded=${showExcluded}`)
+    allCardTypes = await fetch(`/api/v2/available/card-types?show_excluded=${showExcluded}`)
       .then(resp => resp.json());
   }
 }

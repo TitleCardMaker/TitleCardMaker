@@ -58,7 +58,7 @@ from app.schemas.series import (
     UpdateSeries
 )
 from modules.Debug import Logger, log
-from modules.EmbyInterface2 import EmbyInterface
+from app.interfaces.EmbyInterface2 import EmbyInterface
 from modules.JellyfinInterface2 import JellyfinInterface
 from modules.PlexInterface2 import PlexInterface
 

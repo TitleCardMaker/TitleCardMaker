@@ -14,7 +14,7 @@ try:
     import schedule
 
     from modules.Debug import log
-    from modules.FontValidator import FontValidator
+    from modules.FontValidator import FontValidatorV1
     from modules.PreferenceParser import PreferenceParser
     from modules.RemoteFile import RemoteFile
     from modules.global_objects import (
@@ -165,7 +165,7 @@ if not (pp := PreferenceParser(args.preferences, is_docker)).valid:
     log.critical('Preference file is invalid')
     sys_exit(1)
 set_preference_parser(pp)
-set_font_validator(FontValidator())
+set_font_validator(FontValidatorV1())
 set_media_info_set(MediaInfoSet())
 set_show_record_keeper(ShowRecordKeeper(pp.database_directory))
 

@@ -16,16 +16,16 @@ from modules.CleanPath import CleanPath
 """
 Base classes
 """
-class BlueprintBase(Base):
-    @model_validator(mode='after')
-    def delete_null_args(self) -> Self:
-        delete_keys = [key for key, value in values.items() if value is None]
-        for key in delete_keys:
-            del values[key]
+# class BlueprintBase(Base):
+#     @model_validator(mode='after')
+#     def delete_null_args(self) -> Self:
+#         delete_keys = [key for key, value in values.items() if value is None]
+#         for key in delete_keys:
+#             del values[key]
 
-        return values
+#         return values
 
-class ConfigBase(BlueprintBase): # Base of Series, Episodes, and Templates
+class ConfigBase(Base): # Base of Series, Episodes, and Templates
     font_id: Optional[int] = None
     card_type: Optional[str] = None
     hide_season_text: Optional[bool] = None
@@ -63,7 +63,7 @@ class BlueprintEpisode(BaseSeriesEpisode):
     season_text: Optional[str] = None
     episode_text: Optional[str] = None
 
-class BlueprintFont(BlueprintBase):
+class BlueprintFont(Base):
     name: str
     color: Optional[str] = None
     file: Optional[str] = None

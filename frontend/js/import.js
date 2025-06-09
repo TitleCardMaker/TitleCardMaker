@@ -12,7 +12,7 @@ async function initSeriesImport() {
   });
   // Series selector
   $('#import-cards-form .dropdown[data-value="series_id"]').toggleClass('loading', true);
-  const allSeries = await fetch('/api/available/series').then(resp => resp.json());
+  const allSeries = await fetch('/api/v2/available/series').then(resp => resp.json());
   let seriesMap = {};
   for (series of allSeries) { seriesMap[series.id] = series; }
   $('.dropdown[data-value="series_id"]').dropdown({
@@ -77,7 +77,7 @@ async function importSeriesForm(form) {
   // Determine which queries to submit
   if ($('#series-form .checkbox[data-value="fonts"]').checkbox('is checked')) {
     await submitYamlForm({
-      url: '/api/import/fonts',
+      url: '/api/v2/import/fonts',
       data: Object.fromEntries(form),
       formId: '#series-form',
       name: 'Fonts',
@@ -86,7 +86,7 @@ async function importSeriesForm(form) {
   }
   if ($('#series-form .checkbox[data-value="templates"]').checkbox('is checked')) {
     await submitYamlForm({
-      url: '/api/import/templates',
+      url: '/api/v2/import/templates',
       data: Object.fromEntries(form),
       formId: '#series-form',
       name: 'Templates',
@@ -95,7 +95,7 @@ async function importSeriesForm(form) {
   }
   if ($('#series-form .checkbox[data-value="series"]').checkbox('is checked')) {
     await submitYamlForm({
-      url: '/api/import/series',
+      url: '/api/v2/import/series',
       data: Object.fromEntries(form),
       formId: '#series-form',
       name: 'Series',
@@ -138,7 +138,7 @@ function loadCards(seriesId) {
   // Get associated Media Server to load cards into, default Plex
   $.ajax({
     type: 'POST',
-    url: `/api/series/${seriesId}/load/all`,
+    url: `/api/v2/series/${seriesId}/load/all`,
     success: () => showInfoToast('Loaded Title Cards'),
     error: response => showErrorToast({title: 'Error loading Title Cards', response}),
   });
@@ -187,8 +187,8 @@ function importSeries() {
   // Submit request
   $('.segment .dimmer').toggleClass('active', true);
   const url = seriesIds.length > 1
-    ? '/api/import/series/cards'
-    : `/api/import/series/${seriesIds[0]}/cards/directory`
+    ? '/api/v2/import/series/cards'
+    : `/api/v2/import/series/${seriesIds[0]}/cards/directory`
   ;
 
   $.ajax({

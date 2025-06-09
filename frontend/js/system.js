@@ -46,7 +46,7 @@ function formatDate(dateString) {
 function deleteBackup(folderName) {
   $.ajax({
     type: 'DELETE',
-    url: `/api/backups/backup/${folderName}`,
+    url: `/api/v2/backups/backup/${folderName}`,
     /**
      * Backup deleted. Display a toast message and re-query the system backups.
      */
@@ -66,7 +66,7 @@ function deleteBackup(folderName) {
 function restoreBackup(folderName) {
   $.ajax({
     type: 'POST',
-    url: `/api/backups/restore/${folderName}`,
+    url: `/api/v2/backups/restore/${folderName}`,
     /** Backup restored. Display toast message for the user to restart TCM. */
     success: () => showInfoToast('Restored from Backup - please restart TitleCardMaker'),
     error: (response) => showErrorToast({title: 'Error Restoring from Backup', response}),
@@ -79,7 +79,7 @@ function restoreBackup(folderName) {
 function querySystemBackups() {
   $.ajax({
     type: 'GET',
-    url: '/api/settings/backups',
+    url: '/api/v2/settings/backups',
     /**
      * List of available backups queried. Populate page.
      * @param {SystemBackup[]} backups - List of system backups.
@@ -131,7 +131,7 @@ function querySystemBackups() {
 function performBackup() {
   $.ajax({
     type: 'POST',
-    url: '/api/backups/backup',
+    url: '/api/v2/backups/backup',
     /** Backup successful, refresh backup table. */
     success: () => {
       showInfoToast('System Backup Completed');

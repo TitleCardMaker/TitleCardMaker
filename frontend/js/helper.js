@@ -418,7 +418,7 @@ let cardTypeSet, cardTypes;
  */
 async function queryAvailableExtras() {
   if (allExtras === undefined) {
-    allExtras = await fetch('/api/available/extras').then(resp => resp.json());
+    allExtras = await fetch('/api/v2/available/extras').then(resp => resp.json());
     // Get list of all unique card types
     cardTypeSet = new Set();
     allExtras.forEach(extra => cardTypeSet.add(extra.card_type));
@@ -444,11 +444,11 @@ let _allConnections;
  */
 async function queryLibraries() {
   if (_allConnections === undefined) {
-    _allConnections = await fetch('/api/connection/all')
+    _allConnections = await fetch('/api/v2/connection/all')
       .then(resp => resp.json());
   }
   if (_allLibraries === undefined) {
-    _allLibraries = await fetch('/api/available/libraries/all').then(resp => resp.json());
+    _allLibraries = await fetch('/api/v2/available/libraries/all').then(resp => resp.json());
   }
 
   return {

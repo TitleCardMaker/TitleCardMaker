@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, ValidationError
 
 from modules.Debug import Logger, log
-from modules.EpisodeDataSource2 import (
+from modules.EpisodeDataSource import (
     EpisodeDataSource,
     SearchResult,
     WatchedStatus,

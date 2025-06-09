@@ -12,7 +12,7 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Extra,
 )
-from modules.Debug import log
+from modules.Debug import log  # noqa: F401
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences

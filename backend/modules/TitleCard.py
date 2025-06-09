@@ -6,9 +6,9 @@ from modules import global_objects
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
 from modules.Debug import log
-from modules.EpisodeInfo import EpisodeInfo
+from modules.EpisodeInfo2 import EpisodeInfoV1
 from modules.FormatString import FormatString
-from modules.SeriesInfo import SeriesInfo
+from modules.SeriesInfo2 import SeriesInfoV1
 from modules.TieredSettings import TieredSettings
 from modules.Title import SplitCharacteristics
 
@@ -137,7 +137,7 @@ class TitleCard:
 
 
     def __init__(self,
-            series_info: SeriesInfo,
+            series_info: SeriesInfoV1,
             episode: 'Episode',
             profile: 'Profile',
             title_characteristics: SplitCharacteristics,
@@ -233,8 +233,8 @@ class TitleCard:
     @staticmethod
     def get_output_filename(
             format_string: str,
-            series_info: SeriesInfo,
-            episode_info: EpisodeInfo,
+            series_info: SeriesInfoV1,
+            episode_info: EpisodeInfoV1,
             media_directory: Path
         ) -> Path:
         """
@@ -283,7 +283,7 @@ class TitleCard:
     @staticmethod
     def get_multi_output_filename(
             format_string: str,
-            series_info: SeriesInfo,
+            series_info: SeriesInfoV1,
             multi_episode: 'MultiEpisode',
             media_directory: Path
         ) -> Path:

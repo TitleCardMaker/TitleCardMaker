@@ -5,7 +5,7 @@ from typing import Any
 from fastapi import HTTPException
 
 from modules.Debug import log
-from modules.SeriesInfo import SeriesInfo
+from modules.SeriesInfo2 import SeriesInfoV1
 
 
 class Template:
@@ -175,7 +175,7 @@ class Template:
 
 
     def apply_to_series(self,
-            series_info: SeriesInfo,
+            series_info: SeriesInfoV1,
             series_yaml: dict,
             *,
             raise_exc: bool = False

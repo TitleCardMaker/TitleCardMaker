@@ -87,7 +87,7 @@ function addSeries(result, resultElementId) {
   setTimeout(() => {
     $.ajax({
       type: 'POST',
-      url: '/api/series/new',
+      url: '/api/v2/series/new',
       data: JSON.stringify(generateNewSeriesObject(result)),
       contentType: 'application/json',
       /**
@@ -117,7 +117,7 @@ function importBlueprint(blueprintId, elementId) {
   $(`#${elementId}`).toggleClass('loading', true).toggleClass('transition', false);
   $.ajax({
     type: 'POST',
-    url: `/api/blueprints/import/blueprint/${blueprintId}`,
+    url: `/api/v2/blueprints/import/blueprint/${blueprintId}`,
     /**
      * Blueprint successfully imported, show toast and mark element as disabled.
      * @param {Series} series - Series which the Blueprint was imported to.
@@ -141,7 +141,7 @@ function importBlueprint(blueprintId, elementId) {
 function viewBlueprintSets(blueprintId) {
   $.ajax({
     type: 'GET',
-    url: `/api/blueprints/sets/blueprint/${blueprintId}`,
+    url: `/api/v2/blueprints/sets/blueprint/${blueprintId}`,
     /** @param {RemoteBlueprintSet[]} blueprintSets */
     success: blueprintSets => {
       const blueprintTemplate = document.getElementById('all-blueprint-template');
@@ -237,7 +237,7 @@ function queryAllBlueprints(page=1, refresh=false) {
   }
 
   // Query by series name if provided, otherwise query all
-  const endpointUrl = filterName ? '/api/blueprints/query/series' : '/api/blueprints/query/all';
+  const endpointUrl = filterName ? '/api/v2/blueprints/query/series' : '/api/v2/blueprints/query/all';
 
   // Submit API request
   $.ajax({
@@ -288,7 +288,7 @@ function queryAllBlueprints(page=1, refresh=false) {
         card.querySelector('[data-action="blacklist"]').onclick = () => {
           $.ajax({
             type: 'PUT',
-            url: `/api/blueprints/blacklist/${blueprint.id}`,
+            url: `/api/v2/blueprints/blacklist/${blueprint.id}`,
             success: () => {
               // Remove Blueprint card from display
               $(`#blueprint-id${blueprint.id}`).transition({animation: 'fade', duration: 800});
@@ -348,7 +348,7 @@ function initializeSearchSource() {
 function initializeLibraryDropdowns() {
   $.ajax({
     type: 'GET',
-    url: '/api/available/libraries/all',
+    url: '/api/v2/available/libraries/all',
     /**
      * Libraries queried successfully, populate the library dropdowns.
      * @param {MediaServerLibrary} libraries 
@@ -390,7 +390,7 @@ async function initAll() {
     queryAllBlueprints(undefined, true);
   });
 
-  const allTemplates = await fetch('/api/available/templates').then(resp => resp.json());
+  const allTemplates = await fetch('/api/v2/available/templates').then(resp => resp.json());
   $('.dropdown[data-value="template_ids"]').dropdown({
     placeholder: 'None',
     values: await getActiveTemplates(undefined, allTemplates),
@@ -420,7 +420,7 @@ function querySeries(missing=false) {
     name: query,
     interface_id: interfaceId,
   });
-  const url = missing ? '/api/missing/series' : '/api/series/lookup';
+  const url = missing ? '/api/v2/missing/series' : '/api/v2/series/lookup';
   $.ajax({
     type: 'GET',
     url: `${url}?${params.toString()}`,

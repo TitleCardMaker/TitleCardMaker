@@ -6,7 +6,7 @@ from yaml import safe_load
 from modules.BaseCardType import BaseCardType
 
 from modules.Debug import log
-from modules.RemoteCardType import RemoteCardType
+from modules.RemoteCardType2 import RemoteCardTypeV1
 from modules.TitleCard import TitleCard
 
 
@@ -157,7 +157,7 @@ class YamlReader:
             return TitleCard.CARD_TYPES[card_type]
 
         # Try as RemoteCardtype
-        if (remote_card_type := RemoteCardType(card_type)).valid:
+        if (remote_card_type := RemoteCardTypeV1(card_type)).valid:
             return remote_card_type.card_class
 
         return None

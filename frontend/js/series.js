@@ -84,7 +84,7 @@ let getStatisticsId;
 function getStatistics() {
   $.ajax({
     type: 'GET',
-    url: '/api/statistics/series/{{ series.id }}',
+    url: '/api/v2/statistics/series/{{ series.id }}',
     /**
      * Statistics queried. Update progress bar and count stats text.
      * @param {Statistic[]} statistics 
@@ -195,7 +195,7 @@ function deleteCard(cardId, onComplete) {
 
   $.ajax({
     type: 'DELETE',
-    url: `/api/cards/card/${cardId}`,
+    url: `/api/v2/cards/card/${cardId}`,
     success: () => {
       document.getElementById(`card${cardId}`).remove();
       document.getElementById(`card${cardId}-popup`).remove();
@@ -218,7 +218,7 @@ function createEpisodeCard(episodeId) {
   setLoadingIcon($cardIcon);
   $.ajax({
     type: 'POST',
-    url: `/api/cards/episode/${episodeId}`,
+    url: `/api/v2/cards/episode/${episodeId}`,
     success: () => {
       showInfoToast('Created Title Card');
       getCardData();
@@ -240,7 +240,7 @@ function saveEpisodeConfig(episodeId) {
   setLoadingIcon($icon);
   $.ajax({
     type: 'PATCH',
-    url: `/api/episodes/episode/${episodeId}`,
+    url: `/api/v2/episodes/episode/${episodeId}`,
     contentType: 'application/json',
     data: JSON.stringify(updateEpisodeObject),
     success: () => {
@@ -260,7 +260,7 @@ function refreshEpisodes() {
   $('.button[data-action="refresh-episodes"]').toggleClass('disabled', true);
   $.ajax({
     type: 'POST',
-    url: '/api/episodes/series/{{ series.id }}/refresh',
+    url: '/api/v2/episodes/series/{{ series.id }}/refresh',
     success: () => {
       showInfoToast('Refreshed Episode Data');
       getEpisodeData();
@@ -291,7 +291,7 @@ function saveAllEpisodes() {
   // Submit API request
   $.ajax({
     type: 'PATCH',
-    url: '/api/episodes/batch',
+    url: '/api/v2/episodes/batch',
     contentType: 'application/json',
     data: JSON.stringify(updateEpisodeObjects),
     success: () => {
@@ -309,7 +309,7 @@ async function initializeSeriesConfig() {
   // Libraries
   $.ajax({
     type: 'GET',
-    url: '/api/available/libraries/all',
+    url: '/api/v2/available/libraries/all',
     /**
      * Libraries queried.
      * @param {MediaServerLibrary[]} libraries List of all libraries which are
@@ -371,7 +371,7 @@ async function initializeSeriesConfig() {
     document.querySelector('#card-config-form .field[data-value="font_color"] .color.circle').style.setProperty('--color', $(this).val());
   });
   // Translations
-  const allTranslations = await fetch('/api/available/translations').then(resp => resp.json());
+  const allTranslations = await fetch('/api/v2/available/translations').then(resp => resp.json());
   {% if series.translations is not none %}
   if ({{series.translations|safe}}.length > 0) { 
     const translationSegment = $('#card-config-form [data-value="translations"]');
@@ -460,7 +460,7 @@ function queryTMDbPoster() {
   $('#poster-dialog .input[data-value="url"]').toggleClass('loading', true);
   $.ajax({
     type: 'GET',
-    url: '/api/series/series/{{ series.id }}/poster/query',
+    url: '/api/v2/series/series/{{ series.id }}/poster/query',
     /**
      * Query successful, populate the URL field or display a toast of no poster
      * returned.
@@ -522,7 +522,7 @@ async function editEpisodeExtras(episode, allEpisodes) {
     .off('click')
     .on('click', () => {
       deleteObject({
-        url: `/api/episodes/episode/${episode.id}`,
+        url: `/api/v2/episodes/episode/${episode.id}`,
         dataObject: {translations: {}},
         label: 'Translations',
         deleteElements: '#episode-extras-modal .field[data-value="translations"] input',
@@ -611,7 +611,7 @@ async function editEpisodeExtras(episode, allEpisodes) {
       // Submit API request
       $.ajax({
         type: 'PATCH',
-        url: `/api/episodes/episode/${episode.id}`,
+        url: `/api/v2/episodes/episode/${episode.id}`,
         data: JSON.stringify(data),
         contentType: 'application/json',
         /**
@@ -678,7 +678,7 @@ function uploadEpisodeSource(episodeId) {
     event.preventDefault();
     $.ajax({
       type: 'PUT',
-      url: `/api/sources/episode/${episodeId}/upload`,
+      url: `/api/v2/sources/episode/${episodeId}/upload`,
       data: new FormData(event.target),
       cache: false,
       contentType: false,
@@ -707,7 +707,7 @@ function mirrorSourceImage(episodeId) {
   // Submit API request
   $.ajax({
     type: 'PUT',
-    url: `/api/sources/episode/${episodeId}/mirror`,
+    url: `/api/v2/sources/episode/${episodeId}/mirror`,
     success: () => {
       showInfoToast('Mirrored Source Image');
       getSourceFileData();
@@ -726,7 +726,7 @@ function mirrorSourceImage(episodeId) {
 function deleteEpisodeMaskImage(episodeId) {
   $.ajax({
     type: 'DELETE',
-    url: `/api/sources/episode/${episodeId}/mask`,
+    url: `/api/v2/sources/episode/${episodeId}/mask`,
     success: () => {
       showInfoToast('Deleted Mask Image');
       getSourceFileData();
@@ -771,7 +771,7 @@ function deleteSourceImage(episodeId) {
   // Submit API request
   $.ajax({
     type: 'DELETE',
-    url: `/api/sources/episode/${episodeId}`,
+    url: `/api/v2/sources/episode/${episodeId}`,
     /** Source image deleted, show toast and refresh source and card data. */
     success: () => {
       showInfoToast('Deleted Source Image');
@@ -789,7 +789,7 @@ function deleteSourceImage(episodeId) {
 function setEpisodeTextless(episodeId) {
   $.ajax({
     type: 'PATCH',
-    url: `/api/episodes/episode/${episodeId}`,
+    url: `/api/v2/episodes/episode/${episodeId}`,
     data: JSON.stringify({card_type: 'textless'}),
     contentType: 'application/json',
     /**
@@ -821,7 +821,7 @@ async function getSourceFileData(page=currentFilePage) {
   const rowTemplate = document.getElementById('source-row-template');
   $.ajax({
     type: 'GET',
-    url: `/api/sources/series/{{ series.id }}?page=${page}&size=${sourceImagePreviewPageSize}`,
+    url: `/api/v2/sources/series/{{ series.id }}?page=${page}&size=${sourceImagePreviewPageSize}`,
     /**
      * Sources queried, create elements to display on the page.
      * @param {SourceImagePage} allFiles - Page of Source Images for this Series.
@@ -960,7 +960,7 @@ function resetMaskEditor() {
 function getBlueprintCount() {
   $.ajax({
     type: 'GET',
-    url: '/api/blueprints/query/series/{{ series.id }}?allow_refresh=false',
+    url: '/api/v2/blueprints/query/series/{{ series.id }}?allow_refresh=false',
     /**
      * Query successful, update count of available Blueprints.
      * @param {Blueprint[]} blueprints - List of Blueprints available for
@@ -988,7 +988,7 @@ async function getEpisodeData(page=1) {
   if (rowTemplate === null) { return; }
 
   // Get page of episodes via API
-  const url = simplified_data_table ? '/api/episodes/series/{{ series.id }}/simplified' : '/api/episodes/series/{{ series.id }}';
+  const url = simplified_data_table ? '/api/v2/episodes/series/{{ series.id }}/simplified' : '/api/v2/episodes/series/{{ series.id }}';
   /** @type {EpisodePage} */
   const episodeData = await fetch(`${url}?size={{ preferences.episode_data_page_size }}&page=${page}`).then(resp => resp.json());
   if (episodeData === null || episodeData.items.length === 0) { return; }
@@ -1149,7 +1149,7 @@ function querySeriesLogs() {
 
   $.ajax({
     type: 'GET',
-    url: `/api/logs/query?${params.toString()}`,
+    url: `/api/v2/logs/query?${params.toString()}`,
     /**
      * Logs queried, add elements to the timeline in the DOM.
      * @param {LogEntryPage} logs - Logs associated with this Series.
@@ -1237,7 +1237,7 @@ function getCardData(
 
   $.ajax({
     type: 'GET',
-    url: `/api/cards/series/{{ series.id }}/reduced?page=${page}&size=${titleCardPreviewPageSize}`,
+    url: `/api/v2/cards/series/{{ series.id }}/reduced?page=${page}&size=${titleCardPreviewPageSize}`,
     /**
      * Cards queried, populate page / table of Card data.
      * @param {TitleCardPage} cards - Current page of Title Card data.
@@ -1525,7 +1525,7 @@ function editSeriesPoster() {
   $('#poster-dialog').toggleClass('loading', true)
   $.ajax({
     type: 'PUT',
-    url: '/api/series/series/{{ series.id }}/poster',
+    url: '/api/v2/series/series/{{ series.id }}/poster',
     data: form,
     cache: false,
     contentType: false,
@@ -1554,13 +1554,13 @@ function downloadSeriesPoster() {
   // Submit API request to delete existing poster(s)
   $.ajax({
     type: 'DELETE',
-    url: '/api/series/series/{{ series.id }}/poster',
+    url: '/api/v2/series/series/{{ series.id }}/poster',
     /** Poster deleted, query for new one */
     success: () => {
       // showInfoToast('Deleted Series Poster');
       $.ajax({
         type: 'GET',
-        url: '/api/series/series/{{ series.id}}/poster',
+        url: '/api/v2/series/series/{{ series.id}}/poster',
         /**
          * Poster downloaded successfully. Update the poster image URL.
          * @param {string} posterUrl URL to the new poster file.
@@ -1596,7 +1596,7 @@ function deleteListValues(attribute) {
 
   $.ajax({
     type: 'PATCH',
-    url: '/api/series/series/{{ series.id }}',
+    url: '/api/v2/series/series/{{ series.id }}',
     data: JSON.stringify(data),
     contentType: 'application/json',
     success: () => {
@@ -1624,7 +1624,7 @@ function toggleStatus() {
   // Submit API request
   $.ajax({
     type: 'PUT',
-    url: '/api/series/series/{{ series.id }}/toggle-monitor',
+    url: '/api/v2/series/series/{{ series.id }}/toggle-monitor',
     /**
      * Status changed, display toast and modify icons.
      * @param {Series} response Modified Series config.
@@ -1658,7 +1658,7 @@ function processSeries() {
 
   $.ajax({
     type: 'POST',
-    url: '/api/series/series/{{ series.id }}/process',
+    url: '/api/v2/series/series/{{ series.id }}/process',
     success: () => showInfoToast('Started Processing Series'),
     error: response => showErrorToast({title: 'Error Processing Series', response}),
     complete: () => removeLoadingIcon($icon),
@@ -1689,7 +1689,7 @@ function importBlueprint(cardId, blueprint, isSet=false) {
     // Import Set
     $.ajax({
       type: 'POST',
-      url: `/api/blueprints/import/blueprint/${blueprint.id}`,
+      url: `/api/v2/blueprints/import/blueprint/${blueprint.id}`,
       /**
        * Blueprint (and potentially Series) were imported. Show toast.
        * @param {Series} series - Series which the Blueprint was imported to.
@@ -1704,7 +1704,7 @@ function importBlueprint(cardId, blueprint, isSet=false) {
     // Submit request to import directly to this Series
     $.ajax({
       type: 'PUT',
-      url: `/api/blueprints/import/series/{{ series.id }}/blueprint/${blueprint.id}`,
+      url: `/api/v2/blueprints/import/series/{{ series.id }}/blueprint/${blueprint.id}`,
       /**
        * Blueprint imported successfully. Reload the page if there are no Fonts
        * to download. Show success toast.
@@ -1766,7 +1766,7 @@ function importBlueprint(cardId, blueprint, isSet=false) {
 function viewBlueprintSets(blueprintId) {
   $.ajax({
     type: 'GET',
-    url: `/api/blueprints/sets/blueprint/${blueprintId}`,
+    url: `/api/v2/blueprints/sets/blueprint/${blueprintId}`,
     /** @param {RemoteBlueprintSet[]} blueprintSets */
     success: blueprintSets => {
       const blueprintTemplate = document.getElementById('blueprint-template');
@@ -1826,7 +1826,7 @@ function queryBlueprints() {
   // Query for Blueprints
   $.ajax({
     type: 'GET',
-    url: '/api/blueprints/query/series/{{ series.id }}',
+    url: '/api/v2/blueprints/query/series/{{ series.id }}',
     /**
      * Query successful, display available blueprints, or display a warning
      * message if none are.
@@ -1878,7 +1878,7 @@ function exportBlueprint() {
 
   $.ajax({
     type: 'GET',
-    url: '/api/blueprints/export/series/{{ series.id }}/zip',
+    url: '/api/v2/blueprints/export/series/{{ series.id }}/zip',
     xhrFields: {responseType: 'blob'},
     /**
      * Blueprint exported, download zip and open a new tab.
@@ -1937,7 +1937,7 @@ function selectTmdbImage(episodeId, url) {
   // Submit API request to upload this URL
   $.ajax({
     type: 'PUT',
-    url: `/api/sources/episode/${episodeId}/upload`,
+    url: `/api/v2/sources/episode/${episodeId}/upload`,
     data: form,
     cache: false,
     contentType: false,
@@ -1966,7 +1966,7 @@ function downloadLogo(url, seasonNumber=null) {
   // Submit API request to upload this URL
   $.ajax({
     type: 'PUT',
-    url: '/api/sources/series/{{ series.id }}/logo/upload' + (seasonNumber === null ? '' : `?season_number=${seasonNumber}`),
+    url: '/api/v2/sources/series/{{ series.id }}/logo/upload' + (seasonNumber === null ? '' : `?season_number=${seasonNumber}`),
     data: form,
     cache: false,
     contentType: false,
@@ -1998,7 +1998,7 @@ function downloadSeriesBackdrop(url, seasonNumber=null) {
   // Submit API request to upload this URL
   $.ajax({
     type: 'PUT',
-    url: '/api/sources/series/{{ series.id }}/backdrop/upload' + (seasonNumber === null ? '' : `?season_number=${seasonNumber}`),
+    url: '/api/v2/sources/series/{{ series.id }}/backdrop/upload' + (seasonNumber === null ? '' : `?season_number=${seasonNumber}`),
     data: form,
     cache: false,
     contentType: false,
@@ -2034,7 +2034,7 @@ function browseSourceImages(episodeId, cardElementId, episodeIds) {
 
   $.ajax({
     type: 'GET',
-    url: `/api/sources/episode/${episodeId}/browse`,
+    url: `/api/v2/sources/episode/${episodeId}/browse`,
     /**
      * Images available, create image elements for them, add to modal.
      * @param {ExternalSourceImage[]} images - List of Source Images for this
@@ -2109,7 +2109,7 @@ function browseLogos(seasonNumber) {
   // Submit API request
   $.ajax({
     type: 'GET',
-    url: '/api/sources/series/{{ series.id }}/logo/browse',
+    url: '/api/v2/sources/series/{{ series.id }}/logo/browse',
     /**
      * Logos returned, add to modal and display.
      * @param {ExternalSourceImage[]} images List of logos for this Series.
@@ -2150,7 +2150,7 @@ function browseBackdrops(seasonNumber) {
   // Submit API request
   $.ajax({
     type: 'GET',
-    url: `/api/sources/series/{{ series.id }}/backdrop/browse`,
+    url: `/api/v2/sources/series/{{ series.id }}/backdrop/browse`,
     /**
      * Backdrops returned, add to modal and display.
      * @param {ExternalSourceImage[]} images List of backdrops for this Series.
@@ -2205,7 +2205,7 @@ function uploadLogo(seasonNumber=null) {
   // Submit API request
   $.ajax({
     type: 'PUT',
-    url: `/api/sources/series/{{ series.id }}/logo/upload?${params.toString()}`,
+    url: `/api/v2/sources/series/{{ series.id }}/logo/upload?${params.toString()}`,
     data: form,
     cache: false,
     contentType: false,
@@ -2247,7 +2247,7 @@ function uploadBackdrop(seasonNumber) {
   // Submit API request
   $.ajax({
     type: 'PUT',
-    url: `/api/sources/series/{{ series.id }}/backdrop/upload`,
+    url: `/api/v2/sources/series/{{ series.id }}/backdrop/upload`,
     data: form,
     cache: false,
     contentType: false,
@@ -2271,7 +2271,7 @@ function getSourceImages() {
   showInfoToast('Starting to Download Source Images');
   $.ajax({
     type: 'POST',
-    url: '/api/sources/series/{{ series.id }}',
+    url: '/api/v2/sources/series/{{ series.id }}',
     success: () => getSourceFileData(),
     error: response => showErrorToast({title: 'Error Download Source Images', response}),
     complete: () => $('.button[data-action="download-source-images"]').toggleClass('disabled', false),
@@ -2287,7 +2287,7 @@ function createTitleCards() {
   $('.button[data-action="create-title-cards"]').toggleClass('disabled', true);
   $.ajax({
     type: 'POST',
-    url: '/api/cards/series/{{ series.id }}',
+    url: '/api/v2/cards/series/{{ series.id }}',
     success: () => {
       showInfoToast('Starting to create Title Cards');
       getEpisodeData();
@@ -2321,7 +2321,7 @@ function loadCards(interfaceId, libraryName, reload=false) {
   // Submit API request
   $.ajax({
     type: 'PUT',
-    url: `/api/cards/series/{{ series.id }}/load?${params.toString()}`,
+    url: `/api/v2/cards/series/{{ series.id }}/load?${params.toString()}`,
     success: () => {
       showInfoToast('Loaded Title Cards');
       getStatistics();
@@ -2341,7 +2341,7 @@ function loadCard(cardId) {
 
   $.ajax({
     type: 'PUT',
-    url: `/api/cards/card/${cardId}/load`,
+    url: `/api/v2/cards/card/${cardId}/load`,
     /** Card reloaded. Change the loaded icon and update the tooltip text. */
     success: () => {
       removeLoadingIcon($icon); // Cannot do in oncomplete since the icon is modified
@@ -2368,7 +2368,7 @@ function loadCard(cardId) {
 function deleteSeries() {
   $.ajax({
     type: 'DELETE',
-    url: '/api/series/series/{{ series.id }}',
+    url: '/api/v2/series/series/{{ series.id }}',
     success: () => window.location.href = '/',
     error: response => showErrorToast({title: 'Error Deleting Series', response}),
   });
@@ -2488,7 +2488,7 @@ function updateSeries(formName) {
   $('#submit-changes').toggleClass('loading', true); // Mark buttons as loading
   $.ajax({
     type: 'PATCH',
-    url: '/api/series/series/{{ series.id }}',
+    url: '/api/v2/series/series/{{ series.id }}',
     data: JSON.stringify(data),
     contentType: 'application/json',
     success: () => showInfoToast('Updated Series'),
@@ -2506,7 +2506,7 @@ function updateSeries(formName) {
 function deleteTitleCards(onSuccess) {
   $.ajax({
     type: 'DELETE',
-    url: '/api/cards/series/{{ series.id }}',
+    url: '/api/v2/cards/series/{{ series.id }}',
     success: response => {
       showInfoToast(`Deleted ${response.deleted} Cards`);
       if (onSuccess !== undefined) { onSuccess(); }
@@ -2523,7 +2523,7 @@ function deleteTitleCards(onSuccess) {
 function deleteSourceImages() {
   $.ajax({
     type: 'DELETE',
-    url: '/api/sources/series/{{ series.id }}',
+    url: '/api/v2/sources/series/{{ series.id }}',
     success: () => {},
     error: response => showErrorToast({title: 'Error Deleting Source Images', response}),
     complete: () => getSourceFileData(),
@@ -2548,7 +2548,7 @@ function addEpisode(event) {
 
   $.ajax({
     type: 'POST',
-    url: '/api/episodes/new',
+    url: '/api/v2/episodes/new',
     data: JSON.stringify(Object.fromEntries(form)),
     contentType: 'application/json',
     /**
@@ -2574,7 +2574,7 @@ function deleteAllEpisodes() {
   setLoadingIcon($icon);
   $.ajax({
     type: 'DELETE',
-    url: '/api/episodes/series/{{ series.id }}',
+    url: '/api/v2/episodes/series/{{ series.id }}',
     /**
      * Episodes deleted, show toast and re-fresh Episode and File data.
      * @param {number[]} episodeIds - IDs of the Episodes which were deleted.
@@ -2599,7 +2599,7 @@ function deleteAllEpisodes() {
 function deleteEpisode(id) {
   $.ajax({
     type: 'DELETE',
-    url: `/api/episodes/episode/${id}`,
+    url: `/api/v2/episodes/episode/${id}`,
     success: () => {
       showInfoToast('Deleted Episode');
       // Remove this Episode's data row and file
@@ -2624,7 +2624,7 @@ function deleteEpisode(id) {
 function navigateSeries(next_or_previous) {
   $.ajax({
     type: 'GET',
-    url: `/api/series/series/{{ series.id }}/${next_or_previous}`,
+    url: `/api/v2/series/series/{{ series.id }}/${next_or_previous}`,
     /**
      * There is a next/previous Series, redirect the current page.
      * @param {?Series} series - Series to navigate to.
@@ -2650,7 +2650,7 @@ function removePlexLabels(interface_id, library_name) {
   const params = new URLSearchParams({interface_id, library_name}).toString();
   $.ajax({
     type: 'DELETE',
-    url: `/api/series/series/{{ series.id }}/plex-labels/library?${params}`,
+    url: `/api/v2/series/series/{{ series.id }}/plex-labels/library?${params}`,
     success: () => showInfoToast('Removed Labels'),
     error: response => showErrorToast({title: 'Error Removing Labels', response}),
   });
@@ -2687,7 +2687,7 @@ function uploadSourceImages() {
   // Submit API request
   $.ajax({
     type: 'PUT',
-    url: '/api/sources/series/{{ series.id }}/upload',
+    url: '/api/v2/sources/series/{{ series.id }}/upload',
     data: form,
     cache: false,
     contentType: false,
@@ -2795,7 +2795,7 @@ function importMediuxYaml(event) {
   // Submit API request
   $.ajax({
     type: 'POST',
-    url: `/api/import/series/{{ series.id }}/cards/mediux?${params.toString()}`,
+    url: `/api/v2/import/series/{{ series.id }}/cards/mediux?${params.toString()}`,
     data: data,
     contentType: 'application/json',
     success: () => {
@@ -2836,7 +2836,7 @@ function uploadCards(setTextless=false) {
   // Submit API request
   $.ajax({
     type: 'POST',
-    url: `/api/import/series/{{ series.id }}/cards/files?textless=${setTextless}`,
+    url: `/api/v2/import/series/{{ series.id }}/cards/files?textless=${setTextless}`,
     data: f,
     cache: false,
     contentType: false,
@@ -2894,7 +2894,7 @@ function getEpisodeOverviews(pageNumber=1) {
   // Submit API request
   $.ajax({
     type: 'GET',
-    url: `/api/episodes/series/{{ series.id }}/overview?size=200&page=${pageNumber}`,
+    url: `/api/v2/episodes/series/{{ series.id }}/overview?size=200&page=${pageNumber}`,
     /**
      * Overviews queried, populate dropdown.
      * @param {EpisodeOverviewPage} overviews Page of episode overviews.
@@ -2980,7 +2980,7 @@ function refreshPreview() {
   // Submit API request
   $.ajax({
     type: 'POST',
-    url: `/api/cards/preview/episode/${episodeId}`,
+    url: `/api/v2/cards/preview/episode/${episodeId}`,
     data: JSON.stringify(data),
     contentType: 'application/json',
     success: preview_uri => document.getElementById('live-preview').src = `${preview_uri}?${new Date().getTime()}`,
@@ -2996,7 +2996,7 @@ function refreshPreview() {
 function deleteLogo(seasonNumber) {
   $.ajax({
     type: 'DELETE',
-    url: `/api/sources/series/{{ series.id }}/logo?season_number=${seasonNumber}`,
+    url: `/api/v2/sources/series/{{ series.id }}/logo?season_number=${seasonNumber}`,
     success: () => {
       showInfoToast('File Deleted');
       // Remove image src
@@ -3015,7 +3015,7 @@ function deleteLogo(seasonNumber) {
 function deleteBackdrop(seasonNumber) {
   $.ajax({
     type: 'DELETE',
-    url: `/api/sources/series/{{ series.id }}/backdrop?season_number=${seasonNumber}`,
+    url: `/api/v2/sources/series/{{ series.id }}/backdrop?season_number=${seasonNumber}`,
     success: () => {
       showInfoToast('File Deleted');
       // Remove image src
@@ -3079,7 +3079,7 @@ function openManualCardLoadModal(cardId) {
               const cardID = document.getElementById('loadCardsModal').dataset.cardId;
               $.ajax({
                 type: 'PUT',
-                url: `/api/cards/card/${cardID}/load?${params.toString()}`,
+                url: `/api/v2/cards/card/${cardID}/load?${params.toString()}`,
                 success: () => showInfoToast('Card Loaded Successfully'),
                 error: response => showErrorToast({title: 'Error Loading Title Card', response}),
                 complete: () => $selectedItem.closest('div.dropdown').toggleClass('green elastic loading', false),
@@ -3095,7 +3095,7 @@ function openManualCardLoadModal(cardId) {
         // Query episodes for this library and episode
         $.ajax({
           type: 'GET',
-          url: `/api/episodes/series/{{ series.id }}/connection/${connectionId}?library_name=${libraryName}`,
+          url: `/api/v2/episodes/series/{{ series.id }}/connection/${connectionId}?library_name=${libraryName}`,
           /**
            * Episode data queried.
            * @param {RemoteEpisodeData[]} episodes List of all available episode
@@ -3151,7 +3151,7 @@ function editMaskFile(episodeId) {
       maskForm.set('file', blob, 'mask.png');
 
       $.ajax({
-        url: `/api/sources/episode/${episodeId}/mask`,
+        url: `/api/v2/sources/episode/${episodeId}/mask`,
         type: 'PUT',
         data: maskForm,
         processData: false, // Important! Prevent jQuery from automatically transforming the data
@@ -3168,7 +3168,7 @@ let maskBlob = new FormData();
 
 function backgroundRemovaltest(episodeId) {
   const params = new URLSearchParams({
-    url: 'http://localhost:8002/api/remove',
+    url: 'http://localhost:8002/api/v2/remove',
     episode_id: episodeId || 6388,
     timeout: 60,
   });
@@ -3178,7 +3178,7 @@ function backgroundRemovaltest(episodeId) {
   rembgButton.classList.remove('magic');
 
   $.ajax({
-    url: `/api/webhooks/background-removal?${params.toString()}`,
+    url: `/api/v2/webhooks/background-removal?${params.toString()}`,
     type: 'POST',
     // data: formData,
     processData: false, // Important! Prevent jQuery from automatically transforming the data
@@ -3201,7 +3201,7 @@ function backgroundRemovaltest(episodeId) {
       document.querySelector('#mask-editor-modal .button[data-action="save-mask"]').classList.remove('disabled');
       document.querySelector('#mask-editor-modal .button[data-action="save-mask"]').onclick = () => {
         $.ajax({
-          url: `/api/sources/episode/${episodeId}/mask`,
+          url: `/api/v2/sources/episode/${episodeId}/mask`,
           type: 'PUT',
           data: maskBlob,
           processData: false, // Important! Prevent jQuery from automatically transforming the data
@@ -3234,7 +3234,7 @@ function toggleAdvancedMode() {
   const data = {simplified_data_table: !simplified_data_table};
   $.ajax({
     type: 'PATCH',
-    url: '/api/settings/update',
+    url: '/api/v2/settings/update',
     contentType: 'application/json',
     data: JSON.stringify(data),
     /** Settings updated, display toast and reload the page */

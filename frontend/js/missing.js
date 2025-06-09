@@ -11,7 +11,7 @@ import {
 function queryMissingCards(page=1) {
   $.ajax({
     type: 'GET',
-    url: `/api/missing/cards?page=${page}`,
+    url: `/api/v2/missing/cards?page=${page}`,
     /**
      * Missing Episodes queried, populate table.
      * @param {ReducedEpisodeDataPage} episodeData Episodes missing Cards.
@@ -76,7 +76,7 @@ function queryMissingCards(page=1) {
  */
 function queryMissingLogos() {
   $.ajax({
-    url: '/api/missing/logos',
+    url: '/api/v2/missing/logos',
     /**
      * Missing logos queried, populate the table.
      * @param {Series[]} allSeries - List of Series which are missing logos.

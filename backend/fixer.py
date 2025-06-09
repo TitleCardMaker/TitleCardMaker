@@ -7,16 +7,16 @@ from sys import exit as sys_exit
 
 try:
     from modules.Debug import log, LOG_FILE
-    from modules.EmbyInterface import EmbyInterface
-    from modules.EpisodeInfo import EpisodeInfo
+    from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
+    from modules.EpisodeInfo2 import EpisodeInfoV1
     from modules.ImageMaker import ImageMaker
-    from modules.JellyfinInterface import JellyfinInterface
+    from modules.JellyfinInterface2 import JellyfinInterfaceV1
     from modules.PlexInterface import PlexInterface
     from modules.PreferenceParser import PreferenceParser
     from modules.global_objects import set_preference_parser
-    from modules.SeriesInfo import SeriesInfo
-    from modules.SonarrInterface import SonarrInterface
-    from modules.TMDbInterface import TMDbInterface
+    from modules.SeriesInfo2 import SeriesInfoV1
+    from modules.SonarrInterface2 import SonarrInterfaceV1
+    from modules.TMDbInterface2 import TMDbInterfaceV1
 except ImportError:
     print(f'Required Python packages are missing - execute "pipenv install"')
     sys_exit(1)
@@ -193,15 +193,15 @@ if ((hasattr(args, 'import_cards') or hasattr(args, 'revert_series'))
     @dataclass
     class Episode: # pylint: disable=missing-class-docstring
         destination: Path
-        episode_info: EpisodeInfo
+        episode_info: EpisodeInfoV1
         spoil_type: str
 
     # Create MediaServer Interface
     try:
         if args.media_server == 'emby':
-            media_interface = EmbyInterface(**pp.emby_interface_kwargs)
+            media_interface = EmbyInterfaceV1(**pp.emby_interface_kwargs)
         elif args.media_server == 'jellyfin':
-            media_interface = JellyfinInterface(**pp.jellyfin_interface_kwargs)
+            media_interface = JellyfinInterfaceV1(**pp.jellyfin_interface_kwargs)
         else:
             media_interface = PlexInterface(**pp.plex_interface_kwargs)
     except Exception:
@@ -213,7 +213,7 @@ if ((hasattr(args, 'import_cards') or hasattr(args, 'revert_series'))
         archive = Path(args.import_cards[0])
         library = args.import_cards[1]
         if hasattr(args, 'import_series'):
-            series_info = SeriesInfo(*args.import_series)
+            series_info = SeriesInfoV1(*args.import_series)
         else:
             # Try and identify Series from folder name, then parent name
             for folder_name in (archive.name, archive.parent.name):
@@ -222,14 +222,14 @@ if ((hasattr(args, 'import_cards') or hasattr(args, 'revert_series'))
                     folder_name
                 )
                 if groups:
-                    series_info = SeriesInfo(*groups.groups())
+                    series_info = SeriesInfoV1(*groups.groups())
                     break
 
                 log.critical(f'Cannot identify series name/year; specify '
                                 f'with --import-series')
                 sys_exit(1)
     else:
-        series_info = SeriesInfo(args.revert_series[1], args.revert_series[2])
+        series_info = SeriesInfoV1(args.revert_series[1], args.revert_series[2])
         archive = pp.source_directory / series_info.full_clean_name
         library = args.revert_series[0]
 
@@ -261,7 +261,7 @@ if ((hasattr(args, 'import_cards') or hasattr(args, 'revert_series'))
             continue
 
         # Import image into library
-        episode_infos.append((episode_info := EpisodeInfo('', season, episode)))
+        episode_infos.append((episode_info := EpisodeInfoV1('', season, episode)))
         ep = Episode(image, episode_info, 'spoiled')
         episode_map[f'{season}-{episode}'] = ep
 
@@ -277,13 +277,13 @@ if ((hasattr(args, 'import_cards') or hasattr(args, 'revert_series'))
 # Create interface and remove records for indicated series+library
 if (hasattr(args, 'forget_cards')
     and any((pp.use_emby, pp.use_jellyfin, pp.use_plex))):
-    series_info = SeriesInfo(args.forget_cards[1], args.forget_cards[2])
+    series_info = SeriesInfoV1(args.forget_cards[1], args.forget_cards[2])
     if args.media_server == 'emby':
-        EmbyInterface(**pp.emby_interface_kwargs).remove_records(
+        EmbyInterfaceV1(**pp.emby_interface_kwargs).remove_records(
             args.forget_cards[0], series_info,
         )
     elif args.media_server == 'jellyfin':
-        JellyfinInterface(**pp.jellyfin_interface_kwargs).remove_records(
+        JellyfinInterfaceV1(**pp.jellyfin_interface_kwargs).remove_records(
             args.forget_cards[0], series_info,
         )
     else:
@@ -294,16 +294,16 @@ if (hasattr(args, 'forget_cards')
 
 # Execute Sonarr related options
 if args.sonarr_list_ids and pp.use_sonarr:
-    SonarrInterface(**pp.sonarr_kwargs[0]).list_all_series_id()
+    SonarrInterfaceV1(**pp.sonarr_kwargs[0]).list_all_series_id()
 
 # Execute TMDB related options
 if hasattr(args, 'unblacklist'):
-    TMDbInterface.unblacklist(
-        SeriesInfo(args.unblacklist[0], args.unblacklist[1])
+    TMDbInterfaceV1.unblacklist(
+        SeriesInfoV1(args.unblacklist[0], args.unblacklist[1])
     )
 
 if hasattr(args, 'delete_blacklist') and args.delete_blacklist:
-    TMDbInterface.delete_blacklist(pp.database_directory)
+    TMDbInterfaceV1.delete_blacklist(pp.database_directory)
 
 if hasattr(args, 'tmdb_download_images') and pp.use_tmdb:
     for arg_set in args.tmdb_download_images:
@@ -315,7 +315,7 @@ if hasattr(args, 'tmdb_download_images') and pp.use_tmdb:
                       f'2-10 for episodes 2 through 10')
             continue
 
-        tmdb_interface = TMDbInterface(**pp.tmdb_interface_kwargs)
+        tmdb_interface = TMDbInterfaceV1(**pp.tmdb_interface_kwargs)
         tmdb_interface.manually_download_season(
             title=arg_set[0],
             year=int(arg_set[1]),

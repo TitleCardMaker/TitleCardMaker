@@ -7,15 +7,15 @@ from tqdm import tqdm
 from yaml import dump
 
 from modules import global_objects
-from modules.EmbyInterface import EmbyInterface
+from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
 from modules.Debug import log, TQDM_KWARGS
-from modules.JellyfinInterface import JellyfinInterface
+from modules.JellyfinInterface2 import JellyfinInterfaceV1
 from modules.PlexInterface import PlexInterface
 from modules.Show import Show
 from modules.ShowArchive import ShowArchive
-from modules.SonarrInterface import SonarrInterface
-from modules.TautulliInterface import TautulliInterface
-from modules.TMDbInterface import TMDbInterface
+from modules.SonarrInterface2 import SonarrInterfaceV1
+from modules.TautulliInterface2 import TautulliInterfaceV1
+from modules.TMDbInterface2 import TMDbInterfaceV1
 
 
 def notify(message: str) -> Callable:
@@ -71,21 +71,21 @@ class Manager:
 
         # Optionally integrate with Tautulli
         if check_tautulli and self.preferences.use_tautulli:
-            TautulliInterface(
+            TautulliInterfaceV1(
                 **self.preferences.tautulli_interface_args
             ).integrate()
 
         # Optionally assign EmbyInterface
         self.emby_interface = None
         if self.preferences.use_emby:
-            self.emby_interface = EmbyInterface(
+            self.emby_interface = EmbyInterfaceV1(
                 **self.preferences.emby_interface_kwargs
             )
 
          # Optionally assign JellyfinInterface
         self.jellyfin_interface = None
         if self.preferences.use_jellyfin:
-            self.jellyfin_interface = JellyfinInterface(
+            self.jellyfin_interface = JellyfinInterfaceV1(
                 **self.preferences.jellyfin_interface_kwargs
             )
 
@@ -100,14 +100,14 @@ class Manager:
         self.sonarr_interfaces = []
         if self.preferences.use_sonarr:
             self.sonarr_interfaces = [
-                SonarrInterface(server_id=server_id, **kw)
+                SonarrInterfaceV1(server_id=server_id, **kw)
                 for server_id, kw in enumerate(self.preferences.sonarr_kwargs)
             ]
 
         # Optionally assign TMDbInterface
         self.tmdb_interface = None
         if self.preferences.use_tmdb:
-            self.tmdb_interface = TMDbInterface(
+            self.tmdb_interface = TMDbInterfaceV1(
                 **self.preferences.tmdb_interface_kwargs,
             )
 

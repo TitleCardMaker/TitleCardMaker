@@ -5,7 +5,7 @@ from modules.BaseCardType import BaseCardType
 
 from modules import global_objects
 from modules.Debug import log
-from modules.SeriesInfo import SeriesInfo
+from modules.SeriesInfo2 import SeriesInfoV1
 from modules.YamlReader import YamlReader
 
 
@@ -50,7 +50,7 @@ class Font(YamlReader):
     def __init__(self,
             yaml: dict,
             card_class: BaseCardType,
-            series_info: SeriesInfo,
+            series_info: SeriesInfoV1,
         ) -> None:
         """
         Construct a new instance of a Font.

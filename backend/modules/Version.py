@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
 from re import compile as re_compile
-from typing import override
 
 try:
     from modules.Debug import log

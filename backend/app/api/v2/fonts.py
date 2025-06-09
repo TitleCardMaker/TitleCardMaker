@@ -26,7 +26,7 @@ from app.schemas.font import (
     UpdateNamedFont
 )
 from modules.Debug import Logger
-from modules.FontValidator2 import FontValidator
+from modules.FontValidator import FontValidator
 
 
 """Common character replacements to try when querying replacements"""

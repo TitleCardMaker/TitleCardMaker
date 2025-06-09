@@ -66,7 +66,7 @@ let allConnections = {{ connections | tojson }};
  */
 let availableLanguages = [];
 async function getAvailableLanguages() {
-  availableLanguages = await fetch('/api/available/logo-languages').then(resp => resp.json());
+  availableLanguages = await fetch('/api/v2/available/logo-languages').then(resp => resp.json());
 }
 
 /**
@@ -77,7 +77,7 @@ async function getAvailableLanguages() {
 function enableAuthentication() {
   $.ajax({
     type: 'POST',
-    url: '/api/auth/enable',
+    url: '/api/v2/auth/enable',
     success: () => {
       // Show toast, redirect to login page
       $.toast({
@@ -102,7 +102,7 @@ function enableAuthentication() {
 function disableAuthentication() {
   $.ajax({
     type: 'POST',
-    url: '/api/auth/disable',
+    url: '/api/v2/auth/disable',
     success: () => {
       // Uncheck checkbox, disable fields
       $('.checkbox[data-value="require_auth"]').checkbox('uncheck');
@@ -126,7 +126,7 @@ function disableAuthentication() {
 function editUserAuth() {
   $.ajax({
     type: 'POST',
-    url: '/api/auth/edit',
+    url: '/api/v2/auth/edit',
     data: JSON.stringify({
       username: $('#auth-settings input[name="username"]')[0].value,
       password: $('#auth-settings input[name="password"]')[0].value,
@@ -271,7 +271,7 @@ function initializeTautulliForm(plexInterfaceId) {
     $('#tautulli-agent-modal button').toggleClass('loading', true);
     $.ajax({
       type: 'POST',
-      url: `/api/connection/tautulli/integrate?plex_interface_id=${plexInterfaceId}`,
+      url: `/api/v2/connection/tautulli/integrate?plex_interface_id=${plexInterfaceId}`,
       data: JSON.stringify(data),
       contentType: 'application/json',
       success: () => {
@@ -333,7 +333,7 @@ function updateConnection(form, connectionId, connectionType, jsonData) {
 
   $.ajax({
     type: 'PATCH',
-    url: `/api/connection/${connectionType.toLowerCase()}/${connectionId}`,
+    url: `/api/v2/connection/${connectionType.toLowerCase()}/${connectionId}`,
     data: JSON.stringify({
       ...Object.fromEntries(form.entries()),
       ...jsonData,
@@ -354,7 +354,7 @@ function updateConnection(form, connectionId, connectionType, jsonData) {
 function _deleteConnectionRequest(connectionId, deleteCards=false) {
   $.ajax({
     type: 'DELETE',
-    url: `/api/connection/${connectionId}?delete_title_cards=${deleteCards}`,
+    url: `/api/v2/connection/${connectionId}?delete_title_cards=${deleteCards}`,
     success: () => {
       showInfoToast('Deleted Connection');
       if (deleteCards) { showInfoToast('Deleted Title Cards'); }
@@ -377,7 +377,7 @@ function _refreshLibraryList(connectionId) {
   // Query for new list
   $.ajax({
     type: 'POST',
-    url: `/api/connection/${connectionId}/libraries`,
+    url: `/api/v2/connection/${connectionId}/libraries`,
     /**
      * Libraries queried - update labels.
      * @param {string[]} libraries List of libraries for the Connection.
@@ -407,7 +407,7 @@ function _deleteUnlinkedLibraries(connectionId) {
   // Submit API request
   $.ajax({
     type: 'DELETE',
-    url: `/api/connection/${connectionId}/libraries?unlinked=true`,
+    url: `/api/v2/connection/${connectionId}/libraries?unlinked=true`,
     success: changedCount => showInfoToast(`Modified ${changedCount} Series`),
     /** Error deleting libraries, show toast  */
     error: response => showErrorToast({title: 'Error Deleting Libraries', response}),
@@ -432,7 +432,7 @@ function deleteLibrary(connectionId, libraryName) {
   const args = new URLSearchParams({library_name: libraryName})
   $.ajax({
     type: 'DELETE',
-    url: `/api/connection/${connectionId}/libraries?${args.toString()}`,
+    url: `/api/v2/connection/${connectionId}/libraries?${args.toString()}`,
     success: changedCount => showInfoToast(`Modified ${changedCount} Series`),
     /** Error deleting libraries, show toast  */
     error: response => showErrorToast({title: 'Error Deleting Libraries', response}),
@@ -536,7 +536,7 @@ function initializeEmby() {
     if (connection.enabled) {
       $.ajax({
         type: 'GET',
-        url: `/api/available/usernames/emby?interface_id=${connection.id}`,
+        url: `/api/v2/available/usernames/emby?interface_id=${connection.id}`,
         success: usernames => {
           $(`#connection${connection.id} .dropdown[data-value="username"]`).dropdown({
             values: usernames.map(username => {
@@ -625,7 +625,7 @@ function initializeJellyfin() {
     if (connection.enabled) {
       $.ajax({
         type: 'GET',
-        url: `/api/available/usernames/jellyfin?interface_id=${connection.id}`,
+        url: `/api/v2/available/usernames/jellyfin?interface_id=${connection.id}`,
         success: usernames => {
           $(`#connection${connection.id} .dropdown[data-value="username"]`).dropdown({
             values: usernames.map(username => {
@@ -824,7 +824,7 @@ function initializeSonarr() {
     $(`#connection${connection.id} .button[data-action="query-libraries"]`).on('click', () => {
       $.ajax({
         type: 'GET',
-        url: `/api/connection/sonarr/${connection.id}/libraries`,
+        url: `/api/v2/connection/sonarr/${connection.id}/libraries`,
         success: libraries => {
           // Add new library fields if needed
           const inputCount = $(`#connection${connection.id} .field[data-value="library_name"] input`).length;
@@ -1071,7 +1071,7 @@ function addConnection(connectionType) {
 
     $.ajax({
       type: 'POST',
-      url: `/api/connection/${connectionType}/new`,
+      url: `/api/v2/connection/${connectionType}/new`,
       data: JSON.stringify({...Object.fromEntries(form.entries())}),
       contentType: 'application/json',
       /**

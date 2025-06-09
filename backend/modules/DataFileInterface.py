@@ -5,8 +5,8 @@ from yaml import safe_load, dump
 
 from modules import global_objects
 from modules.Debug import log
-from modules.EpisodeInfo import EpisodeInfo
-from modules.SeriesInfo import SeriesInfo
+from modules.EpisodeInfo2 import EpisodeInfoV1
+from modules.SeriesInfo2 import SeriesInfoV1
 from modules.Title import Title
 
 
@@ -25,7 +25,7 @@ class DataFileInterface:
 
 
     def __init__(self,
-            series_info: SeriesInfo,
+            series_info: SeriesInfoV1,
             data_file: Path,
             *,
             ignore_preferred_titles: bool = False,
@@ -197,7 +197,7 @@ class DataFileInterface:
                 yield data, given_keys
 
 
-    def __info_as_entry(self, episode_info: EpisodeInfo) -> dict[str, Any]:
+    def __info_as_entry(self, episode_info: EpisodeInfoV1) -> dict[str, Any]:
         """
         Get the given EpisodeInfo object as it's equivalent YAML entry.
 
@@ -218,7 +218,7 @@ class DataFileInterface:
 
 
     def add_data_to_entry(self,
-            episode_info: EpisodeInfo,
+            episode_info: EpisodeInfoV1,
             **new_data: dict[str, Any],
         ) -> None:
         """
@@ -248,7 +248,7 @@ class DataFileInterface:
         return None
 
 
-    def add_many_entries(self, new_episodes: Sequence[EpisodeInfo]) -> None:
+    def add_many_entries(self, new_episodes: Sequence[EpisodeInfoV1]) -> None:
         """
         Adds many entries at once. This only reads and writes from this
         interface's file once.

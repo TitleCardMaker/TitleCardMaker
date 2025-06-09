@@ -28,7 +28,7 @@ const parseList = (value, fallback=[]) => value.length ? value : fallback;
 function addTemplate() {
   $.ajax({
     type: 'POST',
-    url: '/api/templates/new',
+    url: '/api/v2/templates/new',
     data: JSON.stringify({name: ' Blank Template'}),
     contentType: 'application/json',
     /**
@@ -94,7 +94,7 @@ function reloadPreview(watchStatus, templateElementId, cardElement, imgElement) 
   cardElement.classList.add('loading');
   $.ajax({
     type: 'POST',
-    url: '/api/cards/preview',
+    url: '/api/v2/cards/preview',
     data: JSON.stringify(previewCard),
     contentType: 'application/json',
     /**
@@ -120,7 +120,7 @@ function showDeleteModal(templateId) {
   // Get list of Series associated with this Template
   $.ajax({
     type: 'GET',
-    url: `/api/series/search?template_id=${templateId}&size=25`,
+    url: `/api/v2/series/search?template_id=${templateId}&size=25`,
     /**
      * Series queried successfully, populate list to display in modal.
      * @param {SeriesPage} allSeries - Page of Series associated with the
@@ -142,7 +142,7 @@ function showDeleteModal(templateId) {
       $('#delete-template-modal .button[data-action="delete-template"]').off('click').on('click', () => {
         $.ajax({
           type: 'DELETE',
-          url: `/api/templates/${templateId}`,
+          url: `/api/v2/templates/${templateId}`,
           success: () => {
             showInfoToast('Deleted Template');
             document.getElementById(`template-id${templateId}`).remove();
@@ -217,7 +217,7 @@ function updateTemplate(templateId) {
 
   $.ajax({
     type: 'PATCH',
-    url: `/api/templates/${templateId}`,
+    url: `/api/v2/templates/${templateId}`,
     data: JSON.stringify(data),
     contentType: 'application/json',
     /**
@@ -258,7 +258,7 @@ function addDropdownItem(element, args) {
  */
 async function getAllTemplates() {
   // Start querying templates, but do not wait for results
-  const templatePromise = fetch('/api/templates/all').then(resp => resp.json());
+  const templatePromise = fetch('/api/v2/templates/all').then(resp => resp.json());
 
   // Query all "available" data used to populate dropdowns in the HTML template
   if (!htmlTemplatesInitialized) {
@@ -270,11 +270,11 @@ async function getAllTemplates() {
       // allFilterOptions,
       allTranslations,
     ] = await Promise.all([
-      fetch('/api/available/fonts').then(resp => resp.json()),
-      fetch('/api/settings/episode-data-source').then(resp => resp.json()),
-      fetch('/api/settings/image-source-priority').then(resp => resp.json()),
-      // fetch('/api/available/template-filters').then(resp => resp.json()),
-      fetch('/api/available/translations').then(resp => resp.json()),
+      fetch('/api/v2/available/fonts').then(resp => resp.json()),
+      fetch('/api/v2/settings/episode-data-source').then(resp => resp.json()),
+      fetch('/api/v2/settings/image-source-priority').then(resp => resp.json()),
+      // fetch('/api/v2/available/template-filters').then(resp => resp.json()),
+      fetch('/api/v2/available/translations').then(resp => resp.json()),
     ]);
   
     // ----------------------- Add selectable items to the HTML template dropdowns

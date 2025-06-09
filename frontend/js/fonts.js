@@ -38,7 +38,7 @@ function addFont() {
   const data = {name: ' Blank Custom Font'};
   $.ajax({
     type: 'POST',
-    url: '/api/fonts/new',
+    url: '/api/v2/fonts/new',
     data: JSON.stringify(data),
     contentType: 'application/json',
     /**
@@ -67,7 +67,7 @@ function deleteFont(font) {
   // Submit API request
   $.ajax({
     type: 'DELETE',
-    url: `/api/fonts/${font.id}`,
+    url: `/api/v2/fonts/${font.id}`,
     /** Font deleted, show toast and remove this Font's element from the DOM. */
     success: () => {
       showInfoToast(`Deleted Font "${font.name}"`);
@@ -110,7 +110,7 @@ function reloadPreview(fontId, fontForm, previewForm, cardElement, imageElement)
   cardElement.classList.add('loading');
   $.ajax({
     type: 'POST',
-    url: '/api/cards/preview',
+    url: '/api/v2/cards/preview',
     data: JSON.stringify(previewCardObj),
     contentType: 'application/json',
     /**
@@ -157,7 +157,7 @@ function saveFontForm(fontId, eventTarget) {
   // Submit API request
   $.ajax({
     type: 'PATCH',
-    url: `/api/fonts/${fontId}`,
+    url: `/api/v2/fonts/${fontId}`,
     data: JSON.stringify({...Object.fromEntries(form.entries()), ...listData}),
     contentType: 'application/json',
     /**
@@ -179,7 +179,7 @@ function saveFontForm(fontId, eventTarget) {
   fileForm.append('file', form.get('font_file'));
   $.ajax({
     type: 'PUT',
-    url: `/api/fonts/${fontId}/file`,
+    url: `/api/v2/fonts/${fontId}/file`,
     data: fileForm,
     processData: false,
     contentType: false,
@@ -201,7 +201,7 @@ function saveFontForm(fontId, eventTarget) {
 function querySuggestedFontReplacements(fontId, elementId) {
   $.ajax({
     type: 'GET',
-    url: `/api/fonts/${fontId}/analysis`,
+    url: `/api/v2/fonts/${fontId}/analysis`,
     /**
      * Font analyzed, update DOM with suggested replacements.
      * @param {FontAnalysis} analysis - Analysis to display.
@@ -270,7 +270,7 @@ function transferFontReferences(fromId, toId, deleteFrom) {
   // Submit API request
   $.ajax({
     type: 'PUT',
-    url: `/api/fonts/transfer?${args.toString()}`,
+    url: `/api/v2/fonts/transfer?${args.toString()}`,
     /**
      * Font transferred, display a toast and delete the Font from the page if
      * indicated.
@@ -495,7 +495,7 @@ function groupObjectsByPrefix(fonts, n, maxgroupSize=19) {
 function getAllFonts() {
   $.ajax({
     type: 'GET',
-    url: '/api/fonts/all',
+    url: '/api/v2/fonts/all',
     /**
      * Fonts queried, add all Font forms to the DOM.
      * @param {NamedFont[]} fonts 

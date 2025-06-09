@@ -19,7 +19,7 @@ from app.db.interfaces import (
 from app.db.scheduler import Scheduler
 from app.db.database import BlueprintSessionMaker, SessionLocal
 from modules.Debug import Logger, log
-from modules.EmbyInterface2 import EmbyInterface
+from app.interfaces.EmbyInterface2 import EmbyInterface
 from modules.ImageMagickInterface import ImageMagickInterface
 from modules.Interface import Interface
 from modules.InterfaceGroup import InterfaceGroup

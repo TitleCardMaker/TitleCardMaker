@@ -25,14 +25,14 @@ from requests.exceptions import (
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 
 from modules.Debug import Logger, log
-from modules.EpisodeDataSource2 import (
+from modules.EpisodeDataSource import (
     EpisodeDataSource,
     SearchResult,
     WatchedStatus,
 )
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.Interface import Interface
-from modules.MediaServer2 import MediaServer, SourceImage
+from modules.MediaServer import MediaServer, SourceImage
 from modules.SeriesInfo2 import SeriesInfo
 from modules.SyncInterface import SyncInterface
 from modules.WebInterface import WebInterface

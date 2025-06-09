@@ -39,7 +39,7 @@ function queryLatestCards(page=1) {
 
   $.ajax({
     type: 'GET',
-    url: `/api/cards/recent?${args.toString()}`,
+    url: `/api/v2/cards/recent?${args.toString()}`,
     /**
      * Recent cards queried, populate card elements on the page.
      * @param {TitleCardExtendedPage} cardPage Page of recent Title Cards.

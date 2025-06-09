@@ -4,12 +4,12 @@ from re import compile as re_compile, match, IGNORECASE
 
 from modules.Debug import log
 from modules.Episode import MultiEpisode
-from modules.EpisodeInfo import EpisodeInfo
+from modules.EpisodeInfo2 import EpisodeInfoV1
 from modules.EpisodeMap import EpisodeMap
 from modules.Font import Font
 from modules.BaseCardType import BaseCardType
 from modules.FormatString import FormatString
-from modules.SeriesInfo import SeriesInfo
+from modules.SeriesInfo2 import SeriesInfoV1
 
 if TYPE_CHECKING:
     from modules.Episode import Episode
@@ -39,7 +39,7 @@ class Profile:
 
 
     def __init__(self,
-            series_info: SeriesInfo,
+            series_info: SeriesInfoV1,
             font: Font,
             hide_seasons: bool,
             episode_map: EpisodeMap,
@@ -192,8 +192,8 @@ class Profile:
 
 
     def get_season_text(self,
-            episode_info: EpisodeInfo,
-            default: Callable[[EpisodeInfo | None], str] | None = None,
+            episode_info: EpisodeInfoV1,
+            default: Callable[[EpisodeInfoV1 | None], str] | None = None,
         ) -> str:
         """
         Gets the season text for the given season number, after applying

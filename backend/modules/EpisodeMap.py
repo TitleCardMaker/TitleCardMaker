@@ -2,7 +2,7 @@ from re import compile as re_compile, IGNORECASE
 from typing import Any, Callable, Literal
 
 from modules.Debug import log
-from modules.EpisodeInfo import EpisodeInfo
+from modules.EpisodeInfo2 import EpisodeInfoV1
 from modules.FormatString import FormatString
 
 
@@ -276,10 +276,10 @@ class EpisodeMap:
 
 
     def get_generic_season_title(self,
-            episode_info: EpisodeInfo | None = None,
+            episode_info: EpisodeInfoV1 | None = None,
             *,
             season_number: int | None = None,
-            default: Callable[[EpisodeInfo], str] | None = None,
+            default: Callable[[EpisodeInfoV1], str] | None = None,
         ) -> str:
         """
         Get the generic season title for the given entry.
@@ -327,9 +327,9 @@ class EpisodeMap:
 
 
     def __get_value(self,
-            episode_info: EpisodeInfo,
+            episode_info: EpisodeInfoV1,
             which: Literal['season_title', 'source', 'applies_to'],
-            default: Callable[[EpisodeInfo | None], str],
+            default: Callable[[EpisodeInfoV1 | None], str],
         ) -> str:
         """
         Get the value for the given Episode from the target associated with
@@ -392,9 +392,9 @@ class EpisodeMap:
 
 
     def get_season_title(self,
-            episode_info: EpisodeInfo,
+            episode_info: EpisodeInfoV1,
             *,
-            default: Callable[[EpisodeInfo | None], str] | None = None,
+            default: Callable[[EpisodeInfoV1 | None], str] | None = None,
         ) -> str:
         """
         Get the season title for the given Episode.
@@ -432,7 +432,7 @@ class EpisodeMap:
         return season_title
 
 
-    def get_source(self, episode_info: EpisodeInfo) -> str:
+    def get_source(self, episode_info: EpisodeInfoV1) -> str:
         """
         Get the specified source filename for the given Episode.
 
@@ -459,7 +459,7 @@ class EpisodeMap:
         return source
 
 
-    def get_applies_to(self, episode_info: EpisodeInfo) -> str:
+    def get_applies_to(self, episode_info: EpisodeInfoV1) -> str:
         """
         Get the specified applies to value of for the given Episode.
 

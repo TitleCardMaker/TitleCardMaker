@@ -15,7 +15,7 @@ const currentlyRunningSync = {{preferences.currently_running_sync|tojson}};
 function initConnectionDropdowns() {
   $.ajax({
     type: 'GET',
-    url: '/api/connection/all',
+    url: '/api/v2/connection/all',
     /**
      * Initialize the Connection selector dropdowns.
      * @param {AnyConnection[]} connections - All defined Connections to
@@ -69,7 +69,7 @@ function initConnectionDropdowns() {
 function getLibraries() {
   $.ajax({
     type: 'GET',
-    url: '/api/available/libraries/all',
+    url: '/api/v2/available/libraries/all',
     /**
      * Query successful, initialize the dropdowns for each Form.
      * @param {MediaServerLibrary[]} libraries - Libraries to initialize dropdowns
@@ -122,7 +122,7 @@ function getLibraries() {
 function getTags() {
   $.ajax({
     type: 'GET',
-    url: '/api/available/tags/sonarr',
+    url: '/api/v2/available/tags/sonarr',
     /**
      * Initialize the Sonarr tag dropdowns with the given values.
      * @param {string[]} tags - List of tags.
@@ -150,7 +150,7 @@ let allTemplates = [];
 function getTemplates() {
   $.ajax({
     type: 'GET',
-    url: '/api/available/templates',
+    url: '/api/v2/available/templates',
     /**
      * Initialize the Template ID dropdowns with the given values.
      * @param {AvailableTemplate[]} availableTemplates - All available
@@ -204,7 +204,7 @@ function showEditModel(sync) {
   // Query tags/libraries when connection field is changed
   $(`#edit-sync${sync.id} .dropdown[data-value="interface_id"] input`).change(async () => {
     if (sync.interface === 'Sonarr') {
-      const tags = await fetch(`/api/available/tags/sonarr?interface_id=${sync.interface_id}`).then(resp => resp.json());
+      const tags = await fetch(`/api/v2/available/tags/sonarr?interface_id=${sync.interface_id}`).then(resp => resp.json());
       $(`#edit-sync${sync.id} .dropdown[data-value="required_tags"]`)
     }
   });
@@ -242,7 +242,7 @@ function showEditModel(sync) {
 
       $.ajax({
         type: 'PATCH',
-        url: `/api/sync/${sync.id}`,
+        url: `/api/v2/sync/${sync.id}`,
         data: JSON.stringify(dataObj),
         contentType: 'application/json',
         /**
@@ -267,7 +267,7 @@ function showEditModel(sync) {
 
 async function showDeleteSyncModal(syncId) {
   // Get list of Series associated with this Sync
-  const allSeriesResponse = await fetch(`/api/series/search?sync_id=${syncId}&size=25`).then(resp => resp.json());
+  const allSeriesResponse = await fetch(`/api/v2/series/search?sync_id=${syncId}&size=25`).then(resp => resp.json());
   const seriesElements = allSeriesResponse.items.map(({name, year}) => {
     return `<li>${name} (${year})</li>`
   });
@@ -283,7 +283,7 @@ async function showDeleteSyncModal(syncId) {
       $(`#sync${syncId}`).toggleClass('red double loading', true);
       $.ajax({
         type: 'DELETE',
-        url: `/api/sync/delete/${syncId}?delete_series=false`,
+        url: `/api/v2/sync/delete/${syncId}?delete_series=false`,
         success: () => {
           showInfoToast('Deleted Sync');
           getAllSyncs();
@@ -300,7 +300,7 @@ async function showDeleteSyncModal(syncId) {
       $(`#sync${syncId}`).toggleClass('red double loading', true);
       $.ajax({
         type: 'DELETE',
-        url: `/api/sync/delete/${syncId}?delete_series=true`,
+        url: `/api/v2/sync/delete/${syncId}?delete_series=true`,
         success: () => {
           showInfoToast('Deleted Sync and associated Series');
           getAllSyncs();
@@ -330,7 +330,7 @@ function runSync(syncId, name) {
   // Submit API request, show toast of results
   $.ajax({
     type: 'POST',
-    url: `/api/sync/${syncId}`,
+    url: `/api/v2/sync/${syncId}`,
     /**
      * Display a toast of all the newly added Series.
      * @param {Series[]} series - List of synced Series.
@@ -381,7 +381,7 @@ function getAllSyncs() {
     const templateElement = document.getElementById('sync-card-template');
     $.ajax({
       type: 'GET',
-      url: `/api/sync/${source}/all`,
+      url: `/api/v2/sync/${source}/all`,
       /**
        * Syncs returned, add elements for each defined object to the page.
        * @param {Sync[]} allSyncs - All Sync objects defined for this Connection
@@ -433,7 +433,7 @@ function getAllSyncs() {
 function getSyncSchedule() {
   $.ajax({
     type: 'GET',
-    url: '/api/schedule/SyncInterfaces',
+    url: '/api/v2/schedule/SyncInterfaces',
     /**
      * Next run queried. Update the text.
      * @param {string} _.next_run - Datetime representation of the next run.
@@ -522,7 +522,7 @@ function initAll() {
       // Submit API request to add this sync
       $.ajax({
         type: 'POST',
-        url: `/api/sync/${interface}/new`,
+        url: `/api/v2/sync/${interface}/new`,
         data: JSON.stringify(dataObj),
         contentType: 'application/json',
         /**

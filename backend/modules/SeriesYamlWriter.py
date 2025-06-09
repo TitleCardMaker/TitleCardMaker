@@ -9,10 +9,10 @@ from yaml import add_representer, dump
 
 from modules.CleanPath import CleanPath
 from modules.Debug import log
-from modules.EmbyInterface import EmbyInterface
-from modules.JellyfinInterface import JellyfinInterface
+from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
+from modules.JellyfinInterface2 import JellyfinInterfaceV1
 from modules.PlexInterface import PlexInterface
-from modules.SonarrInterface import SonarrInterface
+from modules.SonarrInterface2 import SonarrInterfaceV1
 from modules.SyncInterface import SyncInterface
 
 type SeriesYaml = dict[str, dict[str, str]]
@@ -370,7 +370,7 @@ class SeriesYamlWriter:
 
 
     def __get_yaml_from_sonarr(self,
-            sonarr_interface: SonarrInterface,
+            sonarr_interface: SonarrInterfaceV1,
             libraries: dict[str, str],
             required_tags: list[str],
             monitored_only: bool,
@@ -565,7 +565,7 @@ class SeriesYamlWriter:
 
 
     def update_from_sonarr(self,
-            sonarr_interface: SonarrInterface,
+            sonarr_interface: SonarrInterfaceV1,
             libraries: dict[str, str] = {},
             required_tags: list[str] = [],
             monitored_only: bool = False,
@@ -642,7 +642,7 @@ class SeriesYamlWriter:
 
 
     def update_from_emby(self,
-            emby_interface: EmbyInterface,
+            emby_interface: EmbyInterfaceV1,
             filter_libraries: list[str] = [],
             required_tags: list[str] = [],
             exclusions: list[dict[str, str]] = [],
@@ -676,7 +676,7 @@ class SeriesYamlWriter:
 
 
     def update_from_jellyfin(self,
-            jellyfin_interface: JellyfinInterface,
+            jellyfin_interface: JellyfinInterfaceV1,
             filter_libraries: list[str] = [],
             required_tags: list[str] = [],
             exclusions: list[dict[str, str]] = [],

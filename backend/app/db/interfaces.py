@@ -1,5 +1,5 @@
 from app.core.config import PreferencesLocal
-from modules.EmbyInterface2 import EmbyInterface
+from app.interfaces.EmbyInterface2 import EmbyInterface
 from modules.ImageMagickInterface import ImageMagickInterface
 from modules.InterfaceGroup import InterfaceGroup as IG
 from modules.JellyfinInterface2 import JellyfinInterface

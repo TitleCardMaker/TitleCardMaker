@@ -4,11 +4,12 @@ from pathlib import Path
 from re import compile as re_compile
 from typing import Any
 
+from modules.EpisodeInfo2 import EpisodeInfoV1
 from modules import global_objects
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
 from modules.Debug import log
-from modules.EpisodeInfo import EpisodeInfo, WordSet
+from modules.EpisodeInfo2 import WordSet
 from modules.StyleSet import StyleSet
 from modules.Title import Title
 from modules.TitleCard import TitleCard
@@ -38,7 +39,7 @@ class Episode:
 
 
     def __init__(self,
-            episode_info: EpisodeInfo,
+            episode_info: EpisodeInfoV1,
             card_class: BaseCardType,
             base_source: Path,
             destination: Path | None,

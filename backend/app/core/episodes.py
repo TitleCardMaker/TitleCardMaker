@@ -18,7 +18,7 @@ from app.models.series import Series
 from app.schemas.base import UNSPECIFIED
 from app.schemas.episode import UpdateEpisode
 from modules.Debug import Logger, log
-from modules.EpisodeDataSource2 import WatchedStatus
+from modules.EpisodeDataSource import WatchedStatus
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.SonarrInterface2 import SonarrInterface
 from modules.TMDbInterface2 import TMDbInterface
