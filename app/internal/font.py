@@ -53,7 +53,7 @@ def get_available_fonts(db: Session) -> list[AvailableFont]:
     # Cannot be AvailableFont object as these are directly passed to
     # Jinja templates
     return [
-        {'id': font.id, 'name': font.name} # type: ignore
+        {'id': font.id, 'name': font.name, 'sort_name': font.sort_name} # type: ignore
         for font in
         db.query(
             Font.id,

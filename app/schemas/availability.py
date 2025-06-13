@@ -5,6 +5,7 @@ from app.schemas.base import Base
 class AvailableFont(Base):
     id: int
     name: str
+    sort_name: str
 
 class AvailableSeries(Base):
     id: int
