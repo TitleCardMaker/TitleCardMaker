@@ -508,8 +508,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         )
 
         # Submit API request
-        if not (results := self.get(url).get('data', {}).get('episodes')):
-            log.debug(f'No associated episode {episode_info} on TVDb')
+        try:
+            if not (results := self.get(url).get('data', {}).get('episodes')):
+                log.debug(f'No associated episode {episode_info} on TVDb')
+                return None
+        except Exception:
+            log.exception(f'Failed to query episode {episode_info} on TVDb')
             return None
 
         return int(results[0]['id'])
