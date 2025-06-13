@@ -352,47 +352,45 @@ def add_series_via_sonarr_webhook(
     """
 
     if webhook.eventType != 'SeriesAdd':
-        log.debug(f'Skipping Webhook type "{webhook.eventType}"')
+        log.debug(f'Skipping Webhook of type "{webhook.eventType}"')
         return None
 
-    # Add Series to the page
-    series = add_series(
+    def _get_libraries():
+        if connection_id is None:
+            return []
+
+        if (connection := db.get(Connection, connection_id)) is None:
+            log.error(f'Connection with ID {connection_id} not found')
+            return []
+
+        # Get Connection of this ID
+        if (interface := sonarr_interfaces.get(connection_id)) is None:
+            log.error(
+                f'SonarrInterface with ID {connection.interface_id} not found'
+            )
+            return []
+
+        # Get the path of the series from Sonarr
+        if (directory := interface.get_series_path(webhook.series.id)) is None:
+            log.error(f'Series with ID {webhook.series.id} not found')
+            return []
+
+        return get_sonarr_libraries(db, directory, connection, log=log)
+
+    # Add Series
+    add_series(
         NewSeries(
             name=webhook.series.title,
             year=webhook.series.year,
             imdb_id=webhook.series.imdbId,
             tvdb_id=webhook.series.tvdbId,
             tvrage_id=webhook.series.tvRageId,
+            libraries=_get_libraries(),
         ),
         background_tasks=background_tasks,
         db=db,
         log=log
     )
-
-    # If a Connection ID is provided, use it to assign libraries to the
-    # new Series
-    if connection_id is not None:
-        # Get Connection of this ID
-        connection = db.query(Connection).filter_by(id=connection_id).first()
-        if connection is None:
-            log.error(f'Connection with ID {connection_id} not found')
-            return None
-        if (interface := sonarr_interfaces.get(connection_id)) is None:
-            log.error(
-                f'SonarrInterface with ID {connection.interface_id} not found'
-            )
-            return None
-
-        # Get the path of the series from Sonarr
-        if (directory := interface.get_series_path(series.id)) is None:
-            log.error(f'Series with ID {series.id} not found')
-            return None
-
-        libraries = get_sonarr_libraries(db, directory, connection, log=log)
-        if libraries:
-            series.libraries = libraries
-            log.debug(f'Series[{series.id}].libraries = {libraries}')
-            db.commit()
 
     return None
 
@@ -400,7 +398,6 @@ def add_series_via_sonarr_webhook(
 from requests import post
 @webhook_router.post('/background-removal')
 def remove_image_background(
-        request: Request,
         file: UploadFile | None = None,
         episode_id: int | None = Query(default=None),
         url: str = Query(...),
