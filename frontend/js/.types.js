@@ -733,19 +733,14 @@
  */
 
 /**
- * @typedef {Object} LogException
- * @property {string} type
- * @property {string} value
- * @property {string} traceback
- */
-
-/**
  * @typedef {Object} LogEntry
  * @property {LogLevel} level
  * @property {?string} context_id
- * @property {string} time
+ * @property {string} timestamp
  * @property {string} message
- * @property {LogException} exception
+ * @property {string | null} exception_type
+ * @property {string | null} exception_value
+ * @property {string | null} exception_traceback
  */
 
 /**
