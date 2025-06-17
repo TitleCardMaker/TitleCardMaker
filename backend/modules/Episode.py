@@ -4,12 +4,11 @@ from pathlib import Path
 from re import compile as re_compile
 from typing import Any
 
-from modules.EpisodeInfo2 import EpisodeInfoV1
+from app.info.episode import EpisodeInfoV1, WordSet
 from modules import global_objects
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
-from modules.Debug import log
-from modules.EpisodeInfo2 import WordSet
+from app.logging.logger import log
 from modules.StyleSet import StyleSet
 from modules.Title import Title
 from modules.TitleCard import TitleCard

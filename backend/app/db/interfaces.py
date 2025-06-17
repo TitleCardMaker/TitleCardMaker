@@ -1,12 +1,12 @@
 from app.core.config import PreferencesLocal
-from app.interfaces.EmbyInterface2 import EmbyInterface
-from modules.ImageMagickInterface import ImageMagickInterface
-from modules.InterfaceGroup import InterfaceGroup as IG
-from modules.JellyfinInterface2 import JellyfinInterface
-from modules.PlexInterface2 import PlexInterface
-from modules.SonarrInterface2 import SonarrInterface
-from modules.TMDbInterface2 import TMDbInterface
-from modules.TVDbInterface import TVDbInterface
+from app.interfaces.base import InterfaceGroup as IG
+from app.interfaces.emby import EmbyInterface
+from app.interfaces.magick import ImageMagickInterface
+from app.interfaces.jellyfin import JellyfinInterface
+from app.interfaces.plex import PlexInterface
+from app.interfaces.sonarr import SonarrInterface
+from app.interfaces.tmdb import TMDbInterface
+from app.interfaces.tvdb import TVDbInterface
 
 
 # Initialize all interfaces

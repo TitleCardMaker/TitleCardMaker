@@ -4,22 +4,18 @@ from pathlib import Path
 from pickle import dump, load
 from typing import Any, TYPE_CHECKING, Literal
 
+from app.info.episode import EpisodeInfo
+from app.interfaces.magick import ImageMagickInterface
+from app.logging.logger import log, Logger
+from app.settings import BACKEND_ROOT, CONFIG_ROOT, TCM_ROOT, settings
 from modules.BaseCardType import BaseCardType
-from modules.Debug import Logger, log, tz
-from modules.EpisodeInfo2 import EpisodeInfo
 from modules.FormatString import FormatString
-from modules.ImageMagickInterface import ImageMagickInterface
 from modules.RemoteCardType2 import RemoteCardType
 from modules.TitleCard import TitleCard
 from modules.Version import Version
 
 if TYPE_CHECKING:
     from app.schemas.preferences import CardExtension
-
-
-TCM_ROOT = Path(__file__).parent.parent.parent
-BACKEND_ROOT = TCM_ROOT / 'backend'
-CONFIG_ROOT = TCM_ROOT / 'config'
 
 
 class Preferences:
@@ -139,7 +135,7 @@ class Preferences:
         """
 
         # Set initial values
-        self.is_docker = environ.get('TCM_IS_DOCKER', 'false').lower() == 'true'
+        self.is_docker = settings.IS_DOCKER
         self.__initialize_defaults()
 
         # Get preferences from file
@@ -148,20 +144,25 @@ class Preferences:
 
         # Parse file
         self.parse_file(self.read_file())
-        self.server_boot_time = datetime.now(tz=tz)
+        self.server_boot_time = datetime.now(tz=settings.TIMEZONE)
 
         # Initialize paths
         self.asset_directory: Path = Path(self.asset_directory)
         self.card_directory: Path = Path(self.card_directory)
         self.card_type_directory = Path(self.card_type_directory)
         self.source_directory = Path(self.source_directory)
-        for folder in (self.asset_directory, self.card_directory,
-                       self.source_directory):
+        for folder in (
+            self.asset_directory,
+            self.card_directory,
+            self.source_directory
+        ):
             try:
                 folder.mkdir(parents=True, exist_ok=True)
             except PermissionError:
-                log.critical(f'Could not initialize directory "{folder}" - '
-                             f'invalid permissions')
+                log.critical(
+                    f'Could not initialize directory "{folder}" - invalid '
+                    f'permissions'
+                )
 
         # Parse local card type files
         self.parse_local_card_types()
@@ -623,10 +624,3 @@ class Preferences:
 
         log.error(f'Unable to identify card type "{identifier}"')
         return None
-
-
-__all__ = [
-    'TCM_ROOT',
-    'CONFIG_ROOT',
-    'Preferences',
-]

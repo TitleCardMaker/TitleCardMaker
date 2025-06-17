@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
@@ -12,17 +12,19 @@ from app.dependencies import (
     get_tvdb_interfaces
 )
 from app.core.templates import get_effective_templates
+from app.info.episode import EpisodeInfo
+from app.interfaces.base import WatchedStatus
+from app.interfaces.v2 import (
+    SonarrInterface,
+    TMDbInterface,
+    TVDbInterface,
+)
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.series import Series
 from app.schemas.base import UNSPECIFIED
 from app.schemas.episode import UpdateEpisode
-from modules.Debug import Logger, log
-from modules.EpisodeDataSource import WatchedStatus
-from modules.EpisodeInfo2 import EpisodeInfo
-from modules.SonarrInterface2 import SonarrInterface
-from modules.TMDbInterface2 import TMDbInterface
-from modules.TVDbInterface import TVDbInterface
+from app.logging.logger import Logger, log
 from modules.TieredSettings import TieredSettings
 
 

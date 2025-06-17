@@ -28,13 +28,13 @@ from app.core.sources import (
     resolve_all_source_settings,
     resolve_source_settings,
 )
+from app.interfaces.base import InterfaceGroup
+from app.interfaces.web import WebInterface
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
 from app.models.loaded import Loaded as LoadedModel
 from app.schemas.card import SourceImage, ExternalSourceImage
-from modules.Debug import Logger
-from modules.InterfaceGroup import InterfaceGroup
-from modules.WebInterface import WebInterface
+from app.logging.logger import Logger
 
 
 source_router = APIRouter(

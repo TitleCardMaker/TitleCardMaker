@@ -12,13 +12,13 @@ from typing import (
 
 from titlecase import titlecase
 
+from app.magick.base import Dimensions, ImageMaker, ImageMagickCommands
 from app.schemas.card import CardTypeDescription, Extra
-from modules.Debug import log
-from modules.ImageMaker import Dimensions, ImageMagickCommands, ImageMaker
+from app.logging.logger import log
 from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
-    from modules.Font import Font
+    from app.yaml.font import Font
     from modules.preferences import Preferences
 
 CardDescription = CardTypeDescription

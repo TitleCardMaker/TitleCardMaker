@@ -7,29 +7,32 @@ from fastapi import HTTPException
 from num2words import CONVERTER_CLASSES as SUPPORTED_LANGUAGE_CODES
 from tqdm import tqdm
 
+from app.interfaces.v1 import (
+    EmbyInterfaceV1,
+    ImageMagickInterface,
+    JellyfinInterfaceV1,
+    PlexInterfaceV1,
+    SonarrInterfaceV1,
+    TMDbInterfaceV1,
+    TautulliInterfaceV1,
+)
+from app.info.series import SeriesInfoV1
+from app.logging.logger import log
+from app.magick.base import ImageMaker
+from app.magick.summary import StandardSummary, StylizedSummary
+from app.settings import TQDM_KWARGS
+from app.yaml.font import Font
+from app.yaml.sync import SeriesYamlWriter
+from app.yaml.reader import YamlReader
+from app.yaml.template import Template
 from modules.CleanPath import CleanPath
-from modules.Debug import log, TQDM_KWARGS
-from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
-from modules.Font import Font
 from modules.FormatString import FormatString
-from modules.ImageMagickInterface import ImageMagickInterface
-from modules.ImageMaker import ImageMaker
-from modules.JellyfinInterface2 import JellyfinInterfaceV1
 from modules.Manager import Manager
-from modules.PlexInterface import PlexInterface
-from modules.SeriesInfo2 import SeriesInfoV1
-from modules.SeriesYamlWriter import SeriesYamlWriter
 from modules.Show import Show
-from modules.SonarrInterface2 import SonarrInterfaceV1
-from modules.StandardSummary import StandardSummary
 from modules.StyleSet import StyleSet
-from modules.StylizedSummary import StylizedSummary
-from modules.TautulliInterface2 import TautulliInterfaceV1
-from modules.Template import Template
 from modules.TitleCard import TitleCard
-from modules.TMDbInterface2 import TMDbInterfaceV1
 from modules.Version import Version
-from modules.YamlReader import YamlReader
+
 
 YamlWriterSet = namedtuple(
     'YamlWriterSet', ('interface_id', 'writer', 'update_args')
@@ -155,9 +158,9 @@ class PreferenceParser(YamlReader):
         self.plex_verify_ssl = True
         self.integrate_with_kometa = False
         self.plex_filesize_limit = self.filesize_as_bytes(
-            PlexInterface.DEFAULT_FILESIZE_LIMIT
+            PlexInterfaceV1.DEFAULT_FILESIZE_LIMIT
         )
-        self.plex_timeout = PlexInterface.DEFAULT_TIMEOUT
+        self.plex_timeout = PlexInterfaceV1.DEFAULT_TIMEOUT
         self.plex_style_set = StyleSet()
         self.plex_yaml_writers = []
         self.plex_yaml_update_args = []
@@ -936,7 +939,7 @@ class PreferenceParser(YamlReader):
 
 
     def __validate_fonts(self,
-            font_yaml: dict[str, str | float],
+            font_yaml: dict[str, dict[str, str | float]] | Any,
             file: Path
         ) -> bool:
         """
@@ -952,26 +955,19 @@ class PreferenceParser(YamlReader):
 
         # Font map must be a dictionary
         if not isinstance(font_yaml, dict):
-            log.error(f'Invalid font specification for series file '
-                      f'"{file.resolve()}"')
+            log.error(
+                f'Invalid font specification for series file "{file.resolve()}"'
+            )
             return False
 
         # Validate all given fonts
         for name, spec in font_yaml.items():
             # All fonts must be dictionaries
-            if not isinstance(spec, dict):
+            if not Font.validate_yaml(spec):
                 log.error(
                     f'Font "{name}" is invalid for series file "{file.resolve()}"'
                 )
                 return False
-
-            # All fonts must provide valid font attributes
-            for attrib in spec.keys():
-                if attrib not in Font.VALID_ATTRIBUTES:
-                    log.error(
-                        f'Font "{name}" has unrecognized attribute "{attrib}"'
-                    )
-                    return False
 
         return True
 

@@ -6,8 +6,8 @@ from plexapi.video import Episode as PlexEpisode
 from sqlalchemy import ColumnElement, and_, false as sql_false, func, or_, not_
 from titlecase import titlecase
 
-from modules.Debug import Logger, log
-from modules.DatabaseInfoContainer import DatabaseInfoContainer, InterfaceID
+from app.info.base import DatabaseInfoContainer, InterfaceID
+from app.logging.logger import Logger, log
 from modules.Title import Title
 
 if TYPE_CHECKING:

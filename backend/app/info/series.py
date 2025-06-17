@@ -6,7 +6,7 @@ from plexapi.video import Show as PlexShow
 from sqlalchemy import ColumnElement, and_, func, or_
 
 from modules.CleanPath import CleanPath
-from modules.DatabaseInfoContainer import DatabaseInfoContainer, InterfaceID
+from app.info.base import DatabaseInfoContainer, InterfaceID
 
 if TYPE_CHECKING:
     from app.models.series import Series
@@ -771,4 +771,3 @@ class SeriesInfoV1(DatabaseInfoContainer):
         matching_names = map(self.get_matching_title, names)
 
         return any(name == self.match_name for name in matching_names)
-

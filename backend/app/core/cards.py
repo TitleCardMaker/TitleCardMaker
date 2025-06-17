@@ -9,13 +9,20 @@ from sqlalchemy.exc import OperationalError, PendingRollbackError
 from sqlalchemy.orm import Query, Session
 from sqlalchemy.orm.session import object_session
 
-from app.db.query import get_font, get_media_interface
-from app.dependencies import get_database, get_preferences
 from app.core.availability import expire_cache, get_remote_card_hash
 from app.core.episodes import refresh_episode_data
 from app.core.sources import download_episode_source_images
 from app.core.templates import get_effective_templates
 from app.core.translate import translate_episode
+from app.db.query import get_font, get_media_interface
+from app.dependencies import get_database, get_preferences
+from app.exceptions import (
+    InvalidCardSettings,
+    InvalidFormatString,
+    MissingSourceImage,
+    UnknownCardType,
+)
+from app.logging.logger import Logger, log
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.font import Font
@@ -28,14 +35,6 @@ from app.schemas.card import NewTitleCard
 from app.schemas.card_type import LocalCardTypeModels
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
-from modules.Debug import (
-    InvalidCardSettings,
-    InvalidFormatString,
-    Logger,
-    MissingSourceImage,
-    UnknownCardType,
-    log,
-)
 from modules.FormatString import FormatString
 from modules.RemoteCardType2 import RemoteCardType
 from modules.RemoteFile import RemoteFile

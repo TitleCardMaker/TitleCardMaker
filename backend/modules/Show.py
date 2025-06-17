@@ -4,36 +4,37 @@ from typing import TYPE_CHECKING, Literal, Union, cast
 
 from tqdm import tqdm
 
+from app.interfaces.v1 import (
+    DataFileInterface,
+    EmbyInterfaceV1,
+    ImageMagickInterface,
+    JellyfinInterfaceV1,
+    PlexInterfaceV1,
+    SonarrInterfaceV1,
+    TMDbInterfaceV1,
+    WebInterface,
+)
+from app.info.episode import EpisodeInfoV1
+from app.info.series import SeriesInfoV1
+from app.logging.logger import log
+from app.settings import TQDM_KWARGS
+from app.yaml.font import Font
+from app.yaml.reader import YamlReader
+from app.yaml.season_posters import SeasonPosterSet
 from modules.CleanPath import CleanPath
-from modules.DataFileInterface import DataFileInterface
-from modules.Debug import log, TQDM_KWARGS
-from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
 from modules.Episode import Episode, MultiEpisode
-from modules.EpisodeInfo2 import EpisodeInfoV1
 from modules.EpisodeMap import EpisodeMap
-from modules.Font import Font
 from modules import global_objects
-from modules.ImageMagickInterface import ImageMagickInterface
-from modules.JellyfinInterface2 import JellyfinInterfaceV1
-from modules.PlexInterface import PlexInterface
 from modules.Profile import Profile
-from modules.SeasonPosterSet import SeasonPosterSet
-from modules.SeriesInfo2 import SeriesInfoV1
-from modules.SonarrInterface2 import SonarrInterfaceV1
 from modules.StyleSet import StyleSet
 from modules.TitleCard import TitleCard
 from modules.Title import Title
-from modules.TMDbInterface2 import TMDbInterfaceV1
-from modules.WebInterface import WebInterface
-from modules.YamlReader import YamlReader
 
 if TYPE_CHECKING:
     from modules.PreferenceParser import PreferenceParser
 
 
 type MediaServer = Literal['emby', 'jellyfin', 'plex']
-
-__all__ = ['Show']
 
 
 class Show(YamlReader):
@@ -186,7 +187,9 @@ class Show(YamlReader):
 
         # Create Font object, update validity
         self.font = Font(
-            self._base_yaml.get('font', {}), self.card_class, self.series_info,
+            self._base_yaml.get('font', {}),
+            self.card_class,
+            self.series_info,
         )
         self.valid &= self.font.valid
 
@@ -413,7 +416,7 @@ class Show(YamlReader):
     def assign_interfaces(self,
             emby_interface: EmbyInterfaceV1 | None = None,
             jellyfin_interface: JellyfinInterfaceV1 | None = None,
-            plex_interface: PlexInterface | None = None,
+            plex_interface: PlexInterfaceV1 | None = None,
             sonarr_interfaces: list[SonarrInterfaceV1] = [],
             tmdb_interface: TMDbInterfaceV1 | None = None,
         ) -> None:
@@ -635,7 +638,7 @@ class Show(YamlReader):
             return None
         interface = cast(
             Union[
-                EmbyInterfaceV1, JellyfinInterfaceV1, PlexInterface,
+                EmbyInterfaceV1, JellyfinInterfaceV1, PlexInterfaceV1,
                 SonarrInterfaceV1, TMDbInterfaceV1
             ],
             interface
@@ -1199,7 +1202,7 @@ class Show(YamlReader):
         if not media_interface:
             return None
         media_interface = cast(
-            EmbyInterfaceV1 | JellyfinInterfaceV1 | PlexInterface,
+            EmbyInterfaceV1 | JellyfinInterfaceV1 | PlexInterfaceV1,
             media_interface
         )
 

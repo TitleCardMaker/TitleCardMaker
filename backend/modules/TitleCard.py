@@ -2,13 +2,13 @@ from pathlib import Path
 from re import match, sub, IGNORECASE
 from typing import TYPE_CHECKING
 
+from app.info.episode import EpisodeInfoV1
+from app.info.series import SeriesInfoV1
 from modules import global_objects
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
-from modules.EpisodeInfo2 import EpisodeInfoV1
 from app.logging.logger import log
 from modules.FormatString import FormatString
-from modules.SeriesInfo2 import SeriesInfoV1
 from modules.TieredSettings import TieredSettings
 from modules.Title import SplitCharacteristics
 

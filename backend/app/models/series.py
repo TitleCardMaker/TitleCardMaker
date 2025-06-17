@@ -25,8 +25,8 @@ from app.dependencies import get_preferences
 from app.models.template import SeriesTemplates, Template
 from app.schemas.connection import ServerName
 from modules.CleanPath import CleanPath
-from modules.SeriesInfo2 import SeriesInfo
 from app.logging.logger import Logger, log
+from app.info.series import SeriesInfo
 
 if TYPE_CHECKING:
     from sqlalchemy.event import Events

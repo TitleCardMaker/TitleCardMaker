@@ -6,8 +6,8 @@ from app.dependencies import get_database, get_logger, require_tvdb_interface
 from app.db.users import get_current_user
 from app.core.translate import translate_episode
 from app.schemas.episode import Episode
-from modules.TVDbInterface import TVDbInterface
 from app.logging.logger import Logger
+from app.interfaces.tvdb import TVDbInterface
 
 
 translation_router = APIRouter(

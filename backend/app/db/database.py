@@ -1,4 +1,3 @@
-from os import environ
 from re import IGNORECASE, sub as re_sub, match as _regex_match
 from typing import Any, Generator
 
@@ -8,14 +7,14 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.event import listens_for
 from unidecode import unidecode
 
+from app.settings import settings
 
-# Whether a Docker execution or not
-IS_DOCKER = environ.get('TCM_IS_DOCKER', 'false').lower() == 'true'
 
 # URL of the SQL Database - based on whether in Docker or not
-SQLALCHEMY_DATABASE_URL = 'sqlite:///./config/db.sqlite'
-if IS_DOCKER:
+if settings.IS_DOCKER:
     SQLALCHEMY_DATABASE_URL = 'sqlite:////config/db.sqlite'
+else:
+    SQLALCHEMY_DATABASE_URL = 'sqlite:///../config/db.sqlite'
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
@@ -32,7 +31,7 @@ engine = create_engine(
 
 # URL to the Blueprints SQL database
 BLUEPRINT_SQL_DATABASE_URL = 'sqlite:///./modules/.objects/blueprints.db'
-if IS_DOCKER:
+if settings.IS_DOCKER:
     BLUEPRINT_SQL_DATABASE_URL = 'sqlite:////maker/modules/.objects/blueprints.db'
 
 blueprint_engine = create_engine(

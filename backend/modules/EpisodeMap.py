@@ -1,8 +1,8 @@
 from re import compile as re_compile, IGNORECASE
 from typing import Any, Callable, Literal
 
-from modules.Debug import log
-from modules.EpisodeInfo2 import EpisodeInfoV1
+from app.info.episode import EpisodeInfoV1
+from app.logging.logger import log
 from modules.FormatString import FormatString
 
 

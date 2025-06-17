@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Iterator, TypeVar, Union
+from typing import TYPE_CHECKING, Iterator, TypeVar
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import HTTPException, Query, Request
@@ -18,26 +18,23 @@ from app.db.interfaces import (
 )
 from app.db.scheduler import Scheduler
 from app.db.database import BlueprintSessionMaker, SessionLocal
-from modules.Debug import Logger, log
-from app.interfaces.EmbyInterface2 import EmbyInterface
-from modules.ImageMagickInterface import ImageMagickInterface
-from modules.Interface import Interface
-from modules.InterfaceGroup import InterfaceGroup
-from modules.JellyfinInterface2 import JellyfinInterface
-from modules.PlexInterface2 import PlexInterface
-from modules.SonarrInterface2 import SonarrInterface
-from modules.TMDbInterface2 import TMDbInterface
-from modules.TVDbInterface import TVDbInterface
+from app.interfaces.base import Interface, InterfaceGroup
+from app.interfaces.v2 import (
+    AnyInterface,
+    EmbyInterface,
+    ImageMagickInterface,
+    JellyfinInterface,
+    PlexInterface,
+    SonarrInterface,
+    TMDbInterface,
+    TVDbInterface,
+)
+from app.logging.database import LogsSessionLocal
+from app.logging.logger import Logger, log
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences
 
-
-"""Type for any generic interface"""
-AnyInterface = Union[
-    EmbyInterface, JellyfinInterface, PlexInterface, SonarrInterface,
-    TMDbInterface, TVDbInterface
-]
 
 """Where to download the Blueprint SQL Database from"""
 BLUEPRINT_DATABASE_URL =\

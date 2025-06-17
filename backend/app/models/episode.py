@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, TYPE_CHECKING, TypedDict
+from typing import Any, TYPE_CHECKING, TypedDict
 
 from sqlalchemy import Column, ForeignKey, String, JSON, func
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
@@ -9,13 +9,12 @@ from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
 
 from app.dependencies import get_preferences
 from app.db.database import Base
+from app.info.episode import EpisodeInfo
+from app.interfaces.base import WatchedStatus
 from app.models.template import EpisodeTemplates, Template
 from app.schemas.connection import ServerName
 from app.schemas.preferences import Style
-
-from modules.Debug import Logger, log
-from modules.EpisodeDataSource import WatchedStatus
-from modules.EpisodeInfo2 import EpisodeInfo
+from app.logging.logger import Logger, log
 from modules.TieredSettings import TieredSettings
 
 if TYPE_CHECKING:
@@ -42,7 +41,7 @@ class Episode(Base):
 
     # Referencial arguments
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    font_id: Mapped[Optional[int]] = mapped_column(ForeignKey('font.id'))
+    font_id: Mapped[int | None] = mapped_column(ForeignKey('font.id'))
     series_id: Mapped[int] = mapped_column(ForeignKey('series.id'))
 
     created: Mapped[datetime] = mapped_column(
@@ -70,8 +69,8 @@ class Episode(Base):
         creator=lambda st: st,
     )
 
-    source_file: Mapped[Optional[str]]
-    card_file: Mapped[Optional[str]]
+    source_file: Mapped[str | None]
+    card_file: Mapped[str | None]
     watched_statuses: dict[str, bool] = Column(
         MutableDict.as_mutable(JSON), # type: ignore
         default={},
@@ -80,41 +79,41 @@ class Episode(Base):
 
     season_number: Mapped[int]
     episode_number: Mapped[int]
-    absolute_number: Mapped[Optional[int]]
+    absolute_number: Mapped[int | None]
 
     title: Mapped[str]
-    match_title: Mapped[Optional[bool]]
-    auto_split_title: Mapped[Optional[bool]] = mapped_column(default=None)
+    match_title: Mapped[bool | None]
+    auto_split_title: Mapped[bool | None] = mapped_column(default=None)
 
-    card_type: Mapped[Optional[str]]
-    hide_season_text: Mapped[Optional[bool]]
-    season_text: Mapped[Optional[str]]
-    hide_episode_text: Mapped[Optional[bool]]
-    episode_text: Mapped[Optional[str]]
-    unwatched_style: Mapped[Optional[Style]] = mapped_column(String, default=None)
-    watched_style: Mapped[Optional[Style]] = mapped_column(String, default=None)
+    card_type: Mapped[str | None]
+    hide_season_text: Mapped[bool | None]
+    season_text: Mapped[str | None]
+    hide_episode_text: Mapped[bool | None]
+    episode_text: Mapped[str | None]
+    unwatched_style: Mapped[Style | None] = mapped_column(String, default=None)
+    watched_style: Mapped[Style | None] = mapped_column(String, default=None)
 
-    font_color: Mapped[Optional[str]]
-    font_size: Mapped[Optional[float]]
-    font_kerning: Mapped[Optional[float]]
-    font_stroke_width: Mapped[Optional[float]]
-    font_interline_spacing: Mapped[Optional[int]]
-    font_interword_spacing: Mapped[Optional[int]]
-    font_vertical_shift: Mapped[Optional[int]]
+    font_color: Mapped[str | None]
+    font_size: Mapped[float | None]
+    font_kerning: Mapped[float | None]
+    font_stroke_width: Mapped[float | None]
+    font_interline_spacing: Mapped[int | None]
+    font_interword_spacing: Mapped[int | None]
+    font_vertical_shift: Mapped[int | None]
 
     emby_id: Mapped[str]
-    imdb_id: Mapped[Optional[str]]
+    imdb_id: Mapped[str | None]
     jellyfin_id: Mapped[str]
-    tmdb_id: Mapped[Optional[int]]
-    tvdb_id: Mapped[Optional[int]]
-    tvrage_id: Mapped[Optional[int]]
-    airdate: Mapped[Optional[datetime]]
+    tmdb_id: Mapped[int | None]
+    tvdb_id: Mapped[int | None]
+    tvrage_id: Mapped[int | None]
+    airdate: Mapped[datetime | None]
 
     translations: Mapped[dict[str, str]] = mapped_column(
         MutableDict.as_mutable(JSON),
         default={}
     )
-    extras: Mapped[Optional[dict[str, Any]]] = mapped_column(
+    extras: Mapped[dict[str, Any] | None] = mapped_column(
         MutableDict.as_mutable(JSON),
         default=None
     )
@@ -181,7 +180,7 @@ class Episode(Base):
         )
 
 
-    def get_card_properties(self, library: Optional[Library]) -> dict[str, Any]:
+    def get_card_properties(self, library: Library | None) -> dict[str, Any]:
         """Properties to utilize and merge in Title Card creation."""
 
         eps = [(

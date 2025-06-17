@@ -15,15 +15,17 @@ from app.models.episode import Episode
 from app.models.series import Library, Series
 from app.schemas.card import SourceImage
 from app.schemas.preferences import Style
-from modules.Debug import Logger, log
-from app.interfaces.EmbyInterface2 import EmbyInterface
-from modules.JellyfinInterface2 import JellyfinInterface
-from modules.PlexInterface2 import PlexInterface
-from modules.SonarrInterface2 import SonarrInterface
-from modules.TMDbInterface2 import TMDbInterface
-from modules.TVDbInterface import TVDbInterface
+from app.interfaces.web import WebInterface
+from app.interfaces.v2 import (
+    EmbyInterface,
+    JellyfinInterface,
+    PlexInterface,
+    SonarrInterface,
+    TMDbInterface,
+    TVDbInterface,
+)
 from modules.TieredSettings import TieredSettings
-from modules.WebInterface import WebInterface
+from app.logging.logger import Logger, log
 
 
 def download_all_series_logos(*, log: Logger = log) -> None:

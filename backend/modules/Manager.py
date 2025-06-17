@@ -7,15 +7,18 @@ from tqdm import tqdm
 from yaml import dump
 
 from modules import global_objects
-from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
-from modules.Debug import log, TQDM_KWARGS
-from modules.JellyfinInterface2 import JellyfinInterfaceV1
-from modules.PlexInterface import PlexInterface
+from app.interfaces.v1 import (
+    EmbyInterfaceV1,
+    JellyfinInterfaceV1,
+    PlexInterfaceV1,
+    SonarrInterfaceV1,
+    TautulliInterfaceV1,
+    TMDbInterfaceV1,
+)
+from app.logging.logger import log
+from app.settings import TQDM_KWARGS
 from modules.Show import Show
 from modules.ShowArchive import ShowArchive
-from modules.SonarrInterface2 import SonarrInterfaceV1
-from modules.TautulliInterface2 import TautulliInterfaceV1
-from modules.TMDbInterface2 import TMDbInterfaceV1
 
 
 def notify(message: str) -> Callable:
@@ -92,7 +95,7 @@ class Manager:
         # Optionally assign PlexInterface
         self.plex_interface = None
         if self.preferences.use_plex:
-            self.plex_interface = PlexInterface(
+            self.plex_interface = PlexInterfaceV1(
                 **self.preferences.plex_interface_kwargs
             )
 

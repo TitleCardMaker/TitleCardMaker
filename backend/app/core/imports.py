@@ -8,6 +8,12 @@ from fastapi import HTTPException
 from ruamel.yaml import YAML
 from sqlalchemy.orm import Session
 
+from app.core.cards import (
+    add_card_to_database,
+    resolve_card_settings,
+    validate_card_type_model
+)
+from app.core.connection import add_connection, update_connection
 from app.dependencies import (
     get_emby_interfaces,
     get_jellyfin_interfaces,
@@ -16,17 +22,14 @@ from app.dependencies import (
     get_tmdb_interfaces,
     refresh_imagemagick_interface
 )
-from app.core.cards import (
-    add_card_to_database,
-    resolve_card_settings,
-    validate_card_type_model
-)
-from app.core.connection import add_connection, update_connection
+from app.exceptions import InvalidCardSettings
+from app.info.series import SeriesInfo
+from app.interfaces.web import WebInterface
+from app.logging.logger import Logger, log
 from app.models.card import Card as CardModel
 from app.models.connection import Connection
 from app.models.episode import Episode
 from app.models.font import Font as FontModel
-from modules.preferences import Preferences
 from app.models.series import Library, Series
 from app.models.template import Template as TemplateModel
 from app.schemas.base import UNSPECIFIED
@@ -56,12 +59,10 @@ from app.schemas.sync import (
     NewPlexSync,
     NewSonarrSync
 )
-from modules.Debug import InvalidCardSettings, Logger, log
 from modules.EpisodeMap import EpisodeMap
+from modules.preferences import Preferences
 from modules.PreferenceParser import PreferenceParser
-from modules.SeriesInfo2 import SeriesInfo
 from modules.TieredSettings import TieredSettings
-from modules.WebInterface import WebInterface
 
 
 # pylint: disable=missing-function-docstring

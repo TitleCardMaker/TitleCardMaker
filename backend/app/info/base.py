@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Literal, TypeVar, overload
 
-from modules.Debug import Logger, log
+from app.logging.logger import Logger, log
 
 
 type ConnectionID = int | tuple[int, str]

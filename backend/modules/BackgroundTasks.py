@@ -2,11 +2,6 @@ from io import StringIO
 from logging import Logger
 import sys
 from typing import Any, Callable, Iterator, Literal, NamedTuple
-
-from sqlalchemy.orm.session import Session
-
-from app.db.database import Base as DatabaseBase, SessionLocal
-
 if sys.version_info >= (3, 10): # pragma: no cover
     from typing import ParamSpec
 else: # pragma: no cover
@@ -15,9 +10,11 @@ else: # pragma: no cover
 import fastapi
 from rich.console import Console
 from rich.traceback import Traceback
+from sqlalchemy.orm.session import Session
 import starlette.background
 
-from modules.Debug2 import logger as log
+from app.db.database import Base as DatabaseBase, SessionLocal
+from app.logging.logger import log
 
 
 class _Task(NamedTuple):
@@ -116,9 +113,11 @@ class DependencyInjector:
                 function.
         """
 
+        def is_dependency(a: Any) -> bool:
+            return isinstance(a, (Session, DatabaseBase))
+
         # Determine how many dependencies will require a Session be
         # instantiated
-        is_dependency = lambda a: isinstance(a, (Session, DatabaseBase))
         self.multiple_db_dependencies = (
             sum(1 for arg in args if is_dependency(arg)) \
             + sum(1 for v in kwargs.values() if is_dependency(v))
@@ -273,7 +272,8 @@ class BackgroundTasks(starlette.background.BackgroundTasks):
                     logger: Logger = kwargs['log']
 
                 # Create Console to print rich Traceback
-                console = Console(file=StringIO())
+                file = StringIO()
+                console = Console(file=file)
                 console.print(
                     Traceback(
                         width=120,
@@ -289,7 +289,7 @@ class BackgroundTasks(starlette.background.BackgroundTasks):
                 # Log traceback of failed Task
                 logger.error(
                     f'BackgroundTask {func.__name__}() failed:\n'
-                    f'{console.file.getvalue()}'
+                    f'{file.getvalue()}'
                 )
 
         # Original add_task creates a BackgroundTask object and adds to

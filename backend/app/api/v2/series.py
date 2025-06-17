@@ -50,10 +50,10 @@ from app.schemas.series import (
     SeriesSearchResult,
     UpdateSeries
 )
-from modules.Debug import Logger
-from modules.PlexInterface2 import PlexInterface
+from app.logging.logger import Logger
+from app.interfaces.plex import PlexInterface
 from modules.preferences import Preferences
-from modules.WebInterface import WebInterface
+from app.interfaces.web import WebInterface
 
 
 series_router = APIRouter(
@@ -315,10 +315,7 @@ def update_series(
     - update_series: Attributes of the Series to update.
     """
 
-    # Query for this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
-
-    # Modify Series
     update_series_config(db, series, update, commit=True, log=log)
 
     return series

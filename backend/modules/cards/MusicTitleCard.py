@@ -26,8 +26,8 @@ from modules.BaseCardType import (
     Shadow,
     TextCase,
 )
-from modules.EpisodeInfo2 import EpisodeInfo
 from app.logging.logger import log # noqa: F401
+from app.info.episode import EpisodeInfo
 from modules.FormatString import FormatString
 from modules.Title import SplitCharacteristics
 

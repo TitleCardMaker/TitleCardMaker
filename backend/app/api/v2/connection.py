@@ -42,8 +42,8 @@ from app.schemas.connection import (
 )
 from app.logging.logger import Logger
 from modules.preferences import Preferences
-from modules.SonarrInterface2 import SonarrInterface
-from modules.TautulliInterface2 import TautulliInterface
+from app.interfaces.sonarr import SonarrInterface
+from app.interfaces.tautulli import TautulliInterface
 
 
 # Create sub router for all /connection API requests

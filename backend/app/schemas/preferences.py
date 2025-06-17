@@ -22,7 +22,6 @@ from app.schemas.base import (
 )
 
 from modules.FormatString import FormatString
-from modules.TMDbInterface2 import TMDbInterface
 
 
 """
@@ -65,8 +64,6 @@ Style = Literal[
     'grayscale unique',
     'blur grayscale unique',
 ]
-
-LanguageCode = Literal[TMDbInterface.LANGUAGE_CODES]
 
 SeriesOrder = Literal[
     'alphabetical', 'reverse-alphabetical',

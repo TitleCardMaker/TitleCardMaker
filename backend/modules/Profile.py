@@ -2,14 +2,14 @@ from typing import TYPE_CHECKING, Callable, Literal, TypedDict
 
 from re import compile as re_compile, match, IGNORECASE
 
-from modules.Debug import log
+from app.info.episode import EpisodeInfoV1
+from app.info.series import SeriesInfoV1
+from app.yaml.font import Font
+from app.logging.logger import log
 from modules.Episode import MultiEpisode
-from modules.EpisodeInfo2 import EpisodeInfoV1
 from modules.EpisodeMap import EpisodeMap
-from modules.Font import Font
 from modules.BaseCardType import BaseCardType
 from modules.FormatString import FormatString
-from modules.SeriesInfo2 import SeriesInfoV1
 
 if TYPE_CHECKING:
     from modules.Episode import Episode

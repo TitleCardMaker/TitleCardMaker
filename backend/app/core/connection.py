@@ -31,12 +31,13 @@ from app.schemas.connection import (
     UpdateTMDb,
     UpdateTVDb,
 )
-from modules.Debug import Logger, log
-from modules.Debug2 import SECRETS
-from app.interfaces.EmbyInterface2 import EmbyInterface
-from modules.InterfaceGroup import InterfaceGroup
-from modules.JellyfinInterface2 import JellyfinInterface
-from modules.PlexInterface2 import PlexInterface
+from app.logging.logger import Logger, SECRETS, log
+from app.interfaces.base import InterfaceGroup
+from app.interfaces.v2 import (
+    EmbyInterface,
+    JellyfinInterface,
+    PlexInterface,
+)
 
 
 _MediaServerInterface = (EmbyInterface, JellyfinInterface, PlexInterface)

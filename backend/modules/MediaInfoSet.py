@@ -3,10 +3,10 @@ from typing import Any
 
 from tinydb import where, Query
 
-from modules.EpisodeInfo2 import EpisodeInfoV1
 from app.logging.logger import log
+from app.info.episode import EpisodeInfoV1
 from modules.PersistentDatabase import PersistentDatabase
-from modules.SeriesInfo2 import SeriesInfoV1
+from app.info.series import SeriesInfoV1
 
 
 class MediaInfoSet:

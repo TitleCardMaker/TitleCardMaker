@@ -13,7 +13,7 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Shadow,
 )
-from modules.EpisodeInfo2 import EpisodeInfo
+from app.info.episode import EpisodeInfo
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences

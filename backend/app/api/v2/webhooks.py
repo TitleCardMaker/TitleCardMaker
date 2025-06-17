@@ -38,6 +38,9 @@ from app.core.sources import download_episode_source_images
 from app.core.sync import get_sonarr_libraries
 from app.core.translate import translate_episode
 from app.core.webhooks import process_rating_key
+from app.info.episode import EpisodeInfo
+from app.info.series import SeriesInfo
+from app.interfaces.base import WatchedStatus
 from app.models.card import Card
 from app.models.connection import Connection
 from app.models.episode import Episode
@@ -45,9 +48,6 @@ from app.models.loaded import Loaded
 from app.models.series import Series
 from app.schemas.series import NewSeries
 from app.schemas.webhooks import PlexWebhook, SonarrWebhook
-from modules.EpisodeDataSource import WatchedStatus
-from modules.EpisodeInfo2 import EpisodeInfo
-from modules.SeriesInfo2 import SeriesInfo
 from app.logging.logger import Logger
 
 

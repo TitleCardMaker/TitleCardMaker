@@ -5,7 +5,7 @@ from requests import Response, get
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 from tinydb import where
 
-from modules.Debug import log
+from app.logging.logger import log
 from modules.PersistentDatabase import PersistentDatabase
 
 

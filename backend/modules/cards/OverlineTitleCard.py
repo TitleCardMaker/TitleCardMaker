@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, Literal, Self
 
 from pydantic import FilePath, PositiveFloat, PositiveInt, model_validator
 
+from app.interfaces.magick import Dimensions
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
@@ -12,11 +13,10 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Rectangle,
 )
-from modules.ImageMagickInterface import Dimensions
 
 if TYPE_CHECKING:
+    from app.yaml.font import Font
     from modules.preferences import Preferences
-    from modules.Font import Font
 
 LinePosition = Literal['top', 'bottom']
 

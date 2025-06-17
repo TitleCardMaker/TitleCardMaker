@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import not_
 from sqlalchemy.orm import Session, load_only
@@ -31,6 +31,13 @@ from app.core.series import (
     load_title_card,
     update_series_config,
 )
+from app.exceptions import (
+    InvalidCardSettings,
+    MissingSourceImage,
+    UnknownCardType,
+)
+from app.info.episode import EpisodeInfo
+from app.logging.logger import Logger
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.loaded import Loaded
@@ -44,15 +51,7 @@ from app.schemas.card import (
 from app.schemas.episode import UpdateEpisode
 from app.schemas.font import DefaultFont
 from app.schemas.series import UpdateSeries
-
-from modules.Debug import (
-    InvalidCardSettings,
-    Logger,
-    MissingSourceImage,
-    tz as local_tz,
-    UnknownCardType,
-)
-from modules.EpisodeInfo2 import EpisodeInfo
+from app.settings import settings
 from modules.FormatString import FormatString
 from modules.preferences import Preferences
 from modules.TieredSettings import TieredSettings
@@ -301,7 +300,7 @@ def get_recently_created_title_cards(
     # Convert to UTC timezone for DB comparison - assume after is in TZ
     # timezone if none was provided
     if after.tzinfo is None:
-        after = local_tz.localize(after)
+        after = settings.TIMEZONE.localize(after)
     after = after.astimezone(pytz.timezone('UTC'))
 
     return paginate(

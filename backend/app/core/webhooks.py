@@ -3,17 +3,18 @@ from time import sleep
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.db.query import get_connection
-from app.dependencies import PlexInterface
 from app.core.cards import create_episode_cards
 from app.core.episodes import refresh_episode_data
 from app.core.series import load_all_series_title_cards
 from app.core.snapshot import take_snapshot
 from app.core.sources import download_episode_source_images
+from app.db.query import get_connection
+from app.dependencies import PlexInterface
+from app.exceptions import InvalidCardSettings
 from app.core.translate import translate_episode
+from app.logging.logger import Logger, log
 from app.models.episode import Episode
 from app.models.series import Series
-from modules.Debug import InvalidCardSettings, Logger, log
 
 
 def process_rating_key(

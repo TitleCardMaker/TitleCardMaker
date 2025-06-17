@@ -10,13 +10,15 @@ from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
+from app.settings import CONFIG_ROOT
 from app.logging.logger import log
 
 
 """File where the private key is stored"""
-KEY_FILE = Path(__file__).parent.parent.parent / 'config' / '.key.txt'
 if settings.IS_DOCKER:
     KEY_FILE = Path('/config/.key.txt')
+else:
+    KEY_FILE = CONFIG_ROOT / '.key.txt'
 
 """Only log passlib errors so that bcrypt.__version__ boot warning is ignored"""
 getLogger('passlib').setLevel(ERROR)

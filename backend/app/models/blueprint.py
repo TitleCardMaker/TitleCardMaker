@@ -9,7 +9,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from app.db.database import BlueprintBase, regex_replace
 from app.schemas.blueprint import ImportBlueprint
 from app.schemas.series import NewSeries
-from modules.SeriesInfo2 import SeriesInfo
+from app.info.series import SeriesInfo
 
 
 """

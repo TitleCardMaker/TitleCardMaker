@@ -21,6 +21,14 @@ from app.core.availability import (
 from app.core.font import get_available_fonts
 from app.core.templates import get_available_templates
 from app.db.users import get_current_user
+from app.interfaces.base import InterfaceGroup
+from app.interfaces.v2 import (
+    EmbyInterface,
+    JellyfinInterface,
+    PlexInterface,
+    SonarrInterface,
+    TMDbInterface,
+)
 from app.models.series import Series
 from app.models.template import OPERATIONS, ARGUMENT_KEYS
 from app.schemas.availability import (
@@ -39,14 +47,8 @@ from app.schemas.card_type import Extra
 from app.schemas.preferences import StyleOption
 from app.schemas.series import MediaServerLibrary
 from app.schemas.sync import Tag
-from modules.Debug import Logger
-from app.interfaces.EmbyInterface2 import EmbyInterface
-from modules.InterfaceGroup import InterfaceGroup
-from modules.JellyfinInterface2 import JellyfinInterface
-from modules.PlexInterface2 import PlexInterface
+from app.logging.logger import Logger
 from modules.preferences import Preferences
-from modules.SonarrInterface2 import SonarrInterface
-from modules.TMDbInterface2 import TMDbInterface
 from modules.cards.available import LocalCards
 
 
