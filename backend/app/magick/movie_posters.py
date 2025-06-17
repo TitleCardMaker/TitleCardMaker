@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from modules.Debug import log
-from modules.ImageMaker import ImageMagickCommands, ImageMaker
+from app.magick.base import ImageMagickCommands, ImageMaker
+from app.logging.logger import log
 
 
 class MoviePosterMaker(ImageMaker):

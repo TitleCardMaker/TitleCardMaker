@@ -1,8 +1,7 @@
 from pathlib import Path
 
-from modules.BaseCardType import ImageMagickCommands
-from modules.Debug import log
-from modules.ImageMaker import ImageMaker
+from app.magick.base import ImageMaker, ImageMagickCommands
+from app.logging.logger import log
 
 
 class GenreMaker(ImageMaker):

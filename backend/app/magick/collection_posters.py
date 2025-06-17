@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from modules.Debug import log
-from modules.ImageMaker import ImageMaker
+from app.magick.base import ImageMaker
+from app.logging.logger import log
 
 
 class CollectionPosterMaker(ImageMaker):
@@ -78,8 +78,10 @@ class CollectionPosterMaker(ImageMaker):
 
         # If the source file doesn't exist, exit
         if not self.source.exists():
-            log.error(f'Cannot create genre card, "{self.source.resolve()}" '
-                      f'does not exist.')
+            log.error(
+                f'Cannot create genre card, "{self.source.resolve()}" does not '
+                f'exist.'
+            )
             return None
 
         # Gradient command to either add/omit gradient
