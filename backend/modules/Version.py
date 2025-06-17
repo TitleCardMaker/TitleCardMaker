@@ -3,10 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from re import compile as re_compile
 
-try:
-    from app.logging.logger import log
-except ImportError:
-    from Debug import log
+from app.logging.logger import log
 
 
 class Version:

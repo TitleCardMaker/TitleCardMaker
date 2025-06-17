@@ -22,7 +22,7 @@ class Preferences:
     """Class defining global Preferences."""
 
     """Path to the version file for the Web UI"""
-    VERSION_FILE = BACKEND_ROOT / 'modules' / 'ref' / 'version_webui'
+    VERSION_FILE = BACKEND_ROOT / '.version'
 
     """Default values for global settings"""
     DEFAULT_CARD_FILENAME_FORMAT = (
