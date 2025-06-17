@@ -4,26 +4,12 @@ from typing import Literal, Union
 
 from pydantic import AnyUrl, SecretStr, constr, validator
 
-from app.schemas.base import Base, InterfaceType, UpdateBase, UNSPECIFIED
-from app.interfaces.EmbyInterface2 import EmbyInterface
-from modules.JellyfinInterface2 import JellyfinInterface
-from modules.PlexInterface2 import PlexInterface
-from modules.SonarrInterface2 import SonarrInterface
-from modules.TMDbInterface2 import TMDbInterface
-from modules.TVDbInterface import OrderType
+from app.schemas.base import Base, InterfaceType, UNSPECIFIED
 
 
 # Names of acceptable server types
 ServerName = Literal['Emby', 'Jellyfin', 'Plex', 'Sonarr']
 
-# Any acceptable Interface to an EpisodeDataSource
-EpisodeDataSourceInterface = Union[
-    EmbyInterface,
-    JellyfinInterface,
-    PlexInterface,
-    SonarrInterface,
-    TMDbInterface,
-]
 
 # Match hexstrings of A-F and 0-9.s
 Hexstring = constr(pattern=r'^[a-fA-F0-9]+$')
@@ -33,10 +19,19 @@ FilesizeUnit = Literal['Bytes', 'Kilobytes', 'Megabytes']
 FilesizeLimit = constr(pattern=r'\d+\s+(Bytes|Kilobytes|Megabytes)')
 
 # Accepted TMDb 2-letter language codes
-TMDbLanguageCode = Literal[TMDbInterface.LANGUAGE_CODES]
+TMDbLanguageCode = Literal[
+    'ar', 'ar-AE', 'ar-SA', 'bg', 'ca', 'cn-CN', 'cs', 'da', 'de-AT', 'de-CH',
+    'de-DE', 'el', 'en', 'es-ES', 'es-MX', 'fa', 'fi', 'fr-CA', 'fr-FR', 'he',
+    'hi', 'hu', 'id', 'it-IT', 'it-CH', 'ja', 'ka', 'ko', 'lb', 'lt', 'lv',
+    'my', 'nb-NO', 'nl-BE', 'nl-NL', 'nn-NO', 'ms-BN', 'ms-MY', 'ms-SG', 'no',
+    'pl', 'pt-BR', 'pt-PT', 'ro', 'ru', 'sk', 'sr-RS', 'sv-FI', 'sv-SE', 'th',
+    'tr', 'uk', 'uz-UZ', 'vi', 'zh', 'zh-CN', 'zh-HK', 'zh-SG',
+]
 
 # Order types for TVDb seasons
-TVDbOrderType = OrderType
+TVDbOrderType = Literal[
+    'absolute', 'alternate', 'default', 'dvd', 'official', 'regional'
+]
 
 """
 Base classes
@@ -288,7 +283,7 @@ class TVDbConnection(Base):
     enabled: bool
     name: str
     api_key: str
-    episode_ordering: OrderType
+    episode_ordering: TVDbOrderType
     include_movies: bool
     minimum_dimensions: str
     language_priority: list[str]
