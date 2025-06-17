@@ -83,7 +83,6 @@ def mount_static_app_directories(app: FastAPI, *, log: Logger = log) -> None:
         ('/assets', prefs.asset_directory),
         ('/cards', prefs.card_directory),
         ('/source', prefs.source_directory),
-        ('/logs', LOG_FILE.parent)
     ):
         try:
             app.mount(mount, StaticFiles(directory=directory))

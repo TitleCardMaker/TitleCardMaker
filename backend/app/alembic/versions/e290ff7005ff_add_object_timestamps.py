@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from alembic import op
 import sqlalchemy as sa
 
-from modules.Debug import contextualize, tz
-from modules.Debug2 import logger 
+from app.logging.logger import contextualize, log, Logger
+from app.settings import settings 
 
 # Revision identifiers, used by Alembic.
 revision = 'e290ff7005ff'

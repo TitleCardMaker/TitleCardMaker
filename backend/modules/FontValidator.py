@@ -5,7 +5,7 @@ from string import whitespace
 from fontTools.ttLib import TTFont
 from tinydb import where
 
-from modules.Debug import log
+from app.logging.logger import log
 from modules.PersistentDatabase import PersistentDatabase
 
 

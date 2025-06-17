@@ -17,9 +17,9 @@ from app.schemas.blueprint import ExportBlueprint
 from app.schemas.episode import UpdateEpisode
 from app.schemas.font import NewNamedFont
 from app.schemas.series import NewTemplate, UpdateSeries
-from modules.Debug import log, Logger
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.SeriesInfo2 import SeriesInfo
+from app.logging.logger import log, Logger
 from modules.TieredSettings import TieredSettings
 
 

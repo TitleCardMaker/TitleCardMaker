@@ -7,8 +7,8 @@ from typing import Annotated, NamedTuple
 from fastapi import HTTPException
 
 from app.schemas.preferences import DatabaseBackup, SettingsBackup, SystemBackup
-from app.core.config import settings
-from modules.Debug import Logger, log
+from app.settings import TCM_ROOT, settings
+from app.logging.logger import Logger, log
 from modules.Version import Version
 
 
@@ -20,7 +20,7 @@ BACKUP_DT_FORMAT: Annotated[
 BACKUP_DIRECTORY: Annotated[
     Path,
     'Directory for all backups'
-] = Path('/config/backups' if settings.IS_DOCKER else './config/backups')
+] = Path('/config/backups' if settings.IS_DOCKER else TCM_ROOT / 'config' / 'backups')
 BACKUP_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
 

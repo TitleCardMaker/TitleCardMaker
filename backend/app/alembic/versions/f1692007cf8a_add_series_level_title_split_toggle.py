@@ -14,8 +14,7 @@ Create Date: 2024-03-10 11:41:30.812809
 
 from alembic import op
 import sqlalchemy as sa
-from modules.Debug import contextualize
-from modules.Debug2 import logger 
+from app.logging.logger import contextualize, log 
 
 # Revision identifiers, used by Alembic.
 revision = 'f1692007cf8a'

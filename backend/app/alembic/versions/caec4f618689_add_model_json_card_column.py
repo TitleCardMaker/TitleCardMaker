@@ -18,8 +18,7 @@ Create Date: 2023-10-29 17:47:41.469202
 from pathlib import Path
 from alembic import op
 import sqlalchemy as sa
-from modules.Debug import contextualize
-from modules.Debug2 import logger
+from app.logging.logger import contextualize, log
 
 from app.dependencies import get_preferences
 from modules.CleanPath import CleanPath

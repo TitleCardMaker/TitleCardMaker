@@ -4,7 +4,7 @@ from time import sleep
 
 from fastapi import BackgroundTasks
 
-from modules.Debug import Logger, generate_context_id, log
+from app.logging.logger import log, Logger, generate_context_id
 
 
 class TemporaryZip:

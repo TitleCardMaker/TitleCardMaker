@@ -1,26 +1,23 @@
 from datetime import datetime
+from typing import get_args
 from warnings import simplefilter
 
 from fastapi import (
     APIRouter,
-    BackgroundTasks,
     Depends,
-    HTTPException,
     Query,
 )
-from fastapi.responses import FileResponse
-from fastapi_pagination import paginate
+from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination.utils import FastAPIPaginationWarning
+from sqlalchemy import and_, not_, or_
+from sqlalchemy.orm import Session
 
 from app.db.pagination import Page
-from app.dependencies import get_logger, get_preferences
 from app.db.users import get_current_user
-from app.core.logs import RawLogData, read_log_files
-from modules.preferences import Preferences
+from app.dependencies import get_log_database
+from app.logging.logger import log
+from app.logging.models import Log as LogModel
 from app.schemas.logs import LogEntry, LogInternalServerError, LogLevel
-
-from modules.Debug import Logger, LOG_FILE
-from modules.TemporaryZip import TemporaryZip # noqa: F401
 
 
 # Do not warn about SQL pagination, not used for log filtering
@@ -36,12 +33,8 @@ log_router = APIRouter(
 
 # Map of log level names to numbers for relative comparison
 _LEVEL_NUMBERS: dict[LogLevel, int] = {
-    'TRACE': -1,
-    'DEBUG': 0,
-    'INFO': 1,
-    'WARNING': 2,
-    'ERROR': 3,
-    'CRITICAL': 4,
+    level: log.level(level).no
+    for level in get_args(LogLevel)
 }
 
 
@@ -52,7 +45,7 @@ def query_logs(
         before: datetime | None = Query(default=None),
         context_id: str | None = Query(default=None, min_length=1),
         contains_: str | None = Query(alias='contains', default=None, min_length=1),
-        shallow: bool = Query(default=True),
+        log_db: Session = Depends(get_log_database),
     ) -> Page[LogEntry]: # type: ignore
     """
     Query all log entries for the given criteria.
@@ -63,118 +56,53 @@ def query_logs(
     - context_id: Comma separated list of contexts to filter by. If `!`
     is included, logs with no context ID's are excluded.
     - contains: Required substring. Case insensitive.
-    - shallow: Whether to only do a "shallow" query, which will only
-    evaluate the most recent (active) log file.
     """
 
-    logs = read_log_files(after=after, before=before, shallow=shallow)
-
-    # Function to filter log results by
-    contains = None if contains_ is None else contains_.lower().split('|')
-    def meets_filters(data: RawLogData) -> bool:
-        # Level
-        if _LEVEL_NUMBERS[data['level']] < _LEVEL_NUMBERS[level]:
-            return False
-
-        # Context
-        if (context_id is not None
-            and (
-                ('!' in context_id and data['context_id'] is None)
-                or (data['context_id'] and data['context_id'] not in context_id)
-            )):
-        # if (context_id is not None
-        #     # Include null context messages if '!' wasn't included in filter ID
-        #     and (data['context_id'] is not None or '!' in context_id)
-        #     and data['context_id'] not in context_id):
-            return False
-
-        # Before/After
-        if ((before is not None and data['time'] > before)
-            or (after is not None and data['time'] < after)):
-            return False
-
-        # Contains substring
-        return (
-            contains is None
-            or any(cont in data['message'].lower() for cont in contains)
-        )
+    # Build filters
+    filters = [LogModel.level_number >= _LEVEL_NUMBERS[level]]
+    if after is not None:
+        filters.append(LogModel.timestamp >= after)
+    if before is not None:
+        filters.append(LogModel.timestamp <= before)
+    if context_id is not None:
+        # Includes !, do not allow null context IDs
+        if '!' in context_id:
+            filters.append(and_(
+                # Do not allow null context IDs
+                not_(LogModel.context_id.is_(None)),
+                # Can match any of the given context IDs
+                or_(*[
+                    LogModel.context_id == context_id
+                    for context_id in context_id.split(',').replace('!', '')
+                ])
+            ))
+        # No !, allow null context IDs
+        else:
+            filters.append(or_(
+                LogModel.context_id.is_(None),
+                LogModel.context_id.in_(context_id.split(',')),
+            ))
+    if contains_ is not None:
+        filters.append(LogModel.message.contains(contains_))
 
     return paginate(
-        sorted(
-            [data for data in logs if meets_filters(data)],
-            key=lambda data: data['time'],
-            reverse=True
-        )
+        log_db.query(LogModel)
+            .filter(*filters)
+            .order_by(LogModel.timestamp.desc())
     )
-
-
-@log_router.get('/files')
-def get_log_files() -> list[str]:
-    """
-    Get a list of the log files. This returns the log URLs - i.e. /logs
-    prefixed.
-    """
-
-    return [
-        str(file).replace(str(LOG_FILE.parent.resolve()), '/logs')
-        for file in LOG_FILE.parent.glob(f'{LOG_FILE.stem}*{LOG_FILE.suffix}')
-    ]
-
-
-@log_router.get('/files/{filename}/zip')
-def get_zipped_log_file(
-        background_tasks: BackgroundTasks,
-        filename: str,
-        log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
-    ) -> FileResponse:
-    """
-    Zip the log file with the given name and return it's contents.
-
-    - filename: Name of the file to zip.
-    """
-
-    # Find associated log file, raise 404 if DNE
-    if not (file := LOG_FILE.parent / filename).exists():
-        raise HTTPException(
-            status_code=404,
-            detail='The specified log file does not exist',
-        )
-
-    # Add log file to a temporary directory
-    tzip = TemporaryZip(preferences.TEMPORARY_DIRECTORY, background_tasks)
-    tzip.add_file(file, 'log.jsonl', log=log)
-
-    return FileResponse(tzip.zip(log=log))
 
 
 @log_router.get('/errors')
 def get_internal_server_errors(
-        after: datetime | None = Query(default=None),
-        before: datetime | None = Query(default=None),
-        shallow: bool = Query(default=False),
+    log_db: Session = Depends(get_log_database),
     ) -> list[LogInternalServerError]:
     """
     Get a list of all internal server errors listed in the log files.
-
-    - after: Earliest date of logs to return. ISO 8601 format.
-    - before: Latest date of logs to return. ISO 8601 format.
-    - shallow: Whether to only do a "shallow" query, which will only
-    evaluate the most recent (active) log file.
     """
 
-    return sorted(
-        [
-            LogInternalServerError(
-                context_id=message['context_id'],
-                time=message['time'],
-                file=message['file'].name,
-            )
-            for message in read_log_files(
-                after=after, before=before, shallow=shallow
-            )
-            if message['message'].startswith('Internal Server Error')
-        ],
-        key=lambda message: message.time,
-        reverse=True,
+    return (
+        log_db.query(LogModel)
+            .filter(LogModel.message.startswith('Internal Server Error'))
+            .order_by(LogModel.timestamp.desc())
+            .all()
     )

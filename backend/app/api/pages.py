@@ -19,9 +19,9 @@ from app.db.users import get_current_user
 from app.core.font import get_available_fonts
 from app.core.settings import get_episode_data_sources
 from app.core.templates import get_available_templates
+from app.logging.logger import log, ACTIVE_WEBSOCKETS
 from app.models.connection import Connection
 from app.models.user import User
-from modules.Debug2 import logger as log, ACTIVE_WEBSOCKETS
 from modules.preferences import Preferences
 from modules.cards.available import DEFAULT_BLUR_PROFILES
 

@@ -13,7 +13,7 @@ from modules.preferences import Preferences
 from app.models.template import Template as TemplateModel
 from app.schemas.base import UNSPECIFIED
 from app.schemas.series import NewTemplate, Template, UpdateTemplate
-from modules.Debug import Logger
+from app.logging.logger import Logger
 
 
 # Create sub router for all /templates API requests

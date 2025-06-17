@@ -6,8 +6,9 @@ from typing import Any, Callable
 from num2words import num2words
 from titlecase import titlecase
 
+from app.exceptions import InvalidFormatString
+from app.logging.logger import Logger, log
 from modules.CleanPath import CleanPath
-from modules.Debug import InvalidFormatString, Logger, log
 
 
 # Patch JSON dumps to work with CleanPath objects

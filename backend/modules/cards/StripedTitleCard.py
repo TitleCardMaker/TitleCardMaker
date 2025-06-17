@@ -15,7 +15,7 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from modules.Debug import log # noqa: F401
+from app.logging.logger import log # noqa: F401
 from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:

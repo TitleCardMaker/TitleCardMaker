@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
 
 from app.db.database import Base
 from app.models.template import SyncTemplates, Template
-from modules.Debug import Logger, log
+from app.logging.logger import Logger, log
 
 if TYPE_CHECKING:
     from app.models.connection import Connection

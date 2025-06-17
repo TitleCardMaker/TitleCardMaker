@@ -11,11 +11,9 @@ from app.core.backup import (
     list_available_backups,
     restore_backup,
 )
+from app.logging.logger import ACTIVE_WEBSOCKETS, Logger
 from app.schemas.preferences import SystemBackup
 from modules.BackgroundTasks import task_queue
-from modules.Debug import Logger
-from modules.Debug2 import ACTIVE_WEBSOCKETS
-
 
 # Create sub router for all /backups API requests
 backup_router = APIRouter(

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 from tinydb import where
 
 from modules.BaseCardType import BaseCardType
-from modules.Debug import log
+from app.logging.logger import log
 from modules import global_objects
 from modules.PersistentDatabase import PersistentDatabase
 from modules.Version import Version

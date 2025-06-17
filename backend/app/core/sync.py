@@ -20,7 +20,7 @@ from app.schemas.sync import (
     NewPlexSync,
     NewSonarrSync
 )
-from modules.Debug import Logger, log
+from app.logging.logger import Logger, log
 
 
 def sync_all(*, log: Logger = log) -> None:

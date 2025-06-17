@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 from modules import global_objects
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
-from modules.Debug import log
 from modules.EpisodeInfo2 import EpisodeInfoV1
+from app.logging.logger import log
 from modules.FormatString import FormatString
 from modules.SeriesInfo2 import SeriesInfoV1
 from modules.TieredSettings import TieredSettings

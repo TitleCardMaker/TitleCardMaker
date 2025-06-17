@@ -5,8 +5,7 @@ from typing import Callable
 
 from fastapi import Request, Response
 
-from modules.Debug import contextualize
-from modules.Debug2 import logger as log
+from app.logging.logger import contextualize, log
 
 
 async def contextualize_api_requests(

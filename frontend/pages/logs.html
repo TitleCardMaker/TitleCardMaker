@@ -14,8 +14,8 @@
   <!-- Templates -->
   <template id="trace-message-template">
     <tr class="left grey marked">
-      <td data-value="level" class="selectable center aligned">Trace</td>
-      <td data-value="time" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{time}</td>
+      <td data-value="level_name" class="selectable center aligned">Trace</td>
+      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
       <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
       <td data-value="message">{message}</td>
     </tr>
@@ -23,8 +23,8 @@
 
   <template id="debug-message-template">
     <tr class="left blue marked">
-      <td data-value="level" class="selectable center aligned">Debug</td>
-      <td data-value="time" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{time}</td>
+      <td data-value="level_name" class="selectable center aligned">Debug</td>
+      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
       <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
       <td data-value="message">{message}</td>
     </tr>
@@ -32,8 +32,8 @@
 
   <template id="info-message-template">
     <tr class="green.colored left green marked">
-      <td data-value="level" class="selectable center aligned">Info</td>
-      <td data-value="time" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{time}</td>
+      <td data-value="level_name" class="selectable center aligned">Info</td>
+      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
       <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
       <td data-value="message">{message}</td>
     </tr>
@@ -41,8 +41,8 @@
 
   <template id="warning-message-template">
     <tr class="left yellow marked">
-      <td data-value="level" class="selectable center aligned">Warning</td>
-      <td data-value="time" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{time}</td>
+      <td data-value="level_name" class="selectable center aligned">Warning</td>
+      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
       <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
       <td data-value="message">{message}</td>
     </tr>
@@ -50,8 +50,8 @@
 
   <template id="error-message-template">
     <tr class="left red marked">
-      <td data-value="level" class="selectable center aligned">Error</td>
-      <td data-value="time" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{time}</td>
+      <td data-value="level_name" class="selectable center aligned">Error</td>
+      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
       <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
       <td data-value="message">{message}</td>
     </tr>
@@ -59,8 +59,8 @@
 
   <template id="critical-message-template">
     <tr class="red colored left red marked">
-      <td data-value="level" class="selectable center aligned">Critical</td>
-      <td data-value="time" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{time}</td>
+      <td data-value="level_name" class="selectable center aligned">Critical</td>
+      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
       <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
       <td data-value="message">{message}</td>
     </tr>
@@ -71,7 +71,7 @@
       <i class="large github middle aligned red icon" title="Open a new Issue on GitHub" style="cursor: pointer"></i>
       <div class="content">
         <a class="header" data-value="context_id"></a>
-        <div class="description" data-value="time">from xxx</div>
+        <div class="description" data-value="timestamp">from xxx</div>
       </div>
     </div>
   </template>
@@ -200,19 +200,6 @@
             </th>
           </tr>
         </tfoot>
-      </table>
-
-      <!-- Log files -->
-      <h1 class="ui header">Log Files</h1>
-      <table class="ui striped compact table">
-        <thead>
-          <tr>
-            <th class="collapsing">Filename</th>
-            <th class="collapsing">Log Date</th>
-            <th class="collapsing">Download</th>
-          </tr>
-        </thead>
-        <tbody id="file-list"></tbody>
       </table>
 
       <!-- Internal server errors -->

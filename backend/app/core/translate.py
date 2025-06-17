@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_tmdb_interfaces
 from app.core.templates import get_effective_templates
 from app.models.episode import Episode
-from modules.Debug import Logger, log
+from app.logging.logger import Logger, log
 from modules.TieredSettings import TieredSettings
 
 

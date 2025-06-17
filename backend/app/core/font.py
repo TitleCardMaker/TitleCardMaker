@@ -7,7 +7,7 @@ from app.models.font import Font
 from app.models.series import Series
 from app.schemas.availability import ReturnAvailableFontSchema
 from app.schemas.font import NamedFont
-from modules.Debug import Logger, log
+from app.logging.logger import Logger, log
 
 
 def get_effective_fonts(

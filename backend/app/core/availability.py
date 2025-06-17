@@ -7,7 +7,7 @@ from requests import JSONDecodeError, get
 
 from modules.preferences import Preferences
 from app.schemas.card import LocalCardType, RemoteCardType
-from modules.Debug import log, Logger
+from app.logging.logger import log, Logger
 from modules.Version import Version
 
 

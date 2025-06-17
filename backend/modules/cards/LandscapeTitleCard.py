@@ -21,7 +21,7 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Shadow,
 )
-from modules.Debug import log # noqa: F401
+from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences

@@ -10,7 +10,7 @@ from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
-from modules.Debug import log
+from app.logging.logger import log
 
 
 """File where the private key is stored"""

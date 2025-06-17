@@ -9,8 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 
 from app.core.auth import decrypt, encrypt
-from modules.Debug import contextualize
-from modules.Debug2 import logger 
+from app.logging.logger import contextualize, log 
 
 # Revision identifiers, used by Alembic.
 revision = '84971838f3fc'

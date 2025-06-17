@@ -5,7 +5,7 @@ from typing import Callable
 from json.decoder import JSONDecodeError
 from tinydb import TinyDB
 
-from modules.Debug import log
+from app.logging.logger import log
 from modules import global_objects
 
 

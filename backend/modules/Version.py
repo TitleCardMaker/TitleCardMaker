@@ -4,7 +4,7 @@ from pathlib import Path
 from re import compile as re_compile
 
 try:
-    from modules.Debug import log
+    from app.logging.logger import log
 except ImportError:
     from Debug import log
 

@@ -38,14 +38,14 @@ function updateMessageLevel(level) {
  */
 function updateTimestamp(timestamp) {
   // Get current values of before/after
-  const currentAfter = $('input[name="after"]').val();
-  const currentBefore = $('input[name="before"]').val();
+  const currentAfter = document.querySelector('input[name="after"]').value;
+  const currentBefore = document.querySelector('input[name="before"]').value;
 
   // Populate after if blank, else before
   if (currentAfter === '') {
-    $('input[name="after"]')[0].value = timestamp;
+    document.querySelector('input[name="after"]').value = timestamp;
   } else if (currentBefore === '') {
-    $('input[name="before"]')[0].value = timestamp;
+    document.querySelector('input[name="before"]').value = timestamp;
   }
 }
 
@@ -55,10 +55,10 @@ function updateTimestamp(timestamp) {
  */
 function appendContextID(id) {
   // Get current value
-  const currentVal = $('input[name="context_id"]').val();
+  const currentVal = document.querySelector('input[name="context_id"]').value;
   // Only append if ID is not already listed
   if (!currentVal.includes(id)) {
-    $('input[name="context_id"]')[0].value = currentVal === '' ? id : `${currentVal},${id}`;
+    document.querySelector('input[name="context_id"]').value = currentVal === '' ? id : `${currentVal},${id}`;
   }
 }
 
@@ -122,8 +122,7 @@ function addRichFormatting(message, searchText='') {
  */
 function queryForLogs(page=1) {
   // Mark icon as loadin
-  const $icon = $('.button[data-action="refresh"] .icon');
-  setLoadingIcon($icon);
+  const $icon = setLoadingIcon($('.button[data-action="refresh"] .icon'));
 
   // Prepare Form
   const form = new FormData(document.getElementById('log-filters'));
@@ -142,7 +141,7 @@ function queryForLogs(page=1) {
   // Submit API request
   $.ajax({
     type: 'GET',
-    url: `/api/v2/logs/query?page=${page}&shallow=false&${queryString}`,
+    url: `/api/v2/logs/query?page=${page}&${queryString}`,
     /**
      * Logs queries successfully, add rows for each log message to the DOM.
      * @param {LogEntryPage} messages Log messages to update the table with.
@@ -150,13 +149,13 @@ function queryForLogs(page=1) {
     success: messages => {
       const rows = messages.items.map(message => {
         // Clone template
-        const row = document.querySelector(`#${message.level.toLowerCase()}-message-template`).content.cloneNode(true);
+        const row = document.querySelector(`#${message.level_name.toLowerCase()}-message-template`).content.cloneNode(true);
 
-        const shortTime = message.time.match(/^(.[^\.]+\.\d{3}?)\d*$/m);
+        const shortTime = message.timestamp.match(/^(.[^\.]+\.\d{3}?)\d*$/m);
         if (shortTime) {
-          row.querySelector('[data-value="time"]').innerText = shortTime[1];
+          row.querySelector('[data-value="timestamp"]').innerText = shortTime[1];
         } else {
-          row.querySelector('[data-value="time"]').innerText = message.time;
+          row.querySelector('[data-value="timestamp"]').innerText = message.timestamp;
         }
         row.querySelector('[data-value="context_id"]').innerText = message.context_id
           ? message.context_id
@@ -171,9 +170,9 @@ function queryForLogs(page=1) {
           row.querySelector('[data-value="context_id"]').classList.remove('selectable');
         }
 
-        if (message.exception?.traceback) {
+        if (message.exception_traceback) {
           row.querySelector('[data-value="message"]').classList.add('code');
-          row.querySelector('[data-value="message"]').innerText = message.message + '\n\n' + message.exception.traceback;
+          row.querySelector('[data-value="message"]').innerText = message.message + '\n\n' + message.exception_traceback;
         } else if (message.message.startsWith('Internal Server Error') || message.message.includes('Traceback (most recent call last)')) {
           row.querySelector('[data-value="message"]').classList.add('code');
           row.querySelector('[data-value="message"]').innerText = message.message;
@@ -185,10 +184,10 @@ function queryForLogs(page=1) {
         }
 
         // On click of log level, update filter level
-        row.querySelector('[data-value="level"]').onclick = () => updateMessageLevel(message.level);
+        row.querySelector('[data-value="level_name"]').onclick = () => updateMessageLevel(message.level_name);
         
         // On click of timestamp, update before/after fields
-        row.querySelector('[data-value="time"]').onclick = () => updateTimestamp(message.time);
+        row.querySelector('[data-value="timestamp"]').onclick = () => updateTimestamp(message.timestamp);
         
         // On click of context ID, append current ID to input
         if (message.context_id) {
@@ -216,52 +215,6 @@ function queryForLogs(page=1) {
     },
     error: response => showErrorToast({type: 'Error Querying Logs', response}),
     complete: () => removeLoadingIcon($icon),
-  });
-}
-
-/**
- * Submit an API request to query all available log files. If successful, these
- * files are displayed on the page.
- */
-function queryLogFiles() {
-  $.ajax({
-    type: 'GET',
-    url: '/api/v2/logs/files',
-    /**
-     * Log files queried, add to page.
-     * @param {string[]} files List of file URLs.
-     */
-    success: files => {
-      /** @type {[HTMLElement, Date]} Sorted array of elements to add to page */
-      const fileElements = files.map(file => {
-        // Clone template
-        const template = document.getElementById('log-file-template').content.cloneNode(true);
-
-        // Parse date
-        const date = parseDate(file.replace('/logs/', ''));
-
-        // Fill out template
-        template.querySelector('a').href = file;
-        template.querySelector('[data-value="filename"]').innerText = file.replace('/logs/', '');
-        template.querySelector('[data-value="date"]').innerText = date.toLocaleString('en-US', {
-          month: 'short',
-          day: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true,
-        });
-        
-        return [template, date];
-      }).sort((a, b) => b[1] - a[1]);
-
-      // Add to the page
-      const list = document.getElementById('file-list');
-      fileElements.forEach(([file]) => {
-        list.appendChild(file);
-      });
-    },
-    error: response => showErrorToast({title: 'Error Querying Log Files', response}),
   });
 }
 
@@ -316,7 +269,7 @@ function queryLogErrors() {
       logErrors.forEach(error => {
         const item = template.content.cloneNode(true);
         // Populate the item
-        item.querySelector('[data-value="time"]').innerText = timeAgo(new Date(error.time));
+        item.querySelector('[data-value="timestamp"]').innerText = timeAgo(new Date(error.timestamp));
         item.querySelector('[data-value="context_id"]').innerText = error.context_id;
         // When the context ID is clicked, add-to and scroll-to input
         item.querySelector('[data-value="context_id"]').onclick = () => {
@@ -324,9 +277,9 @@ function queryLogErrors() {
           setTimeout(() => appendContextID(error.context_id), 250);
         }
         // When timestamp is clicked, update inputs
-        item.querySelector('[data-value="time"]').onclick = () => {
+        item.querySelector('[data-value="timestamp"]').onclick = () => {
           document.querySelector('input[name="context_id"]').scrollIntoView({behavior: 'smooth', block: 'start'});
-          updateTimestamp(error.time);
+          updateTimestamp(error.timestamp);
         };
         // When the GitHub icon is clicked, query the log zip and open a new tab
         item.querySelector('.icon').onclick = () => $.ajax({
@@ -358,7 +311,6 @@ function queryLogErrors() {
 function initAll() {
   $('.ui.dropdown').dropdown();
   queryForLogs();
-  queryLogFiles();
   queryLogErrors();
 
   // Initialize date range calendars

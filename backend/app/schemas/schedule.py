@@ -5,7 +5,7 @@ from typing import Callable
 from pydantic import conint, constr, PositiveInt
 
 from app.schemas.base import Base
-from modules.Debug import Logger
+from app.logging.logger import Logger
 
 """
 Base classes

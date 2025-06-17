@@ -23,7 +23,7 @@ from modules.preferences import Preferences
 from app.models.series import Series as SeriesModel
 from app.schemas.episode import ReducedEpisodeData
 from app.schemas.series import SearchResult, Series
-from modules.Debug import Logger
+from app.logging.logger import Logger
 
 # Create sub router for all /fonts API requests
 missing_router = APIRouter(

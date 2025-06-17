@@ -27,7 +27,7 @@ from app.schemas.sync import (
 )
 from app.schemas.series import Series
 from app.models.sync import Sync as SyncModel
-from modules.Debug import Logger
+from app.logging.logger import Logger
 
 
 # Create sub router for all /sync API requests

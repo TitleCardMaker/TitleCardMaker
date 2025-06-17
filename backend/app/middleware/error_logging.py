@@ -6,8 +6,8 @@ from fastapi import Request, Response
 from rich.console import Console
 from rich.traceback import Traceback
 
+from app.logging.logger import log
 import modules.BackgroundTasks
-from modules.Debug2 import logger as log
 
 
 async def log_internal_server_errors(

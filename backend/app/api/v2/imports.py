@@ -14,7 +14,7 @@ from fastapi import (
     Query,
     UploadFile,
 )
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from yaml import safe_load
 from yaml.parser import ParserError
@@ -65,7 +65,7 @@ from app.schemas.imports import (
 from app.schemas.preferences import Preferences
 from app.schemas.series import Series, Template
 from app.schemas.sync import Sync
-from modules.Debug import Logger
+from app.logging.logger import Logger
 
 
 import_router = APIRouter(

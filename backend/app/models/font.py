@@ -11,7 +11,7 @@ from app.dependencies import get_preferences
 from app.schemas.blueprint import BlueprintFont
 from app.schemas.font import TitleCase
 
-from modules.Debug import log # noqa: F401
+from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
     from sqlalchemy.event import Events

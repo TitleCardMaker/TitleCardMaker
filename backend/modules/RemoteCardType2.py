@@ -11,7 +11,7 @@ from tinydb import where
 from app.schemas.base import Base
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
-from modules.Debug import Logger, log
+from app.logging.logger import Logger, log
 from modules.PersistentDatabase import PersistentDatabase
 from modules.RemoteFile import RemoteFile
 

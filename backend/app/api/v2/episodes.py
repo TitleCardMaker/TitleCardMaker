@@ -41,7 +41,7 @@ from app.schemas.episode import (
     SimplifiedEpisodeData,
     UpdateEpisode
 )
-from modules.Debug import Logger
+from app.logging.logger import Logger
 
 
 episodes_router = APIRouter(

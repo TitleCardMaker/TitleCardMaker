@@ -14,7 +14,7 @@ from app.models.template import Template
 from app.models.user import User
 from app.schemas.schedule import NewJob
 from app.schemas.statistic import NewSnapshot
-from modules.Debug import Logger, log
+from app.logging.logger import Logger, log
 
 
 def snapshot_database(*, log: Logger = log) -> None:

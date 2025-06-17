@@ -5,7 +5,7 @@ from pydantic import FilePath
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, CardTypeDescription
-from modules.Debug import log # noqa: F401
+from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences

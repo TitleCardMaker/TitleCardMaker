@@ -25,7 +25,7 @@ from app.schemas.font import (
     NewNamedFont,
     UpdateNamedFont
 )
-from modules.Debug import Logger
+from app.logging.logger import Logger
 from modules.FontValidator import FontValidator
 
 

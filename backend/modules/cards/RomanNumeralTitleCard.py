@@ -12,7 +12,7 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from modules.Debug import log
+from app.logging.logger import log
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences

@@ -3,8 +3,8 @@ from typing import Any
 
 from tinydb import where, Query
 
-from modules.Debug import log
 from modules.EpisodeInfo2 import EpisodeInfoV1
+from app.logging.logger import log
 from modules.PersistentDatabase import PersistentDatabase
 from modules.SeriesInfo2 import SeriesInfoV1
 

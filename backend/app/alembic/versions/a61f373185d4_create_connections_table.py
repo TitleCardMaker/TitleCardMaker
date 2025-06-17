@@ -44,8 +44,7 @@ Create Date: 2023-09-28 12:56:59.752356
 # pylint: disable
 from alembic import op
 import sqlalchemy as sa
-from modules.Debug import contextualize
-from modules.Debug2 import logger
+from app.logging.logger import contextualize, log
 
 # revision identifiers, used by Alembic.
 revision = 'a61f373185d4'

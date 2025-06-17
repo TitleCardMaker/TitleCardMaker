@@ -28,7 +28,7 @@ from app.models.series import Series
 from app.models.sync import Sync
 from app.models.template import Template
 
-from modules.Debug import log
+from app.logging.logger import log
 
 
 _ObjectType = TypeVar('_ObjectType', bound=Base)

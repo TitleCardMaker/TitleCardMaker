@@ -8,7 +8,7 @@ if settings.IS_DOCKER:
     preferences_file = Path('/config/config.pickle')
 else:
     preferences_file = (
-        Path(__file__).parent.parent.parent
+        Path(__file__).parent.parent.parent.parent
             / 'config'
             / 'config.pickle'
     )

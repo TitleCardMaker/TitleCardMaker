@@ -61,6 +61,18 @@ def get_database() -> Iterator[Session]:
         db.close()
 
 
+def get_log_database() -> Iterator[Session]:
+    """
+    Dependency to get a Session to the SQLite database.
+    """
+
+    db = LogsSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 def download_blueprint_database(*, log: Logger = log) -> None:
     """
     Download the Blueprint SQL database from the GitHub repository and

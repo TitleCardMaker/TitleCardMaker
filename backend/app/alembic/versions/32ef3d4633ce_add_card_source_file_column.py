@@ -9,8 +9,7 @@ Create Date: 2024-01-15 00:34:08.115550
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import sqlite
-from modules.Debug import contextualize
-from modules.Debug2 import logger
+from app.logging.logger import contextualize, log
 
 # revision identifiers, used by Alembic.
 revision = '32ef3d4633ce'

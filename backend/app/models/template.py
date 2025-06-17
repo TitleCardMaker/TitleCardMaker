@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 from app.schemas.connection import ServerName
-from modules.Debug import log
+from app.logging.logger import log
 from modules.FormatString import FormatString
 
 if TYPE_CHECKING:

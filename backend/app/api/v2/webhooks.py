@@ -45,11 +45,10 @@ from app.models.loaded import Loaded
 from app.models.series import Series
 from app.schemas.series import NewSeries
 from app.schemas.webhooks import PlexWebhook, SonarrWebhook
-
-from modules.Debug import Logger
 from modules.EpisodeDataSource import WatchedStatus
 from modules.EpisodeInfo2 import EpisodeInfo
 from modules.SeriesInfo2 import SeriesInfo
+from app.logging.logger import Logger
 
 
 # Create sub router for all /webhooks API requests

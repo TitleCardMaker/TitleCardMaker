@@ -45,7 +45,7 @@ from app.schemas.blueprint import (
     RemoteBlueprintSet,
 )
 from app.schemas.series import Series
-from modules.Debug import Logger
+from app.logging.logger import Logger
 from modules.preferences import Preferences
 from modules.TemporaryZip import TemporaryZip
 

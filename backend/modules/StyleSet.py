@@ -1,4 +1,4 @@
-from modules.Debug import log
+from app.logging.logger import log
 
 
 class StyleSet:

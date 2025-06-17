@@ -4,7 +4,7 @@ from typing import Callable
 from fastapi import Request, Response
 from fastapi.responses import RedirectResponse
 
-from modules.Debug2 import logger as log
+from app.logging.logger import log
 
 
 async def redirect_non_api_401_requests(

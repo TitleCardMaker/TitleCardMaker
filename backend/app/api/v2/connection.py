@@ -40,7 +40,7 @@ from app.schemas.connection import (
     UpdateTMDb,
     UpdateTVDb,
 )
-from modules.Debug import Logger
+from app.logging.logger import Logger
 from modules.preferences import Preferences
 from modules.SonarrInterface2 import SonarrInterface
 from modules.TautulliInterface2 import TautulliInterface

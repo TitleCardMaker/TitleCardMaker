@@ -20,7 +20,7 @@ from app.schemas.preferences import (
     SystemBackup,
     UpdatePreferences,
 )
-from modules.Debug import Logger
+from app.logging.logger import Logger
 
 
 # Create sub router for all /settings API requests

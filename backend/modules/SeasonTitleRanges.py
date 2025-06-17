@@ -3,8 +3,8 @@ from collections import namedtuple
 from re import IGNORECASE, compile as re_compile
 from typing import Callable
 
-from modules.Debug import Logger, log
 from modules.EpisodeInfo2 import EpisodeInfo
+from app.logging.logger import Logger, log
 from modules.FormatString import FormatString
 
 

@@ -2,7 +2,7 @@ from functools import lru_cache
 from re import compile as re_compile, IGNORECASE
 from typing import TYPE_CHECKING, Literal, TypedDict
 
-from modules.Debug import log
+from app.logging.logger import log
 
 if TYPE_CHECKING:
     from modules.Profile import Profile

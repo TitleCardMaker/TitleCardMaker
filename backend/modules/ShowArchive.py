@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
-from modules.Debug import log
+from app.logging.logger import log
 from modules import global_objects
 
 if TYPE_CHECKING:
