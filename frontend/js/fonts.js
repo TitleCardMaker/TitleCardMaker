@@ -38,7 +38,7 @@ function addFont() {
   const data = {name: ' Blank Custom Font'};
   $.ajax({
     type: 'POST',
-    url: '/api/v2/fonts/new',
+    url: '/api/v2/fonts/font/new',
     data: JSON.stringify(data),
     contentType: 'application/json',
     /**
@@ -67,11 +67,12 @@ function deleteFont(font) {
   // Submit API request
   $.ajax({
     type: 'DELETE',
-    url: `/api/v2/fonts/${font.id}`,
+    url: `/api/v2/fonts/font/${font.id}`,
     /** Font deleted, show toast and remove this Font's element from the DOM. */
     success: () => {
       showInfoToast(`Deleted Font "${font.name}"`);
-      $(`#font-id${font.id}`).remove();
+      document.getElementById(`font-id${font.id}`).remove();
+      // $(`#font-id${font.id}`).remove();
     },
     error: response => showErrorToast({title: 'Error Deleting Font', response}),
     complete: () => removeLoadingIcon($icon),
@@ -157,7 +158,7 @@ function saveFontForm(fontId, eventTarget) {
   // Submit API request
   $.ajax({
     type: 'PATCH',
-    url: `/api/v2/fonts/${fontId}`,
+    url: `/api/v2/fonts/font/${fontId}`,
     data: JSON.stringify({...Object.fromEntries(form.entries()), ...listData}),
     contentType: 'application/json',
     /**
@@ -179,7 +180,7 @@ function saveFontForm(fontId, eventTarget) {
   fileForm.append('file', form.get('font_file'));
   $.ajax({
     type: 'PUT',
-    url: `/api/v2/fonts/${fontId}/file`,
+    url: `/api/v2/fonts/font/${fontId}/file`,
     data: fileForm,
     processData: false,
     contentType: false,
@@ -201,7 +202,7 @@ function saveFontForm(fontId, eventTarget) {
 function querySuggestedFontReplacements(fontId, elementId) {
   $.ajax({
     type: 'GET',
-    url: `/api/v2/fonts/${fontId}/analysis`,
+    url: `/api/v2/fonts/font/${fontId}/analysis`,
     /**
      * Font analyzed, update DOM with suggested replacements.
      * @param {FontAnalysis} analysis - Analysis to display.
@@ -303,57 +304,57 @@ function showTransferFontDialog(fromId, toId) {
   $('#transfer-font-modal').modal('show');
 }
 
-let previewData;
 /**
- * 
- * @param {Node} template - Element being populated.
- * @param {NamedFont} font - Font object whose details are used to populate the
+ * Populate the given font element with the given font object.
+ * @param {HTMLElement} fontElement Element being populated.
+ * @param {NamedFont} font Font object whose details are used to populate the
  * element.
- * @param {?string} [activeFontId] - ID of the active font. If `font` is this
- * same object, then the accordion is created in an initialized state.
+ */
+function populateFontOverview(fontElement, font) {
+  fontElement.querySelector('.accordion').id = `font-id${font.id}`;
+  fontElement.querySelector('.accordion').dataset.id = font.id;
+  fontElement.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${font.name}`;
+  return fontElement;
+}
+
+/**
+ * Populate the given font element with the given font object.
+ * @param {HTMLElement} template Element being populated.
+ * @param {NamedFont} font Font object whose details are used to populate the
+ * element.
  * @returns {Node} Modified `template`.
  */
-function populateFontElement(template, font, activeFontId) {
-  // Set Element ID
-  template.querySelector('.accordion').id = `font-id${font.id}`;
-  template.querySelector('.accordion').dataset.id = font.id;
+function populateFontElement(fontElement, font) {
+  fontElement.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${font.name}`;
+  fontElement.querySelector('input[name="name"]').value = font.name;
 
-  // Make accordion active if this was indicated in the URL
-  if (activeFontId && `font-id${font.id}` === activeFontId) {
-    template.querySelector('.title').classList.add('active');
-    template.querySelector('.content').classList.add('active');
-  }
-
-  template.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${font.name}`;
-  template.querySelector('input[name="name"]').value = font.name;
-
-  template.querySelector('label[data-value="file"]').innerHTML =
+  fontElement.querySelector('label[data-value="file"]').innerHTML =
     font.file_name === null ? 'File' : `File (<span class="prefix">config/assets/fonts/${font.id}/</span>${font.file_name})`;
   
   if (font.color !== null) {
-    template.querySelector('input[name="color"]').value = font.color;
+    fontElement.querySelector('input[name="color"]').value = font.color;
     // Update inline circle
-    template.querySelector('.field[data-value="color"] .color.circle').style.setProperty('--color', font.color);
+    fontElement.querySelector('.field[data-value="color"] .color.circle').style.setProperty('--color', font.color);
   }
   // Add onchange listener to recolor circle
-  template.querySelector('input[name="color"]').oninput = function () {
+  fontElement.querySelector('input[name="color"]').oninput = function () {
     document.querySelector(`#font-id${font.id} .field[data-value="color"] .color.circle`).style.setProperty('--color', $(this).val());
   }
 
   if (font.title_case !== null) {
-    template.querySelector('input[name="title_case"]').value = font.title_case;
+    fontElement.querySelector('input[name="title_case"]').value = font.title_case;
   }
-  template.querySelector('input[name="line_split_modifier"]').value = font.line_split_modifier;
-  template.querySelector('input[name="size"]').value = Math.round(font.size*100);
-  template.querySelector('input[name="kerning"]').value = Math.round(font.kerning*100);
-  template.querySelector('input[name="stroke_width"]').value = Math.round(font.stroke_width*100);
-  template.querySelector('input[name="interline_spacing"]').value = font.interline_spacing;
-  template.querySelector('input[name="interword_spacing"]').value = font.interword_spacing;
-  template.querySelector('input[name="vertical_shift"]').value = font.vertical_shift;
+  fontElement.querySelector('input[name="line_split_modifier"]').value = font.line_split_modifier;
+  fontElement.querySelector('input[name="size"]').value = Math.round(font.size*100);
+  fontElement.querySelector('input[name="kerning"]').value = Math.round(font.kerning*100);
+  fontElement.querySelector('input[name="stroke_width"]').value = Math.round(font.stroke_width*100);
+  fontElement.querySelector('input[name="interline_spacing"]').value = font.interline_spacing;
+  fontElement.querySelector('input[name="interword_spacing"]').value = font.interword_spacing;
+  fontElement.querySelector('input[name="vertical_shift"]').value = font.vertical_shift;
 
   // Set font replacements
-  const inElement = template.querySelector('.field[data-value="in-replacements"]');
-  const outElement = template.querySelector('.field[data-value="out-replacements"]');
+  const inElement = fontElement.querySelector('.field[data-value="in-replacements"]');
+  const outElement = fontElement.querySelector('.field[data-value="out-replacements"]');
   for (let i = 0; i < font.replacements_in.length; i++) {
     const newInput = document.createElement('input');
     newInput.name = 'replacements_in'; newInput.type = 'text';
@@ -367,45 +368,41 @@ function populateFontElement(template, font, activeFontId) {
   }
 
   // Query suggested font replacements on button click
-  template.querySelector('.button[data-action="populateReplacements"]').onclick = () => querySuggestedFontReplacements(font.id, `font-id${font.id}`);
+  fontElement.querySelector('.button[data-action="populateReplacements"]').onclick = () => querySuggestedFontReplacements(font.id, `font-id${font.id}`);
   
   // Set submit form event to submit PATCH API request
-  template.querySelector('form[data-value="font-form"]').id = `font-id${font.id}`;
-  template.querySelector('form[data-value="font-form"]').onsubmit = event => {
+  fontElement.querySelector('form[data-label="font-form"]').id = `font-id${font.id}`;
+  fontElement.querySelector('form[data-label="font-form"]').onsubmit = event => {
     event.preventDefault();
     saveFontForm(font.id, event.target);
   };
 
   // Disable transfer item to this Font (cannot transfer to itself)
-  template.querySelector('.button[data-action="transfer"]').onclick = event => event.preventDefault();
-  template.querySelector(`.dropdown[data-value="font_ids"] .item[data-value="${font.id}"]`).classList.add('disabled');
+  fontElement.querySelector('.button[data-action="transfer"]').onclick = event => event.preventDefault();
+  fontElement.querySelector(`.dropdown[data-value="font_ids"] .item[data-value="${font.id}"]`).classList.add('disabled');
 
   // Set delete button to submit DELETE API request
-  template.querySelector('.negative.button').onclick = event => {
+  fontElement.querySelector('.negative.button').onclick = event => {
     event.preventDefault();
     deleteFont(font);
   };
 
   // Reload preview when button is pressed
-  const previewCard = template.querySelector('.ui.card');
-  const previewImage = template.querySelector('img');
-  const fontForm = template.querySelector('form[data-value="font-form"]');
-  const previewForm =  template.querySelector('form[data-value="preview-form"]');
-  template.querySelector('.card').onclick = () => reloadPreview(font.id, fontForm, previewForm, previewCard, previewImage);
-  template.querySelector('.button[data-action="refresh"]').onclick = () => reloadPreview(font.id, fontForm, previewForm, previewCard, previewImage);
-  // If this font was indicated in URL, initiate preview load
-  if (activeFontId && `font-id${font.id}` === activeFontId) {
-    previewData = [font.id, fontForm, previewForm, previewCard, previewImage];
-  }
+  const previewCard = fontElement.querySelector('.ui.card');
+  const previewImage = fontElement.querySelector('img');
+  const fontForm = fontElement.querySelector('form[data-label="font-form"]');
+  const previewForm =  fontElement.querySelector('form[data-value="preview-form"]');
+  fontElement.querySelector('.card').onclick = () => reloadPreview(font.id, fontForm, previewForm, previewCard, previewImage);
+  fontElement.querySelector('.button[data-action="refresh"]').onclick = () => reloadPreview(font.id, fontForm, previewForm, previewCard, previewImage);
 
   // Update title text + preview when a-z icon is clicked
-  const titleInput = template.querySelector('form[data-value="preview-form"] input[name="title_text"]');
-  template.querySelector('form[data-value="preview-form"] .field label a').onclick = () => {
+  const titleInput = fontElement.querySelector('form[data-value="preview-form"] input[name="title_text"]');
+  fontElement.querySelector('form[data-value="preview-form"] .field label a').onclick = () => {
     titleInput.value = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\\nabcdefghijklmnopqrstuvwxyz';
     reloadPreview(font.id, fontForm, previewForm, previewCard, previewImage);
   }
 
-  return template;
+  return fontElement;
 }
 
 /**
@@ -495,7 +492,7 @@ function groupObjectsByPrefix(fonts, n, maxgroupSize=19) {
 function getAllFonts() {
   $.ajax({
     type: 'GET',
-    url: '/api/v2/fonts/all',
+    url: '/api/v2/available/fonts',
     /**
      * Fonts queried, add all Font forms to the DOM.
      * @param {NamedFont[]} fonts 
@@ -503,6 +500,7 @@ function getAllFonts() {
     success: fonts => {
       // Get the currently active Font from the URL
       const activeFontId = window.location.hash.substring(1);
+      const fontTemplate = document.getElementById('font-template').content;
 
       // Populate font transfer dropdown in the template
       const transferItems = fonts.map(font => {
@@ -525,21 +523,18 @@ function getAllFonts() {
           fontElements.push(header);
 
           fonts.forEach(font => {
-            // Add accordion for this Font
-            fontElements.push(populateFontElement(
-              document.getElementById('font-template').content.cloneNode(true),
-              font,
-              activeFontId
-            ));
+            // Add accordion for this Font with minimal info
+            const template = document.getElementById('font-template').content.cloneNode(true);
+            const populatedTemplate = populateFontOverview(template, font);
+            fontElements.push(populatedTemplate);
           });
         }
       } else {
         fonts.forEach(font => {
-          fontElements.push(populateFontElement(
-            document.getElementById('font-template').content.cloneNode(true),
-            font,
-            activeFontId
-          ));
+          // Add accordion for this Font with minimal info
+          const template = document.getElementById('font-template').content.cloneNode(true);
+          const populatedTemplate = populateFontOverview(template, font);
+          fontElements.push(populatedTemplate);
         });
       }
 
@@ -554,9 +549,6 @@ function getAllFonts() {
           behavior: 'smooth',
           block: 'start',
         });
-
-        // Start loading preview
-        reloadPreview(...previewData);
       }
 
       // Enable transfer functionality
@@ -572,8 +564,45 @@ function getAllFonts() {
       ;
 
       // Enable accordion/dropdown/checkbox elements
-      $('.ui.accordion').accordion();
-      // $('.ui.dropdown').dropdown();
+      $('.ui.accordion').accordion({
+        onOpen: function () {
+          const $accordion = $(this);
+          const $form = $accordion.find('form[data-label="font-form"]');
+          const id = $accordion.closest('.accordion').data('id');
+
+          // Only populate if not already populated
+          if (!$form.find('input[name="name"]').val()) {
+            const fontElement = $accordion[0].parentElement;
+            const $content = $(fontElement).find('.content.segment');
+
+            $content.addClass('loading');
+            $.ajax({
+              type: 'GET',
+              url: `/api/v2/fonts/font/${id}`,
+              success: font => {
+                populateFontElement(fontElement, font);
+
+                // Enable form elements
+                $form.find('.ui.dropdown').dropdown();
+                $form.find('.ui.checkbox').checkbox();
+
+                // Fill in card type dropdowns
+                loadCardTypes({
+                  element: '.ui.card-type.dropdown',
+                  isSelected: (identifier) => identifier === '{{preferences.default_card_type}}',
+                  showExcluded: false,
+                  dropdownArgs: {},
+                });
+
+                // Refresh theme for newly added HTML
+                refreshTheme();
+              },
+              error: response => showErrorToast({title: 'Error Loading Font Details', response}),
+              complete: () => $content.removeClass('loading'),
+            });
+          }
+        }
+      });
       $('.ui.checkbox').checkbox();
 
       // Fill in card type dropdowns
