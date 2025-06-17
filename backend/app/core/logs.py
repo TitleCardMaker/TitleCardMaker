@@ -1,16 +1,13 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TypedDict
-import sqlite3
 
+from sqlalchemy import select
+
+from app.logging.database import LogsSessionLocal
+from app.logging.models import Log
 from app.schemas.logs import LogLevel
-
-from modules.Debug import (
-    log,  # noqa: F401
-    DATETIME_FORMAT,
-    DATETIME_FORMAT_NO_TZ,
-    LOG_DB
-)
+from app.logging.logger import log
 
 
 # pylint: disable=missing-class-docstring
@@ -37,7 +34,6 @@ def read_log_files(
         *,
         after: datetime | None = None,
         before: datetime | None = None,
-        shallow: bool = True,
     ) -> list[RawLogData]:
     """
     Read all raw log data from the SQLite database.
@@ -45,70 +41,55 @@ def read_log_files(
     Args:
         after: Earliest date of logs to return.
         before: Latest date of logs to return.
-        shallow: Whether to only do a "shallow" query, which will only
-            evaluate the most recent logs (last 1000 entries).
     """
-    logs: list[RawLogData] = []
-    
+
     # Build the query
-    query = "SELECT * FROM logs"
-    params = []
+    query = select(Log)
     
-    conditions = []
     if after:
-        conditions.append("timestamp > ?")
-        params.append(after.strftime(DATETIME_FORMAT))
+        query = query.where(Log.timestamp > after)
     if before:
-        conditions.append("timestamp < ?")
-        params.append(before.strftime(DATETIME_FORMAT))
-    
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
+        query = query.where(Log.timestamp < before)
     
     # Add ordering and limit for shallow queries
-    query += " ORDER BY timestamp DESC"
-    if shallow:
-        query += " LIMIT 1000"
-    
+    query = query.order_by(Log.timestamp.desc())
+
+    logs: list[RawLogData] = []
     try:
-        conn = sqlite3.connect(LOG_DB)
-        conn.row_factory = sqlite3.Row  # This enables column access by name
-        cursor = conn.cursor()
-        
-        cursor.execute(query, params)
-        rows = cursor.fetchall()
-        
+        db = LogsSessionLocal()
+        rows = db.execute(query).scalars().all()
+
         for row in rows:
             # Convert row to RawLogData format
             log_data: RawLogData = {
-                'message': row['message'],
-                'context_id': row['context_id'],
-                'level': row['level'],
-                'time': datetime.strptime(row['timestamp'], DATETIME_FORMAT),
+                'message': row.message,
+                'context_id': row.context_id,
+                'level': row.level,
+                'time': row.timestamp,
                 'execution': {
-                    'file': row['file'],
-                    'line': row['line']
+                    'file': row.file or '',
+                    'line': row.line or 0
                 },
                 'exception': None,
-                'file': Path(row['file']) if row['file'] else Path('')
+                'file': Path(row.file) if row.file else Path('')
             }
-            
+
             # Add exception details if present
-            if row['exception_type']:
+            if row.exception_type:
                 log_data['exception'] = {
-                    'type': row['exception_type'],
-                    'value': row['exception_value'],
-                    'traceback': row['exception_traceback']
+                    'type': row.exception_type,
+                    'value': row.exception_value,
+                    'traceback': row.exception_traceback
                 }
-            
+
             logs.append(log_data)
-            
-    except sqlite3.Error as e:
+
+    except Exception as e:
         log.error(f"Error reading logs from database: {e}")
     finally:
-        if 'conn' in locals():
-            conn.close()
-    
+        if 'db' in locals():
+            db.close()
+
     return logs
 
 def clear_log_data() -> None:
@@ -117,17 +98,16 @@ def clear_log_data() -> None:
     Keeps logs from the last 7 days by default.
     """
     try:
-        conn = sqlite3.connect(LOG_DB)
-        cursor = conn.cursor()
+        db = LogsSessionLocal()
         
         # Delete logs older than 7 days
         retention_days = 7
-        cutoff_date = (datetime.now() - timedelta(days=retention_days)).strftime(DATETIME_FORMAT)
-        cursor.execute("DELETE FROM logs WHERE timestamp < ?", (cutoff_date,))
+        cutoff_date = datetime.now() - timedelta(days=retention_days)
         
-        conn.commit()
-    except sqlite3.Error as e:
+        db.query(Log).filter(Log.timestamp < cutoff_date).delete()
+        db.commit()
+    except Exception as e:
         log.error(f"Error clearing old logs: {e}")
     finally:
-        if 'conn' in locals():
-            conn.close()
+        if 'db' in locals():
+            db.close()
