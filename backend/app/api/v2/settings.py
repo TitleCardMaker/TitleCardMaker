@@ -11,8 +11,6 @@ from app.core.settings import (
     get_episode_data_sources
 )
 from app.models.connection import Connection
-from modules.preferences import Preferences as PreferencesModel
-from app.schemas.base import UNSPECIFIED
 from app.schemas.preferences import (
     EpisodeDataSourceToggle,
     ImageSourceToggle,
@@ -21,6 +19,7 @@ from app.schemas.preferences import (
     UpdatePreferences,
 )
 from app.logging.logger import Logger
+from modules.preferences import Preferences as PreferencesModel
 
 
 # Create sub router for all /settings API requests

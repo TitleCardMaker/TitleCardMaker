@@ -12,28 +12,27 @@ from rich.traceback import Traceback
 from sqlalchemy.orm import Session
 from starlette.staticfiles import StaticFiles
 
-from app.api.v2.schedule import initialize_scheduler
+from app.core.schedule import initialize_scheduler
 from app.core.availability import get_latest_version
 from app.core.backup import backup_data, restore_backup
 from app.core.cards import refresh_remote_card_types
 from app.core.config import settings
 from app.core.connection import initialize_connections
 from app.core.settings import apply_card_type_blur_profiles
-from app.db.database import engine, SQLALCHEMY_DATABASE_URL
+from app.db.database import engine as db_engine, SQLALCHEMY_DATABASE_URL
 from app.db.scheduler import Scheduler
 from app.dependencies import get_database, get_preferences
+from app.logging.database import logs_engine, LOGS_DATABASE_URL
+from app.logging.logger import contextualize, Logger, log as logger
 from app.models.user import User
+from app.settings import BACKEND_ROOT, FRONTEND_ROOT
 from modules.BackgroundTasks import TracebackSuppressedPackages
-from modules.Debug import contextualize, LOG_FILE, Logger, log
-from modules.Debug2 import logger
 
 
-PROGRAM_ROOT = Path(__file__).parent.parent.parent.parent
-BACKEND_ROOT = PROGRAM_ROOT / 'backend'
-FRONTEND_ROOT = PROGRAM_ROOT / 'frontend'
+APP_ROOT = BACKEND_ROOT / 'app'
 
 
-def initialize_root_directories(*, log: Logger = log) -> None:
+def initialize_root_directories(*, log: Logger = logger) -> None:
     """
     Initialize the root directories for the application. This creates
     the required `/config` directories if running on Docker.
@@ -64,7 +63,7 @@ def initialize_root_directories(*, log: Logger = log) -> None:
         sys_exit(1)
 
 
-def mount_static_app_directories(app: FastAPI, *, log: Logger = log) -> None:
+def mount_static_app_directories(app: FastAPI, *, log: Logger = logger) -> None:
     """
     Mount the static app directories into the FastAPI application.
 
@@ -93,7 +92,7 @@ def mount_static_app_directories(app: FastAPI, *, log: Logger = log) -> None:
             )
 
 
-def perform_database_migrations(*, log: Logger = log) -> None:
+def perform_database_migrations(*, log: Logger = logger) -> None:
     """
     Perform the database migrations.
 
@@ -105,49 +104,55 @@ def perform_database_migrations(*, log: Logger = log) -> None:
     preferences = get_preferences()
 
     # Initialize Alembic config (simulating config.ini)
-    alembic_config = Config()
-    alembic_config.set_main_option('sqlalchemy.url', SQLALCHEMY_DATABASE_URL)
-    alembic_config.set_main_option(
-        'script_location', str(BACKEND_ROOT / 'app' / 'alembic')
-    )
+    for engine, url, migration_directory in (
+        (db_engine, SQLALCHEMY_DATABASE_URL, APP_ROOT / 'alembic'),
+        (logs_engine, LOGS_DATABASE_URL, APP_ROOT / 'logging' / 'alembic'),
+    ):
+        alembic_config = Config()
+        alembic_config.set_main_option('sqlalchemy.url', url)
+        alembic_config.set_main_option(
+            'script_location', str(migration_directory)
+        )
 
-    # Backup database if migration is about to be performed
-    backup = None
-    script = ScriptDirectory.from_config(alembic_config)
-    with engine.begin() as connection:
-        context = MigrationContext.configure(connection)
-        if context.get_current_revision() != script.get_current_head():
+        # Backup database if migration is about to be performed
+        backup = None
+        script = ScriptDirectory.from_config(alembic_config)
+        with engine.begin() as connection:
+            context = MigrationContext.configure(connection)
+            if context.get_current_revision() == script.get_current_head():
+                continue
+
             log.info('Pending schema migration - performing database backup')
             backup = backup_data(preferences.current_version, log=log)
 
-    # Perform database migrations
-    try:
-        command.upgrade(alembic_config, 'head')
-    except Exception:
-        output = StringIO()
-        console = Console(file=output)
-        console.print(Traceback(
-            show_locals=True,
-            locals_max_length=512,
-            locals_max_string=512,
-            extra_lines=2,
-            indent_guides=False,
-            suppress=TracebackSuppressedPackages,
-        ))
-        log.error(f'SQL Migration Error:\n{output.getvalue()}')
-        log.critical('Unable to migrate and initialize Database')
-        if backup:
-            log.info('Restoring from backup..')
-            restore_backup(backup, log=log)
-        sys_exit(1)
+            # Perform database migrations
+            try:
+                command.upgrade(alembic_config, 'head')
+            except Exception:
+                output = StringIO()
+                console = Console(file=output)
+                console.print(Traceback(
+                    show_locals=True,
+                    locals_max_length=512,
+                    locals_max_string=512,
+                    extra_lines=2,
+                    indent_guides=False,
+                    suppress=TracebackSuppressedPackages,
+                ))
+                log.error(f'SQL Migration Error:\n{output.getvalue()}')
+                log.critical('Unable to migrate and initialize Database')
+                if backup:
+                    log.info('Restoring from backup..')
+                    restore_backup(backup, log=log)
+                sys_exit(1)
 
-    # Store current DB schema
-    with engine.begin() as connection:
-        context = MigrationContext.configure(connection)
-        preferences.current_db_schema = context.get_current_revision()
+            # Store current DB schema
+            with engine.begin() as connection:
+                context = MigrationContext.configure(connection)
+                preferences.current_db_schema = context.get_current_revision()
 
 
-def disable_authentication(db: Session, *, log: Logger = log) -> None:
+def disable_authentication(db: Session, *, log: Logger = logger) -> None:
     """
     Disable authentication based on environment variable. This disables
     the global setting and deletes any existing Users.
@@ -179,7 +184,6 @@ def initialize_app(app: FastAPI) -> None:
         app: The FastAPI application to initialize.
     """
 
-    # Generate contextual logger
     log = contextualize(logger)
 
     preferences = get_preferences()
