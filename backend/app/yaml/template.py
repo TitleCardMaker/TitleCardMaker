@@ -4,8 +4,8 @@ from typing import Any
 
 from fastapi import HTTPException
 
-from modules.Debug import log
-from modules.SeriesInfo2 import SeriesInfoV1
+from app.info.series import SeriesInfoV1
+from app.logging.logger import log
 
 
 class Template:
@@ -131,11 +131,13 @@ class Template:
             elif isinstance(t_value, list):
                 for index, sub_value in enumerate(t_value):
                     if isinstance(sub_value, str):
-                        template[t_key][index] = sub_value.replace(f'<<{key}>>',
-                                                                   str(value))
+                        template[t_key][index] = sub_value.replace(
+                            f'<<{key}>>', str(value)
+                        )
                     elif isinstance(sub_value, dict):
-                        self.__apply_value_to_key(template[t_key][index], key,
-                                                  value)
+                        self.__apply_value_to_key(
+                            template[t_key][index], key, value
+                        )
 
 
     @staticmethod
@@ -219,8 +221,9 @@ class Template:
                     status_code=422,
                     detail=f'Missing template data for {series_info}',
                 )
-            log.warning(f'Missing "{self.name}" template data for '
-                        f'"{series_info}"')
+            log.warning(
+                f'Missing "{self.name}" template data for "{series_info}"'
+            )
             return False
 
         # Copy base template before modification
