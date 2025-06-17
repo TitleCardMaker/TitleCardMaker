@@ -5,24 +5,22 @@ from pathlib import Path
 from re import match, IGNORECASE
 from sys import exit as sys_exit
 
-try:
-    from modules.Debug import log, LOG_FILE
-    from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
-    from modules.EpisodeInfo2 import EpisodeInfoV1
-    from modules.ImageMaker import ImageMaker
-    from modules.JellyfinInterface2 import JellyfinInterfaceV1
-    from modules.PlexInterface import PlexInterface
-    from modules.PreferenceParser import PreferenceParser
-    from modules.global_objects import set_preference_parser
-    from modules.SeriesInfo2 import SeriesInfoV1
-    from modules.SonarrInterface2 import SonarrInterfaceV1
-    from modules.TMDbInterface2 import TMDbInterfaceV1
-except ImportError:
-    print(f'Required Python packages are missing - execute "pipenv install"')
-    sys_exit(1)
+from app.info.episode import EpisodeInfoV1
+from app.info.series import SeriesInfoV1
+from app.interfaces.v1 import (
+    EmbyInterfaceV1,
+    JellyfinInterfaceV1,
+    PlexInterfaceV1,
+    SonarrInterfaceV1,
+    TMDbInterfaceV1,
+)
+from app.magick.base import ImageMaker
+from app.settings import settings
+from app.logging.logger import log
+from modules.PreferenceParser import PreferenceParser
+from modules.global_objects import set_preference_parser
 
 # Environment Variables
-ENV_IS_DOCKER = 'TCM_IS_DOCKER'
 ENV_PREFERENCE_FILE = 'TCM_PREFERENCES'
 
 # Default values
@@ -145,10 +143,9 @@ tmdb_group.add_argument(
 
 # Parse given arguments
 args = parser.parse_args()
-is_docker = environ.get(ENV_IS_DOCKER, 'false').lower() == 'true'
 
 # Parse preference file for options that might need it
-if not (pp := PreferenceParser(args.preferences, is_docker)).valid:
+if not (pp := PreferenceParser(args.preferences, settings.IS_DOCKER)).valid:
     sys_exit(1)
 set_preference_parser(pp)
 
@@ -180,12 +177,6 @@ for directory in args.delete_cards:
     else:
         log.info(f'Not deleting any images')
 
-if hasattr(args, 'print_log') and args.print_log:
-    if LOG_FILE.exists():
-        with LOG_FILE.open('r') as file_handle:
-            print(file_handle.read())
-
-
 # Execute Media Server options
 if ((hasattr(args, 'import_cards') or hasattr(args, 'revert_series'))
     and any((pp.use_emby, pp.use_jellyfin, pp.use_plex))):
@@ -203,7 +194,7 @@ if ((hasattr(args, 'import_cards') or hasattr(args, 'revert_series'))
         elif args.media_server == 'jellyfin':
             media_interface = JellyfinInterfaceV1(**pp.jellyfin_interface_kwargs)
         else:
-            media_interface = PlexInterface(**pp.plex_interface_kwargs)
+            media_interface = PlexInterfaceV1(**pp.plex_interface_kwargs)
     except Exception:
         log.critical(f'Cannot connect to "{args.media_server}" Media Server')
         sys_exit(1)
@@ -287,7 +278,7 @@ if (hasattr(args, 'forget_cards')
             args.forget_cards[0], series_info,
         )
     else:
-        PlexInterface(**pp.plex_interface_kwargs).remove_records(
+        PlexInterfaceV1(**pp.plex_interface_kwargs).remove_records(
             args.forget_cards[0], series_info,
         )
 

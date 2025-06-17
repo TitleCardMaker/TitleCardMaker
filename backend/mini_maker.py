@@ -1,52 +1,45 @@
 from dataclasses import dataclass
 from pathlib import Path
 from re import match as re_match, IGNORECASE
-from sys import exit as sys_exit
 from typing import Any, Literal
 
-try:
-    import click
-    from dotenv import load_dotenv
-    load_dotenv()
+import click
 
-    from modules.AspectRatioFixer import AspectRatioFixer
-    from modules.CleanPath import CleanPath
-    from modules.CollectionPosterMaker import CollectionPosterMaker
-    from modules.Debug import log
-    from modules.GenreMaker import GenreMaker
-    from modules.MoviePosterMaker import MoviePosterMaker
-    from modules.RemoteFile import RemoteFile
-    from modules.SeasonPoster import SeasonPoster
-    from modules.StandardSummary import StandardSummary
-    from modules.StylizedSummary import StylizedSummary
-    from modules.YamlReader import YamlReader
-except ImportError as exc:
-    print('Required Python packages are missing - execute "pipenv install"')
-    print(f'  Specific Error: {exc}')
-    sys_exit(1)
-
-
-ENV_PREFERENCE_FILE = 'TCM_PREFERENCES'
-ENV_CARD_QUALITY = 'TCM_CARD_QUALITY'
-ENV_IMAGEMAGICK_CONTAINER = 'TCM_IM_DOCKER'
-DEFAULT_PREFERENCE_FILE = Path(__file__).parent / 'preferences.yml'
+from app.magick.AspectRatioFixer import AspectRatioFixer
+from app.magick.collection_posters import CollectionPosterMaker
+from app.magick.genre_posters import GenreMaker
+from app.magick.movie_posters import MoviePosterMaker
+from app.magick.season_posters import SeasonPoster
+from app.magick.summary import StandardSummary, StylizedSummary
+from app.settings import settings
+from app.yaml.reader import YamlReader
+from modules.CleanPath import CleanPath
+from app.logging.logger import log
+from modules.RemoteFile import RemoteFile
 
 
 @click.group()
-@click.option('--quality', envvar=ENV_CARD_QUALITY,
-              type=click.IntRange(min=0, max=100, clamp=True), default=92,
-              help='Image compression quality to utilize')
-@click.option('--use-magick-prefix', is_flag=True,
-              help='Whether to use the "magick" ImageMagick command prefix')
-@click.option('--imagemagick-container', envvar=ENV_IMAGEMAGICK_CONTAINER,
-              type=str, default=None,
-              help='Docker container to execute ImageMagick commands within')
+@click.option(
+    '--quality',
+    default=settings.V1_CARD_QUALITY,
+    type=click.IntRange(min=0, max=100, clamp=True),
+    help='Image compression quality to utilize')
+@click.option(
+    '--use-magick-prefix', is_flag=True,
+    help='Whether to use the "magick" ImageMagick command prefix')
+@click.option(
+    '--imagemagick-container',
+    default=settings.V1_IMAGEMAGICK_CONTAINER,
+    type=str,
+    help='Docker container to execute ImageMagick commands within')
 def mini_maker(
         quality: int,
         use_magick_prefix: bool,
         imagemagick_container: str,
     ) -> None:
+
     import modules.global_objects as global_objects
+
     global_objects.pp.card_quality = quality
     global_objects.pp.use_magick_prefix = use_magick_prefix
     global_objects.pp.imagemagick_container = imagemagick_container
