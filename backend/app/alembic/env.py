@@ -6,6 +6,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
+from app.settings import settings
+
 """
 Auto-detect db changes:
 >>> alembic -c ./app/alembic/alembic.ini revision --autogenerate -m "..."
@@ -54,9 +56,6 @@ from app.models import *
 from app.db.database import Base
 target_metadata = Base.metadata
 
-from os import environ
-IS_DOCKER = environ.get('TCM_IS_DOCKER', 'false').lower() == 'true'
-
 
 def run_migrations_offline() -> None:
     """
@@ -71,7 +70,7 @@ def run_migrations_offline() -> None:
     """
 
     url = config.get_main_option('sqlalchemy.url')
-    if IS_DOCKER:
+    if settings.IS_DOCKER:
         url = '/config/db.sqlite'
 
     context.configure(
@@ -102,7 +101,7 @@ def run_migrations_online() -> None:
     )
 
     url = config.get_main_option('sqlalchemy.url')
-    if IS_DOCKER:
+    if settings.IS_DOCKER:
         url = '/config/db.sqlite'
 
     with connectable.connect() as connection:
