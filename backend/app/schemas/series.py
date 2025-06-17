@@ -2,7 +2,14 @@
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false, reportIncompatibleVariableOverride=false
 from typing import Any, Literal, Self
 
-from pydantic import conint, constr, Field, model_validator, validator
+from pydantic import (
+    conint,
+    computed_field,
+    constr,
+    Field,
+    model_validator,
+    validator
+)
 
 from app.models.template import OPERATIONS, ARGUMENT_KEYS
 from app.schemas.base import (
@@ -158,13 +165,27 @@ class BaseUpdate(Base):
 
     @model_validator(mode='after')
     def validate_paired_lists(self) -> Self:
-        self.season_titles = validate_argument_lists_to_dict(
+        validate_argument_lists_to_dict(
             self.season_title_ranges, self.season_title_values
         )
-        self.extras = validate_argument_lists_to_dict(
+        validate_argument_lists_to_dict(
             self.extra_keys, self.extra_values
         )
         return self
+
+    @computed_field
+    @property
+    def season_titles(self) -> dict[SeasonTitleRange, str]:
+        return validate_argument_lists_to_dict(
+            self.season_title_ranges, self.season_title_values
+        )
+
+    @computed_field
+    @property
+    def extras(self) -> dict[str, Any]:
+        return validate_argument_lists_to_dict(
+            self.extra_keys, self.extra_values
+        )
 
 """
 Creation classes
@@ -183,21 +204,31 @@ class NewTemplate(BaseTemplate):
 
     @model_validator(mode='after')
     def validate_paired_lists(self) -> Self:
-        self.season_titles = validate_argument_lists_to_dict(
+        validate_argument_lists_to_dict(
             self.season_title_ranges, self.season_title_values
         )
-        self.extras = validate_argument_lists_to_dict(
+        validate_argument_lists_to_dict(self.extra_keys, self.extra_values)
+        return self
+
+    @computed_field
+    @property
+    def season_titles(self) -> dict[SeasonTitleRange, str]:
+        return validate_argument_lists_to_dict(
+            self.season_title_ranges, self.season_title_values
+        )
+
+    @computed_field
+    @property
+    def extras(self) -> dict[str, Any]:
+        return validate_argument_lists_to_dict(
             self.extra_keys, self.extra_values
         )
-        return self
 
 class NewSeries(BaseSeries):
     season_title_ranges: list[SeasonTitleRange] | None = None
     season_title_values: list[str] | None = None
-    season_titles: dict[SeasonTitleRange, str] | None = None
     extra_keys: list[str] | None = None
     extra_values: list[Any] | None = None
-    extras: dict[str, Any] | None = None
     sync_id: int | None = None
 
     @validator('season_title_ranges', 'season_title_values',
@@ -213,13 +244,25 @@ class NewSeries(BaseSeries):
 
     @model_validator(mode='after')
     def validate_paired_lists(self) -> Self:
-        self.season_titles = validate_argument_lists_to_dict(
+        validate_argument_lists_to_dict(
             self.season_title_ranges, self.season_title_values
         )
-        self.extras = validate_argument_lists_to_dict(
+        validate_argument_lists_to_dict(self.extra_keys, self.extra_values)
+        return self
+
+    @computed_field
+    @property
+    def season_titles(self) -> dict[SeasonTitleRange, str]:
+        return validate_argument_lists_to_dict(
+            self.season_title_ranges, self.season_title_values
+        )
+
+    @computed_field
+    @property
+    def extras(self) -> dict[str, Any]:
+        return validate_argument_lists_to_dict(
             self.extra_keys, self.extra_values
         )
-        return self
 
 """
 Update classes
