@@ -49,7 +49,7 @@ font_router = APIRouter(
 )
 
 
-@font_router.post('/new')
+@font_router.post('/font/new')
 def create_font(
         new_font: NewNamedFont = Body(...),
         db: Session = Depends(get_database),
@@ -68,7 +68,7 @@ def create_font(
     return font
 
 
-@font_router.put('/{font_id}/file')
+@font_router.put('/font/{font_id}/file')
 async def add_font_file(
         font_id: int,
         file: UploadFile,
@@ -117,7 +117,7 @@ async def add_font_file(
     return font
 
 
-@font_router.delete('/{font_id}/file')
+@font_router.delete('/font/{font_id}/file')
 def delete_font_file(
         font_id: int,
         db: Session = Depends(get_database),
@@ -147,7 +147,7 @@ def delete_font_file(
     return font
 
 
-@font_router.patch('/{font_id}')
+@font_router.patch('/font/{font_id}')
 def update_font(
         font_id: int,
         update_font: UpdateNamedFont = Body(...),
@@ -193,7 +193,7 @@ def get_all_fonts(
     )
 
 
-@font_router.get('/{font_id}')
+@font_router.get('/font/{font_id}')
 def get_font_by_id(
         font_id: int,
         db: Session = Depends(get_database),
@@ -207,7 +207,7 @@ def get_font_by_id(
     return get_font(db, font_id, raise_exc=True)
 
 
-@font_router.delete('/{font_id}', status_code=204)
+@font_router.delete('/font/{font_id}', status_code=204)
 def delete_font(
         font_id: int,
         db: Session = Depends(get_database),
@@ -240,7 +240,7 @@ def delete_font(
     preferences.commit()
 
 
-@font_router.get('/{font_id}/analysis')
+@font_router.get('/font/{font_id}/analysis')
 def get_suggested_font_replacements(
         font_id: int,
         db: Session = Depends(get_database),
