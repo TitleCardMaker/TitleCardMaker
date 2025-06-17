@@ -8,7 +8,6 @@ from app.models.template import OPERATIONS, ARGUMENT_KEYS
 from app.schemas.base import (
     Base,
     MediaServer,
-    UpdateBase,
     UNSPECIFIED,
     validate_argument_lists_to_dict
 )
@@ -114,7 +113,7 @@ class BaseSeries(BaseConfig):
     set_url: str | None = None
     directory: str | None = None
 
-class BaseUpdate(UpdateBase):
+class BaseUpdate(Base):
     name: constr(min_length=1) | None = UNSPECIFIED
     status: Status = UNSPECIFIED
     font_id: int | None = UNSPECIFIED

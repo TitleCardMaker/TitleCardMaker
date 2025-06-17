@@ -10,7 +10,6 @@ from app.schemas.base import (
     Base,
     DictKey,
     ImageSource,
-    UpdateBase,
     validate_argument_lists_to_dict
 )
 from app.schemas.font import TitleCase
@@ -66,7 +65,7 @@ class BaseTitleCard(Base):
 """
 Creation classes
 """
-class PreviewTitleCard(UpdateBase):
+class PreviewTitleCard(Base):
     card_type: str
     title_text: str = 'Example Title'
     season_text: str | None = None

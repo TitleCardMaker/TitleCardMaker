@@ -10,7 +10,7 @@ from pydantic import ( # pylint: disable=no-name-in-module
     validator,
 )
 
-from app.schemas.base import Base, UpdateBase, UNSPECIFIED
+from app.schemas.base import Base, UNSPECIFIED
 
 
 TitleCase = Literal['blank', 'lower', 'source', 'title', 'upper']
@@ -75,7 +75,7 @@ class PreviewFont(Base):
 """
 Update classes
 """
-class UpdateNamedFont(UpdateBase):
+class UpdateNamedFont(Base):
     name: constr(min_length=1) = UNSPECIFIED
     color: str | None = UNSPECIFIED
     interline_spacing: int = UNSPECIFIED

@@ -70,7 +70,7 @@ class BaseNewServer(BaseNewConnection):
 class BaseNewMediaServer(BaseNewServer):
     filesize_limit: FilesizeLimit = '5 Megabytes'
 
-class BaseUpdateServer(UpdateBase):
+class BaseUpdateServer(Base):
     name: str = UNSPECIFIED
     enabled: bool = UNSPECIFIED
     url: AnyUrl = UNSPECIFIED
@@ -212,7 +212,7 @@ class UpdateSonarr(BaseUpdateServer):
 
         return v
 
-class UpdateTMDb(UpdateBase):
+class UpdateTMDb(Base):
     enabled: bool = UNSPECIFIED
     api_key: Hexstring = UNSPECIFIED
     minimum_dimensions: constr(pattern=r'^\d+x\d+$') = UNSPECIFIED
@@ -230,7 +230,7 @@ class UpdateTMDb(UpdateBase):
     def comma_separate_language_codes(cls, v):
         return list(map(lambda s: str(s).strip(), v.split(',')))
 
-class UpdateTVDb(UpdateBase):
+class UpdateTVDb(Base):
     enabled: bool = UNSPECIFIED
     api_key: str = UNSPECIFIED
     episode_ordering: TVDbOrderType = UNSPECIFIED

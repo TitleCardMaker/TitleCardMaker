@@ -20,7 +20,7 @@ MediaServer = Literal['Emby', 'Jellyfin', 'Plex']
 # Pydantic base class
 class Base(BaseModel):
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Base class for all card type validators
 class BaseCardModel(Base):
@@ -77,10 +77,6 @@ class BaseCardTypeCustomFontNoText(BaseCardModel):
     font_size: PositiveFloat = 1.0
     font_stroke_width: float = 1.0
     font_vertical_shift: int = 0
-
-# Base class for all "update" models
-class UpdateBase(Base):
-    pass
 
 # Function to validate two equal length lists are provided
 def validate_argument_lists_to_dict(

@@ -17,7 +17,6 @@ from app.schemas.base import (
     Base,
     ImageSource,
     InterfaceType,
-    UpdateBase,
     UNSPECIFIED,
 )
 
@@ -108,7 +107,7 @@ class ImageSourceOption(Base):
 """
 Update classes
 """
-class UpdatePreferences(UpdateBase):
+class UpdatePreferences(Base):
     card_directory: DirectoryPath = UNSPECIFIED
     source_directory: DirectoryPath = UNSPECIFIED
     completely_delete_series: bool = UNSPECIFIED

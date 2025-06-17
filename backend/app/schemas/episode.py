@@ -3,14 +3,9 @@
 from datetime import datetime
 from typing import Any, Self
 
-from pydantic import PositiveFloat, model_validator, model_validator, validator
+from pydantic import PositiveFloat, model_validator, validator
 
-from app.schemas.base import (
-    Base,
-    UpdateBase,
-    UNSPECIFIED,
-    validate_argument_lists_to_dict
-)
+from app.schemas.base import Base, UNSPECIFIED, validate_argument_lists_to_dict
 from app.schemas.ids import EmbyID, IMDbID, JellyfinID, TMDbID, TVDbID, TVRageID
 from app.schemas.preferences import Style
 
@@ -64,16 +59,16 @@ class NewEpisode(Base):
     extras: dict[str, Any] | None = None
     translations: dict[str, str] = {}
 
-    @validator('template_ids', pre=False)
-    def validate_unique_template_ids(cls, val):
-        if len(val) != len(set(val)):
+    @model_validator(mode='after')
+    def validate_unique_template_ids(self) -> Self:
+        if len(self.template_ids) != len(set(self.template_ids)):
             raise ValueError('Template IDs must be unique')
-        return val
+        return self
 
 """
 Update classes
 """
-class UpdateEpisode(UpdateBase):
+class UpdateEpisode(Base):
     template_ids: list[int] = UNSPECIFIED
     font_id: int | None = UNSPECIFIED
 
@@ -120,15 +115,11 @@ class UpdateEpisode(UpdateBase):
     def validate_arguments(cls, v):
         return None if v == '' else v
 
-    @validator('extra_keys', 'extra_values', pre=True)
-    def validate_list(cls, v):
-        return [v] if isinstance(v, str) else v
-
-    @validator('template_ids', pre=False)
-    def validate_unique_template_ids(cls, val):
-        if len(val) != len(set(val)):
+    @model_validator(mode='after')
+    def validate_unique_template_ids(self) -> Self:
+        if len(self.template_ids) != len(set(self.template_ids)):
             raise ValueError('Template IDs must be unique')
-        return val
+        return self
 
     @model_validator(mode='after')
     def convert_null_ids_to_empty_strings(self) -> Self:
