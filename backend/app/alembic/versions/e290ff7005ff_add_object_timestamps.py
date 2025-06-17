@@ -73,7 +73,7 @@ def upgrade() -> None:
     session = Session(bind=op.get_bind())
 
     for model in [Card, Episode, Series]:
-        now = datetime.now(tz=tz)
+        now = datetime.now(tz=settings.TIMEZONE)
         index = 0
         for index, obj in enumerate(
             session.query(model).order_by(model.id.desc()).all()
