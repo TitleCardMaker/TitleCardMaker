@@ -47,7 +47,12 @@ from app.models.episode import Episode
 from app.models.loaded import Loaded
 from app.models.series import Series
 from app.schemas.base import UNSPECIFIED
-from app.schemas.connection import EpisodeDataSourceInterface
+from app.interfaces.v2 import (
+    EpisodeDataSourceInterface,
+    EmbyInterface,
+    JellyfinInterface,
+    PlexInterface,
+)
 from app.schemas.filter import SeriesFilter
 from app.schemas.series import (
     NewSeries,
@@ -57,10 +62,7 @@ from app.schemas.series import (
     SeriesOverviewWithCounts,
     UpdateSeries
 )
-from modules.Debug import Logger, log
-from app.interfaces.EmbyInterface2 import EmbyInterface
-from modules.JellyfinInterface2 import JellyfinInterface
-from modules.PlexInterface2 import PlexInterface
+from app.logging.logger import Logger, log
 
 
 """
@@ -442,28 +444,32 @@ def update_series_config(
         Whether the given Series was modified.
     """
 
-    # Get object as dictionary
-    update_series_dict: dict = update_series.dict()
-
     # If a Font is indicated, verify it exists
-    get_font(db, update_series_dict.get('font_id', None), raise_exc=True)
+    get_font(db,update_series.font_id, raise_exc=True)
 
     # Verify Image Source Priorty if indicated
-    if (isp := update_series_dict.get('image_source_priority')) is not None:
+    if (isp := update_series.image_source_priority) not in (None, UNSPECIFIED):
         [get_connection(db, id_, raise_exc=True) for id_ in isp]
 
     # Assign Templates if indicated
     changed = False
-    if ((template_ids := update_series_dict.get('template_ids', None))
+    if ((template_ids := update_series.template_ids)
         not in (None, UNSPECIFIED)):
         if series.template_ids != template_ids:
-            templates = get_all_templates(db, update_series_dict)
+            templates = get_all_templates(db, template_ids)
             series.assign_templates(templates, log=log)
             changed = True
 
     # Update each attribute of the object
-    for attr, value in update_series_dict.items():
-        if value != UNSPECIFIED and getattr(series, attr) != value:
+    for attr, value in update_series.model_dump(
+        exclude_unset=True,
+        exclude={
+            'template_ids',
+            'season_title_ranges', 'season_title_values',
+            'extra_keys', 'extra_values'
+        },
+    ).items():
+        if getattr(series, attr) != value:
             log.debug(f'Series[{series.id}].{attr} = {value!r}')
             setattr(series, attr, value)
             changed = True
