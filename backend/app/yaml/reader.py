@@ -1,14 +1,15 @@
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TYPE_CHECKING, TypeVar
 
 from yaml import safe_load
-from modules.BaseCardType import BaseCardType
 
-from modules.Debug import log
+from app.logging.logger import log
 from modules.RemoteCardType2 import RemoteCardTypeV1
 from modules.TitleCard import TitleCard
 
+if TYPE_CHECKING:
+    from modules.BaseCardType import BaseCardType
 
 _AttributeType = TypeVar('_AttributeType')
 
@@ -136,7 +137,7 @@ class YamlReader:
 
 
     @staticmethod
-    def parse_card_type(card_type: str, /) -> type[BaseCardType] | None:
+    def parse_card_type(card_type: str, /) -> type['BaseCardType'] | None:
         """
         Read the card_type specification for this object. This first
         looks at the locally implemented types in the TitleCard class,
@@ -163,7 +164,7 @@ class YamlReader:
         return None
 
 
-    def _parse_card_type(self, card_type: str, /) -> BaseCardType | None:
+    def _parse_card_type(self, card_type: str, /) -> 'BaseCardType | None':
         """
         Read the card_type specification for this object. This first
         looks at the locally implemented types in the TitleCard class,

@@ -8,12 +8,12 @@ from ruamel.yaml.constructor import DuplicateKeyError
 from yaml import add_representer, dump
 
 from modules.CleanPath import CleanPath
-from modules.Debug import log
-from app.interfaces.EmbyInterface2 import EmbyInterfaceV1
-from modules.JellyfinInterface2 import JellyfinInterfaceV1
-from modules.PlexInterface import PlexInterface
-from modules.SonarrInterface2 import SonarrInterfaceV1
-from modules.SyncInterface import SyncInterface
+from app.logging.logger import log
+from app.interfaces.emby import EmbyInterfaceV1
+from app.interfaces.jellyfin import JellyfinInterfaceV1
+from app.interfaces.plex import PlexInterfaceV1
+from app.interfaces.sonarr import SonarrInterfaceV1
+from app.interfaces.base import SyncInterface
 
 type SeriesYaml = dict[str, dict[str, str]]
 type SyncMode = Literal['append', 'match']
@@ -604,7 +604,7 @@ class SeriesYamlWriter:
 
 
     def update_from_plex(self,
-            plex_interface: PlexInterface,
+            plex_interface: PlexInterfaceV1,
             filter_libraries: Iterable[str] = [],
             required_tags: list[str] = [],
             exclusions: list[dict[str, str]] = [],
