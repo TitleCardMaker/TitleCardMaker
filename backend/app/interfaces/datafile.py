@@ -3,10 +3,10 @@ from pathlib import Path
 from typing import Any, Iterator
 from yaml import safe_load, dump
 
+from app.info.episode import EpisodeInfoV1
+from app.info.series import SeriesInfoV1
 from modules import global_objects
-from modules.Debug import log
-from modules.EpisodeInfo2 import EpisodeInfoV1
-from modules.SeriesInfo2 import SeriesInfoV1
+from app.logging.logger import log
 from modules.Title import Title
 
 

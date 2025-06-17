@@ -6,33 +6,31 @@ from typing import TYPE_CHECKING, Literal, Union, overload
 
 from fastapi import HTTPException
 
-from modules.Debug import log
-from modules.Episode import Episode
-from modules.EpisodeInfo2 import EpisodeInfoV1
-from modules.MediaServer import MediaServerV1
-from modules.SeasonPosterSet import SeasonPosterSet
-from modules.SeriesInfo2 import SeriesInfoV1
-from modules.StyleSet import StyleSet
-from modules.Debug import Logger, log
-from modules.EpisodeDataSource import (
+from app.interfaces.base import (
     EpisodeDataSource,
     EpisodeDataSourceV1,
+    Interface,
+    MediaServer,
+    MediaServerV1,
     SearchResult,
-    WatchedStatus
+    SourceImage,
+    SyncInterface,
+    WatchedStatus,
 )
-from modules.EpisodeInfo2 import EpisodeInfo
-from modules.Interface import Interface
-from modules.MediaServer import MediaServer, SourceImage
-from modules.SeriesInfo2 import SeriesInfo
-from modules.SyncInterface import SyncInterface
-from modules.WebInterface import WebInterface
+from app.interfaces.web import WebInterface
+from app.info.episode import EpisodeInfo, EpisodeInfoV1
+from app.info.series import SeriesInfo, SeriesInfoV1
+from app.yaml.season_posters import SeasonPosterSet
+from app.logging.logger import Logger, log
+from modules.Episode import Episode
+from modules.StyleSet import StyleSet
 
 if TYPE_CHECKING:
     from app.models.card import Card
     from app.models.episode import Episode
 
 
-class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interface):
+class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     """
     This class describes an interface to a Jellyfin media server. This
     is a type of EpisodeDataSource (e.g. interface by which Episode data
@@ -167,7 +165,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
     @overload
     def __get_series_id(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             raw_obj: Literal[False] = False,
             log: Logger = log,
@@ -176,20 +174,20 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
     @overload
     def __get_series_id(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             raw_obj: Literal[True],
             log: Logger = log,
-        ) -> SeriesInfoV1 | None:
+        ) -> SeriesInfo | None:
         ...
 
     def __get_series_id(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             raw_obj: bool = False,
             log: Logger = log,
-        ) -> str | SeriesInfoV1 | None:
+        ) -> str | SeriesInfo | None:
         """
         Get the Jellyfin ID (or entire SeriesInfo) for the given series.
 
@@ -254,8 +252,8 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
                 return None
 
             # Parse all results into SeriesInfo objects
-            results: list[tuple[dict, SeriesInfoV1]] = [
-                (result, SeriesInfoV1.from_jellyfin_info(
+            results: list[tuple[dict, SeriesInfo]] = [
+                (result, SeriesInfo.from_jellyfin_info(
                     result, self._interface_id, library_name
                 ))
                 for result in response['Items']
@@ -359,21 +357,21 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
     @overload
     def __find_ids(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episode_info: None,
         ) -> tuple[None, None] | tuple[str, None]:
         ...
     @overload
     def __find_ids(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episode_info: EpisodeInfo,
         ) -> tuple[None, None] | tuple[str, str]:
         ...
 
     def __find_ids(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episode_info: EpisodeInfo | None,
         ) -> tuple[str | None, str] | None:
         """
@@ -419,7 +417,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def set_series_ids(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             log: Logger = log,
         ) -> None:
@@ -437,8 +435,10 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
             library_name, series_info, raw_obj=True, log=log
         )
         if result is None:
-            log.warning(f'Series "{series_info}" was not found under library '
-                        f'"{library_name}" in Jellyfin')
+            log.warning(
+                f'Series "{series_info}" was not found under library '
+                f'"{library_name}" in Jellyfin'
+            )
             return None
 
         del series_info.jellyfin_id[self._interface_id, library_name]
@@ -448,7 +448,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def set_episode_ids(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
             *,
             log: Logger = log,
@@ -534,7 +534,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
             excluded_tags: list[str] = [],
             *,
             log: Logger = log,
-        ) -> list[tuple[SeriesInfoV1, str]]:
+        ) -> list[tuple[SeriesInfo, str]]:
         """
         Get all series within Jellyfin, as filtered by the given
         libraries and tags.
@@ -593,7 +593,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
                     continue
 
                 all_series.append((
-                    SeriesInfoV1.from_jellyfin_info(
+                    SeriesInfo.from_jellyfin_info(
                         series, self._interface_id, library
                     ),
                     library
@@ -607,7 +607,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def get_all_episodes(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
@@ -673,7 +673,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def update_watched_statuses(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episodes: list['Episode'],
             *,
             log: Logger = log,
@@ -722,7 +722,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def load_title_cards(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episode_and_cards: Union[
                 list[tuple['Episode', 'Card']],
                 list[tuple['Episode', 'Card', str]]
@@ -793,7 +793,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def load_season_posters(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             posters: dict[int, str | Path],
             *,
             log: Logger = log,
@@ -853,7 +853,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def load_series_poster(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             image: str | Path,
             *,
             log: Logger = log
@@ -905,7 +905,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def load_series_background(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             image: str | Path,
             *,
             log: Logger = log
@@ -957,7 +957,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def get_source_image(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episode_info: EpisodeInfo,
             *,
             log: Logger = log,
@@ -1007,7 +1007,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def get_series_poster(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             log: Logger = log,
         ) -> SourceImage:
@@ -1045,7 +1045,7 @@ class JellyfinInterface(MediaServerV1, EpisodeDataSource, SyncInterface, Interfa
 
     def get_series_logo(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             log: Logger = log,
         ) -> SourceImage:

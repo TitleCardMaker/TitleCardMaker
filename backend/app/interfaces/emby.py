@@ -6,23 +6,24 @@ from typing import TYPE_CHECKING, Iterator, Literal, Union, overload
 
 from fastapi import HTTPException
 
-from modules.Debug import Logger, log
-from modules.Episode import Episode
-from modules.EpisodeDataSource import (
+from app.info.episode import EmbyEpisodeDict, EpisodeInfo, EpisodeInfoV1
+from app.info.series import SeriesInfo, SeriesInfoV1
+from app.interfaces.base import (
     EpisodeDataSource,
     EpisodeDataSourceV1,
+    Interface,
+    MediaServer,
+    MediaServerV1,
     SearchResult,
+    SourceImage,
+    SyncInterface,
     WatchedStatus,
 )
-from modules.EpisodeInfo2 import EmbyEpisodeDict, EpisodeInfo, EpisodeInfoV1
-from modules.MediaServer import MediaServer, MediaServerV1
-from modules.SeasonPosterSet import SeasonPosterSet
-from modules.SeriesInfo2 import SeriesInfoV1
+from app.interfaces.web import WebInterface
+from app.yaml.season_posters import SeasonPosterSet
+from app.logging.logger import Logger, log
+from modules.Episode import Episode
 from modules.StyleSet import StyleSet
-from modules.Interface import Interface
-from modules.MediaServer import SourceImage
-from modules.SyncInterface import SyncInterface
-from modules.WebInterface import WebInterface
 
 if TYPE_CHECKING:
     from app.models.card import Card
@@ -177,7 +178,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     @overload
     def __get_series_id(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             raw_obj: Literal[False] = False,
             log: Logger = log
@@ -185,18 +186,18 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     @overload
     def __get_series_id(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             raw_obj: Literal[True] = True,
             log: Logger = log
-        ) -> SeriesInfoV1 | None: ...
+        ) -> SeriesInfo | None: ...
     def __get_series_id(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             raw_obj: bool = False,
             log: Logger = log,
-        ) -> str | SeriesInfoV1 | None:
+        ) -> str | SeriesInfo | None:
         """
         Get the Jellyfin ID for the given series.
 
@@ -268,7 +269,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                         log.debug(f'Series {result["Name"]} has no premiere date')
                         continue
 
-                    this_series = SeriesInfoV1.from_emby_info(
+                    this_series = SeriesInfo.from_emby_info(
                         result, self._interface_id, library_name,
                     )
                     if series_info == this_series:
@@ -315,7 +316,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def __get_episodes(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             log: Logger = log,
         ) -> Iterator[EmbyEpisodeDict]:
@@ -375,7 +376,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def set_series_ids(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             log: Logger = log,
         ) -> None:
@@ -407,7 +408,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def set_episode_ids(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
             *,
             log: Logger = log,
@@ -529,7 +530,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             excluded_tags: list[str] = [],
             *,
             log: Logger = log,
-        ) -> list[tuple[SeriesInfoV1, str]]:
+        ) -> list[tuple[SeriesInfo, str]]:
         """
         Get all series within Emby, as filtered by the given libraries.
 
@@ -577,7 +578,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             params |= {'Tags': '|'.join(required_tags)}
 
         # Go through each library in this server
-        all_series: list[tuple[SeriesInfoV1, str]] = []
+        all_series: list[tuple[SeriesInfo, str]] = []
         for library, library_ids in self.libraries.items():
             # Filter by library
             if ((required_libraries and library not in required_libraries)
@@ -601,7 +602,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                         datetime.strptime(premiere, self.AIRDATE_FORMAT).year
 
                         all_series.append((
-                            SeriesInfoV1.from_emby_info(
+                            SeriesInfo.from_emby_info(
                                 series, self._interface_id, library,
                             ),
                             library
@@ -618,7 +619,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def get_all_episodes(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
@@ -654,7 +655,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def update_watched_statuses(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episodes: list['Episode'],
             *,
             log: Logger = log,
@@ -709,7 +710,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def load_title_cards(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episode_and_cards: Union[
                 list[tuple['Episode', 'Card']],
                 list[tuple['Episode', 'Card', str]]
@@ -814,7 +815,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def load_season_posters(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             posters: dict[int, str | Path],
             *,
             log: Logger = log,
@@ -876,7 +877,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def load_series_poster(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             image: str | Path,
             *,
             log: Logger = log
@@ -928,7 +929,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def load_series_background(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             image: str | Path,
             *,
             log: Logger = log
@@ -980,7 +981,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def get_source_image(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             episode_info: EpisodeInfo,
             *,
             log: Logger = log,
@@ -1026,7 +1027,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def get_series_poster(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             log: Logger = log,
         ) -> SourceImage:
@@ -1062,7 +1063,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def get_series_logo(self,
             library_name: str,
-            series_info: SeriesInfoV1,
+            series_info: SeriesInfo,
             *,
             log: Logger = log,
         ) -> SourceImage:

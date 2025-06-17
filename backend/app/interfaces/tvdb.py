@@ -5,16 +5,16 @@ from urllib.parse import quote as url_quote, urlencode
 from fastapi import HTTPException
 from pydantic import BaseModel, ValidationError
 
-from modules.Debug import Logger, log
-from modules.EpisodeDataSource import (
+from app.interfaces.base import (
     EpisodeDataSource,
+    Interface,
     SearchResult,
     WatchedStatus,
 )
-from modules.EpisodeInfo2 import EpisodeInfo
-from modules.Interface import Interface
-from modules.SeriesInfo2 import SeriesInfo
-from modules.WebInterface import WebInterface
+from app.interfaces.web import WebInterface
+from app.info.episode import EpisodeInfo
+from app.info.series import SeriesInfo
+from app.logging.logger import Logger, log
 
 
 ArtType = Literal[

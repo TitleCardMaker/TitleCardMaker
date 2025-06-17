@@ -6,19 +6,18 @@ from typing import Annotated, Any, Literal
 
 from fastapi import HTTPException
 
-from modules.EpisodeInfo2 import EpisodeInfoV1
-from modules.Debug import Logger, log
-from modules.SeriesInfo2 import SeriesInfoV1, SeriesInfo
-from modules.EpisodeDataSource import (
+from app.interfaces.base import (
     EpisodeDataSource,
     EpisodeDataSourceV1,
     SearchResult,
     WatchedStatus,
 )
-from modules.EpisodeInfo2 import EpisodeInfo
-from modules.Interface import Interface
-from modules.SyncInterface import SyncInterface
-from modules.WebInterface import WebInterface
+from app.info.episode import EpisodeInfo, EpisodeInfoV1
+from app.info.series import SeriesInfoV1, SeriesInfo
+from app.logging.logger import Logger, log
+from app.interfaces.base import Interface
+from app.interfaces.base import SyncInterface
+from app.interfaces.web import WebInterface
 
 
 type SeriesType = Literal['anime', 'daily', 'standard']

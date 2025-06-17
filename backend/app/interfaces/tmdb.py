@@ -16,18 +16,18 @@ from tmdbapis import (
 from tmdbapis.objs.reload import Episode as TMDbEpisode, Movie as TMDbMovie
 from tmdbapis.objs.image import Still as TMDbStill
 
-from modules.Debug import Logger, log
-from modules.EpisodeInfo2 import EpisodeInfo, EpisodeInfoV1
-from modules.PersistentDatabase import PersistentDatabase
-from modules.SeriesInfo2 import SeriesInfo, SeriesInfoV1
-from modules.EpisodeDataSource import (
+from app.interfaces.base import (
     EpisodeDataSource,
     EpisodeDataSourceV1,
+    Interface,
     SearchResult,
-    WatchedStatus
+    WatchedStatus,
 )
-from modules.Interface import Interface
-from modules.WebInterface import WebInterface
+from app.info.episode import EpisodeInfo, EpisodeInfoV1
+from app.info.series import SeriesInfo, SeriesInfoV1
+from app.logging.logger import Logger, log
+from modules.PersistentDatabase import PersistentDatabase
+from app.interfaces.web import WebInterface
 
 
 def catch_and_log(

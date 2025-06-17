@@ -5,9 +5,9 @@ from typing import NamedTuple
 
 from fastapi import HTTPException
 
-from modules.Debug import Logger, log
-from modules.Interface import Interface
-from modules.WebInterface import WebInterface
+from app.interfaces.base import Interface
+from app.interfaces.web import WebInterface
+from app.logging.logger import Logger, log
 
 
 class IntegratedStatus(NamedTuple):
