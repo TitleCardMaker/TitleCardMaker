@@ -1,8 +1,23 @@
-from datetime import timedelta
+from datetime import datetime, timedelta, tzinfo
+from os import getenv
+from pathlib import Path
 from typing import Annotated, Literal
 
+from pytz import timezone, UnknownTimeZoneError
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+"""
+Application root directories
+"""
+IS_DOCKER = getenv('TCM_IS_DOCKER') == 'TRUE'
+TCM_ROOT = Path(__file__).parent.parent.parent
+BACKEND_ROOT = TCM_ROOT / 'backend'
+FRONTEND_ROOT = TCM_ROOT / 'frontend'
+
+CONFIG_ROOT = Path('/config') if IS_DOCKER else (TCM_ROOT / 'config')
+LOG_ROOT = CONFIG_ROOT / 'logs'
 
 
 class Settings(BaseSettings):
@@ -10,6 +25,37 @@ class Settings(BaseSettings):
         env_file='.env',
         env_prefix='TCM_'
     )
+
+    """
+    Logging-related Settings
+    """
+    LOG_LEVEL: Annotated[
+        Literal['TRACE', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        'Level of logging verbosity to use'
+    ] = Field(default='INFO', alias='LOG_LEVEL')
+
+    INTERCEPT_PLEX_LOGS: Annotated[
+        bool,
+        'Whether to intercept Plex logs'
+    ] = Field(default=False, alias='PLEX_LOGGING')
+
+    PACKAGE_LOGGING: Annotated[
+        str,
+        'Comma-separated list of packages to intercept logging for'
+    ] = Field(default='', alias='PACKAGE_LOGGING')
+
+    @property
+    def TIMEZONE(self) -> tzinfo:
+        if (tz_code := getenv('TZ', None)) is not None:
+            try:
+                return timezone(tz_code)
+            except UnknownTimeZoneError:
+                pass
+
+        try:
+            return datetime.now().astimezone().tzinfo
+        except Exception:
+            return timezone('UTC')
 
     # Execution mode
     IS_DOCKER: Annotated[
@@ -50,10 +96,61 @@ class Settings(BaseSettings):
         'Whether the server is in testing mode'
     ] = Field(default=False, alias='TESTING')
 
+    # Version 1 settings
+    V1_PREFERENCE_FILE: Annotated[
+        Path,
+        'Path to the global preferences.yml file'
+    ] = Field(
+        default=CONFIG_ROOT / 'preferences.yml',
+        alias='PREFERENCES_FILE',
+    )
+
+    V1_CARD_QUALITY: Annotated[
+        int,
+        'Image compression quality to utilize'
+    ] = Field(default=92, alias='CARD_QUALITY')
+
+    V1_IMAGEMAGICK_CONTAINER: Annotated[
+        str | None,
+        'Docker container to execute ImageMagick commands within'
+    ] = Field(default=None, alias='IMAGEMAGICK_DOCKER')
+
+    V1_RUNTIME: Annotated[
+        str | None,
+        'When to first run the TitleCardMaker (in 24-hour time)'
+    ] = Field(default=None, alias='RUNTIME')
+
+    V1_FREQUENCY: Annotated[
+        str,
+        'How often to run the TitleCardMaker'
+    ] = Field(default='12h', alias='FREQUENCY')
+
+    V1_MISSING_FILE: Annotated[
+        Path,
+        'File to write the list of missing assets to'
+    ] = Field(default=CONFIG_ROOT / 'missing.yml', alias='MISSING_FILE')
+
+    V1_TAUTULLI_LIST: Annotated[
+        Path | None,
+        'File to monitor for Tautulli-driven episode watch-status updates'
+    ] = Field(default=None, alias='TAUTULLI_LIST')
+
+    V1_TAUTULLI_FREQUENCY: Annotated[
+        str,
+        'How often to check the Tautulli update list'
+    ] = Field(default='4m', alias='TAUTULLI_FREQUENCY')
 
 settings = Settings()
 
 
-__all__ = [
-    'settings',
-]
+"""Global tqdm arguments"""
+TQDM_KWARGS = {
+    # Progress bar format string
+    'bar_format': (
+        '{desc:.50s} {percentage:2.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
+    ),
+    # Progress bars should disappear when finished
+    'leave': False,
+    # Progress bars can not be used if no TTY is present
+    'disable': None,
+}
