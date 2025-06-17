@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.13-slim AS python-reqs
+FROM python:3.11-slim AS python-reqs
 
 # Install uv and generate requirements file
 # Install gcc for building python dependencies
@@ -14,12 +14,12 @@ RUN --mount=type=cache,target=/root/.cache \
     pip3 install -r requirements.txt
 
 # Set base image for running TCM
-FROM python:3.13-slim AS final
+FROM python:3.11-slim AS final
 LABEL maintainer="CollinHeist" \
       description="Automated Title Card creator for Plex, Emby, and Jellyfin"
 
 # Copy python packages from python-reqs
-COPY --from=python-reqs /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=python-reqs /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
 # Set working directory, copy source into container
 WORKDIR /maker
@@ -42,8 +42,8 @@ RUN \
 
 # Copy python packages from python-reqs
 COPY --from=python-reqs \
-    /usr/local/lib/python3.13/site-packages \
-    /usr/local/lib/python3.13/site-packages
+    /usr/local/lib/python3.11/site-packages \
+    /usr/local/lib/python3.11/site-packages
 
 # Install and build frontend
 WORKDIR /maker/front_next
