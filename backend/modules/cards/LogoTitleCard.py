@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Annotated, Any, Self
 
 from pydantic import FilePath, PositiveFloat, model_validator
 
@@ -12,8 +12,8 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
+    from app.yaml.font import Font
     from modules.preferences import Preferences
-    from modules.Font import Font
 
 
 class LogoTitleCard(BaseCardType):
@@ -140,8 +140,10 @@ class LogoTitleCard(BaseCardType):
         ]
     )
 
-    """Directory where all reference files used by this card are stored"""
-    REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY
+    REF_DIRECTORY: Annotated[
+        Path,
+        'Directory where all reference files used by this card are stored'
+    ] = BaseCardType.BASE_REF_DIRECTORY / 'standard'
 
     """Characteristics for title splitting by this class"""
     TITLE_CHARACTERISTICS = {
@@ -175,7 +177,7 @@ class LogoTitleCard(BaseCardType):
     SERIES_COUNT_TEXT_COLOR = '#CFCFCF'
 
     """Source path for the gradient image overlaid over all title cards"""
-    __GRADIENT_IMAGE = REF_DIRECTORY / 'GRADIENT.png'
+    __GRADIENT_IMAGE = REF_DIRECTORY / 'gradient.png'
 
     __slots__ = (
         'background',

@@ -197,7 +197,7 @@ class AnimeTitleCard(BaseCardType):
     USES_SEASON_TITLE = True
 
     """Source path for the gradient image overlayed over all title cards"""
-    __GRADIENT_IMAGE = REF_DIRECTORY / 'GRADIENT.png'
+    __GRADIENT_IMAGE = REF_DIRECTORY / 'gradient.png'
 
     """Path to the font to use for the kanji font"""
     KANJI_FONT = REF_DIRECTORY / 'hiragino-mincho-w3.ttc'

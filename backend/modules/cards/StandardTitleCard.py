@@ -1,9 +1,8 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Annotated, Any
 
 from pydantic import FilePath, PositiveFloat
 
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -11,10 +10,11 @@ from modules.BaseCardType import (
     ImageMagickCommands,
 )
 from app.logging.logger import log # noqa: F401
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 
 if TYPE_CHECKING:
+    from app.yaml.font import Font
     from modules.preferences import Preferences
-    from modules.Font import Font
 
 
 class StandardTitleCard(BaseCardType):
@@ -97,8 +97,10 @@ class StandardTitleCard(BaseCardType):
         ]
     )
 
-    """Directory where all reference files used by this card are stored"""
-    REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY
+    REF_DIRECTORY: Annotated[
+        Path,
+        'Directory where all reference files used by this card are stored'
+    ] = BaseCardType.BASE_REF_DIRECTORY / 'standard'
 
     """Characteristics for title splitting by this class"""
     TITLE_CHARACTERISTICS = {
@@ -126,8 +128,10 @@ class StandardTitleCard(BaseCardType):
     SERIES_COUNT_TEXT_COLOR = '#CFCFCF'
     DEFAULT_STROKE_COLOR: str = 'black'
 
-    """Source path for the gradient image"""
-    __GRADIENT_IMAGE = REF_DIRECTORY / 'GRADIENT.png'
+    __GRADIENT_IMAGE: Annotated[
+        Path,
+        'Source path for the gradient image'
+    ] = REF_DIRECTORY / 'gradient.png'
 
     __slots__ = (
         'episode_text',

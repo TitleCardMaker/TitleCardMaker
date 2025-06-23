@@ -188,7 +188,7 @@ class ScoreTitleCard(BaseCardType):
     STROKE_COLOR = 'black'
 
     """Path to the gradient image to overlay"""
-    _GRADIENT_IMAGE = REF_DIRECTORY.parent / 'anime' / 'GRADIENT.png'
+    _GRADIENT_IMAGE = REF_DIRECTORY.parent / 'anime' / 'gradient.png'
 
     __slots__ = (
         'episode_text',

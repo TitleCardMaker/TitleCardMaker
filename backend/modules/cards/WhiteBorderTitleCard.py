@@ -104,15 +104,29 @@ class WhiteBorderTitleCard(BaseCardType):
     FRAME_IMAGE = REF_DIRECTORY / 'border.png'
 
     """Gradient image to overlay"""
-    __GRADIENT_IMAGE = REF_DIRECTORY.parent / 'GRADIENT.png'
+    __GRADIENT_IMAGE = REF_DIRECTORY.parent / 'gradient.png'
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_color',
-        'font_file', 'font_interline_spacing', 'font_kerning', 'font_size',
-        'font_stroke_width', 'font_vertical_shift', 'border_color',
-        'stroke_color', 'episode_text_color', 'episode_text_font_size',
-        'font_interword_spacing', 'separator', 'omit_gradient',
+        'source_file',
+        'output_file',
+        'title_text',
+        'season_text',
+        'episode_text',
+        'hide_season_text',
+        'hide_episode_text',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_kerning',
+        'stroke_color',
+        'episode_text_color',
+        'episode_text_font_size',
+        'font_interword_spacing',
+        'separator',
+        'omit_gradient',
+        'border_color',
+        'font_stroke_width',
+        'font_vertical_shift',
     )
 
     def __init__(self, *,
