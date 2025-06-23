@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from app.magick.base import BaseSummary
 from app.logging.logger import log
+from app.magick.base import BaseSummary
 
 if TYPE_CHECKING:
     from modules.Show import Show
@@ -23,7 +23,11 @@ class StandardSummary(BaseSummary):
 
     """Configurations for the header text"""
     HEADER_TEXT = 'EPISODE TITLE CARDS'
-    HEADER_FONT = BaseSummary.REF_DIRECTORY.parent / 'Proxima Nova Regular.otf'
+    HEADER_FONT = (
+        BaseSummary.REF_DIRECTORY.parent
+        / 'standard'
+        / 'Proxima Nova Regular.otf'
+    )
     HEADER_FONT_COLOR = '#CFCFCF'
 
     """Paths to intermediate images created by this object"""
@@ -90,7 +94,7 @@ class StandardSummary(BaseSummary):
 
         background = 'None' if self.__background_is_image else self.background
 
-        command = ' '.join([
+        self.image_magick.run([
             f'montage',
             f'-set colorspace sRGB',
             f'-background "{background}"',
@@ -101,8 +105,6 @@ class StandardSummary(BaseSummary):
             f'"'+'" "'.join(self.inputs)+'"', # Wrap each filename in ""
             f'"{self.__MONTAGE_PATH.resolve()}"',
         ])
-
-        self.image_magick.run(command)
 
         return self.__MONTAGE_PATH
 
@@ -121,7 +123,7 @@ class StandardSummary(BaseSummary):
 
         background = 'None' if self.__background_is_image else self.background
 
-        command = ' '.join([
+        self.image_magick.run([
             f'convert "{montage.resolve()}"',
             f'-resize 50%',
             f'-background "{background}"',
@@ -146,8 +148,6 @@ class StandardSummary(BaseSummary):
             f'"{self.__MONTAGE_WITH_HEADER_PATH.resolve()}"'
         ])
 
-        self.image_magick.run(command)
-
         return self.__MONTAGE_WITH_HEADER_PATH
 
 
@@ -161,15 +161,13 @@ class StandardSummary(BaseSummary):
             Path to the resized logo.
         """
 
-        command = ' '.join([
+        self.image_magick.run([
             f'convert',
             f'"{self.logo.resolve()}"',
             f'-resize x500',
             fr'-resize 3400x500\>',
             f'"{self.__RESIZED_LOGO_PATH.resolve()}"',
         ])
-
-        self.image_magick.run(command)
 
         return self.__RESIZED_LOGO_PATH
 
@@ -188,7 +186,7 @@ class StandardSummary(BaseSummary):
 
         _, height = self.image_magick.get_image_dimensions(logo)
 
-        command = ' '.join([
+        self.image_magick.run([
             f'composite',
             f'-gravity north',
             f'-geometry +0+{150+(500-height)//2}',
@@ -196,8 +194,6 @@ class StandardSummary(BaseSummary):
             f'"{montage.resolve()}"',
             f'"{self.__LOGO_AND_HEADER_PATH.resolve()}"'
         ])
-
-        self.image_magick.run(command)
 
         return self.__LOGO_AND_HEADER_PATH
 
@@ -250,7 +246,7 @@ class StandardSummary(BaseSummary):
 
         # Create transparent montage
         y_offset = (self.number_rows == 2) * 35 + (self.number_rows == 1) * 15
-        command = ' '.join([
+        self.image_magick.run([
             f'composite',
             f'-gravity south',
             f'-geometry +0+{35+y_offset}',
@@ -258,8 +254,6 @@ class StandardSummary(BaseSummary):
             f'"{montage_and_logo.resolve()}"',
             f'"{self.__TRANSPARENT_MONTAGE.resolve()}"',
         ])
-
-        self.image_magick.run(command)
 
         # Get dimensions of transparent montage to fit background
         width, height = self.image_magick.get_image_dimensions(

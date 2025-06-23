@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from math import ceil
 from pathlib import Path
 from random import sample
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 from app.interfaces.magick import Dimensions, ImageMagickInterface
 from app.logging.logger import log
@@ -25,8 +25,10 @@ class ImageMaker(ABC):
     image is created are completely customizable.
     """
 
-    """Base reference directory for local assets"""
-    BASE_REF_DIRECTORY = Path(__file__).parent / 'ref'
+    BASE_REF_DIRECTORY: Annotated[
+        Path,
+        'Base reference directory for local assets'
+    ] = Path(__file__).parent.parent.parent / 'assets'
 
     """Directory for all temporary images created during image creation"""
     TEMP_DIR = Path(__file__).parent / '.objects'
@@ -106,7 +108,10 @@ class BaseSummary(ImageMaker):
     number_rows: int
 
     """Directory where all reference files are stored"""
-    REF_DIRECTORY = Path(__file__).parent / 'ref' / 'summary'
+    REF_DIRECTORY: Annotated[
+        Path,
+        'Directory where all reference files are stored'
+    ] = ImageMaker.BASE_REF_DIRECTORY / 'summary'
 
     BACKGROUND_COLOR = '#1A1A1A'
 
@@ -117,12 +122,19 @@ class BaseSummary(ImageMaker):
     _CREATED_BY_PATH = REF_DIRECTORY / 'created_by_v2.png'
 
     """Configuration for the created by image creation"""
-    HEADER_FONT = REF_DIRECTORY.parent / 'Proxima Nova Regular.otf'
+    HEADER_FONT = REF_DIRECTORY / 'standard' / 'Proxima Nova Regular.otf'
     __CREATED_BY_FONT = REF_DIRECTORY.parent / 'star_wars' / 'HelveticaNeue.ttc'
     __TCM_LOGO = REF_DIRECTORY / 'logo.png'
     __CREATED_BY_TEMPORARY_PATH = ImageMaker.TEMP_DIR / 'user_created_by.png'
 
-    __slots__ = ('show', 'logo', 'created_by', 'output', 'inputs','number_rows')
+    __slots__ = (
+        'created_by',
+        'inputs',
+        'logo',
+        'number_rows',
+        'output',
+        'show',
+    )
 
 
     @abstractmethod
@@ -259,12 +271,3 @@ class BaseSummary(ImageMaker):
         ])
 
         return self.__CREATED_BY_TEMPORARY_PATH
-
-
-__all__ = [
-    'BaseSummary',
-    'ImageMagickInterface',
-    'Dimensions',
-    'ImageMaker',
-    'ImageMagickCommands',
-]
