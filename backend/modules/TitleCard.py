@@ -14,6 +14,7 @@ from modules.Title import SplitCharacteristics
 
 # Built-in BaseCardType classes
 from modules.cards.AnimeTitleCard import AnimeTitleCard
+from modules.cards.AnimeFadeTitleCard import AnimeFadeTitleCard
 from modules.cards.BannerTitleCard import BannerTitleCard
 from modules.cards.CalligraphyTitleCard import CalligraphyTitleCard
 from modules.cards.CascadeTitleCard import CascadeTitleCard
@@ -84,6 +85,7 @@ class TitleCard:
     CARD_TYPES: dict[str, type[BaseCardType]] = {
         '4x3': FadeTitleCard,
         'anime': AnimeTitleCard,
+        'anime fade': AnimeFadeTitleCard,
         'banner': BannerTitleCard,
         'blurred border': TintedFrameTitleCard,
         'calligraphy': CalligraphyTitleCard,
@@ -93,6 +95,7 @@ class TitleCard:
         'divider': DividerTitleCard,
         'f1': FormulaOneTitleCard,
         'fade': FadeTitleCard,
+        'fade anime': AnimeFadeTitleCard,
         'formula 1': FormulaOneTitleCard,
         'frame': FrameTitleCard,
         'generic': StandardTitleCard,
