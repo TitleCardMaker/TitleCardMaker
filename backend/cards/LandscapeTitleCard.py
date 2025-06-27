@@ -25,7 +25,7 @@ from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences
-    from modules.Font import Font
+    from app.yaml.font import Font
 
 
 DarkenOption = Literal['all', 'box'] | bool

@@ -31,7 +31,7 @@ from modules.BaseCardType import (
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences
-    from modules.Font import Font
+    from app.yaml.font import Font
 
 
 _DEG_TO_RAD = PI / 180.0

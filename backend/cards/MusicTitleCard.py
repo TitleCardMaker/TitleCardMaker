@@ -33,7 +33,7 @@ from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences
-    from modules.Font import Font
+    from app.yaml.font import Font
 
 class ControlColors(NamedTuple): # pylint: disable=missing-class-docstring
     shuffle: str

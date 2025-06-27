@@ -8,7 +8,7 @@ from modules.BaseCardType import BaseCardType, Extra, CardTypeDescription
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences
-    from modules.Font import Font
+    from app.yaml.font import Font
 
 
 class PosterTitleCard(BaseCardType):

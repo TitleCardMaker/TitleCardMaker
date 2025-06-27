@@ -20,7 +20,7 @@ from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences
-    from modules.Font import Font
+    from app.yaml.font import Font
 
 
 STRIPE_DOC_LINK = 'https://titlecardmaker.com/card_types/striped/#definition'

@@ -14,8 +14,8 @@ from modules.BaseCardType import (
 from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
+    from app.yaml.font import Font
     from modules.preferences import Preferences
-    from modules.Font import Font
 
 LogoPosition = Literal['omit', 'top left', 'top right', 'bottom right']
 

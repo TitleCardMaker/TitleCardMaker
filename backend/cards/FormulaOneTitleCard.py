@@ -19,8 +19,8 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
+    from app.yaml.font import Font
     from modules.preferences import Preferences
-    from modules.Font import Font
 
 
 Country = Literal[

@@ -16,7 +16,7 @@ from app.info.episode import EpisodeInfo
 
 if TYPE_CHECKING:
     from modules.preferences import Preferences
-    from modules.Font import Font
+    from app.yaml.font import Font
 
 
 LabelPlacement = Literal['above', 'below', 'random']
