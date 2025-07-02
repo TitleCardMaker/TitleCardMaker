@@ -15,8 +15,8 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
+    from modules.preferences import Preferences
 
 
 BoxCoordinates = namedtuple('BoxCoordinates', ('x0', 'y0', 'x1', 'y1'))

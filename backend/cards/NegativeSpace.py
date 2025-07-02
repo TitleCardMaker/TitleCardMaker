@@ -13,8 +13,8 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
+    from modules.preferences import Preferences
 
 
 TextSide = Literal['left', 'right']

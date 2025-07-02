@@ -29,7 +29,7 @@ class StandardTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Standard',
         identifier='standard',
-        example='/public/cards/standard.jpg',
+        example='/public/cards/standard.webp',
         creators=['/u/UniversalPolymath', 'CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,
