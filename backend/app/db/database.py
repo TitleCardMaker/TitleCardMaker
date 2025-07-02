@@ -30,9 +30,10 @@ engine = create_engine(
 )
 
 # URL to the Blueprints SQL database
-BLUEPRINT_SQL_DATABASE_URL = 'sqlite:///./modules/.objects/blueprints.db'
 if settings.IS_DOCKER:
-    BLUEPRINT_SQL_DATABASE_URL = 'sqlite:////maker/modules/.objects/blueprints.db'
+    BLUEPRINT_SQL_DATABASE_URL = 'sqlite:////tcm/modules/.objects/blueprints.db'
+else:
+    BLUEPRINT_SQL_DATABASE_URL = 'sqlite:///./modules/.objects/blueprints.db'
 
 blueprint_engine = create_engine(
     BLUEPRINT_SQL_DATABASE_URL, connect_args={'check_same_thread': False},
