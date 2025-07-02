@@ -19,6 +19,9 @@ FRONTEND_ROOT = TCM_ROOT / 'frontend'
 CONFIG_ROOT = Path('/config') if IS_DOCKER else (TCM_ROOT / 'config')
 LOG_ROOT = CONFIG_ROOT / 'logs'
 
+# Logging levels
+LogLevel = Literal['TRACE', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -29,10 +32,20 @@ class Settings(BaseSettings):
     """
     Logging-related Settings
     """
-    LOG_LEVEL: Annotated[
-        Literal['TRACE', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-        'Level of logging verbosity to use'
-    ] = Field(default='INFO', alias='LOG_LEVEL')
+    CONSOLE_LOG_LEVEL: Annotated[
+        LogLevel,
+        'Level of logging verbosity to use in the console'
+    ] = Field(default='INFO')
+
+    DATABASE_LOG_LEVEL: Annotated[
+        LogLevel,
+        'Level of logging verbosity to use in the logging database'
+    ] = Field(default='TRACE')
+
+    WEBSOCKET_LOG_LEVEL: Annotated[
+        LogLevel,
+        'Level of logging verbosity to use in the frontend WebSocket'
+    ] = Field(default='INFO')
 
     INTERCEPT_PLEX_LOGS: Annotated[
         bool,
@@ -41,8 +54,8 @@ class Settings(BaseSettings):
 
     PACKAGE_LOGGING: Annotated[
         str,
-        'Comma-separated list of packages to intercept logging for'
-    ] = Field(default='', alias='PACKAGE_LOGGING')
+        'Comma-separated list of packages to intercept logging from'
+    ] = Field(default='')
 
     @property
     def TIMEZONE(self) -> tzinfo:
@@ -118,27 +131,27 @@ class Settings(BaseSettings):
     V1_RUNTIME: Annotated[
         str | None,
         'When to first run the TitleCardMaker (in 24-hour time)'
-    ] = Field(default=None, alias='RUNTIME')
+    ] = Field(default=None)
 
     V1_FREQUENCY: Annotated[
         str,
         'How often to run the TitleCardMaker'
-    ] = Field(default='12h', alias='FREQUENCY')
+    ] = Field(default='12h')
 
     V1_MISSING_FILE: Annotated[
         Path,
         'File to write the list of missing assets to'
-    ] = Field(default=CONFIG_ROOT / 'missing.yml', alias='MISSING_FILE')
+    ] = Field(default=CONFIG_ROOT / 'missing.yml')
 
     V1_TAUTULLI_LIST: Annotated[
         Path | None,
         'File to monitor for Tautulli-driven episode watch-status updates'
-    ] = Field(default=None, alias='TAUTULLI_LIST')
+    ] = Field(default=None)
 
     V1_TAUTULLI_FREQUENCY: Annotated[
         str,
         'How often to check the Tautulli update list'
-    ] = Field(default='4m', alias='TAUTULLI_FREQUENCY')
+    ] = Field(default='4m')
 
 settings = Settings()
 
