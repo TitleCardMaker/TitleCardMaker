@@ -23,7 +23,7 @@ from app.db.database import engine as db_engine, SQLALCHEMY_DATABASE_URL
 from app.db.scheduler import Scheduler
 from app.dependencies import get_database, get_preferences
 from app.logging.database import logs_engine, LOGS_DATABASE_URL
-from app.logging.logger import contextualize, Logger, log as logger
+from app.logging.logger import contextualize, log as logger, Logger
 from app.models.user import User
 from app.settings import BACKEND_ROOT, FRONTEND_ROOT
 from modules.BackgroundTasks import TracebackSuppressedPackages
