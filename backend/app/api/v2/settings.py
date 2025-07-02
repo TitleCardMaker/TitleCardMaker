@@ -130,15 +130,6 @@ def get_image_source_priority(
     return sources
 
 
-@settings_router.get('/backups', deprecated=True)
-def get_available_system_backups(
-        log: Logger = Depends(get_logger),
-    ) -> list[SystemBackup]:
-    """Get a list detailing all the available system backups."""
-
-    return list_available_backups(log=log)
-
-
 @settings_router.get('/background-tasks')
 def get_pending_background_tasks() -> list[tuple[str, str | None]]:
     from modules.BackgroundTasks import task_queue
