@@ -5,7 +5,7 @@ from typing import Callable
 
 from fastapi import Request, Response
 
-from app.logging.logger import contextualize, log
+from app.logging.logger import contextualize
 
 
 async def contextualize_api_requests(
@@ -19,7 +19,7 @@ async def contextualize_api_requests(
     """
 
     # Add contextualized logger to Request state
-    log_ = contextualize(log)
+    log_ = contextualize()
     request.state.log = log_
 
     def _decorate_url(url: str) -> bool:
