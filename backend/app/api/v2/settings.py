@@ -1,21 +1,19 @@
 from fastapi import APIRouter, Body, Depends
 from sqlalchemy.orm import Session
 
-from app.db.query import get_font, get_template
-from app.dependencies import get_database, get_logger, get_preferences
-from app.db.users import get_current_user
-from app.core.backup import list_available_backups
 from app.core.cards import refresh_remote_card_types
 from app.core.settings import (
     apply_card_type_blur_profiles,
     get_episode_data_sources
 )
+from app.db.query import get_font, get_template
+from app.db.users import get_current_user
+from app.dependencies import get_database, get_logger, get_preferences
 from app.models.connection import Connection
 from app.schemas.preferences import (
     EpisodeDataSourceToggle,
     ImageSourceToggle,
     Preferences,
-    SystemBackup,
     UpdatePreferences,
 )
 from app.logging.logger import Logger
@@ -32,8 +30,8 @@ settings_router = APIRouter(
 
 @settings_router.get('/settings')
 def get_global_settings(
-        preferences: PreferencesModel = Depends(get_preferences),
-    ) -> Preferences:
+    preferences: PreferencesModel = Depends(get_preferences),
+) -> Preferences:
     """Get the global settings"""
 
     return preferences # type: ignore
@@ -41,8 +39,8 @@ def get_global_settings(
 
 @settings_router.get('/version')
 def get_current_version(
-        preferences: PreferencesModel = Depends(get_preferences),
-    ) -> str:
+    preferences: PreferencesModel = Depends(get_preferences),
+) -> str:
     """Get the version of TitleCardMaker that is currently running."""
 
     return str(preferences.current_version)
@@ -50,11 +48,11 @@ def get_current_version(
 
 @settings_router.patch('/update')
 def update_global_settings(
-        update_preferences: UpdatePreferences = Body(...),
-        db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
-        preferences: PreferencesModel = Depends(get_preferences),
-    ) -> Preferences:
+    update_preferences: UpdatePreferences = Body(...),
+    db: Session = Depends(get_database),
+    log: Logger = Depends(get_logger),
+    preferences: PreferencesModel = Depends(get_preferences),
+) -> Preferences:
     """
     Update all global settings.
 
@@ -84,8 +82,8 @@ def update_global_settings(
 
 @settings_router.get('/episode-data-source')
 def get_global_episode_data_source(
-        db: Session = Depends(get_database),
-    ) -> list[EpisodeDataSourceToggle]:
+    db: Session = Depends(get_database),
+) -> list[EpisodeDataSourceToggle]:
     """Get the list of Episode data sources."""
 
     return get_episode_data_sources(db)
@@ -93,10 +91,10 @@ def get_global_episode_data_source(
 
 @settings_router.get('/image-source-priority')
 def get_image_source_priority(
-        db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
-        preferences: PreferencesModel = Depends(get_preferences),
-    ) -> list[ImageSourceToggle]:
+    db: Session = Depends(get_database),
+    log: Logger = Depends(get_logger),
+    preferences: PreferencesModel = Depends(get_preferences),
+) -> list[ImageSourceToggle]:
     """Get the global image source priority."""
 
     # Add all selected Connections
