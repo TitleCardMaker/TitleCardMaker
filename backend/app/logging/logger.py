@@ -246,8 +246,12 @@ def initialize_logging() -> Logger:
     if settings.INTERCEPT_PLEX_LOGS:
         logger = _intercept_plex_logs(logger)
 
-    for package in settings.PACKAGE_LOGGING.split(','):
-        logger = _intercept_package_logs(logger, package)
+    # If intercepting all packages, use the root logger
+    if settings.PACKAGE_LOGGING.lower() == 'all':
+        logger = _intercept_package_logs(logger, '')
+    elif settings.PACKAGE_LOGGING:
+        for package in settings.PACKAGE_LOGGING.split(','):
+            logger = _intercept_package_logs(logger, package)
 
     return logger
 
