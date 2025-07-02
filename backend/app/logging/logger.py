@@ -225,8 +225,8 @@ def _intercept_package_logs(logger: Logger, logger_name: str) -> Logger:
 
     # Redirect standard logging messages to loguru
     class InterceptHandler(logging.Handler):
-        def emit(self, record):
-            logger.bind(context_id=logger_name).log('TRACE', record.getMessage())
+        def emit(self, record: logging.LogRecord):
+            logger.bind(context_id=record.name).log('TRACE', record.getMessage())
 
     logging.basicConfig(handlers=[InterceptHandler()], level=0)
     logging.getLogger(logger_name).setLevel(logging.DEBUG)
