@@ -158,7 +158,7 @@ def read_update_list(tautulli_list: Path):
 @click.option(
     '-l', '--log',
     type=click.Choice(['TRACE', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']),
-    default=settings.LOG_LEVEL,
+    default=settings.CONSOLE_LOG_LEVEL,
     help='Level of logging verbosity to use.')
 @click.option(
     '-nc', '--no-color',
