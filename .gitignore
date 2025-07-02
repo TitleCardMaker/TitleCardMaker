@@ -16,7 +16,11 @@ cypress/results/
 cypress/screenshots/
 fonts/
 front_next/
-modules/.objects/
+front/
+frontend/
+front_nui/
+backend/modules/.objects/
+node_modules/
 yml/
 *._*
 *.prof
@@ -26,4 +30,3 @@ missing.yml
 preferences.yml
 temp*.jpg
 uv.lock
-.vscode/settings.json
