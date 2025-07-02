@@ -8,7 +8,7 @@ Create Date: ${create_date}
 from alembic import op
 import sqlalchemy as sa
 ${imports if imports else ""}
-${"from app.logging.logger import contextualize, log" if upgrades or downgrades else ""}
+${"from app.logging.logger import contextualize" if upgrades or downgrades else ""}
 
 # Revision identifiers, used by Alembic.
 revision = ${repr(up_revision)}
