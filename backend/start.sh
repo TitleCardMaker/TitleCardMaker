@@ -8,6 +8,6 @@ umask $UMASK
 groupmod -o -g "$PGID" titlecardmaker
 usermod -o -u "$PUID" titlecardmaker
 
-chown -R titlecardmaker:titlecardmaker /maker /config
+chown -R titlecardmaker:titlecardmaker /tcm /config
 
 exec runuser -u titlecardmaker -g titlecardmaker -- "$@"
