@@ -589,7 +589,11 @@ This means when Sonarr reports to TCM that a given series, such as Breaking Bad,
 
 <details><summary>Example 2</summary>
 
-If Sonarr is in a Docker container and puts Media for the `TV` library at `/sonarr/media/TV/` and the `Anime` library at `/sonarr/media/Anime/`, and I've mounted these paths at `/maker/media/TV` and `/maker/media/Anime` in my TitleCardMaker container, then my `volumes` and `plex_libraries` specification should look like this:
+If Sonarr is in a Docker container and puts Media for the `TV` library at
+`/sonarr/media/TV/` and the `Anime` library at `/sonarr/media/Anime/`, and I've
+mounted these paths at `/tcm/media/TV` and `/tcm/media/Anime` in my
+TitleCardMaker container, then my `volumes` and `plex_libraries` specification
+should look like this:
 
 ```yaml
 sonarr:
@@ -598,7 +602,7 @@ sonarr:
   sync:
     file: ./yaml/sonarr_sync.yml
     volumes:
-      /sonarr/media/: /maker/media/
+      /sonarr/media/: /tcm/media/
     plex_libraries:
       /sonarr/media/TV/: TV
       /sonarr/media/Anime/: Anime

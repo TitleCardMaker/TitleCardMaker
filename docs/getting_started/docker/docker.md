@@ -208,7 +208,7 @@ command.
 
 ??? failure "Interface not accessible?"
 
-    If your logs (Docker or TCM at `/config/logs/maker.log`) shows
+    If your logs shows
 
     ```log
     INFO:     Application startup complete.
