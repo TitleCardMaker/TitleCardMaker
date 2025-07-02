@@ -8,7 +8,7 @@ Create Date: 2025-04-19 19:43:09.739141
 from alembic import op
 import sqlalchemy as sa
 
-from app.logging.logger import contextualize, log 
+from app.logging.logger import contextualize 
 
 # Revision identifiers, used by Alembic.
 revision = 'f4afea8860cf'
@@ -31,7 +31,7 @@ class Series(Base):
     status = sa.Column(sa.String, nullable=False)
 
 def upgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     # Add new status column
@@ -58,7 +58,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('series', schema=None) as batch_op:

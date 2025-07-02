@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from alembic import op
 import sqlalchemy as sa
 
-from app.logging.logger import contextualize, log, Logger
+from app.logging.logger import contextualize, Logger
 from app.settings import settings 
 
 # Revision identifiers, used by Alembic.
@@ -40,7 +40,7 @@ class Series(Base):
     created = sa.Column(sa.DateTime, nullable=True)
 
 def upgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     # Begin initialization with columns as nullable so they can be migrated
@@ -101,7 +101,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('series', schema=None) as batch_op:

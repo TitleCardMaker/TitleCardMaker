@@ -44,7 +44,7 @@ Create Date: 2023-09-28 12:56:59.752356
 # pylint: disable
 from alembic import op
 import sqlalchemy as sa
-from app.logging.logger import contextualize, log
+from app.logging.logger import contextualize
 
 # revision identifiers, used by Alembic.
 revision = 'a61f373185d4'
@@ -160,7 +160,7 @@ class Sync(Base):
 
 
 def upgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Upgrading SQL to Revision[{revision}]..')
 
     op.create_table('connection',
@@ -581,7 +581,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
     log.error(f'SQL schema is not backwards compatible')
 

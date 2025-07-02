@@ -10,7 +10,7 @@ Create Date: 2024-07-08 22:09:28.805591
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import sqlite
-from app.logging.logger import contextualize, log 
+from app.logging.logger import contextualize 
 
 # Revision identifiers, used by Alembic.
 revision = '248e35b3e455'
@@ -20,7 +20,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     with op.batch_alter_table('connection', schema=None) as batch_op:
@@ -52,7 +52,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('font', schema=None) as batch_op:

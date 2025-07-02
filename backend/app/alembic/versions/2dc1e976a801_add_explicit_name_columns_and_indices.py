@@ -9,7 +9,7 @@ Create Date: 2024-11-08 15:46:39.930263
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import sqlite
-from app.logging.logger import contextualize, log
+from app.logging.logger import contextualize
 
 # Revision identifiers, used by Alembic.
 revision = '2dc1e976a801'
@@ -57,7 +57,7 @@ class Template(Base):
 
 
 def upgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     # Add Font.sort_name; make it an index
@@ -141,7 +141,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('template', schema=None) as batch_op:

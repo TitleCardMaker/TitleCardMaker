@@ -9,7 +9,7 @@ Create Date: 2024-06-05 17:37:07.643057
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import sqlite
-from app.logging.logger import contextualize, log
+from app.logging.logger import contextualize
 
 # Revision identifiers, used by Alembic.
 revision = '2c1f9a3de797'
@@ -36,7 +36,7 @@ class Connection(Base):
     language_priority = sa.Column(sa.JSON, default={})
 
 def upgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     with op.batch_alter_table('card', schema=None) as batch_op:
@@ -119,7 +119,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize(logger)
+    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('sync', schema=None) as batch_op:
