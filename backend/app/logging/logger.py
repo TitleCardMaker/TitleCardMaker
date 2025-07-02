@@ -10,7 +10,7 @@ import better_exceptions
 from fastapi import WebSocket
 from loguru import logger as base_logger
 from loguru._logger import Logger
-from sqlite3 import OperationalError
+from sqlalchemy.exc import OperationalError
 
 from app.logging.database import LogsSessionLocal
 from app.logging.models import Log
@@ -84,7 +84,7 @@ def _sqlalchemy_sink(message: 'Message') -> None:
         db.add(log_entry)
         db.commit()
     except OperationalError:
-        # Do not raise an Exception for logging DB errors
+        # Do not raise an Exception for logging-related database errors
         pass
     finally:
         db.close()
@@ -132,7 +132,7 @@ def _configure_logger(logger: Logger) -> Logger:
         # WARNING: The sys.stdout print WILL NOT have secrets redacted
         dict(
             sink=sys.stdout,
-            level=getenv('TCM_LOG_STDOUT', getenv('TCM_LOG', 'INFO')),
+            level=settings.CONSOLE_LOG_LEVEL,
             format='<level>[<bold>{level}</bold>] {message}</level>',
             colorize=True,
             backtrace=True,
@@ -141,7 +141,7 @@ def _configure_logger(logger: Logger) -> Logger:
         ),
         dict(
             sink=_sqlalchemy_sink,
-            level=environ.get('TCM_LOG_FILE', 'TRACE'),
+            level=settings.DATABASE_LOG_LEVEL,
             format='{message}',
             colorize=False,
             backtrace=True,
