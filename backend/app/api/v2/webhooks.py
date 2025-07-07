@@ -26,7 +26,7 @@ from app.dependencies import (
     InterfaceGroup,
     SonarrInterface,
     PlexInterface
-)
+) 
 from app.core.cards import create_episode_cards, delete_cards
 from app.core.episodes import refresh_episode_data
 from app.core.series import (
