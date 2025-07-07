@@ -797,7 +797,7 @@ def resolve_card_settings(
                     log=log,
                 )
             except InvalidFormatString:
-                log.exception(f'Cannot parse {key_name} as a FormatString')
+                log.debug(f'Cannot parse {key_name} as a FormatString')
                 continue
 
     return card_settings
