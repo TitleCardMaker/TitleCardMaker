@@ -22,7 +22,7 @@ from app.dependencies import (
     get_tmdb_interfaces,
     refresh_imagemagick_interface
 )
-from app.exceptions import InvalidCardSettings
+from app.exceptions import InvalidCardSettings, MissingSourceImage
 from app.info.series import SeriesInfo
 from app.interfaces.web import WebInterface
 from app.logging.logger import Logger, log
@@ -1518,11 +1518,15 @@ def import_card_content(
             continue
 
         # Find associated Episode
-        episode = db.query(Episode)\
-            .filter_by(series_id=series.id,
-                       season_number=season_number,
-                       episode_number=episode_number)\
-            .first()
+        episode = (
+            db.query(Episode)
+                .filter_by(
+                    series_id=series.id,
+                    season_number=season_number,
+                    episode_number=episode_number
+                )
+                .first()
+        )
 
         # No associated Episode, skip
         if episode is None:
@@ -1549,6 +1553,9 @@ def import_card_content(
         if as_textless:
             episode.card_type = 'textless'
             log.debug(f'{episode}.card_type = textless')
+            source_file = episode.get_source_file('unique')
+            source_file.write_bytes(file)
+            log.debug(f'Wrote {len(file):,} bytes to {source_file}')
 
         # Get finalized Card settings for this Episode
         try:
@@ -1556,10 +1563,6 @@ def import_card_content(
         except (HTTPException, InvalidCardSettings):
             log.exception(f'{episode} Cannot import Card - settings are invalid')
             continue
-
-        # If textless, override source file; otherwise override card
-        if as_textless:
-            card_settings['source_file'].write_bytes(file)
 
         # Get a validated card class, and card type Pydantic model
         try:

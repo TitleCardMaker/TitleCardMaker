@@ -68,6 +68,7 @@ async def go_to_add_series_page(
     preferences: Preferences = Depends(get_preferences),
 ):
     """Navigate to the add Series page."""
+
     return TEMPLATES.TemplateResponse(
         '/pages/addSeries.html',
         {
