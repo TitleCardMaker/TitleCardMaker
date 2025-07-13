@@ -716,9 +716,10 @@ function updateTitle(inputElement) {
 /**
  * Add a new tab to the filter modal.
  * @param {SeriesFilter} filter Existing filter to populate the new tab from.
+ * @param {boolean} active Whether the new tab should be active.
  * @returns {HTMLDivElement} Newly added tab.
  */
-function addTab(filter=null) {
+function addTab(filter=null, active=false) {
   // Determine tab number - check for existence in case a middle tab was deleted
   let tabNumber = document.querySelectorAll('#filter-modal .tabular.menu .item').length - 1;
   while (document.querySelector(`#filter-modal .tabular.menu .item[data-tab="tab${tabNumber}"]`)) {
@@ -727,7 +728,7 @@ function addTab(filter=null) {
 
   // Add new tab selector to menu, just before add tab item
   const $tabHeader = $('<div>', {
-    class: 'item',
+    class: 'item',// + (active ? ' active' : ''),
     'data-tab': 'tab' + tabNumber,
     text: filter?.name || 'New Filter',
   });
@@ -740,6 +741,9 @@ function addTab(filter=null) {
     newTab.querySelector('input[name="filter_name"]').value = filter.name;
   }
   document.querySelector('#filter-modal .content').appendChild(newTab);
+
+  // Activate tab if needed
+  if (active) { $('#filter-modal .ui.tab').tab('change tab', 'tab' + tabNumber); }
 
   const tabs = document.querySelectorAll('#filter-modal .content .tab.segment');
   return tabs[tabs.length - 1];
