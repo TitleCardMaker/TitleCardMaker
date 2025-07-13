@@ -64,7 +64,7 @@ Cypress.Commands.add(
   (enabled=false) => {
     cy.request(
       'POST',
-      '/api/connection/tmdb/new',
+      '/api/v2/connection/tmdb/new',
       {
         'name': 'TMDb',
         'interface_type': 'TMDb',

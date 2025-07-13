@@ -28,7 +28,7 @@ describe('Page Navigation', () => {
   // Visit the series page
   it('Visits the Series page', () => {
     // Create new Series so the page can be visited
-    cy.createObjectAndGetId('/api/series/new', {'name': '_', 'year': 2024}).then((seriesId) => {
+    cy.createObjectAndGetId('/api/v2/series/new', {'name': '_', 'year': 2024}).then((seriesId) => {
       cy.visit(`/series/${seriesId}`)
       cy.url().should('contain', Cypress.config('baseUrl') + `/series/${seriesId}`)
     });

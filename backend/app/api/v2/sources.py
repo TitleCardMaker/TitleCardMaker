@@ -507,7 +507,7 @@ async def set_episode_source_image(
         log.debug(f'Wrote {len(uploaded_file)} bytes to {source_file}')
     elif url:
         # If proxied, de-proxy using associated interface
-        if url.startswith('/api/proxy/plex?url='):
+        if url.startswith('/api/v2/proxy/plex?url='):
             # Use first Plex Connection if no ID provided
             interface_id = interface_id or plex_interfaces.first_interface_id
 
@@ -523,7 +523,7 @@ async def set_episode_source_image(
 
             # Use server URL, de-proxied URL, and add the token as a param
             url = connection.decrypted_url.removesuffix('/') \
-                + url.split('/api/proxy/plex?url=', maxsplit=1)[1] \
+                + url.split('/api/v2/proxy/plex?url=', maxsplit=1)[1] \
                 + f'?X-Plex-Token={connection.decrypted_api_key}'
 
         if not WebInterface.download_image(url, source_file, log=log):

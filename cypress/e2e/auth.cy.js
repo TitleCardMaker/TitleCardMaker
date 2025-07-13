@@ -31,7 +31,7 @@ describe('Authentication', () => {
   it('Makes an API request without authentication', () => {
     cy.request({
       method: 'GET',
-      url: '/api/available/series',
+      url: '/api/v2/available/series',
       failOnStatusCode: false,
     }).then((resp) => {
       expect(resp.status).to.eq(401)
@@ -42,7 +42,7 @@ describe('Authentication', () => {
   it('Makes an API request that does not require authentication without authentication', () => {
     cy.request({
       method: 'POST',
-      url: '/api/cards/key?interface_id=0',
+      url: '/api/v2/webhooks/plex/rating-key?key=999&interface_id=0',
       body: '999',
       failOnStatusCode: false,
     }).then((resp) => {
@@ -53,7 +53,7 @@ describe('Authentication', () => {
     cy.fixture('fake_webhook.json').then((data) => {
       cy.request({
         method: 'POST',
-        url: '/api/cards/sonarr',
+        url: '/api/v2/webhooks/sonarr/cards',
         body: data,
       }).then((resp) => {
         expect(resp.body).to.be.null
@@ -63,7 +63,7 @@ describe('Authentication', () => {
 
   it('Attemps to log in with the incorrect username or password', () => {
     // Intercept the authentication request
-    cy.intercept('POST', '/api/auth/authenticate').as('authenticate')
+    cy.intercept('POST', '/api/v2/auth/authenticate').as('authenticate')
 
     const badCredentials = [
       { username: 'ADMIN', password: 'password' },
@@ -136,7 +136,7 @@ describe('Authentication', () => {
   });
 
   it('Changes the password', () => {
-    cy.intercept('POST', '/api/auth/authenticate').as('authenticate')
+    cy.intercept('POST', '/api/v2/auth/authenticate').as('authenticate')
 
     // Login and go to the Connections page
     cy.login('/login?redirect=/connections', 'new username', 'password')

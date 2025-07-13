@@ -70,7 +70,7 @@ class TautulliInterface(WebInterface, Interface):
 
         # Get correct TCM URL
         tcm_url = tcm_url.removesuffix("/")
-        self.tcm_url = f'{tcm_url}/api/webhooks/plex/rating-key?' \
+        self.tcm_url = f'{tcm_url}/api/v2/webhooks/plex/rating-key?' \
             + f'interface_id={plex_interface_id}'
 
         # Get correct Tautulli URL

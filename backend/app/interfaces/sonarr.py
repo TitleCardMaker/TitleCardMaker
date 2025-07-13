@@ -332,7 +332,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
                 if image['coverType'] == 'poster':
                     url = image['url'].rsplit('?', maxsplit=1)[0]
                     return (
-                        f'/api/proxy/sonarr?url={url}'
+                        f'/api/v2/proxy/sonarr?url={url}'
                         f'&interface_id={self.interface_id}'
                     )
 

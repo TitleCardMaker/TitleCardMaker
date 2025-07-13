@@ -678,7 +678,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             SearchResult(
                 name=result.title,
                 year=result.year, # type: ignore
-                poster=f'/api/proxy/plex?url={result.thumb}&interface_id={self._interface_id}',
+                poster=f'/api/v2/proxy/plex?url={result.thumb}&interface_id={self._interface_id}',
                 overview=result.summary,
                 **parse_ids(result),
             ) for result in results
@@ -749,7 +749,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # If proxying, use API redirect URL; token will be embedded by endpoint
         if proxy_url:
             return (
-                f'/api/proxy/plex?url={plex_episode.thumb}'
+                f'/api/v2/proxy/plex?url={plex_episode.thumb}'
                 f'&interface_id={self._interface_id}'
             )
 

@@ -11,7 +11,7 @@ from modules.preferences import Preferences
 
 
 # OAuth2 scheme for authentication
-oath2_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/authenticate')
+oath2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v2/auth/authenticate')
 
 
 def get_user(db: Session, username: str) -> User | None:

@@ -5,7 +5,7 @@ describe('Card Templates', () => {
 
   it('Creates a new Blank Template', () => {
     // Create template via API so there is at least one subelement
-    cy.request('POST', '/api/templates/new', {'name': '_'});
+    cy.request('POST', '/api/v2/templates/new', {'name': '_'});
     cy.reload();
 
     // Create new Template
@@ -41,7 +41,7 @@ describe('Card Templates', () => {
 
   it('Adds a new filter condition', () => {
     // Create new blank Template with no conditions
-    cy.createObjectAndGetId('/api/templates/new', {'name': ' Blank Template'}).then((templateId) => {
+    cy.createObjectAndGetId('/api/v2/templates/new', {'name': ' Blank Template'}).then((templateId) => {
       cy.get(`#template-id${templateId}`)
         // Template should be on page, expand
         .should('exist')
@@ -89,12 +89,12 @@ describe('Card Templates', () => {
     };
 
     // Create Font so it can be assigned to the Template
-    cy.createObjectAndGetId('/api/fonts/new', {'name': newSettings.font_id}).as('fontId')
+    cy.createObjectAndGetId('/api/v2/fonts/new', {'name': newSettings.font_id}).as('fontId')
     // Create dummy TMDb Connection so it can be selected
     cy.createTMDbConnection()
     cy.reload()
 
-    cy.createObjectAndGetId('/api/templates/new', {'name': originalName}).then((templateId) => {
+    cy.createObjectAndGetId('/api/v2/templates/new', {'name': originalName}).then((templateId) => {
       // Expand template
       cy.get('#templates').contains(originalName)
         .click()
@@ -222,9 +222,9 @@ describe('Card Templates', () => {
 
   it('Refreshes the template previews', () => {
     // Intercept refresh preview so it can be waited on
-    cy.intercept('POST', '/api/cards/preview').as('refreshPreview');
+    cy.intercept('POST', '/api/v2/cards/preview').as('refreshPreview');
     // Create new Template to manipulate
-    cy.createObjectAndGetId('/api/templates/new', {'name': ' Blank Template'}).then((templateId) => {
+    cy.createObjectAndGetId('/api/v2/templates/new', {'name': ' Blank Template'}).then((templateId) => {
       cy.get(`#template-id${templateId}`)
         // Template should be on page, expand
         .should('exist')

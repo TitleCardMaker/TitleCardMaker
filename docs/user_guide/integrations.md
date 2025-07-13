@@ -33,7 +33,7 @@ added content.
 Destination</span>.
 
 3. Add a descriptive name; and for the URL enter the URL of your TCM server
-(including the port), followed by `/api/webhooks/sonarr/cards` (see note[^1]).
+(including the port), followed by `/api/v2/webhooks/sonarr/cards` (see note[^1]).
 
     !!! example "Example"
 
@@ -102,13 +102,13 @@ TCM - e.g. `1`, `2`, etc. You will need this later.
 
 6. Click <span class="example md-button">Add webhook</span>, and then enter
 the URL of your TCM server (including the port), followed by
-`/api/webhooks/plex?interface_id=999`. Replace `999` with the number you noted
-from Step 2.
+`/api/v2/webhooks/plex?interface_id=999`. Replace `999` with the number you
+noted from Step 2.
 
     !!! example "Example"
 
         For my server, this looks like
-        `http://192.168.0.29:4242/api/webhooks/plex?interface_id=2`
+        `http://192.168.0.29:4242/api/v2/webhooks/plex?interface_id=2`
 
 7. Click <span class="example md-button">Save Changes</span>.
 
@@ -137,7 +137,7 @@ only be able to _actually_ trigger on `library.new`, `library.on.deck`,
     !!! example "Example"
 
         The example above used the following URL:
-        `http://192.168.0.29:4242/api/webhooks/plex?interface_id=2&trigger_on=library.new,media.scrobble,media.rate`
+        `http://192.168.0.29:4242/api/v2/webhooks/plex?interface_id=2&trigger_on=library.new,media.scrobble,media.rate`
 
 2. You may also adjust the default _maximum_ time which TCM will allow any
 individual Webhook event to take. This can be done with the `timeout` parameter,
@@ -146,7 +146,7 @@ value between 5 and 600 (in seconds).
 
     !!! example "Example"
 
-        `http://192.168.0.29:4242/api/webhooks/plex?interface_id=2&timeout=60`
+        `http://192.168.0.29:4242/api/v2/webhooks/plex?interface_id=2&timeout=60`
 
 2. Click <span class="example md-button">Save Changes</span>.
 
@@ -182,7 +182,7 @@ Depending on the type of integration you would like to enable, do the following:
     Sonarr, de-select all triggeres except `On Series Add`.
 
     2. Enter the URL of your TCM server (including the port), followed by
-    `/api/webhooks/sonarr/series/add`.
+    `/api/v2/webhooks/sonarr/series/add`.
 
     3. Ensure the Method is `POST`.
 
@@ -194,7 +194,7 @@ Depending on the type of integration you would like to enable, do the following:
     from Sonarr, de-select all triggers except `On Series Delete`.
 
     2. Enter the URL of your TCM server (including the port), followed by
-    `/api/webhooks/sonarr/series/delete`.
+    `/api/v2/webhooks/sonarr/series/delete`.
 
     3. If you would like TCM to _not_ delete the Title Card files themselves,
     add `?delete_title_cards=false` to the end of the URL.
@@ -210,7 +210,7 @@ Depending on the type of integration you would like to enable, do the following:
     and `On File Upgrade`.
 
     2. Enter the URL of your TCM server (including the port), followed by
-    `/api/webhooks/sonarr/cards`.
+    `/api/v2/webhooks/sonarr/cards`.
 
     3. Ensure the Method is `POST`.
 

@@ -26,10 +26,12 @@ async def contextualize_api_requests(
         return (
             url.startswith('/api/')
             and not url.startswith(
-                ('/api/statistics/series', '/api/proxy/')
+                ('/api/v2/statistics/series', '/api/v2/proxy/')
             )
             and url not in (
-                '/api/logs/query', '/api/healthcheck', '/api/statistics'
+                '/api/v2/logs/query',
+                '/api/v2/healthcheck',
+                '/api/v2/statistics'
             )
         )
 
