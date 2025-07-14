@@ -17,6 +17,6 @@ non-TMDb/TVDb connection, each Sync can be customized to only add filtered
 subsets of your Series, and can also automatically assign specific Card
 customizations through [Templates](../creating_templates.md).
 
-For most users, I recommend Syncing from [Sonarr](./sonarr.md). However, if you
-are not using Sonarr, then your primary Media Server is the next-best option.
-You can use the sidebar to navigate to the instructions which suit you.
+For most users, I recommend Syncing from your primary Media Server (Emby,
+Jellfyin, or Plex). You can use the sidebar to navigate to the instructions
+which suit your set up.
