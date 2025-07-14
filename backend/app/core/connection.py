@@ -69,13 +69,13 @@ def initialize_connections(
 
     # Initialize each type of Interface
     for interface_group, interface_type in (
-            (get_emby_interfaces(), 'Emby'),
-            (get_jellyfin_interfaces(), 'Jellyfin'),
-            (get_plex_interfaces(), 'Plex'),
-            (get_sonarr_interfaces(), 'Sonarr'),
-            (get_tmdb_interfaces(), 'TMDb'),
-            (get_tvdb_interfaces(), 'TVDb'),
-        ):
+        (get_emby_interfaces(), 'Emby'),
+        (get_jellyfin_interfaces(), 'Jellyfin'),
+        (get_plex_interfaces(), 'Plex'),
+        (get_sonarr_interfaces(), 'Sonarr'),
+        (get_tmdb_interfaces(), 'TMDb'),
+        (get_tvdb_interfaces(), 'TVDb'),
+    ):
         # Get all Connections of this interface type
         connections: list[Connection] = db.query(Connection)\
             .filter_by(interface_type=interface_type)\
@@ -139,8 +139,14 @@ def add_connection(
         Newly created Connection.
     """
 
+
+    # Convert AnyUrl to string for database storage
+    connection_data = new_connection.model_dump()
+    if 'url' in connection_data and connection_data['url'] is not None:
+        connection_data['url'] = str(connection_data['url'])
+
     # Add to database
-    connection = Connection(**new_connection.dict())
+    connection = Connection(**connection_data)
     connection.encrypt()
     db.add(connection)
     db.commit()
@@ -206,6 +212,9 @@ def update_connection(
         if value != UNSPECIFIED and getattr(connection, attr) != value:
             # Update Connection
             if attr in ('api_key', 'url'):
+                # Convert AnyUrl to string before encryption
+                if attr == 'url' and value is not None:
+                    value = str(value)
                 setattr(connection, attr, encrypt(value))
             else:
                 setattr(connection, attr, value)

@@ -13,7 +13,7 @@ class TaskDuration(Base):
     task_name: Mapped[str]
     start_time: Mapped[datetime]
     end_time: Mapped[datetime] = mapped_column(default=func.now())
-    duration: Mapped[int] # Duration in seconds
+    duration: Mapped[float] # Duration in seconds
 
 
     def __repr__(self):

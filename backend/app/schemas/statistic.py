@@ -43,7 +43,7 @@ class Duration(Base):
     task_name: str
     start_time: datetime
     end_time: datetime
-    duration: int
+    duration: float
 
 class Statistic(Base):
     value: int
