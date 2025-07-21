@@ -60,25 +60,12 @@ function timeFreqString(freq, top=-1) {
 function updateScheduledTasks() {
   $('#task-table tr').each((index, row) => {
     const taskId = row.dataset.id;
-    // Updating Cron schedule or frequency
-    let updateObject = {};
-    if ($(`tr[data-id="${taskId}"] > td[data-column="frequency"]`).length > 0) {
-      const frequencyText = $(`tr[data-id="${taskId}"] > td[data-column="frequency"]`)[0].innerText;
-
-      const intervalRegex = /(\d+) (week|day|hour|minute|second)s?/g;
-      const allMatches = [...frequencyText.matchAll(intervalRegex)];
-
-      // Create object based on this frequency text
-      allMatches.forEach(([_, interval, unit]) => updateObject[`${unit}s`] = interval);
-    } else {
-      updateObject.crontab = $(`tr[data-id="${taskId}"] > td[data-column="schedule"]`)[0].innerText;
-    }
+    const update_crontab = document.querySelector(`tr[data-id="${taskId}"] > td[data-column="schedule"]`).innerText;
 
     // Submit API request to reschedule this task
     $.ajax({
       type: 'PUT',
-      url: `/api/v2/schedule/update/${taskId}`,
-      data: JSON.stringify(updateObject),
+      url: `/api/v2/schedule/update/${taskId}?update_crontab=${update_crontab}`,
       contentType: 'application/json',
       error: response => showErrorToast({title: 'Error Recheduling Task', response}),
     });

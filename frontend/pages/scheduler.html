@@ -20,12 +20,8 @@
         <a><i class="sync icon"></i></a>
       </td>
       <td data-column="description" class="left aligned"></td>
-      {% if preferences.advanced_scheduling %}
       <td data-column="schedule" class="center aligned"><span contenteditable="true"></span></td>
       <td data-column="schedule-string" class="left aligned"></td>
-      {% else %}
-      <td data-column="frequency" class="center aligned"></td>
-      {% endif %}
       <td data-column="previous_duration" class="center aligned"></td>
       <td data-column="next_run" class="left aligned"></td>
     </tr>
@@ -45,22 +41,14 @@
     <!-- Actual page content -->
     <div id="main-content" class="article">
       <h1 class="ui header">Scheduler</h1>
-      {% if preferences.advanced_scheduling %}
       <p class="help">To adjust when Tasks are run, edit the expression in the <b>Schedule</b> column.</p>
-      {% else %}
-      <p class="help">To adjust how often Tasks are run, edit the expression in the <b>Frequency</b> column.</p>
-      {% endif %}
 
       <table class="ui stackable collapsing table">
         <thead>
           <tr>
             <th></th>
             <th class="left aligned">Task Description</th>
-            {% if preferences.advanced_scheduling %}
             <th class="left aligned" colspan="2">Schedule</th>
-            {% else %}
-            <th class="center aligned" data-tooltip="How often to run this Task - enter times as seconds, minutes, hours, days, or weeks">Frequency</th>
-            {% endif %}
             <th class="center aligned" data-tooltip="How long this Task's last run took">Last Duration</th>
             <th class="left aligned">Next Run</th>                
           </tr>
@@ -74,23 +62,15 @@
           <i class="right arrow icon"></i>
         </div>
       </button>
-      {% if preferences.advanced_scheduling %}
       <button id="toggle-button" class="ui green button" onclick="$('#toggleScheduleTypeModal').modal('show');">
         Enable Basic Scheduler
       </button>
-      {% else %}
-      <button id="toggle-button" class="ui green button" onclick="$('#toggleScheduleTypeModal').modal('show');">
-        Enable Advanced Scheduler
-      </button>
-      {% endif %}
 
-      {% if preferences.advanced_scheduling %}
       <br>
       <div class="ui compact floating info message">
         <div class="header">Scheduling</div>
-        <p>If <b>Advanced</b> Scheduling is enabled, Task schedules are entered as Cron expressions. See <a href="https://crontab.guru/" target="_blank">here</a> for help entering these.</p>
+        <p>Task schedules are entered as Cron expressions. See <a href="https://crontab.guru/" target="_blank">here</a> for help entering these.</p>
       </div>
-      {% endif %}
     </div>
 
     <!-- Modals -->
