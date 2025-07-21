@@ -6,7 +6,6 @@ from sqlalchemy import MetaData, text
 from sqlalchemy.orm import Session
 
 from app.api.v2 import v2_router
-from app.api.v2.schedule import initialize_scheduler
 from app.dependencies import get_database, get_logger, get_preferences
 from modules.preferences import Preferences
 
@@ -73,7 +72,3 @@ def reset_database(
 
     # Reset the global preferences
     preferences.reset(log=log)
-
-    # Re-initialize the scheduler
-    
-    initialize_scheduler(override=True, log=log)

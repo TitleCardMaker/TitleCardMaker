@@ -1,54 +1,34 @@
 # pyright: reportInvalidTypeForm=false
-from datetime import datetime, timedelta
-from typing import Callable
-
-from pydantic import conint, constr, PositiveInt
+from datetime import datetime
 
 from app.schemas.base import Base
-from app.logging.logger import Logger
 
 """
 Base classes
 """
-CronExpression = constr(
-    strip_whitespace=True, pattern=r'^([^ ]+\s+){4}([^ ]+)$',
-)
+CronExpression = r'^([^ ]+\s+){4}([^ ]+)$'
 
 def Seconds(v: int, /) -> int: return v
 def Minutes(v: int, /) -> int: return Seconds(v * 60)
 def Hours(v: int, /) -> int: return Minutes(v * 60)
 def Days(v: int, /) -> int: return Hours(v * 24)
 
-class NewJob(Base):
-    id: str
-    function: Callable[[Logger], None]
-    seconds: conint(gt=Minutes(10))
-    crontab: CronExpression
-    description: str
-    internal: bool = False
-    running: bool = False
-    previous_start_time: datetime | None = None
-    previous_end_time: datetime | None = None
-
-"""
-Update classes
-"""
-class UpdateSchedule(Base):
-    seconds: PositiveInt = 0
-    minutes: PositiveInt = 0
-    hours: PositiveInt = 0
-    days: PositiveInt = 0
-    weeks: PositiveInt = 0
-    crontab: CronExpression | None = '*/10 * * * *'
-
 """
 Return classes
 """
-class ScheduledTask(Base):
+class CoreTaskDetails(Base):
     id: str
     description: str
-    frequency: int | None = None
-    crontab: str | None = None
-    next_run: str
-    previous_duration: timedelta | None = None
+    internal: bool = False
+    default_crontab: str
+
+class TaskDetails(Base):
+    id: str
+    description: str
+    crontab: str
+    next_run: datetime
+    previous_start_time: datetime | None = None
+    previous_end_time: datetime | None = None
+    previous_duration: float | None = None
     running: bool
+    internal: bool

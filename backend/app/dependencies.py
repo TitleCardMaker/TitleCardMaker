@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Iterator, TypeVar
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import HTTPException, Query, Request
+from huey import SqliteHuey
 from requests import get
 from sqlalchemy.orm import Session
 
@@ -16,7 +16,6 @@ from app.db.interfaces import (
     TMDbInterfaces,
     TVDbInterfaces,
 )
-from app.db.scheduler import Scheduler
 from app.db.database import BlueprintSessionMaker, SessionLocal
 from app.interfaces.base import Interface, InterfaceGroup
 from app.interfaces.v2 import (
@@ -142,15 +141,16 @@ def get_blueprint_database(
         db.close()
 
 
-def get_scheduler() -> BackgroundScheduler:
+def get_scheduler() -> SqliteHuey:
     """
     Dependency to get the global task Scheduler.
 
     Returns:
-        Scheduler responsible for all task scheduling.
+        Huey instance responsible for all task scheduling.
     """
 
-    return Scheduler
+    from app.core.schedule import huey
+    return huey
 
 
 def get_preferences() -> 'Preferences':

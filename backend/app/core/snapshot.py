@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
@@ -12,7 +14,6 @@ from app.models.snapshot import Snapshot
 from app.models.sync import Sync
 from app.models.template import Template
 from app.models.user import User
-from app.schemas.schedule import NewJob
 from app.schemas.statistic import NewSnapshot
 from app.logging.logger import Logger, log
 
@@ -73,29 +74,32 @@ def take_snapshot(db: Session, *, log: Logger = log) -> None:
     db.commit()
 
 
-def add_task_duration(db: Session, job: NewJob) -> TaskDuration | None:
+def add_task_duration(
+        db: Session,
+        task_name: str,
+        start_time: datetime,
+        end_time: datetime,
+    ) -> TaskDuration | None:
     """
     Add the last-run task duration of the given job.
 
     Args:
         db: Session to the database to add the TaskDUration to.
-        log: Logger for all log messages.
+        task_name: Name of the task to add the duration for.
+        start_time: Start time of the task.
+        end_time: End time of the task.
 
     Returns:
         Newly added TaskDuration object. None if there was no prior
         start/end time.
     """
 
-    # Do not add a record if there is no start/end time
-    if not job.previous_start_time or not job.previous_end_time:
-        return None
-
     # Create new record
-    duration_time = (job.previous_end_time - job.previous_start_time)
+    duration_time = end_time - start_time
     duration = TaskDuration(
-        task_name=job.id,
-        start_time=job.previous_start_time,
-        end_time=job.previous_end_time,
+        task_name=task_name,
+        start_time=start_time,
+        end_time=end_time,
         duration=duration_time.total_seconds()
     )
 

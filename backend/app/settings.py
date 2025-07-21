@@ -57,6 +57,11 @@ class Settings(BaseSettings):
         'Comma-separated list of packages to intercept logging from'
     ] = Field(default='')
 
+    LOG_RETENTION_DAYS: Annotated[
+        int,
+        'How many days to keep logs'
+    ] = Field(default=7, ge=1)
+
     @property
     def TIMEZONE(self) -> tzinfo:
         if (tz_code := getenv('TZ', None)) is not None:

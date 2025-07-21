@@ -1,25 +1,19 @@
-"""
-Much of this code is from
-https://fastapi-utils.davidmontague.xyz/user-guide/repeated-tasks/.
-"""
-
-import asyncio
-from asyncio import ensure_future
 from datetime import datetime, timedelta
 from functools import wraps
-from traceback import format_exception
-from typing import Any, Callable, Coroutine, Literal
+from typing import Annotated, Callable, Literal
 
-from apscheduler.triggers.cron import CronTrigger
-from starlette.concurrency import run_in_threadpool
+from croniter import croniter
+from huey import crontab, SqliteHuey
+from sqlalchemy.orm import Session
 
-from app.core.backup import backup_data
 from app.core.availability import get_latest_version
+from app.core.backup import backup_data
 from app.core.cards import (
     clean_database,
     create_all_title_cards,
     refresh_all_remote_card_types,
 )
+from app.core.logs import clear_log_data
 from app.core.series import (
     download_all_series_posters,
     load_all_media_servers,
@@ -28,23 +22,18 @@ from app.core.series import (
 from app.core.sources import download_all_series_logos
 from app.core.snapshot import add_task_duration, snapshot_database
 from app.core.sync import sync_all
-from app.dependencies import get_database, get_preferences, get_scheduler
+from app.dependencies import get_database, get_preferences
 from app.logging.logger import Logger, contextualize, log
-from app.schemas.schedule import (
-    Days,
-    Hours,
-    Minutes,
-    NewJob,
-)
+from app.models.duration import TaskDuration
+from app.schemas.schedule import TaskDetails
 from app.settings import settings
 
-NoArgsNoReturnFuncT = Callable[[], None]
-NoArgsNoReturnAsyncFuncT = Callable[[], Coroutine[Any, Any, None]]
-NoArgsNoReturnDecorator = Callable[
-    [NoArgsNoReturnFuncT | NoArgsNoReturnAsyncFuncT],
-    NoArgsNoReturnAsyncFuncT
-]
 
+"""How long a Task can be queued before it is removed."""
+TASK_EXPIRATION_TIME = timedelta(minutes=10)
+
+# Initialize Huey with SQLite backend
+huey = SqliteHuey(filename='../huey.db')
 
 # Job ID's for scheduled tasks
 JOB_CREATE_TITLE_CARDS = 'CreateTitleCards'
@@ -58,6 +47,7 @@ INTERNAL_JOB_CHECK_FOR_NEW_RELEASE = 'CheckForNewRelease'
 INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES = 'RefreshRemoteCardTypes'
 INTERNAL_JOB_SET_SERIES_IDS = 'SetSeriesIDs'
 INTERNAL_JOB_CLEAN_DATABASE = 'CleanDatabase'
+INTERNAL_JOB_CLEAR_OLD_LOGS = 'ClearOldLogs'
 INTERNAL_JOB_SNAPSHOT_DATABASE = 'SnapshotDatabase'
 
 type TaskID = Literal[
@@ -72,367 +62,326 @@ type TaskID = Literal[
     'RefreshRemoteCardTypes',
     'SetSeriesIDs',
     'CleanDatabase',
+    'ClearOldLogs',
     'SnapshotDatabase',
 ] # type: ignore
 
-"""
-Wrap all periodically called functions to set the runnin attributes when
-the job is started and finished.
-"""
-# pylint: disable=missing-function-docstring,redefined-outer-name
-def wrap_scheduled_function(
-        job_id: str,
-        error_message: str,
-    ) -> Callable[..., Callable[[Logger], None]]:
+_task_running_state: Annotated[
+    dict[TaskID, bool],
+    'Global state to track running tasks. This only stores non-Huey Tasks.',
+] = {}
+
+
+def get_previous_run_details(
+        db: Session,
+        task_id: TaskID,
+        /,
+    ) -> tuple[datetime, datetime, float] | None:
     """
-    Decorator to "wrap" a schedulable function. This adds boilerplate
-    logic to the scheduled task function, including adding a contextual
-    logger, logging execution start/ending, exiting the function if it
-    is already running, marking the task as running in the global
-    BaseJobs map, and catching any top-level exceptions.
+    Get the previous run details for the given Task.
+
+    Args:
+        db: Database session.
+        task_id: ID of the task to get the previous run details for.
+
+    Returns:
+        Tuple containing the start time, end time, and duration of the
+        previous run. None if there is no previous run to get the
+        details of.
     """
 
-    def decorator(func: Callable[[Logger | None], None]) -> Callable[[Logger], None]:
-        @wraps(func)
-        def wrapper(log: Logger | None = None) -> None:
+    last_duration = (
+        db.query(TaskDuration)
+            .filter(TaskDuration.task_name == task_id)
+            .order_by(TaskDuration.start_time.desc())
+            .first()
+    )
+    if not last_duration:
+        return None
+
+    return (
+        last_duration.start_time,
+        last_duration.end_time,
+        last_duration.duration,
+    )
+
+
+def is_task_running(task_id: TaskID, /) -> bool:
+    """
+    Check if the given Task is currently running.
+
+    Args:
+        task_id: ID of the task to check if it is running.
+
+    Returns:
+        Whether the given Task is currently running.
+    """
+
+    return huey.is_locked(task_id) or _task_running_state.get(task_id, False)
+
+
+prefs = get_preferences()
+class RecurringTask:
+    """
+    A class that combines the creation of wrapped core Task functions
+    and huey Tasks.
+
+    This class handles:
+    1. Creating a wrapped version of the Task function with logging and
+    error handling.
+    2. Creating the huey periodic Task with proper scheduling and
+    locking.
+    3. Storing all the Task metadata.
+    """
+
+    task_func: Callable[[Logger | None], None]
+    description: str
+    task_id: TaskID
+    default_cronstr: str
+    cron: crontab
+    error_message: str
+    priority: int
+    expires: timedelta
+    internal: bool
+    wrapped_func: Callable[[Logger | None], None]
+    huey_task: Callable[[], None]
+
+    def __init__(self,
+        task_func: Callable[[Logger | None], None],
+        description: str,
+        task_id: TaskID,
+        default_cronstr: str,
+        error_message: str,
+        priority: int = 0,
+        expires: timedelta = timedelta(hours=1),
+        internal: bool = False,
+    ) -> None:
+        """
+        Initialize a recurring task.
+        
+        Args:
+            task_func: The original task function that takes a logger
+            description: Human-readable description of the task
+            task_id: Unique identifier for the task.
+            default_cronstr: Default crontab string.
+            error_message: Error message to log if task fails.
+            priority: Task priority.
+            expires: How long the task can be queued before expiration.
+            internal: Whether the task is internal.
+        """
+
+        self.task_func = task_func
+        self.description = description
+        self.task_id = task_id
+        self.default_cronstr = default_cronstr
+        self.cron = crontab(
+            *prefs.task_schedules.get(task_id, default_cronstr).split()
+        )
+        self.error_message = error_message
+        self.priority = priority
+        self.expires = expires
+        self.internal = internal
+
+        # Create the wrapped function with logging and error handling
+        self.wrapped_func = self._create_wrapped_function()
+
+        # Create the huey task with scheduling and locking
+        self.huey_task = self._create_huey_task()
+
+
+    def _create_wrapped_function(self) -> Callable[[Logger | None], None]:
+        """
+        Create a wrapped version of the Task function with logging and
+        error handling.
+        """
+
+        @wraps(self.task_func)
+        def wrapper() -> None:
             # Get/generate contextualized logger, log task start
-            log = log or contextualize()
-            log.info(f'Task[{job_id}] started execution')
+            log_: Logger = contextualize()
+            log_.info(f'Task[{self.task_id}] started execution')
 
             # Exit if the task is already running
-            if BaseJobs[job_id].running:
-                log.info(
-                    f'Task[{job_id}] finished execution - Task is already '
+            if _task_running_state.get(self.task_id, False):
+                log_.info(
+                    f'Task[{self.task_id}] finished execution - Task is already '
                     f'running'
                 )
                 return None
 
             # Mark task as running, log start time
-            BaseJobs[job_id].previous_start_time = datetime.now(tz=settings.TIMEZONE)
-            BaseJobs[job_id].running = True
+            start_time = datetime.now(tz=settings.TIMEZONE)
+            _task_running_state[self.task_id] = True
 
             # Run wrapped task
             try:
-                func(log)
+                self.task_func(log=log_)
             # Any high-level exceptions should be caught
             except Exception:
-                log.exception(error_message)
+                log_.exception(self.error_message)
 
             # Log task finishing
-            log.info(f'Task[{job_id}] finished execution')
-            BaseJobs[job_id].previous_end_time = datetime.now(tz=settings.TIMEZONE)
-            BaseJobs[job_id].running = False
+            log_.info(f'Task[{self.task_id}] finished execution')
+            end_time = datetime.now(tz=settings.TIMEZONE)
+            _task_running_state[self.task_id] = False
 
             # Attempt to add TaskDuration record to database
             try:
                 with next(get_database()) as db:
-                    add_task_duration(db, BaseJobs[job_id])
+                    add_task_duration(db, self.task_id, start_time, end_time)
             except Exception:
                 pass
 
             return None
+        
         return wrapper
-    return decorator
 
-@wrap_scheduled_function(JOB_CREATE_TITLE_CARDS, 'Failed to create title cards')
-def wrapped_create_all_title_cards(log: Logger | None = None) -> None:
-    create_all_title_cards(log=log or contextualize())
 
-@wrap_scheduled_function(JOB_DOWNLOAD_SERIES_LOGOS, 'Failed to download logos')
-def wrapped_download_all_series_logos(log: Logger | None = None) -> None:
-    download_all_series_logos(log=log or contextualize())
+    def _create_huey_task(self) -> Callable[[], None]:
+        """Create the huey periodic task with scheduling and locking."""
 
-@wrap_scheduled_function(
-    JOB_DOWNLOAD_SERIES_POSTERS, 'Failed to download posters'
-)
-def wrapped_download_all_series_posters(log: Logger | None = None) -> None:
-    download_all_series_posters(log=log or contextualize())
+        return huey.periodic_task(
+            self.cron,
+            name=self.task_id,
+            priority=self.priority,
+            expires=self.expires,
+        )(huey.lock_task(self.task_id)(self.wrapped_func))
 
-@wrap_scheduled_function(JOB_LOAD_MEDIA_SERVERS, 'Failed to load Title Cards')
-def wrapped_load_media_servers(log: Logger | None = None) -> None:
-    load_all_media_servers(log=log or contextualize())
 
-@wrap_scheduled_function(JOB_SYNC_INTERFACES, 'Failed to run all Syncs')
-def wrapped_sync_all(log: Logger | None = None) -> None:
-    sync_all(log=log or contextualize())
-
-@wrap_scheduled_function(
-    INTERNAL_JOB_CHECK_FOR_NEW_RELEASE, 'Failed to get latest version'
-)
-def wrapped_get_latest_version(log: Logger | None = None) -> None:
-    get_latest_version(log=log or contextualize())
-
-@wrap_scheduled_function(
-    INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES, 'Failed to refresh card types'
-)
-def wrapped_refresh_all_remote_cards(log: Logger | None = None) -> None:
-    refresh_all_remote_card_types(log=log or contextualize())
-
-@wrap_scheduled_function(
-    INTERNAL_JOB_SET_SERIES_IDS, 'Failed to set Series IDs'
-)
-def wrapped_set_series_ids(log: Logger | None = None) -> None:
-    set_all_series_ids(log=log or contextualize())
-
-@wrap_scheduled_function(JOB_BACKUP_DATABASE, 'Failed to backup database')
-def wrapped_backup_database(log: Logger | None = None) -> None:
-    backup_data(get_preferences().current_version, log=log or contextualize())
-
-@wrap_scheduled_function(
-    INTERNAL_JOB_CLEAN_DATABASE, 'Failed to clean the database'
-)
-def wrapped_clean_database(log: Logger | None = None) -> None:
-    clean_database(log=log or contextualize())
-
-@wrap_scheduled_function(
-    INTERNAL_JOB_SNAPSHOT_DATABASE,
-    'Failed to snapshot database'
-)
-def wrapped_snapshot_database(log: Logger | None = None):
-    snapshot_database(log=log or contextualize())
-# pylint: enable=missing-function-docstring,redefined-outer-name
-
-"""
-Dictionary of Job ID's to NewJob objects that contain the default Job
-attributes for all major functions.
-"""
-BaseJobs = {
-    # Public jobs
-    JOB_SYNC_INTERFACES: NewJob(
-        id=JOB_SYNC_INTERFACES,
-        function=wrapped_sync_all,
-        seconds=Hours(6),
-        crontab='0 */6 * * *',
-        description='Sync and add any new Series',
-    ),
-    JOB_CREATE_TITLE_CARDS: NewJob(
-        id=JOB_CREATE_TITLE_CARDS,
-        function=wrapped_create_all_title_cards,
-        seconds=Hours(12),
-        crontab='0 */12 * * *',
+RecurringTasks: dict[TaskID, RecurringTask] = {
+    JOB_CREATE_TITLE_CARDS: RecurringTask(
+        task_func=create_all_title_cards,
         description='Create all missing or outdated Title Cards',
+        task_id=JOB_CREATE_TITLE_CARDS,
+        default_cronstr='0 */12 * * *',
+        error_message='Failed to create title cards',
+        priority=90,
     ),
-    JOB_LOAD_MEDIA_SERVERS: NewJob(
-        id=JOB_LOAD_MEDIA_SERVERS,
-        function=wrapped_load_media_servers,
-        seconds=Hours(4),
-        crontab='0 */4 * * *',
-        description='Load all Title Cards into media servers',
-    ),
-    JOB_DOWNLOAD_SERIES_LOGOS: NewJob(
-        id=JOB_DOWNLOAD_SERIES_LOGOS,
-        function=wrapped_download_all_series_logos,
-        seconds=Days(1),
-        crontab='0 0 */1 * *',
+    JOB_DOWNLOAD_SERIES_LOGOS: RecurringTask(
+        task_func=download_all_series_logos,
         description='Download logos for all Series',
+        task_id=JOB_DOWNLOAD_SERIES_LOGOS,
+        default_cronstr='0 0 */1 * *',
+        error_message='Failed to download logos',
+        priority=6,
     ),
-    JOB_DOWNLOAD_SERIES_POSTERS: NewJob(
-        id=JOB_DOWNLOAD_SERIES_POSTERS,
-        function=wrapped_download_all_series_posters,
-        seconds=Days(1),
-        crontab='0 0 */1 * *',
+    JOB_DOWNLOAD_SERIES_POSTERS: RecurringTask(
+        task_func=download_all_series_posters,
         description='Download posters for all Series',
+        task_id=JOB_DOWNLOAD_SERIES_POSTERS,
+        default_cronstr='0 0 */1 * *',
+        error_message='Failed to download posters',
+        priority=5,
     ),
-    JOB_BACKUP_DATABASE: NewJob(
-        id=JOB_BACKUP_DATABASE,
-        function=wrapped_backup_database,
-        seconds=Days(1),
-        crontab='0 0 */1 * *',
-        description='Backup the database and global settings',
+    JOB_LOAD_MEDIA_SERVERS: RecurringTask(
+        task_func=load_all_media_servers,
+        description='Load all Title Cards into media servers',
+        task_id=JOB_LOAD_MEDIA_SERVERS,
+        default_cronstr='0 */4 * * *',
+        error_message='Failed to load Title Cards',
+        priority=85,
     ),
-    # Internal (private) jobs
-    INTERNAL_JOB_CHECK_FOR_NEW_RELEASE: NewJob(
-        id=INTERNAL_JOB_CHECK_FOR_NEW_RELEASE,
-        function=wrapped_get_latest_version,
-        seconds=Days(1),
-        crontab='0 0 */1 * *',
+    JOB_SYNC_INTERFACES: RecurringTask(
+        task_func=sync_all,
+        description='Sync and add any new Series',
+        task_id=JOB_SYNC_INTERFACES,
+        default_cronstr='0 */6 * * *',
+        error_message='Failed to run all Syncs',
+        priority=100,
+    ),
+    INTERNAL_JOB_CHECK_FOR_NEW_RELEASE: RecurringTask(
+        task_func=get_latest_version,
         description='Check for a new release of TitleCardMaker',
+        task_id=INTERNAL_JOB_CHECK_FOR_NEW_RELEASE,
+        default_cronstr='0 0 */1 * *',
+        error_message='Failed to get latest version',
+        priority=0,
         internal=True,
     ),
-    INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES: NewJob(
-        id=INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES,
-        function=wrapped_refresh_all_remote_cards,
-        seconds=Days(3),
-        crontab='0 0 */3 * *',
+    INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES: RecurringTask(
+        task_func=refresh_all_remote_card_types,
         description='Refresh all non-built-in card types',
+        task_id=INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES,
+        default_cronstr='0 0 */3 * *',
+        error_message='Failed to refresh card types',
+        priority=10,
         internal=True,
     ),
-    INTERNAL_JOB_SET_SERIES_IDS: NewJob(
-        id=INTERNAL_JOB_SET_SERIES_IDS,
-        function=wrapped_set_series_ids,
-        seconds=Days(2),
-        crontab='0 0 */2 * *',
+    INTERNAL_JOB_SET_SERIES_IDS: RecurringTask(
+        task_func=set_all_series_ids,
         description='Set Series IDs',
+        task_id=INTERNAL_JOB_SET_SERIES_IDS,
+        default_cronstr='0 0 */2 * *',
+        error_message='Failed to set Series IDs',
+        priority=95,
         internal=True,
     ),
-    INTERNAL_JOB_CLEAN_DATABASE: NewJob(
-        id=INTERNAL_JOB_CLEAN_DATABASE,
-        function=wrapped_clean_database,
-        seconds=Days(2) + Hours(12),
-        crontab='0 12 */3 * *',
+    JOB_BACKUP_DATABASE: RecurringTask(
+        task_func=lambda log: backup_data(get_preferences().current_version, log=log),
+        description='Backup the database and global settings',
+        task_id=JOB_BACKUP_DATABASE,
+        default_cronstr='0 0 */1 * *',
+        error_message='Failed to backup database',
+        priority=50,
+        internal=True,
+    ),
+    INTERNAL_JOB_CLEAN_DATABASE: RecurringTask(
+        task_func=clean_database,
         description='Clean the database',
+        task_id=INTERNAL_JOB_CLEAN_DATABASE,
+        default_cronstr='0 12 */3 * *',
+        error_message='Failed to clean the database',
+        priority=15,
         internal=True,
     ),
-    INTERNAL_JOB_SNAPSHOT_DATABASE: NewJob(
-        id=INTERNAL_JOB_SNAPSHOT_DATABASE,
-        function=wrapped_snapshot_database,
-        seconds=Minutes(30),
-        crontab='*/30 * * * *',
+    INTERNAL_JOB_CLEAR_OLD_LOGS: RecurringTask(
+        task_func=clear_log_data,
+        description='Clear old logs',
+        task_id=INTERNAL_JOB_CLEAR_OLD_LOGS,
+        default_cronstr='0 0 */1 * *',
+        error_message='Failed to clear old logs',
+        priority=0,
+        internal=True,
+    ),
+    INTERNAL_JOB_SNAPSHOT_DATABASE: RecurringTask(
+        task_func=snapshot_database,
         description='Take a database snapshot',
+        task_id=INTERNAL_JOB_SNAPSHOT_DATABASE,
+        default_cronstr='*/30 * * * *',
+        error_message='Failed to snapshot database',
+        priority=0,
         internal=True,
     ),
 }
 
 
-def initialize_scheduler(override: bool = False, *, log: Logger = log) -> None:
-    """
-    Initialize the Scheduler by creating any Jobs in BaseJobs that do
-    not already exist. This can also be called to reinitialize all "bad"
-    jobs which are scheduled in the past.
+def get_task_details(db: Session, task_id: TaskID, /) -> TaskDetails:
+    ...
 
-    Args:
-        override: Whether to override any existing scheduled jobs.
-        log: Logger to use for logging.
-    """
+    crontab = prefs.task_schedules.get(
+        task_id,
+        RecurringTasks[task_id].default_cronstr
+    )
 
-    scheduler, preferences = get_scheduler(), get_preferences()
-    log.debug(f'Initializing Scheduler..')
+    next_run: datetime = croniter(crontab).get_next(
+        datetime,
+        datetime.now(tz=settings.TIMEZONE),
+    )
 
-    # Schedule all defined Jobs
-    changed = False
-    for job in BaseJobs.values():
-        # Determine if the job schedule is bad
-        now = datetime.now(tz=settings.TIMEZONE)
-        last_start = BaseJobs[job.id].previous_start_time
-        running_too_long = (
-            last_start is not None and (last_start - now > timedelta(hours=12))
-        )
+    # Get the last run details
+    previous_start, previous_end, previous_duration = None, None, None
+    last_run_details = get_previous_run_details(db, task_id)
+    if last_run_details:
+        previous_start, previous_end, previous_duration = last_run_details
 
-        # Skip if Job is running (but not stuck running)
-        if BaseJobs[job.id].running and not running_too_long:
-            log.debug(f'Skipping Task[{job.id}] - currently running')
-            continue
-
-        # Determine if the job schedule is bad
-        try:
-            bad_job = (
-                scheduler.get_job(job.id) is not None
-                and scheduler.get_job(job.id).next_run_time < now
-                or running_too_long
-            )
-        except Exception: # LookupError
-            bad_job = True
-
-        # If overriding, job is not already scheduled, or job schedule
-        # is in the past, add to scheduler
-        if override or bad_job or scheduler.get_job(job.id) is None:
-            if bad_job:
-                log.warning(f'Fixing schedule for Task[{job.id}]')
-
-            try:
-                scheduler.remove_job(job.id)
-            except Exception: # JobLookupError
-                log.debug(f'Task[{job.id}] does not exist in the scheduler')
-
-            if preferences.advanced_scheduling:
-                changed = True
-                # Store crontab in Preferences
-                preferences.task_crontabs[job.id] = job.crontab
-                scheduler.add_job(
-                    job.function,
-                    CronTrigger.from_crontab(job.crontab),
-                    id=job.id,
-                    replace_existing=True,
-                    misfire_grace_time=60 * 10,
-                )
-            else:
-                scheduler.add_job(
-                    job.function,
-                    'interval',
-                    seconds=job.seconds,
-                    id=job.id,
-                    replace_existing=True,
-                    misfire_grace_time=60 * 10,
-                )
-
-    if changed:
-        preferences.commit()
-
-
-def repeat_every(
-    *,
-    seconds: float,
-    wait_first: bool = False,
-    logger: Logger | None = None,
-    raise_exceptions: bool = False,
-    max_repetitions: int | None = None,
-) -> NoArgsNoReturnDecorator:
-    """
-    This function returns a decorator that modifies a function so it is
-    periodically re-executed after its first call.
-
-    The function it decorates should accept no arguments and return
-    nothing. If necessary, this can be accomplished by using
-    `functools.partial` or otherwise wrapping the target function prior
-    to decoration.
-
-    Args:
-        seconds: The number of seconds to wait between repeated calls.
-        wait_first: If True, the function will wait for a single period
-            before the first call
-        logger: The logger to use to log any exceptions raised by calls
-            to the decorated function. If not provided, exceptions will
-            not be logged by this function (though they may be handled
-            by the event loop).
-        raise_exceptions: If True, errors raised by the decorated
-            function will be raised to the event loop's exception
-            handler. Note that if an error is raised, the repeated
-            execution will stop. Otherwise, exceptions are just logged
-            and the execution continues to repeat. See
-            https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.set_exception_handler
-            for more info.
-        max_repetitions: The maximum number of times to call the
-            repeated function. If `None`, the function is repeated forever.
-    """
-
-    def decorator(
-        func: NoArgsNoReturnAsyncFuncT | NoArgsNoReturnFuncT
-    ) -> NoArgsNoReturnAsyncFuncT:
-        """
-        Converts the decorated function into a repeated, periodically-called
-        version of itself.
-        """
-        is_coroutine = asyncio.iscoroutinefunction(func)
-
-        @wraps(func)
-        async def wrapped() -> None:
-            repetitions = 0
-
-            async def loop() -> None:
-                nonlocal repetitions
-                if wait_first:
-                    await asyncio.sleep(seconds)
-                while max_repetitions is None or repetitions < max_repetitions:
-                    try:
-                        if is_coroutine:
-                            await func()  # type: ignore
-                        else:
-                            await run_in_threadpool(func)
-                        repetitions += 1
-                    except Exception as exc:
-                        if logger is not None:
-                            formatted_exception = ''.join(
-                                format_exception(
-                                    type(exc), exc, exc.__traceback__
-                                )
-                            )
-                            logger.error(formatted_exception)
-                        if raise_exceptions:
-                            raise exc
-                    await asyncio.sleep(seconds)
-
-            ensure_future(loop())
-
-        return wrapped
-
-    return decorator
+    return TaskDetails(
+        id=task_id,
+        description=RecurringTasks[task_id].description,
+        crontab=crontab,
+        next_run=next_run,
+        previous_start_time=previous_start,
+        previous_end_time=previous_end,
+        previous_duration=previous_duration,
+        running=is_task_running(task_id),
+        internal=RecurringTasks[task_id].internal,
+    )

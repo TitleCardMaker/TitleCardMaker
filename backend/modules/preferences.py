@@ -121,7 +121,8 @@ class Preferences:
         'stylize_unmonitored_posters',
         'sync_specials',
         'source_preview_page_dimensions',
-        'task_crontabs',
+        # 'task_crontabs',
+        'task_schedules',
         'title_card_preview_page_dimensions',
     )
 
@@ -274,7 +275,7 @@ class Preferences:
         self.blacklisted_blueprints: set[int] = set()
         self.imported_blueprints: set[int] = set()
         self.advanced_scheduling = False
-        self.task_crontabs: dict[str, str] = {}
+        self.task_schedules: dict[str, str] = {}
 
         self.require_auth = False
         self.home_page_size = 100

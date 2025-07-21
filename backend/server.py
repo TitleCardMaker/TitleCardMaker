@@ -10,13 +10,10 @@ from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 from starlette.middleware.cors import CORSMiddleware
 
-from app.api.api import api_router, initialize_scheduler
+from app.api.api import api_router
 from app.api.pages import router as pages_router
-from app.core.boot import initialize_app, teardown_app
-from app.core.schedule import repeat_every
-from app.core.logs import clear_log_data
+from app.core.boot import initialize_app, initialize_huey, teardown_app, teardown_huey
 from app.middleware import middlewares
-from app.schemas.schedule import Hours
 
 # Patch rich.pretty.traverse to force no limit on max length/string
 # see my issue on rich: https://github.com/Textualize/rich/issues/3301
@@ -37,8 +34,12 @@ async def lifespan(app: FastAPI):
     """Lifespan for the FastAPI application."""
 
     initialize_app(app)
+    consumer, task = initialize_huey()
+
     yield
+
     teardown_app(app)
+    await teardown_huey(consumer, task)
 
 
 # Create application
@@ -70,14 +71,3 @@ app.add_middleware(
 # Add middleware in the correct order
 for middleware in middlewares:
     app.middleware('http')(middleware)
-
-
-@repeat_every(seconds=Hours(24))
-def fix_bad_schedules() -> None:
-    """
-    Repeated function to (re)initialize the scheduler. Also clears the
-    log cache.
-    """
-
-    initialize_scheduler()
-    clear_log_data()

@@ -6,21 +6,22 @@ from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
+import asyncio
 from fastapi import FastAPI
+from huey.consumer import Consumer
 from rich.console import Console
 from rich.traceback import Traceback
 from sqlalchemy.orm import Session
 from starlette.staticfiles import StaticFiles
 
-from app.core.schedule import initialize_scheduler
 from app.core.availability import get_latest_version
 from app.core.backup import backup_data, restore_backup
 from app.core.cards import refresh_remote_card_types
 from app.core.config import settings
 from app.core.connection import initialize_connections
+from app.core.schedule import huey
 from app.core.settings import apply_card_type_blur_profiles
 from app.db.database import engine as db_engine, SQLALCHEMY_DATABASE_URL
-from app.db.scheduler import Scheduler
 from app.dependencies import get_database, get_preferences
 from app.logging.database import logs_engine, LOGS_DATABASE_URL
 from app.logging.logger import contextualize, log as logger, Logger
@@ -30,6 +31,9 @@ from modules.BackgroundTasks import TracebackSuppressedPackages
 
 
 APP_ROOT = BACKEND_ROOT / 'app'
+
+"""Global Huey Consumer"""
+huey_consumer: Consumer | None = None
 
 
 def initialize_root_directories(*, log: Logger = logger) -> None:
@@ -193,7 +197,6 @@ def initialize_app(app: FastAPI) -> None:
     initialize_root_directories(log=log)
     mount_static_app_directories(app, log=log)
     perform_database_migrations(log=log)
-    Scheduler.start() # Start the scheduler, initialized via repeated task
     apply_card_type_blur_profiles()
 
     # Database operations
@@ -208,7 +211,31 @@ def initialize_app(app: FastAPI) -> None:
         except Exception:
             log.exception('Error initializing Connections')
 
-    initialize_scheduler()
+
+def initialize_huey() -> tuple[Consumer, asyncio.Task]:
+    """
+    Initialize the Huey Consumer. This launches a new thread which
+    acts as the consumer for all scheduled recurring Huey tasks.
+
+    Returns:
+        Tuple containing the Huey Consumer and the asyncio Task which
+        runs the consumer.
+    """
+
+    log = contextualize(logger)
+
+    # Initialize Huey Consumer
+    global huey_consumer
+    loop = asyncio.get_event_loop()
+    huey_consumer = Consumer(huey)
+    huey_consumer.start()
+    log.info('Huey Consumer started')
+
+    consumer_thread = asyncio.to_thread(huey_consumer.run)
+    consumer_task = loop.create_task(consumer_thread)
+    log.info(f'Huey Consumer task created in thread {consumer_task.get_name()}')
+
+    return huey_consumer, consumer_task
 
 
 def teardown_app(app: FastAPI) -> None:
@@ -220,3 +247,17 @@ def teardown_app(app: FastAPI) -> None:
     """
 
     pass
+
+
+async def teardown_huey(consumer: Consumer, task: asyncio.Task) -> None:
+    """
+    Teardown the Huey Consumer. This stops the consumer and waits for
+    the asyncio Task to complete.
+
+    Args:
+        consumer: The Huey Consumer to stop.
+        task: The asyncio Task to wait for.
+    """
+
+    consumer.stop()
+    await task
