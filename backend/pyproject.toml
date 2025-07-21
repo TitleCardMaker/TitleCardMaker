@@ -53,6 +53,7 @@ dependencies = [
     "pydantic-settings==2.9.1",
     "setuptools==80.9.0",
     "pytz==2025.2",
+    "croniter==6.0.0",
 ]
 
 [build-system]
