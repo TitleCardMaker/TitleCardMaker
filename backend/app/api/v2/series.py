@@ -79,7 +79,7 @@ def get_all_series(
     """
 
     try:
-        filter = SeriesFilter.parse_raw(filter_) if filter_ else None
+        filter = SeriesFilter.model_validate_json(filter_) if filter_ else None
     except ValidationError as exc:
         log.exception('Invalid filter definition')
         raise HTTPException(
@@ -106,7 +106,7 @@ def get_all_series_including_counts(
     """
 
     try:
-        filter = SeriesFilter.parse_raw(filter_) if filter_ else None
+        filter = SeriesFilter.model_validate_json(filter_) if filter_ else None
     except ValidationError as exc:
         log.exception('Invalid filter definition')
         raise HTTPException(
