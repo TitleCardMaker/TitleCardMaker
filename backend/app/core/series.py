@@ -445,7 +445,8 @@ def update_series_config(
     """
 
     # If a Font is indicated, verify it exists
-    get_font(db,update_series.font_id, raise_exc=True)
+    if update_series.font_id not in (None, UNSPECIFIED):
+        get_font(db,update_series.font_id, raise_exc=True)
 
     # Verify Image Source Priorty if indicated
     if (isp := update_series.image_source_priority) not in (None, UNSPECIFIED):
@@ -465,8 +466,6 @@ def update_series_config(
         exclude_unset=True,
         exclude={
             'template_ids',
-            'season_title_ranges', 'season_title_values',
-            'extra_keys', 'extra_values'
         },
     ).items():
         if getattr(series, attr) != value:
@@ -909,12 +908,7 @@ def add_series(
     templates = get_all_templates(db, new_series_dict, raise_exc=True)
 
     # Add to database
-    series = Series(**new_series.model_dump(
-        exclude={
-            'season_title_ranges', 'season_title_values',
-            'extra_keys', 'extra_values', 'template_ids'
-        })
-    )
+    series = Series(**new_series.model_dump(exclude={'template_ids'}))
     db.add(series)
     db.commit()
     log.info(f'Added {series} to Database')
