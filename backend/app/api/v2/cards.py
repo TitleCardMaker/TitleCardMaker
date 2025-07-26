@@ -221,8 +221,8 @@ def create_preview_card_for_episode(
         raise HTTPException(
             status_code=422,
             detail=(
-                'Preview Cards cannot reflect Template changes - save the new '
-                'Templates and try again'
+                'Preview Cards cannot reflect Template changes - save these '
+                'changes and try again'
             )
         )
 
