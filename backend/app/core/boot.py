@@ -227,7 +227,8 @@ def initialize_huey() -> tuple[Consumer, asyncio.Task]:
     # Initialize Huey Consumer
     global huey_consumer
     loop = asyncio.get_event_loop()
-    huey_consumer = Consumer(huey)
+    # Flush locks to prevent tasks from being stuck in the queue
+    huey_consumer = Consumer(huey, flush_locks=True)
     huey_consumer.start()
     log.info('Huey Consumer started')
 
