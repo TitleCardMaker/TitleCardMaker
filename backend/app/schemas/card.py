@@ -89,23 +89,11 @@ class PreviewTitleCard(Base):
     font_stroke_width: float | None = None
     font_title_case: TitleCase | None = None
     font_vertical_shift: int | None = None
-    extra_keys: list[str] | None = None
-    extra_values: list[str] | None = None
+    extras: dict[DictKey, str] | None = None
 
     @validator('*', pre=True)
     def validate_arguments(cls, v):
         return None if v == '' else v
-
-    @validator('extra_keys', 'extra_values', pre=True)
-    def validate_list(cls, v: Union[str, list[str]]) -> list[str]:
-        return [v] if isinstance(v, str) else v
-
-    @model_validator(mode='after')
-    def validate_paired_lists(self) -> Self:
-        self.extras = validate_argument_lists_to_dict(
-            self.extra_keys, self.extra_values
-        )
-        return self
 
 class NewTitleCard(Base):
     series_id: int

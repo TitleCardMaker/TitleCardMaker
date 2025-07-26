@@ -1,22 +1,21 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false, reportIncompatibleVariableOverride=false
-from typing import Any, Literal, Self
+from typing import Any, Literal
 
 from pydantic import (
     conint,
-    computed_field,
     constr,
     Field,
-    model_validator,
     validator
 )
 
 from app.models.template import OPERATIONS, ARGUMENT_KEYS
 from app.schemas.base import (
     Base,
+    DictKey,
     MediaServer,
+    SeasonTitleRange,
     UNSPECIFIED,
-    validate_argument_lists_to_dict
 )
 from app.schemas.connection import TMDbLanguageCode
 from app.schemas.font import TitleCase
@@ -30,10 +29,6 @@ from app.schemas.ids import (
     TVRageID
 )
 from app.schemas.preferences import Style
-
-# Match absolute ranges (1-10), season numbers (1), episode ranges (s1e1-s1e10)
-SeasonTitleRange = constr(pattern=r'^(\d+-\d+)|^(\d+)|^(s\d+e\d+-s\d+e\d+)$')
-DictKey = constr(pattern=r'^[a-zA-Z]+[^ -]*$', min_length=1)
 
 """
 Base classes
@@ -76,6 +71,8 @@ class BaseConfig(Base):
     hide_episode_text: bool | None = None
     episode_text_format: str | None = None
     image_source_priority: list[int] | None = None
+    season_titles: dict[SeasonTitleRange, str] | None = None
+    extras: dict[str, str] | None = None
 
     @validator('image_source_priority', pre=False)
     def validate_unique_isp_id(cls, val: list[int] | None) -> list[int] | None:
@@ -132,22 +129,18 @@ class BaseUpdate(Base):
     translations: list[Translation] | None = UNSPECIFIED
     card_type: str | None = UNSPECIFIED
     hide_season_text: bool | None = UNSPECIFIED
-    season_title_ranges: list[SeasonTitleRange] | None = UNSPECIFIED
-    season_title_values: list[str] | None = UNSPECIFIED
+    season_titles: dict[SeasonTitleRange, str] | None = UNSPECIFIED
     hide_episode_text: bool | None = UNSPECIFIED
     unwatched_style: Style | None = UNSPECIFIED
     watched_style: Style | None = UNSPECIFIED
     episode_text_format: str | None = UNSPECIFIED
-    extra_keys: list[DictKey] | None = UNSPECIFIED
-    extra_values: list[Any] | None = UNSPECIFIED
+    extras: dict[DictKey, str] | None = UNSPECIFIED
 
     @validator('*', pre=True)
     def validate_arguments(cls, v):
         return None if v == '' else v
 
-    @validator('translations',
-               'season_title_ranges', 'season_title_values',
-               'extra_keys', 'extra_values', pre=True)
+    @validator('translations', pre=True)
     def validate_list(cls, v: str | list[str] | None) -> list[str] | None:
         # Filter out empty strings - all arguments can accept empty lists
         if v is None:
@@ -163,78 +156,14 @@ class BaseUpdate(Base):
             raise ValueError('IDs must be unique')
         return val
 
-    @model_validator(mode='after')
-    def validate_paired_lists(self) -> Self:
-        validate_argument_lists_to_dict(
-            self.season_title_ranges, self.season_title_values
-        )
-        validate_argument_lists_to_dict(
-            self.extra_keys, self.extra_values
-        )
-        return self
-
-    @computed_field
-    @property
-    def season_titles(self) -> dict[SeasonTitleRange, str]:
-        return validate_argument_lists_to_dict(
-            self.season_title_ranges, self.season_title_values
-        )
-
-    @computed_field
-    @property
-    def extras(self) -> dict[str, Any]:
-        return validate_argument_lists_to_dict(
-            self.extra_keys, self.extra_values
-        )
-
 """
 Creation classes
 """
 class NewTemplate(BaseTemplate):
     name: str = Field(..., min_length=1)
-    season_title_ranges: list[SeasonTitleRange] = []
-    season_title_values: list[str] = []
-    extra_keys: list[str] = []
-    extra_values: list[Any] = []
-
-    @validator('season_title_ranges', 'season_title_values',
-               'extra_keys', 'extra_values', pre=True)
-    def validate_list(cls, v: str | list[str]) -> list[str]:
-        return [v] if isinstance(v, str) else v
-
-    @model_validator(mode='after')
-    def validate_paired_lists(self) -> Self:
-        validate_argument_lists_to_dict(
-            self.season_title_ranges, self.season_title_values
-        )
-        validate_argument_lists_to_dict(self.extra_keys, self.extra_values)
-        return self
-
-    @computed_field
-    @property
-    def season_titles(self) -> dict[SeasonTitleRange, str]:
-        return validate_argument_lists_to_dict(
-            self.season_title_ranges, self.season_title_values
-        )
-
-    @computed_field
-    @property
-    def extras(self) -> dict[str, Any]:
-        return validate_argument_lists_to_dict(
-            self.extra_keys, self.extra_values
-        )
 
 class NewSeries(BaseSeries):
-    season_title_ranges: list[SeasonTitleRange] | None = None
-    season_title_values: list[str] | None = None
-    extra_keys: list[str] | None = None
-    extra_values: list[Any] | None = None
     sync_id: int | None = None
-
-    @validator('season_title_ranges', 'season_title_values',
-               'extra_keys', 'extra_values', pre=True)
-    def validate_list(cls, v: str | list[str]) -> list[str]:
-        return [v] if isinstance(v, str) else v
 
     @validator('template_ids', pre=False)
     def validate_unique_template_ids(cls, val: list[int]) -> list[int]:
@@ -242,38 +171,12 @@ class NewSeries(BaseSeries):
             raise ValueError('Template IDs must be unique')
         return val
 
-    @model_validator(mode='after')
-    def validate_paired_lists(self) -> Self:
-        validate_argument_lists_to_dict(
-            self.season_title_ranges, self.season_title_values
-        )
-        validate_argument_lists_to_dict(self.extra_keys, self.extra_values)
-        return self
-
-    @computed_field
-    @property
-    def season_titles(self) -> dict[SeasonTitleRange, str]:
-        return validate_argument_lists_to_dict(
-            self.season_title_ranges, self.season_title_values
-        )
-
-    @computed_field
-    @property
-    def extras(self) -> dict[str, Any]:
-        return validate_argument_lists_to_dict(
-            self.extra_keys, self.extra_values
-        )
-
 """
 Update classes
 """
 class UpdateTemplate(BaseUpdate):
     name: constr(min_length=1) = UNSPECIFIED
     filters: list[Condition] = UNSPECIFIED
-    season_title_ranges: list[SeasonTitleRange] = UNSPECIFIED
-    season_title_values: list[str] = UNSPECIFIED
-    extra_keys: list[DictKey] = UNSPECIFIED
-    extra_values: list[Any] = UNSPECIFIED
 
 class UpdateSeries(BaseUpdate):
     year: conint(ge=1900) = UNSPECIFIED
@@ -291,14 +194,10 @@ class UpdateSeries(BaseUpdate):
 
     card_type: str | None = UNSPECIFIED
     hide_season_text: bool | None = UNSPECIFIED
-    season_title_ranges: list[SeasonTitleRange] | None = UNSPECIFIED
-    season_title_values: list[str] | None = UNSPECIFIED
     hide_episode_text: bool | None = UNSPECIFIED
     unwatched_style: Style | None = UNSPECIFIED
     watched_style: Style | None = UNSPECIFIED
     episode_text_format: str | None = UNSPECIFIED
-    extra_keys: list[DictKey] | None = UNSPECIFIED
-    extra_values: list[Any] | None = UNSPECIFIED
 
     font_color: str | None = UNSPECIFIED
     font_title_case: TitleCase | None = UNSPECIFIED
@@ -317,10 +216,6 @@ class UpdateSeries(BaseUpdate):
     tvdb_id: TVDbID = UNSPECIFIED
     tvrage_id: TVRageID = UNSPECIFIED
     set_url: str | None = UNSPECIFIED
-
-    @validator('emby_id', 'jellyfin_id', 'sonarr_id', pre=False)
-    def validate_ids(cls, v):
-        return '' if not v else v
 
     @validator('template_ids', pre=False)
     def validate_unique_ids(cls, val):

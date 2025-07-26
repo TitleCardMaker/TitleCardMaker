@@ -13,6 +13,9 @@ UNSPECIFIED = '_UnspecifiedValue'
 # String that can be used as key in a dictionary
 DictKey = constr(pattern=r'^[a-zA-Z]+[^ -]*$', min_length=1)
 
+# Match absolute ranges (1-10), season numbers (1), episode ranges (s1e1-s1e10)
+SeasonTitleRange: str = constr(pattern=r'^(\d+-\d+)|^(\d+)|^(s\d+e\d+-s\d+e\d+)$')
+
 InterfaceType = Literal['Emby', 'Jellyfin', 'Plex', 'Sonarr', 'TMDb', 'TVDb']
 ImageSource = Literal['Emby', 'Jellyfin', 'Plex', 'TMDb', 'TVDb']
 MediaServer = Literal['Emby', 'Jellyfin', 'Plex']

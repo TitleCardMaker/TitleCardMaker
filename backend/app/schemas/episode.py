@@ -5,7 +5,12 @@ from typing import Any, Self
 
 from pydantic import PositiveFloat, model_validator, validator
 
-from app.schemas.base import Base, UNSPECIFIED, validate_argument_lists_to_dict
+from app.schemas.base import (
+    Base,
+    DictKey,
+    UNSPECIFIED,
+    validate_argument_lists_to_dict,
+)
 from app.schemas.ids import EmbyID, IMDbID, JellyfinID, TMDbID, TVDbID, TVRageID
 from app.schemas.preferences import Style
 
@@ -56,8 +61,8 @@ class NewEpisode(Base):
     tvdb_id: TVDbID = None
     tvrage_id: TVRageID = None
 
-    extras: dict[str, Any] | None = None
-    translations: dict[str, str] = {}
+    extras: dict[DictKey, Any] | None = None
+    translations: dict[DictKey, str] = {}
 
     @model_validator(mode='after')
     def validate_unique_template_ids(self) -> Self:
@@ -107,8 +112,7 @@ class UpdateEpisode(Base):
     tvdb_id: TVDbID = UNSPECIFIED
     tvrage_id: TVRageID = UNSPECIFIED
 
-    extra_keys: list[str] | None = UNSPECIFIED
-    extra_values: list[Any] | None = UNSPECIFIED
+    extras: dict[DictKey, str] | None = UNSPECIFIED
     translations: dict[str, str] = UNSPECIFIED
 
     @validator('*', pre=True)
@@ -125,13 +129,6 @@ class UpdateEpisode(Base):
     def convert_null_ids_to_empty_strings(self) -> Self:
         self.emby_id = self.emby_id or ''
         self.jellyfin_id = self.jellyfin_id or ''
-        return self
-
-    @model_validator(mode='after')
-    def validate_paired_lists(self) -> Self:
-        self.extras = validate_argument_lists_to_dict(
-            self.extra_keys, self.extra_values
-        )
         return self
 
 class BatchUpdateEpisode(Base):
@@ -196,7 +193,7 @@ class Episode(Base):
     tvdb_id: TVDbID
     tvrage_id: TVRageID
 
-    extras: dict[str, Any] | None
+    extras: dict[DictKey, Any] | None
     translations: dict[str, str]
 
 class ReducedEpisodeData(Base):
@@ -226,5 +223,5 @@ class SimplifiedEpisodeData(Base):
     episode_text: str | None
     hide_episode_text: bool | None
 
-    extras: dict[str, Any] | None
+    extras: dict[DictKey, Any] | None
     translations: dict[str, str]

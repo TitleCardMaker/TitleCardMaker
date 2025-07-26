@@ -1589,7 +1589,7 @@ function downloadSeriesPoster() {
 function deleteListValues(attribute) {
   let data = {};
   if (attribute === 'season_titles') {
-    data = {season_title_ranges: null, season_title_values: null};
+    data = {season_titles: null};
   } else if (attribute === 'translations') {
     data = {translations: null};
   }
@@ -1605,8 +1605,6 @@ function deleteListValues(attribute) {
         $('.field[data-value="season-title-value"] > input').remove();
       } else if (attribute === 'translations') {
         $('.field [data-value="translations"] >*').remove();
-      } else if (attribute === 'extras') {
-        $('.field[data-value="extras"] > .field').remove();
       }
       showInfoToast('Deleted Values');
     },
@@ -2385,6 +2383,28 @@ function getSeriesCardConfigData() {
   /** Parse some list value, converting empty lists to null */
   const parseList = value => value.length ? value : null;
 
+  // Build season_titles object from ranges and values
+  const seasonTitleRanges = Array.from(document.querySelectorAll('#card-config-form input[name="season_title_ranges"]')).map(input => input.value);
+  const seasonTitleValues = Array.from(document.querySelectorAll('#card-config-form input[name="season_title_values"]')).map(input => input.value);
+  
+  const season_titles = {};
+  for (let i = 0; i < seasonTitleRanges.length; i++) {
+    if (seasonTitleRanges[i] && seasonTitleValues[i]) {
+      season_titles[seasonTitleRanges[i]] = seasonTitleValues[i];
+    }
+  }
+
+  // Build extras object from keys and values
+  const extraInputs = $('#card-config-form section[aria-label="extras"] input');
+  const extras = {};
+  extraInputs.each(function() {
+    const key = $(this).attr('name');
+    const value = $(this).val();
+    if (key && value !== '') {
+      extras[key] = value;
+    }
+  });
+
   return {
     template_ids: $('#card-config-form input[name="template_ids"]').val()
       ? $('#card-config-form input[name="template_ids"]').val().split(',')
@@ -2402,12 +2422,7 @@ function getSeriesCardConfigData() {
     font_interword_spacing: $('#card-config-form input[name="font_interword_spacing"]').val() || null,
     font_vertical_shift: $('#card-config-form input[name="font_vertical_shift"]').val() || null,
     hide_season_text: $('#card-config-form input[name="hide_season_text"]').val() || null,
-    season_title_ranges: parseList(
-        Array.from(document.querySelectorAll('#card-config-form input[name="season_title_ranges"]')).map(input => input.value)
-      ),
-    season_title_values: parseList(
-        Array.from(document.querySelectorAll('#card-config-form input[name="season_title_values"]')).map(input => input.value)
-      ),
+    season_titles: Object.keys(season_titles).length > 0 ? season_titles : null,
     hide_episode_text: $('#card-config-form input[name="hide_episode_text"]').val() || null,
     episode_text_format: $('#card-config-form input[name="episode_text_format"]').val() || null,
     translations: parseList(
@@ -2418,20 +2433,7 @@ function getSeriesCardConfigData() {
           };
         })
       ),
-    extra_keys: parseList(
-        $('#card-config-form section[aria-label="extras"] input').map(function() {
-          if ($(this).val() !== '') { 
-            return $(this).attr('name'); 
-          }
-        }).get()
-      ),
-    extra_values: parseList(
-        $('#card-config-form section[aria-label="extras"] input').map(function() {
-          if ($(this).val() !== '') {
-            return $(this).val(); 
-          }
-        }).get(),
-      ),
+    extras: Object.keys(extras).length > 0 ? extras : null,
   }
 }
 
