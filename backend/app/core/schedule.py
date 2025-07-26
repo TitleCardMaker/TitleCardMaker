@@ -108,7 +108,8 @@ def get_previous_run_details(
 
 def is_task_running(task_id: TaskID, /) -> bool:
     """
-    Check if the given Task is currently running.
+    Check if the given Task is currently running. This checks both the
+    current Huey Task queue and the global state of running tasks.
 
     Args:
         task_id: ID of the task to check if it is running.
@@ -146,6 +147,7 @@ class RecurringTask:
     wrapped_func: Callable[[Logger | None], None]
     huey_task: Callable[[], None]
 
+
     def __init__(self,
         task_func: Callable[[Logger | None], None],
         description: str,
@@ -153,12 +155,12 @@ class RecurringTask:
         default_cronstr: str,
         error_message: str,
         priority: int = 0,
-        expires: timedelta = timedelta(hours=1),
+        expires: timedelta = timedelta(hours=4),
         internal: bool = False,
     ) -> None:
         """
         Initialize a recurring task.
-        
+
         Args:
             task_func: The original task function that takes a logger
             description: Human-readable description of the task
