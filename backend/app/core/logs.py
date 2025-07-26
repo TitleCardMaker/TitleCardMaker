@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from logging import Logger
 
-from app.dependencies import get_database
+from app.dependencies import get_log_database
 from app.logging.logger import log
 from app.logging.models import Log
 from app.settings import settings
@@ -10,7 +10,7 @@ from app.settings import settings
 def clear_log_data(*, log: Logger = log) -> None:
     """Clear old logs from the database."""
 
-    with next(get_database()) as db:
+    with next(get_log_database()) as db:
         cutoff_date = (
             datetime.now()
             - timedelta(days=settings.LOG_RETENTION_DAYS)
