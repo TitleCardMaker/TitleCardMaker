@@ -54,19 +54,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Configure Application by adding Pagination, all API routers, page
-# navigation, and CORS middleware
+# Configure Application by adding pagination, all API routers, and page
+# navigation
 add_pagination(app)
 app.include_router(api_router)
 app.include_router(pages_router)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['http://localhost:3000'],  # Your frontend URL
-    allow_credentials=True,
-    allow_methods=['*'],
-    allow_headers=['*'],
-    expose_headers=['*'],
-)
 
 # Add middleware in the correct order
 for middleware in middlewares:
