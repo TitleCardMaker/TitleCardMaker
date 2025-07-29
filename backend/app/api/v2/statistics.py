@@ -6,17 +6,16 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.query import get_series
-from app.dependencies import get_database, get_preferences
 from app.db.users import get_current_user
+from app.dependencies import get_database, get_preferences
 from app.models.card import Card
+from app.models.duration import TaskDuration
 from app.models.episode import Episode
 from app.models.font import Font
 from app.models.loaded import Loaded
-from modules.preferences import Preferences
 from app.models.series import Series
 from app.models.snapshot import Snapshot as SnapshotModel
 from app.models.sync import Sync
-from app.models.duration import TaskDuration
 from app.models.template import Template
 from app.schemas.statistic import (
     AssetSize,
@@ -26,6 +25,7 @@ from app.schemas.statistic import (
     Snapshot,
     Statistic,
 )
+from modules.preferences import Preferences
 
 
 statistics_router = APIRouter(
@@ -129,13 +129,15 @@ def get_series_statistics(
     # Verify Series exists
     get_series(db, series_id, raise_exc=True)
 
-    # Count the Episodes, Cards, and total asset size | pylint: disable=not-callable
+    # Count the Episodes, Cards, and total asset size
     episode_count = db.query(Episode.id).filter_by(series_id=series_id).count()
     card_count = db.query(Card.id).filter_by(series_id=series_id).count()
-    asset_size = (db.query(Card.filesize)\
-        .filter_by(series_id=series_id)\
-        .with_entities(func.sum(Card.filesize))\
-        .scalar()) or 0
+    asset_size = (
+        db.query(Card.filesize)
+            .filter_by(series_id=series_id)\
+            .with_entities(func.sum(Card.filesize))\
+            .scalar()
+    ) or 0
 
     return [
         CardCount(value=card_count, value_text=f'{card_count:,}'),
