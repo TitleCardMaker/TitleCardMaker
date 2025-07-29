@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Body, Depends, Request
+from fastapi import APIRouter, Body, Depends
 from fastapi_pagination import paginate
 from sqlalchemy.orm import Session
 
@@ -24,7 +24,26 @@ template_router = APIRouter(
 )
 
 
-@template_router.post('/new')
+@template_router.get('/all')
+def get_all_templates(
+        order: Literal['id', 'name'] = 'name',
+        db: Session = Depends(get_database),
+    ) -> list[Template]:
+    """
+    Get all defined Templates.
+
+    - order: How to order the returned Templates.
+    """
+
+    order_by = {
+        'id': TemplateModel.id,
+        'name': TemplateModel.sort_name,
+    }[order]
+
+    return db.query(TemplateModel).order_by(order_by).all()
+
+
+@template_router.post('/template/new')
 def create_template(
         new_template: NewTemplate = Body(...),
         db: Session = Depends(get_database),
@@ -49,25 +68,7 @@ def create_template(
     return template
 
 
-@template_router.get('/all')
-def get_all_templates(
-        order: Literal['id', 'name'] = 'name',
-        db: Session = Depends(get_database),
-    ) -> Page[Template]:
-    """
-    Get all defined Templates.
-
-    - order: How to order the returned Templates.
-    """
-
-    query = db.query(TemplateModel)
-    if order == 'id':
-        return paginate(query.all())
-
-    return paginate(query.order_by(TemplateModel.sort_name).all())
-
-
-@template_router.get('/{template_id}')
+@template_router.get('/template/{template_id}')
 def get_template_by_id(
         template_id: int,
         db: Session = Depends(get_database),
@@ -81,9 +82,8 @@ def get_template_by_id(
     return get_template(db, template_id, raise_exc=True)
 
 
-@template_router.patch('/{template_id}')
+@template_router.patch('/template/{template_id}')
 def update_template_(
-        request: Request,
         template_id: int,
         update_template: UpdateTemplate = Body(...),
         db: Session = Depends(get_database),
@@ -109,7 +109,7 @@ def update_template_(
 
     # Update each attribute of the object
     changed = False
-    for attr, value in update_template.dict().items():
+    for attr, value in update_template.model_dump(exclude_defaults=True).items():
         if value != UNSPECIFIED and getattr(template, attr) != value:
             setattr(template, attr, value)
             log.debug(f'Template[{template_id}].{attr} = {value}')
@@ -125,7 +125,7 @@ def update_template_(
     return template
 
 
-@template_router.delete('/{template_id}')
+@template_router.delete('/template/{template_id}')
 def delete_template(
         template_id: int,
         db: Session = Depends(get_database),
