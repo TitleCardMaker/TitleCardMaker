@@ -616,15 +616,6 @@
  * @property {?Translation[]} translations
  */
 
-/**
- * @typedef {Object} TemplatePage
- * @property {Template[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
- */
-
 // Syncs -----------------------------------------------------------------------
 
 /**

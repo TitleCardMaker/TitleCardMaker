@@ -8,7 +8,6 @@ import {
   Style,
   Template,
   TemplateFilter,
-  TemplatePage,
   Translation
 } from './.types.js';
 {% endif %}
@@ -28,7 +27,7 @@ const parseList = (value, fallback=[]) => value.length ? value : fallback;
 function addTemplate() {
   $.ajax({
     type: 'POST',
-    url: '/api/v2/templates/new',
+    url: '/api/v2/templates/template/new',
     data: JSON.stringify({name: ' Blank Template'}),
     contentType: 'application/json',
     /**
@@ -142,7 +141,7 @@ function showDeleteModal(templateId) {
       $('#delete-template-modal .button[data-action="delete-template"]').off('click').on('click', () => {
         $.ajax({
           type: 'DELETE',
-          url: `/api/v2/templates/${templateId}`,
+          url: `/api/v2/templates/template/${templateId}`,
           success: () => {
             showInfoToast('Deleted Template');
             document.getElementById(`template-id${templateId}`).remove();
@@ -258,6 +257,7 @@ function addDropdownItem(element, args) {
  */
 async function getAllTemplates() {
   // Start querying templates, but do not wait for results
+  /** @type {Promise<Template[]>} */
   const templatePromise = fetch('/api/v2/templates/all').then(resp => resp.json());
 
   // Query all "available" data used to populate dropdowns in the HTML template
@@ -278,7 +278,7 @@ async function getAllTemplates() {
     ]);
   
     // ----------------------- Add selectable items to the HTML template dropdowns
-    const htmlTemplate = document.querySelector('#template').content;
+    const htmlTemplate = document.getElementById('template').content;
     const translationTemplate = document.getElementById('translation-template').content;
     // Fonts
     const fontMenu = htmlTemplate.querySelector('.dropdown[data-value="font_id"] .menu');
@@ -308,14 +308,14 @@ async function getAllTemplates() {
     htmlTemplatesInitialized = true;
   }
 
-  /** @type {TemplatePage} Finish Template data query */
+  /** @type {Template[]} Finish Template data query */
   const allTemplates = await templatePromise;
 
   // Create elements to add to the page
   const elements = [],
-    hasManyTemplates = allTemplates.items.length > 10;
+    hasManyTemplates = allTemplates.length > 10;
   let currentHeader = '';
-  allTemplates.items.forEach(templateObj => {
+  allTemplates.forEach(templateObj => {
     // Add letter header for this Template if necessary
     const letter = templateObj.sort_name[0].toUpperCase();
     if (hasManyTemplates && letter !== currentHeader) {
@@ -373,7 +373,7 @@ async function getAllTemplates() {
       base.querySelector('.dropdown[data-value="hide_season_text"] > input').value = value;
     }
     // Season titles
-    if (Object.entries(templateObj.season_titles).length > 0) {
+    if (templateObj.season_titles && Object.entries(templateObj.season_titles).length > 0) {
       const rangeDiv = base.querySelector('.field[data-value="season-title-range"]');
       const valueDiv = base.querySelector('.field[data-value="season-title-value"]');
       for (const [range, value] of Object.entries(templateObj.season_titles)) {
@@ -422,7 +422,7 @@ async function getAllTemplates() {
       }
     }
     // Extras
-    if (templateObj.extras !== null) {
+    if (templateObj.extras && Object.entries(templateObj.extras).length > 0) {
       for (const [identifier, value] of Object.entries(templateObj.extras)) {
         base.querySelectorAll(`section[aria-label="extras"] input[name="${identifier}"]`).forEach(input => input.value = value);
       }
@@ -471,7 +471,7 @@ async function getAllTemplates() {
 
   // Fill in fancy values  
   await getAllCardTypes();
-  allTemplates.items.forEach(templateObj => {
+  allTemplates.forEach(templateObj => {
     // Card type
     loadCardTypes({
       element: `#template-id${templateObj.id} .dropdown[data-value="card_type"]`,
