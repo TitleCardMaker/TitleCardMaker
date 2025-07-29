@@ -12,6 +12,7 @@ __pypackages__/
 backend/modules/.objects/
 backups/
 config/
+config copy/
 tests/cypress/results/
 tests/cypress/screenshots/
 fonts/
