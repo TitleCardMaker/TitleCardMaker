@@ -26,14 +26,14 @@ from app.dependencies import get_database, get_preferences
 from app.logging.logger import Logger, contextualize, log
 from app.models.duration import TaskDuration
 from app.schemas.schedule import TaskDetails
-from app.settings import settings
+from app.settings import CONFIG_ROOT, settings
 
 
 """How long a Task can be queued before it is removed."""
 TASK_EXPIRATION_TIME = timedelta(minutes=10)
 
 # Initialize Huey with SQLite backend
-huey = SqliteHuey(filename='../huey.db')
+huey = SqliteHuey(filename=CONFIG_ROOT / 'huey.db')
 
 # Job ID's for scheduled tasks
 JOB_CREATE_TITLE_CARDS = 'CreateTitleCards'
