@@ -49,6 +49,20 @@ font_router = APIRouter(
 )
 
 
+@font_router.get('/all')
+def get_all_fonts(
+        order: Literal['id', 'name'] = 'name',
+        db: Session = Depends(get_database),
+    ) -> list[NamedFont]:
+    """Get all defined Fonts."""
+
+    return (
+        db.query(Font)
+            .order_by(Font.id if order == 'id' else Font.sort_name)
+            .all()
+    )
+
+
 @font_router.post('/font/new')
 def create_font(
         new_font: NewNamedFont = Body(...),
@@ -177,20 +191,6 @@ def update_font(
         db.commit()
 
     return font
-
-
-@font_router.get('/all')
-def get_all_fonts(
-        order: Literal['id', 'name'] = 'name',
-        db: Session = Depends(get_database),
-    ) -> list[NamedFont]:
-    """Get all defined Fonts."""
-
-    return (
-        db.query(Font)
-            .order_by(Font.id if order == 'id' else Font.sort_name)
-            .all()
-    )
 
 
 @font_router.get('/font/{font_id}')
