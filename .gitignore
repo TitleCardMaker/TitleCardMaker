@@ -9,17 +9,13 @@ __pycache__/
 # PEP 582
 __pypackages__/
 
-app/assets/preview/card*
+backend/modules/.objects/
 backups/
 config/
-cypress/results/
-cypress/screenshots/
+tests/cypress/results/
+tests/cypress/screenshots/
 fonts/
-front_next/
-front/
-frontend/
-front_nui/
-backend/modules/.objects/
+frontend/public/preview/card*
 node_modules/
 yml/
 *._*
