@@ -445,9 +445,9 @@ class CacheManager:
             )
 
 # Global cache manager instances
-_series_cache = CacheManager(max_size=25, default_ttl=Hours(4))
-_card_cache = CacheManager(max_size=50, default_ttl=Hours(1))
-_episode_cache = CacheManager(max_size=50, default_ttl=Hours(4))
+_series_cache = CacheManager(max_size=25, default_ttl=Hours(12))
+_card_cache = CacheManager(max_size=50, default_ttl=Hours(4))
+_episode_cache = CacheManager(max_size=50, default_ttl=Hours(12))
 _template_cache = CacheManager(max_size=50, default_ttl=Hours(24))
 
 cache_managers = {
