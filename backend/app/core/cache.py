@@ -401,12 +401,19 @@ class CacheManager:
             items_preview = []
             for i, (key, entry) in enumerate(self._cache.items()):
                 if i >= 5:  # Limit to first 5 items
-                    items_preview.append(f"... and {len(self._cache) - 5} more items")
+                    items_preview.append(
+                        f"... and {len(self._cache) - 5} more items"
+                    )
                     break
                 age = entry.age
-                items_preview.append(f"'{key}' (age={age:.1f}s, accesses={entry.access_count})")
+                items_preview.append(
+                    f"'{key}' (age={age:.1f}s, accesses={entry.access_count})"
+                )
             
-            return f"CacheManager({len(self._cache)}/{self.max_size} items: {', '.join(items_preview)})"
+            return (
+                f"CacheManager({len(self._cache)}/{self.max_size} items: "
+                f"{', '.join(items_preview)})"
+            )
 
 
     def __repr__(self) -> str:
@@ -600,7 +607,11 @@ def get_cached_series_cards(series_id: int, default: Any = None) -> Any:
     return get_cache_manager('card').get(f'series_cards:{series_id}', default)
 
 
-def cache_series_episodes(series_id: int, data: Any, ttl: int | None = None) -> bool:
+def cache_series_episodes(
+        series_id: int,
+        data: Any,
+        ttl: int | None = None,
+    ) -> bool:
     """
     Cache series episodes data.
     
@@ -631,7 +642,11 @@ def get_cached_series_episodes(series_id: int, default: Any = None) -> Any:
     return get_cache_manager('episode').get(f'series_episodes:{series_id}', default)
 
 
-def cache_episode_data(episode_id: int, data: Any, ttl: int | None = None) -> bool:
+def cache_episode_data(
+        episode_id: int,
+        data: Any,
+        ttl: int | None = None,
+    ) -> bool:
     """
     Cache episode-specific data.
     
