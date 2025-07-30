@@ -249,7 +249,7 @@ class Preferences:
         self.interactive_card_previews = True
         self.remote_card_types: dict[str, type[BaseCardType]] = {}
         self.local_card_types: dict[str, type[BaseCardType]] = {}
-        self.default_card_type = 'standard'
+        self.default_card_type = 'tinted frame'
         self.excluded_card_types = []
         self.default_watched_style = 'unique'
         self.default_unwatched_style = 'unique'
