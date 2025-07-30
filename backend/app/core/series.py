@@ -21,6 +21,7 @@ from app.db.query import (
     get_font,
     get_interface,
     get_media_interface,
+    get_series,
     get_sync,
 )
 from app.db.pagination import Page
@@ -63,6 +64,13 @@ from app.schemas.series import (
     UpdateSeries
 )
 from app.logging.logger import Logger, log
+from app.core.cache import (
+    cache_result,
+    cache_series_data,
+    get_cached_series_data,
+    invalidate_series_cache,
+    get_cache_manager
+)
 
 
 """
@@ -542,6 +550,10 @@ def delete_series(
     if commit_changes:
         db.commit()
 
+    # Invalidate series cache since we deleted a series
+    invalidate_series_cache(series.id)
+    log.debug(f'Invalidated series, card, and episode cache after deleting {series}')
+
 
 def load_series_title_cards(
         series: Series,
@@ -938,6 +950,10 @@ def add_series(
         else:
             refresh_episode_data(db, series, background_tasks=None, log=log)
 
+    # Invalidate series cache since we added a new series
+    invalidate_series_cache(series.id)
+    log.debug(f'Invalidated series, card, and episode cache after adding {series}')
+
     return series
 
 
@@ -1058,11 +1074,13 @@ def apply_filter(
     return query.filter(*criterion)
 
 
+@cache_result(ttl=1800, cache_type='series', key_prefix='series_query')
 def query_and_filter_series(
         db: Session,
         filter: SeriesFilter | None,
         *,
         order_by: SeriesOrder,
+        extended: bool,
         log: Logger = log,
     ) -> Page[SeriesOverview] | Page[SeriesOverviewWithCounts]: # type: ignore
     """
@@ -1073,6 +1091,9 @@ def query_and_filter_series(
         db: Session to query for Series.
         filter: Optional set of filter conditions to apply
         order_by: How to order the returned query.
+        extended: Whether to return extended data. This is not used
+            explicity, but is used in the cache key to differentiate
+            between the two types of queries.
         log: Logger for all log messages.
 
     Returns:
@@ -1131,3 +1152,156 @@ def query_and_filter_series(
         series = query.order_by(Series.year.desc(), func.lower(Series.sort_name))
 
     return paginate(series)
+
+
+def get_series_with_cache(
+        db: Session,
+        series_id: int,
+        *,
+        raise_exc: bool = True,
+        log: Logger = log,
+    ) -> Series | None:
+    """
+    Get series data with caching support.
+    
+    Args:
+        db: Database session
+        series_id: Series ID to retrieve
+        raise_exc: Whether to raise exception if not found
+        log: Logger instance
+        
+    Returns:
+        Series object or None if not found
+    """
+    # Try to get from cache first
+    cached_series = get_cached_series_data(series_id)
+    if cached_series is not None:
+        log.debug(f'Retrieved series {series_id} from cache')
+        return cached_series
+    
+    # Get from database
+    series = get_series(db, series_id, raise_exc=raise_exc)
+    if series is not None:
+        # Cache the series data
+        cache_series_data(series_id, series, ttl=1800)  # 30 minutes
+        log.debug(f'Cached series {series_id}')
+    
+    return series
+
+def get_series_overview_with_cache(
+        db: Session,
+        series_id: int,
+        *,
+        log: Logger = log,
+    ) -> SeriesOverview | None:
+    """
+    Get series overview data with caching support.
+    
+    Args:
+        db: Database session
+        series_id: Series ID to retrieve
+        log: Logger instance
+        
+    Returns:
+        SeriesOverview object or None if not found
+    """
+    # Try to get from cache first
+    cache_key = f"series_overview:{series_id}"
+    cache_manager = get_cache_manager('series')
+    cached_overview = cache_manager.get(cache_key)
+    
+    if cached_overview is not None:
+        log.debug(f'Retrieved series overview {series_id} from cache')
+        return cached_overview
+    
+    # Get from database
+    series = get_series(db, series_id, raise_exc=False)
+    if series is None:
+        return None
+    
+    # Create overview object
+    overview = SeriesOverview(
+        id=series.id,
+        full_name=series.full_name,
+        sort_name=series.sort_name,
+        year=series.year,
+        poster_url=series.poster_url,
+        libraries=series.libraries,
+        sync_id=series.sync_id,
+        status=series.status,
+    )
+    
+    # Cache the overview
+    cache_manager.set(cache_key, overview, ttl=1800)  # 30 minutes
+    log.debug(f'Cached series overview {series_id}')
+    
+    return overview
+
+def get_series_extended_with_cache(
+        db: Session,
+        series_id: int,
+        *,
+        log: Logger = log,
+    ) -> SeriesOverviewWithCounts | None:
+    """
+    Get series extended data with counts and caching support.
+    
+    Args:
+        db: Database session
+        series_id: Series ID to retrieve
+        log: Logger instance
+        
+    Returns:
+        SeriesOverviewWithCounts object or None if not found
+    """
+    # Try to get from cache first
+    cache_key = f"series_extended:{series_id}"
+    cache_manager = get_cache_manager('series')
+    cached_extended = cache_manager.get(cache_key)
+    
+    if cached_extended is not None:
+        log.debug(f'Retrieved series extended {series_id} from cache')
+        return cached_extended
+    
+    # Get from database
+    series = get_series(db, series_id, raise_exc=False)
+    if series is None:
+        return None
+    
+    # Create extended object with counts
+    extended = SeriesOverviewWithCounts(
+        id=series.id,
+        full_name=series.full_name,
+        sort_name=series.sort_name,
+        year=series.year,
+        poster_url=series.poster_url,
+        libraries=series.libraries,
+        sync_id=series.sync_id,
+        status=series.status,
+        episode_count=series.episode_count,
+        card_count=series.card_count,
+    )
+    
+    # Cache the extended data
+    cache_manager.set(cache_key, extended, ttl=1800)  # 30 minutes
+    log.debug(f'Cached series extended {series_id}')
+    
+    return extended
+
+
+def get_series_cards(db: Session, series_id: int) -> list:
+    """Get all cards for a series, cached."""
+    return db.query(Card).filter_by(series_id=series_id).all()
+
+@cache_result(ttl=1800, cache_type='card', key_prefix='series_cards')
+def get_series_cards_cached(db: Session, series_id: int) -> list:
+    return get_series_cards(db, series_id)
+
+
+def get_series_episodes(db: Session, series_id: int) -> list:
+    """Get all episodes for a series, cached."""
+    return db.query(Episode).filter_by(series_id=series_id).all()
+
+@cache_result(ttl=1800, cache_type='episode', key_prefix='series_episodes')
+def get_series_episodes_cached(db: Session, series_id: int) -> list:
+    return get_series_episodes(db, series_id)

@@ -35,6 +35,9 @@ from app.core.series import (
     process_series,
     query_and_filter_series,
     update_series_config,
+    get_series_with_cache,
+    get_series_overview_with_cache,
+    get_series_extended_with_cache,
 )
 from app.db.users import get_current_user
 from app.models.series import Series as SeriesModel
@@ -87,7 +90,9 @@ def get_all_series(
             detail='Filter definition is invalid',
         ) from exc
 
-    return query_and_filter_series(db, filter, order_by=order_by, log=log)
+    return query_and_filter_series(
+        db, filter, order_by=order_by, extended=False, log=log
+    )
 
 
 @series_router.get('/all-extended')
@@ -114,7 +119,9 @@ def get_all_series_including_counts(
             detail='Filter definition is invalid',
         ) from exc
 
-    return query_and_filter_series(db, filter, order_by=order_by, log=log)
+    return query_and_filter_series(
+        db, filter, order_by=order_by, extended=True, log=log
+    )
 
 
 @series_router.get('/series/{series_id}/previous')
@@ -291,6 +298,7 @@ def lookup_new_series(
 def get_series_config(
         series_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Series:
     """
     Get the config for the given Series.
@@ -298,7 +306,7 @@ def get_series_config(
     - series_id: ID of the series to get the config of.
     """
 
-    return get_series(db, series_id, raise_exc=True)
+    return get_series_with_cache(db, series_id, raise_exc=True, log=log)
 
 
 @series_router.patch('/series/{series_id}')
