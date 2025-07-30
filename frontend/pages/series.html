@@ -662,11 +662,7 @@
               <div class="ui field">
                 <label>Image Source Priority</label>
                 <div data-value="image_source_priority" class="ui multiple selection dropdown">
-                  {% if series.image_source_priority is none %}
                   <input name="image_source_priority" type="hidden">
-                  {% else %}
-                  <input name="image_source_priority" type="hidden" value="{{ series.image_source_priority | join(',') }}">
-                  {% endif %}
                   <i class="dropdown icon"></i>
                   <div class="default text">Default</div>
                   <div class="menu">

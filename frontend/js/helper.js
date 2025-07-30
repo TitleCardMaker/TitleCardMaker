@@ -251,7 +251,7 @@ function getActiveTemplates(activeIds, availableTemplates) {
 }
 
 /**
- * 
+ * Create a page element for a pagination menu.
  * @param {int} pageNumber - Page number of the element to create.
  * @param {string} pageText - Text to display within the element.
  * @param {bool} active - Whether this element should be created as active and
@@ -276,7 +276,7 @@ function createPageElement(pageNumber, pageText, active = false, navigateFunctio
 }
 
 /**
- * 
+ * Update the pagination menu with the given arguments.
  * @param {string} [args.paginationElementId] - DOM Element ID of the pagination
  * menu to update.
  * @param {function} [args.navigateFunction] - Function to call when a page
@@ -372,6 +372,11 @@ function downloadTextFile(filename, text) {
   document.body.removeChild(element);
 }
 
+/**
+ * Download a file from the given URL.
+ * @param {string} filename - Name of the file to download as.
+ * @param {string} url - URL to download the file from.
+ */
 async function downloadFile(filename, url) {
   // Fetch contents from URL
   const response = await fetch(url);
@@ -458,7 +463,13 @@ async function queryLibraries() {
 }
 
 /**
- *
+ * Initialize the given dropdown elements with the given arguments.
+ * @param {Object} args - Arguments to initialize the dropdowns with.
+ * @param {import("./.types").MediaServerLibrary[]} args.selectedLibraries -
+ * Libraries which are already selected.
+ * @param {jQuery} args.dropdownElements - Dropdown elements to initialize.
+ * @param {boolean} [args.clearable=true] - Whether to allow clearing the
+ * dropdown.
  */
 async function initializeLibraryDropdowns({
     selectedLibraries,
@@ -761,7 +772,7 @@ async function populateExtraTemplate({
 }
 
 /**
- * 
+ * Initialize the given extra input fields with the given arguments.
  * @param {?Object.<string, string>} activeExtras Object of active extras to
  * initialize the extra input fields with.
  * @param {string} activeTab Name of the tab to mark as active.
@@ -950,4 +961,34 @@ function analyzePalette(imageElementSelector, paletteSelector) {
     .on('success', function (event) {
       showInfoToast(`Copied ${event.text} to clipboard`);
     });
+}
+
+/**
+ * Map the given IDs to options for a dropdown.
+ * @param {number[]} selectedIds IDs to map to options.
+ * @param {Object[]} allItems All items to map from.
+ * @param {string} allItems.id ID of the item.
+ * @param {string} allItems.name Name of the item.
+ * @returns {DropdownValue[]} Options for the dropdown.
+ * @example
+ * mapIdsToOptions([3, 1], [{id: 1, name: 'Item 1'}, {id: 2, name: 'Item 2'}, {id: 3, name: 'Item 3'}])
+ * // Returns:
+ * // [
+ * //   {name: 'Item 3', value: 3, selected: true},
+ * //   {name: 'Item 1', value: 1, selected: true},
+ * //   {name: 'Item 2', value: 2, selected: false},
+ * // ]
+ */
+function mapIdsToOptions(selectedIds, allItems) {
+  const selectedSet = new Set(selectedIds);
+  const selectedItems = selectedIds
+    .map(id => allItems.find(item => item.id === id))
+    .filter(Boolean)
+    .map(item => ({ name: item.name, value: item.id, selected: true }));
+
+  const remainingItems = allItems
+    .filter(item => !selectedSet.has(item.id))
+    .map(item => ({ name: item.name, value: item.id, selected: false }));
+
+  return [...selectedItems, ...remainingItems];
 }

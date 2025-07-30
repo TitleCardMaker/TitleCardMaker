@@ -59,6 +59,8 @@ const titleCardPreviewPageSize = isSmallScreen() ? 3 : {{ (preferences.title_car
 const sourceImagePreviewPageSize = {{ (preferences.source_preview_page_dimensions.split('x')[0]|int) * (preferences.source_preview_page_dimensions.split('x')[1]|int) }};
 /** @type {AvailableTemplate[]} */
 const allTemplates = {{ available_templates | tojson }};
+/** @type {?number[]} Series image source priority */
+const seriesImageSourcePriority = {{ series.image_source_priority | tojson }};
 
 /**
  * Get the DOM element ID of the Episode with the given ID.
@@ -349,6 +351,13 @@ async function initializeSeriesConfig() {
     },
     error: response => showErrorToast({title: 'Error Querying Libraries', response}),
   });
+
+  // Image source priority
+  if (seriesImageSourcePriority) {
+    $('.dropdown[data-value="image_source_priority"]').dropdown({
+      values: mapIdsToOptions(seriesImageSourcePriority, allConnections),
+    });
+  }
 
   // Template IDs
   $('#card-config-form .ui.dropdown[data-value="template_ids"]').dropdown({
@@ -1342,7 +1351,6 @@ function getCardData(
 }
 
 async function initAll() {
-  // Initialize 
   await initializeSeriesConfig();
   getEpisodeData();
   initStyles();
@@ -1437,16 +1445,6 @@ async function initAll() {
       //   rules: [{type: 'regExp', value: /^$|^[a-z]+[^ ]*$/i}],
       // },
     },
-  });
-
-  // Add episode extras form validation
-  $('#episode-extras-form').form({
-    on: 'blur',
-    inline: true,
-    fields: {
-      translation_key: { rules: [{type: 'regExp', value: /^[a-z]+[^ ]*$/i}] },
-      translation_value: { rules: [{type: 'minLength[1]'}], },
-    }
   });
 
   // Prevent page reload for form submission
