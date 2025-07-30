@@ -9,6 +9,7 @@ from fastapi import (
     Query,
 )
 from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination import paginate as paginate_sequence
 from sqlalchemy.orm import Session, load_only
 
 from app.db.query import (
@@ -25,7 +26,11 @@ from app.core.cards import delete_cards, refresh_remote_card_types
 from app.core.episodes import (
     refresh_episode_data,
     set_episode_ids,
-    update_episode_config
+    update_episode_config,
+    get_series_episodes_with_cache,
+    get_series_episodes_simplified_with_cache,
+    get_series_episodes_overview_with_cache,
+    get_episode_with_cache,
 )
 from app.models.card import Card
 from app.models.episode import Episode as EpisodeModel
@@ -93,6 +98,7 @@ def add_new_episode(
 def get_episode_by_id(
         episode_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Episode:
     """
     Get the Episode with the given ID.
@@ -100,7 +106,7 @@ def get_episode_by_id(
     - episode_id: ID of the Episode to retrieve.
     """
 
-    return get_episode(db, episode_id, raise_exc=True)
+    return get_episode_with_cache(db, episode_id, log=log) or get_episode(db, episode_id, raise_exc=True)
 
 
 @episodes_router.delete('/episode/{episode_id}')
@@ -288,6 +294,7 @@ def get_all_series_episodes(
 def get_series_extended_episode_data(
         series_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Page[ExtendedEpisodeData]: # type: ignore
     """
     Get all the episodes associated with the given series. This returns
@@ -296,17 +303,15 @@ def get_series_extended_episode_data(
     - series_id: Series being queried.
     """
 
-    return paginate(
-        db.query(EpisodeModel)
-            .filter_by(series_id=series_id)
-            .order_by(EpisodeModel.season_number, EpisodeModel.episode_number)
-    )
+    episodes = get_series_episodes_with_cache(db, series_id, log=log)
+    return paginate(episodes)
 
 
 @episodes_router.get('/series/{series_id}/simplified', tags=['Series'])
 def get_series_simplified_episode_data(
         series_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Page[SimplifiedEpisodeData]: # type: ignore
     """
     Get all the episodes associated with the given series. This returns
@@ -315,28 +320,8 @@ def get_series_simplified_episode_data(
     - series_id: Series being queried.
     """
 
-    return paginate(
-        db.query(EpisodeModel)
-            .filter_by(series_id=series_id)
-            .order_by(EpisodeModel.season_number, EpisodeModel.episode_number)
-            .options(
-                load_only(
-                    EpisodeModel.id,
-                    EpisodeModel.season_number,
-                    EpisodeModel.episode_number,
-                    EpisodeModel.absolute_number,
-                    EpisodeModel.title,
-                    EpisodeModel.match_title,
-                    EpisodeModel.auto_split_title,
-                    EpisodeModel.season_text,
-                    EpisodeModel.episode_text,
-                    EpisodeModel.hide_season_text,
-                    EpisodeModel.hide_episode_text,
-                    EpisodeModel.extras,
-                    EpisodeModel.translations,
-                )
-            )
-    )
+    simplified_episodes = get_series_episodes_simplified_with_cache(db, series_id, log=log)
+    return paginate_sequence(simplified_episodes)
 
 
 @episodes_router.get('/series/{series_id}/overview', tags=['Series'])
@@ -344,6 +329,7 @@ def get_series_episode_overview_data(
         series_id: int,
         order_by: Literal['index', 'absolute', 'id'] = 'index',
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Page[EpisodeOverview]: # type: ignore
     """
     Get all the episodes associated with the given series.
@@ -352,25 +338,8 @@ def get_series_episode_overview_data(
     - order_by: How to order the returned episodes.
     """
 
-    # Query for Episodes of this Series
-    query = db.query(
-        EpisodeModel.id,
-        EpisodeModel.series_id,
-        EpisodeModel.season_number,
-        EpisodeModel.episode_number,
-        EpisodeModel.absolute_number,
-    ).filter_by(series_id=series_id)
-
-    # Order by indicated attribute
-    if order_by == 'index':
-        sorted_query = query.order_by(EpisodeModel.season_number)\
-            .order_by(EpisodeModel.episode_number)
-    elif order_by == 'absolute':
-        sorted_query = query.order_by(EpisodeModel.absolute_number)
-    elif order_by == 'id':
-        sorted_query = query
-
-    return paginate(sorted_query)
+    overview_episodes = get_series_episodes_overview_with_cache(db, series_id, order_by, log=log)
+    return paginate_sequence(overview_episodes)
 
 
 @episodes_router.delete('/batch/delete')
