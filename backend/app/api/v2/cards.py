@@ -2,8 +2,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination import paginate as paginate_sequence
 from sqlalchemy import not_
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy.orm import Session
 import pytz
 
 from app.db.query import (
@@ -22,6 +23,10 @@ from app.core.cards import (
     get_watched_statuses,
     resolve_card_settings,
     validate_card_type_model,
+    get_series_cards_with_cache,
+    get_series_cards_reduced_with_cache,
+    get_episode_cards_with_cache,
+    get_card_with_cache,
 )
 from app.core.episodes import update_episode_config
 from app.core.series import (
@@ -39,7 +44,6 @@ from app.exceptions import (
 from app.info.episode import EpisodeInfo
 from app.logging.logger import Logger
 from app.models.card import Card
-from app.models.episode import Episode
 from app.models.loaded import Loaded
 from app.schemas.card import (
     CardActions,
@@ -313,7 +317,8 @@ def get_recently_created_title_cards(
 @card_router.get('/card/{card_id}')
 def get_title_card(
         card_id: int,
-        db: Session = Depends(get_database)
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> TitleCard:
     """
     Get the details of the given TitleCard.
@@ -321,7 +326,7 @@ def get_title_card(
     - card_id: ID of the TitleCard to get the details of.
     """
 
-    return get_card(db, card_id, raise_exc=True)
+    return get_card_with_cache(db, card_id, log=log) or get_card(db, card_id, raise_exc=True)
 
 
 @card_router.post('/series/{series_id}', tags=['Series'])
@@ -355,7 +360,8 @@ def create_cards_for_series(
 @card_router.get('/series/{series_id}', tags=['Series'])
 def get_series_cards(
         series_id: int,
-        db: Session = Depends(get_database)
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Page[TitleCard]: # type: ignore
     """
     Get all Title Cards for the given Series. Cards are returned in the
@@ -364,20 +370,15 @@ def get_series_cards(
     - series_id: ID of the Series to get the cards of.
     """
 
-    return paginate(
-        db.query(Card)
-            .filter_by(series_id=series_id)
-            .join(Episode)
-            .order_by(Episode.season_number)
-            .order_by(Episode.episode_number)
-            .order_by(Card.library_name)
-    )
+    cards = get_series_cards_with_cache(db, series_id, log=log)
+    return paginate_sequence(cards)
 
 
 @card_router.get('/series/{series_id}/reduced', tags=['Series'])
 def get_series_cards_reduced_models(
         series_id: int,
-        db: Session = Depends(get_database)
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Page[TitleCardReduced]: # type: ignore
     """
     Get all Title Cards for the given Series. Cards are returned in the
@@ -387,25 +388,8 @@ def get_series_cards_reduced_models(
     - series_id: ID of the Series to get the cards of.
     """
 
-    return paginate(
-        db.query(Card)
-            .options(
-                load_only(
-                    Card.id,
-                    Card.episode_id,
-                    Card.card_file,
-                    Card.filesize,
-                    Card.library_name,
-                )
-            )
-            .filter_by(series_id=series_id)
-            .join(Episode, Episode.id == Card.episode_id)
-            .order_by(
-                Episode.season_number,
-                Episode.episode_number,
-                Card.library_name
-            )
-    )
+    reduced_cards = get_series_cards_reduced_with_cache(db, series_id, log=log)
+    return paginate_sequence(reduced_cards)
 
 
 @card_router.put('/series/{series_id}/load/all', deprecated=True)
@@ -619,6 +603,7 @@ def reload_card(
 def get_episode_cards(
         episode_id: int,
         db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
     ) -> Page[TitleCard]: # type: ignore
     """
     Get all TitleCards for the given Episode.
@@ -626,7 +611,8 @@ def get_episode_cards(
     - episode_id: ID of the Episode to get the cards of.
     """
 
-    return paginate(db.query(Card).filter_by(episode_id=episode_id))
+    cards = get_episode_cards_with_cache(db, episode_id, log=log)
+    return paginate(cards)
 
 
 @card_router.delete('/series/{series_id}', tags=['Series'])

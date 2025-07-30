@@ -6,10 +6,20 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy import and_, func, or_
 from sqlalchemy.exc import OperationalError, PendingRollbackError
-from sqlalchemy.orm import Query, Session
+from sqlalchemy.orm import Query, Session, load_only
 from sqlalchemy.orm.session import object_session
 
 from app.core.availability import expire_cache, get_remote_card_hash
+from app.core.cache import (
+    cache_result,
+    cache_series_cards,
+    get_cached_series_cards,
+    cache_card_data,
+    get_cached_card_data,
+    invalidate_card_cache,
+    invalidate_series_cache,
+    get_cache_manager
+)
 from app.core.episodes import refresh_episode_data
 from app.core.sources import download_episode_source_images
 from app.core.templates import get_effective_templates
@@ -31,7 +41,7 @@ from app.models.series import Library, Series
 from app.models.template import Template
 from app.schemas.base import Base
 from app.schemas.font import DefaultFont
-from app.schemas.card import NewTitleCard
+from app.schemas.card import NewTitleCard, TitleCardReduced
 from app.schemas.card_type import LocalCardTypeModels
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
@@ -975,9 +985,16 @@ def create_episode_cards(
             raise_exc=raise_exc, log=log,
         )
 
-    return create_episode_card(
+    result = create_episode_card(
         db, episode, None, raise_exc=raise_exc, log=log
     )
+    
+    # Invalidate card cache since we created new cards
+    if result:
+        invalidate_card_cache(episode.id)
+        log.debug(f'Invalidated card cache after creating cards for episode {episode.id}')
+    
+    return result
 
 
 def get_watched_statuses(
@@ -1049,5 +1066,178 @@ def delete_cards(
         loaded_query.delete()
     if commit:
         db.commit()
+    
+    # Invalidate card cache since we deleted cards
+    if deleted:
+        invalidate_card_cache('card*')
+        log.debug(f'Invalidated card cache after deleting {len(deleted)} cards')
 
     return deleted
+
+
+def get_series_cards_with_cache(
+        db: Session,
+        series_id: int,
+        *,
+        log: Logger = log,
+    ) -> list[Card]:
+    """
+    Get all cards for a series with caching support.
+    
+    Args:
+        db: Database session
+        series_id: Series ID
+        log: Logger instance
+        
+    Returns:
+        List of Card objects
+    """
+    # Try to get from cache first
+    cached_cards = get_cached_series_cards(series_id)
+    if cached_cards is not None:
+        log.debug(f'Retrieved {len(cached_cards)} cards for series {series_id} from cache')
+        return cached_cards
+    
+    # Get from database
+    cards = db.query(Card)\
+        .filter_by(series_id=series_id)\
+        .join(Episode)\
+        .order_by(Episode.season_number)\
+        .order_by(Episode.episode_number)\
+        .order_by(Card.library_name)\
+        .all()
+    
+    # Cache the cards
+    cache_series_cards(series_id, cards, ttl=3600)  # 1 hour
+    log.debug(f'Cached {len(cards)} cards for series {series_id}')
+    
+    return cards
+
+
+def get_series_cards_reduced_with_cache(
+        db: Session,
+        series_id: int,
+        *,
+        log: Logger = log,
+    ) -> list[dict]:
+    """
+    Get reduced card data for a series with caching support.
+    
+    Args:
+        db: Database session
+        series_id: Series ID
+        log: Logger instance
+        
+    Returns:
+        List of reduced card data dictionaries
+    """
+
+    # Try to get from cache first
+    cache_key = f"series_cards_reduced:{series_id}"
+    cache_manager = get_cache_manager('card')
+    if (cached_cards := cache_manager.get(cache_key)) is not None:
+        log.debug(f'Retrieved reduced cards for series {series_id} from cache')
+        return cached_cards
+
+    # Get from database with reduced fields
+    cards = db.query(Card)\
+        .options(
+            load_only(
+                Card.id,
+                Card.episode_id,
+                Card.card_file,
+                Card.filesize,
+                Card.library_name,
+            )
+        )\
+        .filter_by(series_id=series_id)\
+        .join(Episode, Episode.id == Card.episode_id)\
+        .order_by(
+            Episode.season_number,
+            Episode.episode_number,
+            Card.library_name
+        )\
+        .all()
+
+    # Convert to reduced format
+    reduced_cards = [
+        TitleCardReduced.model_validate(card).model_dump()
+        for card in cards
+    ]
+
+    # Cache the reduced cards
+    cache_manager.set(cache_key, reduced_cards, ttl=3600)  # 1 hour
+    log.debug(f'Cached reduced cards for series {series_id}')
+
+    return reduced_cards
+
+
+def get_episode_cards_with_cache(
+        db: Session,
+        episode_id: int,
+        *,
+        log: Logger = log,
+    ) -> list[Card]:
+    """
+    Get all cards for an episode with caching support.
+    
+    Args:
+        db: Database session
+        episode_id: Episode ID
+        log: Logger instance
+        
+    Returns:
+        List of Card objects
+    """
+    # Try to get from cache first
+    cache_key = f"episode_cards:{episode_id}"
+    cache_manager = get_cache_manager('card')
+    cached_cards = cache_manager.get(cache_key)
+    
+    if cached_cards is not None:
+        log.debug(f'Retrieved cards for episode {episode_id} from cache')
+        return cached_cards
+    
+    # Get from database
+    cards = db.query(Card)\
+        .filter_by(episode_id=episode_id)\
+        .order_by(Card.library_name)\
+        .all()
+    
+    # Cache the cards
+    cache_manager.set(cache_key, cards, ttl=3600)  # 1 hour
+    log.debug(f'Cached cards for episode {episode_id}')
+    
+    return cards
+
+
+def get_card_with_cache(
+        db: Session,
+        card_id: int,
+        *,
+        log: Logger = log,
+    ) -> Card | None:
+    """
+    Get a specific card with caching support.
+    
+    Args:
+        db: Database session
+        card_id: Card ID
+        log: Logger instance
+        
+    Returns:
+        Card object or None if not found
+    """
+
+    # Try to get from cache first
+    if (cached_card := get_cached_card_data(card_id)) is not None:
+        log.debug(f'Retrieved card {card_id} from cache')
+        return cached_card
+
+    # Get from database
+    if (card := db.query(Card).filter_by(id=card_id).first()) is not None:
+        # Cache the card
+        cache_card_data(card_id, card, ttl=3600)  # 1 hour
+        log.debug(f'Cached card {card_id}')
+
+    return card
