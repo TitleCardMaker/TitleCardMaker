@@ -1,12 +1,13 @@
+import asyncio
 from io import StringIO
 from pathlib import Path
 from sys import exit as sys_exit
+from typing import Annotated
 
 from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
-import asyncio
 from fastapi import FastAPI
 from huey.consumer import Consumer
 from rich.console import Console
@@ -16,6 +17,7 @@ from starlette.staticfiles import StaticFiles
 
 from app.core.availability import get_latest_version
 from app.core.backup import backup_data, restore_backup
+from app.core.cache import get_cache_manager
 from app.core.cards import refresh_remote_card_types
 from app.core.config import settings
 from app.core.connection import initialize_connections
@@ -32,8 +34,7 @@ from modules.BackgroundTasks import TracebackSuppressedPackages
 
 APP_ROOT = BACKEND_ROOT / 'app'
 
-"""Global Huey Consumer"""
-huey_consumer: Consumer | None = None
+huey_consumer: Annotated[Consumer | None, 'Global Huey Consumer'] = None
 
 
 def initialize_root_directories(*, log: Logger = logger) -> None:
@@ -180,6 +181,26 @@ def disable_authentication(db: Session, *, log: Logger = logger) -> None:
     log.warning('Deleted all existing Users')
 
 
+def initialize_cache_system(*, log: Logger = logger) -> None:
+    """
+    Initialize the caching system and start background cleanup tasks.
+    
+    Args:
+        log: The logger to use for logging.
+    """
+
+    try:
+        # Start cleanup tasks for all cache managers
+        cache_types = ['series', 'card', 'episode', 'template']
+        for cache_type in cache_types:
+            cache_manager = get_cache_manager(cache_type)
+            cache_manager.start_cleanup_task()
+
+        log.info('Cache system initialized and cleanup tasks started')
+    except Exception as e:
+        log.error(f'Error initializing cache system: {e}')
+
+
 def initialize_app(app: FastAPI) -> None:
     """
     Initialize the FastAPI application.
@@ -198,6 +219,7 @@ def initialize_app(app: FastAPI) -> None:
     mount_static_app_directories(app, log=log)
     perform_database_migrations(log=log)
     apply_card_type_blur_profiles()
+    initialize_cache_system(log=log)
 
     # Database operations
     with next(get_database()) as db:
@@ -214,8 +236,8 @@ def initialize_app(app: FastAPI) -> None:
 
 def initialize_huey() -> tuple[Consumer, asyncio.Task]:
     """
-    Initialize the Huey Consumer. This launches a new thread which
-    acts as the consumer for all scheduled recurring Huey tasks.
+    Initialize the Huey Consumer. This launches a new thread which acts
+    as the consumer for all scheduled recurring Huey tasks.
 
     Returns:
         Tuple containing the Huey Consumer and the asyncio Task which
