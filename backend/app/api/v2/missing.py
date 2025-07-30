@@ -37,10 +37,10 @@ missing_router = APIRouter(
 def get_missing_cards(
         db: Session = Depends(get_database),
     ) -> Page[ReducedEpisodeData]: # type: ignore
-    """Get all the Episodes that do not have any associated Cards."""
+    """Get all Episodes that do not have any associated Cards."""
 
     return paginate(
-        db.query(EpisodeModel)\
+        db.query(EpisodeModel)
             .options(
                 load_only(
                     EpisodeModel.id,
@@ -54,6 +54,11 @@ def get_missing_cards(
             .filter(not_(EpisodeModel.id.in_(
                 db.query(CardModel.episode_id).distinct()
             )))
+            .order_by(
+                EpisodeModel.series_id,
+                EpisodeModel.season_number,
+                EpisodeModel.episode_number,
+            )
     )
 
 
