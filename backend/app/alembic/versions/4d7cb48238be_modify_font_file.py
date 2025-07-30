@@ -60,7 +60,7 @@ def upgrade() -> None:
             continue
 
         font.file_name = Path(font.file).name
-        print(f'Migrated Font[{font.id}].file_name = {font.file_name}')
+        log.debug(f'Migrated Font[{font.id}].file_name = {font.file_name}')
 
     session.commit()
 
@@ -95,7 +95,7 @@ def downgrade() -> None:
             font_directory = Path('/config/assets/fonts/')
 
         font.file = str((font_directory / str(font.id) / font.file_name).resolve())
-        print(f'Unmigrated Font[{font.id}].file = {font.file}')
+        log.debug(f'Unmigrated Font[{font.id}].file = {font.file}')
 
     session.commit()
 
