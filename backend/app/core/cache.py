@@ -523,7 +523,7 @@ def get_cache_stats(cache_type: str | None = None) -> dict[str, Any]:
 
     if cache_type:
         return get_cache_manager(cache_type).get_stats()
-    
+
     return {
         'series': _series_cache.get_stats(),
         'card': _card_cache.get_stats(),
@@ -595,13 +595,13 @@ def cache_series_cards(series_id: int, data: Any, ttl: int | None = None) -> boo
 def get_cached_series_cards(series_id: int, default: Any = None) -> Any:
     """
     Get cached series cards data.
-    
+
     Args:
-        series_id: Series ID
-        default: Default value if not found
-        
+        series_id: Series ID.
+        default: Default value if not found.
+
     Returns:
-        Cached cards data or default
+        Cached cards data or default.
     """
 
     return get_cache_manager('card').get(f'series_cards:{series_id}', default)
@@ -614,7 +614,7 @@ def cache_series_episodes(
     ) -> bool:
     """
     Cache series episodes data.
-    
+
     Args:
         series_id: Series ID
         data: Episodes data to cache
@@ -630,7 +630,7 @@ def cache_series_episodes(
 def get_cached_series_episodes(series_id: int, default: Any = None) -> Any:
     """
     Get cached series episodes data.
-    
+
     Args:
         series_id: Series ID
         default: Default value if not found

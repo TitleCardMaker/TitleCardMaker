@@ -198,9 +198,9 @@ class RecurringTask:
         """
 
         @wraps(self.task_func)
-        def wrapper() -> None:
+        def wrapper(log: Logger | None = None) -> None:
             # Get/generate contextualized logger, log task start
-            log_: Logger = contextualize()
+            log_: Logger = log or contextualize()
             log_.info(f'Task[{self.task_id}] started execution')
 
             # Exit if the task is already running
@@ -235,7 +235,7 @@ class RecurringTask:
                 pass
 
             return None
-        
+
         return wrapper
 
 
