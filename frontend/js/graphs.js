@@ -166,7 +166,11 @@ function getSnapshots() {
             intersect: false,
             axis: 'x'
           },
-          plugins: {},
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+          },
           scales: {
             x: {
               type: 'time',
@@ -265,7 +269,11 @@ function getSnapshots() {
             intersect: false,
             axis: 'x'
           },
-          plugins: {},
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+          },
           scales: {
             x: {
               type: 'time',
