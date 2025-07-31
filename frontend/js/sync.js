@@ -433,7 +433,7 @@ function getAllSyncs() {
 function getSyncSchedule() {
   $.ajax({
     type: 'GET',
-    url: '/api/v2/schedule/SyncInterfaces',
+    url: '/api/v2/scheduler/SyncInterfaces',
     /**
      * Next run queried. Update the text.
      * @param {string} _.next_run - Datetime representation of the next run.

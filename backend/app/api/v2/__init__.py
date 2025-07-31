@@ -13,7 +13,7 @@ from .imports import import_router
 from .logs import log_router
 from .missing import missing_router
 from .proxy import proxy_router
-from .schedule import schedule_router
+from .schedule import scheduler_router
 from .series import series_router
 from .settings import settings_router
 from .sources import source_router
@@ -41,7 +41,7 @@ for sub_router in [
     log_router,
     missing_router,
     proxy_router,
-    schedule_router,
+    scheduler_router,
     series_router,
     settings_router,
     source_router,

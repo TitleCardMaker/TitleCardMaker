@@ -46,7 +46,7 @@ describe('Scheduler', () => {
 
   it('Manually runs a task in basic mode', () => {
     // Intercept run task request
-    cy.intercept('POST', '/api/v2/schedule/*').as('runTask');
+    cy.intercept('POST', '/api/v2/scheduler/*').as('runTask');
 
     // Get existing "previous duration" text
     cy.get('#task-table [data-column="previous_duration"]').last()
@@ -75,7 +75,7 @@ describe('Scheduler', () => {
         .type(`${randomInt(1, 9)} minutes`);
         
       // Click the save button, wait for reschedule to finish
-      cy.intercept('PUT', `/api/v2/schedule/update/${rowId}`).as('rescheduleTask');
+      cy.intercept('PUT', `/api/v2/scheduler/update/${rowId}`).as('rescheduleTask');
       cy.contains('Save Changes').click();
       cy.wait('@rescheduleTask');
   

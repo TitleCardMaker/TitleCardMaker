@@ -12,15 +12,15 @@ from app.schemas.schedule import TaskDetails
 from modules.preferences import Preferences
 
 
-# Create sub router for all /schedule API requests
-schedule_router = APIRouter(
-    prefix='/schedule',
+# Create sub router for all /scheduler API requests
+scheduler_router = APIRouter(
+    prefix='/scheduler',
     tags=['Scheduler'],
     dependencies=[Depends(get_current_user)],
 )
 
 
-@schedule_router.post('/type/toggle')
+@scheduler_router.post('/type/toggle')
 def toggle_schedule_type(
         log: Logger = Depends(get_logger),
         preferences: Preferences = Depends(get_preferences),
@@ -40,7 +40,7 @@ def toggle_schedule_type(
     preferences.commit()
 
 
-@schedule_router.put('/type/{mode}')
+@scheduler_router.put('/type/{mode}')
 def set_the_scheduler_type(
         mode: Literal['advanced', 'basic'],
         log: Logger = Depends(get_logger),
@@ -61,7 +61,7 @@ def set_the_scheduler_type(
     preferences.commit()
 
 
-@schedule_router.get('/scheduled')
+@scheduler_router.get('/scheduled')
 def get_scheduled_tasks(
         show_internal: bool = Query(default=False),
         db: Session = Depends(get_database),
@@ -83,7 +83,7 @@ def get_scheduled_tasks(
     ]
 
 
-@schedule_router.get('/{task_id}', deprecated=True)
+@scheduler_router.get('/{task_id}', deprecated=True)
 def get_scheduled_task_deprecated(
         task_id: TaskID,
         db: Session = Depends(get_database),
@@ -103,7 +103,7 @@ def get_scheduled_task_deprecated(
     return get_task_details(db, task_id)
 
 
-@schedule_router.get('/task/{task_id}')
+@scheduler_router.get('/task/{task_id}')
 def get_scheduled_task(
         task_id: TaskID,
         db: Session = Depends(get_database),
@@ -123,7 +123,7 @@ def get_scheduled_task(
     return get_task_details(db, task_id)
 
 
-@schedule_router.put('/update/{task_id}', deprecated=True)
+@scheduler_router.put('/update/{task_id}', deprecated=True)
 def reschedule_task_deprecated(
         task_id: TaskID,
         update_crontab: str = Query(...),
@@ -162,7 +162,7 @@ def reschedule_task_deprecated(
     return get_task_details(db, task_id)
 
 
-@schedule_router.patch('/task/{task_id}')
+@scheduler_router.patch('/task/{task_id}')
 def reschedule_task(
         task_id: TaskID,
         update_crontab: str = Query(...),
@@ -201,7 +201,7 @@ def reschedule_task(
     return get_task_details(db, task_id)
 
 
-@schedule_router.put('/{task_id}', deprecated=True)
+@scheduler_router.put('/{task_id}', deprecated=True)
 def run_task_deprecated(
         task_id: TaskID,
         db: Session = Depends(get_database),
@@ -230,7 +230,7 @@ def run_task_deprecated(
     return get_task_details(db, task_id)
 
 
-@schedule_router.put('/task/{task_id}')
+@scheduler_router.put('/task/{task_id}')
 def run_task(
         task_id: TaskID,
         db: Session = Depends(get_database),
