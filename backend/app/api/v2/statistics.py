@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import PositiveInt
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -152,22 +152,40 @@ def get_series_statistics(
 
 @statistics_router.get('/snapshots')
 def get_snapshots(
-        previous_days: float = Query(default=14, ge=0.0),
+        start: datetime | None = Query(
+            default_factory=lambda: datetime.now() - timedelta(days=14)
+        ),
+        end: datetime | None = Query(default=None),
         slice_: PositiveInt = Query(alias='slice', default=1),
         db: Session = Depends(get_database),
     ) -> list[Snapshot]:
     """
     Get the database Snapshots from the given number of days in the past.
 
-    - previous_days: How many days of past snapshots to return. Added to
-    previous hours.
+    - start: Optional start date to filter by. All snapshots after this
+    date will be returned.
+    - end: Optional end date to filter by. All snapshots before this
+    date will be returned.
     - slice: How to "slice" the return - e.g. `1` would be every
     Snapshot, `2` would be every other, etc.
     """
 
+    # Ensure start and end are valid
+    if start is not None and end is not None and start >= end:
+        raise HTTPException(
+            status_code=422,
+            detail='Start date must be before end date'
+        )
+
+    # Generate time filters
+    time_filters = []
+    if start:
+        time_filters.append(SnapshotModel.timestamp >= start)
+    if end:
+        time_filters.append(SnapshotModel.timestamp <= end)
+
     # Get subquery on Snapshots which includes the row number column for
     # slicing
-    previous = datetime.now() - timedelta(days=previous_days)
     subquery = (
         # Add row number as new column
         select(
@@ -175,7 +193,7 @@ def get_snapshots(
             func.row_number().over(order_by=SnapshotModel.id).label('row')
         )
         # Apply timestamp filter
-        .filter(SnapshotModel.timestamp > previous)
+        .filter(*time_filters)
         .subquery()
     )
 
