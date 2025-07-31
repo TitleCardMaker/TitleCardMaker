@@ -4,20 +4,25 @@ from warnings import simplefilter
 
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Depends,
     Query,
 )
+from fastapi.responses import FileResponse
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination.utils import FastAPIPaginationWarning
+from modules.preferences import Preferences
 from sqlalchemy import and_, not_, or_
 from sqlalchemy.orm import Session
 
 from app.db.pagination import Page
 from app.db.users import get_current_user
-from app.dependencies import get_log_database
-from app.logging.logger import log
+from app.dependencies import get_log_database, get_logger, get_preferences
+from app.logging.database import LOGS_DATABASE_PATH
+from app.logging.logger import Logger, log
 from app.logging.models import Log as LogModel
 from app.schemas.logs import LogEntry, LogInternalServerError, LogLevel
+from modules.TemporaryZip import TemporaryZip
 
 
 # Do not warn about SQL pagination, not used for log filtering
@@ -94,7 +99,7 @@ def query_logs(
 
 @log_router.get('/errors')
 def get_internal_server_errors(
-    log_db: Session = Depends(get_log_database),
+        log_db: Session = Depends(get_log_database),
     ) -> list[LogInternalServerError]:
     """
     Get a list of all internal server errors listed in the log files.
@@ -106,3 +111,18 @@ def get_internal_server_errors(
             .order_by(LogModel.timestamp.desc())
             .all()
     )
+
+
+@log_router.get('/database-zip')
+def get_database_zip(
+        background_tasks: BackgroundTasks,
+        log: Logger = Depends(get_logger),
+        preferences: Preferences = Depends(get_preferences),
+    ) -> FileResponse:
+    """Get a zip of the log database."""
+
+    # Add log file to a temporary directory
+    tzip = TemporaryZip(preferences.TEMPORARY_DIRECTORY, background_tasks)
+    tzip.add_file(LOGS_DATABASE_PATH, 'logs.sqlite', log=log)
+
+    return FileResponse(tzip.zip(log=log))

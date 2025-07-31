@@ -284,10 +284,10 @@ function queryLogErrors() {
         // When the GitHub icon is clicked, query the log zip and open a new tab
         item.querySelector('.icon').onclick = () => $.ajax({
           type: 'GET',
-          url: `/api/v2/logs/files/${error.file}/zip`,
+          url: `/api/v2/logs/database-zip`,
           xhrFields: {responseType: 'blob'},
           success: logBlob => {
-            downloadFileBlob('log.zip', logBlob);
+            downloadFileBlob('log_db.zip', logBlob);
 
             window.open(
               'https://github.com/TitleCardMaker/TitleCardMaker-WebUI/issues/new?'
