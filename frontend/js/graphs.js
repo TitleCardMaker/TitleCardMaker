@@ -22,20 +22,72 @@ function timeFreqString(freq, top=-1) {
 
 let cardGraph, countsGraph, taskDurationsGraph;
 
+/**
+ * Convert a date string from Fomantic UI calendar format to ISO string
+ * @param {string} dateStr - Date string from calendar input
+ * @returns {string} ISO date string or empty string
+ */
+function formatDateForAPI(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? '' : date.toISOString();
+}
+
+/**
+ * Format a date for display in the calendar input
+ * @param {Date} date - Date object
+ * @returns {string} Formatted date string
+ */
+function formatDateForDisplay(date) {
+  if (!date) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
 function getSnapshots() {
   // Get search params from URL
   const params = new URLSearchParams(window.location.search);
-  const previousDays = $('input[name="days"]').val() || params.get('days') || 14;
-  const slice = params.get('slice') || 1;
+  
+  // Get filter values from form inputs
+  const startDate = formatDateForAPI($('input[name="start_date"]').val());
+  const endDate = formatDateForAPI($('input[name="end_date"]').val());
+  const days = $('input[name="days"]').val();
+  const slice = $('input[name="slice"]').val() || params.get('slice') || 1;
 
-  // Write params to URL
-  params.set('days', previousDays);
-  params.set('slice', slice);
-  window.history.pushState({}, '', `${window.location.origin}${window.location.pathname}?${params.toString()}`);
+  // Build query parameters
+  const queryParams = new URLSearchParams();
+  
+  if (startDate) {
+    queryParams.set('start', startDate);
+  }
+  if (endDate) {
+    queryParams.set('end', endDate);
+  }
+  if (days && !startDate && !endDate) {
+    // Only use days if no specific dates are set
+    const previousDays = parseInt(days) || 14;
+    const after = new Date(new Date().setDate(new Date().getDate() - previousDays));
+    queryParams.set('start', after.toISOString());
+  }
+  if (slice) {
+    queryParams.set('slice', slice);
+  }
+
+  // Write params to URL for bookmarking
+  const urlParams = new URLSearchParams();
+  if (startDate) urlParams.set('start_date', $('input[name="start_date"]').val());
+  if (endDate) urlParams.set('end_date', $('input[name="end_date"]').val());
+  if (days) urlParams.set('days', days);
+  if (slice) urlParams.set('slice', slice);
+  window.history.pushState({}, '', `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`);
 
   $.ajax({
     type: 'GET',
-    url: `/api/v2/statistics/snapshots?previous_days=${previousDays}&slice=${slice}`,
+    url: `/api/v2/statistics/snapshots?${queryParams.toString()}`,
     /**
      * Snapshots queried, populate graph
      * @param {Snapshot} snapshots - Snapshots to populate the graph with.
@@ -247,10 +299,20 @@ function getSnapshots() {
  * Submit an API request to get task durations and populate the graph.
  */
 function getTaskDurations() {
-  // 
-  const params = new URLSearchParams(window.location.search);
-  const previousDays = $('input[name="days"]').val() || params.get('days') || 14;
-  const after = new Date(new Date().setDate(new Date().getDate() - previousDays));
+  // Get filter values
+  const startDate = formatDateForAPI($('input[name="start_date"]').val());
+  const endDate = formatDateForAPI($('input[name="end_date"]').val());
+  const days = $('input[name="days"]').val();
+  
+  let after;
+  if (startDate) {
+    after = new Date(startDate);
+  } else if (days) {
+    const previousDays = parseInt(days) || 7;
+    after = new Date(new Date().setDate(new Date().getDate() - previousDays));
+  } else {
+    after = new Date(new Date().setDate(new Date().getDate() - 7));
+  }
 
   $.ajax({
     type: 'GET',
@@ -362,15 +424,90 @@ function getTaskDurations() {
   });
 }
 
+/**
+ * Reset all filters to default values
+ */
+function resetFilters() {
+  $('input[name="start_date"]').val('');
+  $('input[name="end_date"]').val('');
+  $('input[name="days"]').val('14');
+  $('input[name="slice"]').val('1');
+  
+  // Clear calendar inputs
+  $('.ui.calendar').calendar('clear');
+  
+  getSnapshots();
+  getTaskDurations();
+}
+
+/**
+ * Load filter values from URL parameters on page load
+ */
+function loadFiltersFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  
+  if (params.get('start_date')) {
+    $('input[name="start_date"]').val(params.get('start_date'));
+  }
+  if (params.get('end_date')) {
+    $('input[name="end_date"]').val(params.get('end_date'));
+  }
+  if (params.get('days')) {
+    $('input[name="days"]').val(params.get('days'));
+  }
+  if (params.get('slice')) {
+    $('input[name="slice"]').val(params.get('slice'));
+  }
+}
+
+/**
+ * Initialize Fomantic UI calendar components
+ */
+function initializeCalendars() {
+  $('.ui.calendar').calendar({
+    type: 'datetime',
+    formatter: {
+      datetime: function (date, settings) {
+        if (!date) return '';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+      }
+    },
+    parser: {
+      datetime: function (text, settings) {
+        if (!text) return null;
+        const date = new Date(text);
+        return isNaN(date.getTime()) ? null : date;
+      }
+    }
+  });
+}
+
 function initAll() {
+  // Initialize Fomantic UI calendars
+  initializeCalendars();
+  
+  // Load filters from URL
+  loadFiltersFromURL();
+  
   // Query snapshots to initialize charts
   getSnapshots();
 
   // Query task durations to initialize charts
   getTaskDurations();
 
-  // Re-query when input is changed
-  $('input[name="days"]').on('change', () => {
+  // Re-query when inputs are changed
+  $('input[name="days"], input[name="slice"]').on('change', () => {
+    getSnapshots();
+    getTaskDurations();
+  });
+  
+  // Re-query when calendar inputs change
+  $('.ui.calendar').on('change', () => {
     getSnapshots();
     getTaskDurations();
   });

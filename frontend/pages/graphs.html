@@ -26,25 +26,93 @@
     <div id="main-content" class="article">
       <h1 class="ui header">System Graphs</h1>
 
-      <div class="ui right labeled input">
-        <input name="days" type="text" placeholder="14">
-        <div class="ui basic label">
-          days
+      <!-- Filter Controls -->
+      <div class="ui segment">
+        <div class="ui header">
+          <i class="filter icon"></i>
+          <div class="content">
+            Filter Options
+            <div class="sub header" onclick="resetFilters()" style="cursor: pointer;">
+              Reset Filters <i class="eraser icon"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="ui three column grid">
+          <!-- Date Range -->
+          <div class="column">
+            <div class="ui form">
+              <div class="two fields">
+                <div class="field">
+                  <label>Start Date</label>
+                  <div class="ui calendar">
+                    <div class="ui input left icon">
+                      <i class="calendar icon"></i>
+                      <input name="start_date" type="text" placeholder="Start date">
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>End Date</label>
+                  <div class="ui calendar">
+                    <div class="ui input left icon">
+                      <i class="calendar icon"></i>
+                      <input name="end_date" type="text" placeholder="End date">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Quick Days Filter -->
+          <div class="column">
+            <div class="ui form">
+              <div class="field">
+                <label>Quick Filter (Days)</label>
+                <div class="ui right labeled input">
+                  <input name="days" type="number" placeholder="14" min="1" max="365">
+                  <div class="ui basic label">
+                    days
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Slice Control -->
+          <div class="column">
+            <div class="ui form">
+              <div class="field">
+                <label>Data Sampling (Slice)</label>
+                <div class="ui right labeled input">
+                  <input name="slice" type="number" placeholder="1" min="1" max="10" value="1">
+                  <div class="ui basic label">
+                    every Nth point
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <br><br>
-      <div class="ui equal width grid">
-        <div class="ui column">
-          <h2 class="ui header">Card Counts</h2>
-          <canvas id="graph"></canvas>
+      <!-- Card Counts Graph -->
+      <div class="ui segment">
+        <h2 class="ui header">Card Counts</h2>
+        <canvas id="graph"></canvas>
+      </div>
 
-          <h2 class="ui header">Database Counts</h2>
-          <canvas id="dbCountsGraph"></canvas>
+      <!-- Database Counts Graph -->
+      <div class="ui segment">
+        <h2 class="ui header">Database Counts</h2>
+        <canvas id="dbCountsGraph"></canvas>
+      </div>
 
-          <h2 class="ui header">Task Durations</h2>
-          <canvas id="taskDurationsGraph"></canvas>
-        </div>
+      <!-- Task Durations Graph -->
+      <div class="ui segment">
+        <h2 class="ui header">Task Durations</h2>
+        <canvas id="taskDurationsGraph"></canvas>
       </div>
     </div>
   </div>
