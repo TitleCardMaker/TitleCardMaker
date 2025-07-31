@@ -79,7 +79,7 @@ function restoreBackup(folderName) {
 function querySystemBackups() {
   $.ajax({
     type: 'GET',
-    url: '/api/v2/settings/backups',
+    url: '/api/v2/backups/all',
     /**
      * List of available backups queried. Populate page.
      * @param {SystemBackup[]} backups - List of system backups.
