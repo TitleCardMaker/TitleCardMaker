@@ -11,14 +11,13 @@ from sqlalchemy.orm.session import object_session
 
 from app.core.availability import expire_cache, get_remote_card_hash
 from app.core.cache import (
-    cache_result,
     cache_series_cards,
     get_cached_series_cards,
     cache_card_data,
     get_cached_card_data,
     invalidate_card_cache,
-    invalidate_series_cache,
-    get_cache_manager
+    get_cache_manager,
+    invalidate_episode_cache
 )
 from app.core.episodes import refresh_episode_data
 from app.core.sources import download_episode_source_images
@@ -169,6 +168,7 @@ def clean_database(*, log: Logger = log) -> None:
         ]
         for card in set(unlinked_cards):
             log.debug(f'Deleting unlinked {card}')
+            invalidate_card_cache(card.id)
             card.file.unlink(missing_ok=True)
             db.delete(card)
         db.commit()
@@ -177,6 +177,7 @@ def clean_database(*, log: Logger = log) -> None:
         for episode in db.query(Episode).all():
             if episode.series_id is None or episode.series is None:
                 log.debug(f'Deleting unlinked Episode {episode.id}')
+                invalidate_episode_cache(episode.id)
                 db.delete(episode)
         db.commit()
 
@@ -202,6 +203,7 @@ def clean_database(*, log: Logger = log) -> None:
         )
         for episode in to_delete.all():
             log.trace(f'Deleting duplicate Episode {episode}')
+            invalidate_episode_cache(episode.id)
             db.delete(episode)
         db.commit()
 
@@ -220,6 +222,7 @@ def clean_database(*, log: Logger = log) -> None:
             )
             for card in to_delete.all():
                 log.debug(f'Deleting duplicate {card}')
+                invalidate_card_cache(card.id)
                 card.file.unlink(missing_ok=True)
                 db.delete(card)
             db.commit()
