@@ -259,7 +259,9 @@ def refresh_remote_card_types(
     """
 
     # Function to get all unique card types for the table model
-    def _get_unique_card_types(model: Any) -> set[str]:
+    def _get_unique_card_types(
+        model: type[Episode] | type[Series] | type[Template]
+    ) -> set[str]:
         return set(obj[0] for obj in db.query(model.card_type).distinct().all())
 
     # Get all card types globally, from Templates, Series, and Episodes
@@ -317,7 +319,7 @@ def _card_type_model_to_json(model: Base) -> dict:
     return {
         key: str(val.name) if isinstance(val, Path) else str(val)
         for key, val in
-        model.dict(
+        model.model_dump(
             exclude_defaults=True,
             exclude={'source_file', 'card_file'},
         ).items()
@@ -352,7 +354,7 @@ def add_card_to_database(
     # Add Card to database
     card_model.filesize = card_file.stat().st_size
     card = Card(
-        **card_model.dict(),
+        **card_model.model_dump(),
         model_json=_card_type_model_to_json(CardTypeModel),
     )
     db.add(card)
@@ -449,7 +451,10 @@ def create_card(
     """
 
     # Create Card
-    card_maker = CardClass(**CardTypeModel.dict(),preferences=get_preferences())
+    card_maker = CardClass(
+        **CardTypeModel.model_dump(),
+        preferences=get_preferences()
+    )
     card_maker.create()
 
     # If file exists, card was created successfully - add to database
@@ -991,12 +996,15 @@ def create_episode_cards(
     result = create_episode_card(
         db, episode, None, raise_exc=raise_exc, log=log
     )
-    
+
     # Invalidate card cache since we created new cards
     if result:
         invalidate_card_cache(episode.id)
-        log.debug(f'Invalidated card cache after creating cards for episode {episode.id}')
-    
+        log.debug(
+            f'Invalidated card cache after creating cards for episode '
+            f'{episode.id}'
+        )
+
     return result
 
 

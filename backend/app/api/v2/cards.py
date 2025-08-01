@@ -111,7 +111,7 @@ def create_preview_card(
             if getattr(CardClass, 'SEASON_TEXT_FORMATTER', None) is None:
                 card.season_text = FormatString(
                     'Season {season_number}',
-                    data=format_data | card.dict(),
+                    data=format_data | card.model_dump(),
                 ).result
             else:
                 fake_ei = EpisodeInfo(
@@ -121,7 +121,7 @@ def create_preview_card(
                 )
                 card.season_text = FormatString(
                     getattr(CardClass, 'SEASON_TEXT_FORMATTER')(fake_ei),
-                    data=format_data | card.dict(),
+                    data=format_data | card.model_dump(),
                 ).result
         except InvalidCardSettings as exc:
             raise HTTPException(
@@ -132,7 +132,7 @@ def create_preview_card(
         try:
             card.episode_text = FormatString(
                 (card.episode_text_format or CardClass.EPISODE_TEXT_FORMAT),
-                data=format_data | card.dict(),
+                data=format_data | card.model_dump(),
             ).result
         except InvalidCardSettings as exc:
             raise HTTPException(
@@ -159,7 +159,7 @@ def create_preview_card(
         preferences.card_properties,
         font_template_dict,
         {'source_file': source, 'card_file': output},
-        card.dict(),
+        card.model_dump(),
         card.extras,
     )
 

@@ -27,12 +27,10 @@ from app.schemas.episode import UpdateEpisode
 from app.logging.logger import Logger, log
 from modules.TieredSettings import TieredSettings
 from app.core.cache import (
-    cache_result,
     cache_series_episodes,
     get_cached_series_episodes,
     cache_episode_data,
     get_cached_episode_data,
-    invalidate_episode_cache,
     get_cache_manager
 )
 
