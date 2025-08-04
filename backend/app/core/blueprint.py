@@ -260,7 +260,9 @@ def import_blueprint(
             font_content = response.content
 
         # Create new Font model, add to database and store in map
-        new_font = Font(**NewNamedFont(**font.dict()).dict())
+        new_font = Font(
+            **NewNamedFont(**font.model_dump(exclude_unset=True)).model_dump()
+        )
         font_map[font_id] = new_font
         db.add(new_font)
         db.commit()
@@ -288,8 +290,10 @@ def import_blueprint(
         for other_template in db.query(Template).all():
             if other_template.equals(template):
                 template_map[template_id] = other_template
-                log.info(f'Matched Blueprint Template[{template_id}] to '
-                         f'existing Template {other_template}')
+                log.info(
+                    f'Matched Blueprint Template[{template_id}] to existing '
+                    f'Template {other_template}'
+                )
                 break
         if template_map.get(template_id) is not None:
             continue
@@ -299,7 +303,11 @@ def import_blueprint(
             template.font_id = font_map[template.font_id].id
 
         # Create new Template model, add to database and store in map
-        new_template = Template(**NewTemplate(**template.dict()).dict())
+        new_template = Template(
+            **NewTemplate(
+                **template.model_dump(exclude_unset=True)
+            ).model_dump()
+        )
         template_map[template_id] = new_template
         db.add(new_template)
         log.info(f'Created Template "{template.name}"')
@@ -310,7 +318,7 @@ def import_blueprint(
 
     # Assign updated Fonts and Templates to Series
     changed = False
-    series_blueprint = blueprint.blueprint.series.dict()
+    series_blueprint = blueprint.blueprint.series.model_dump(exclude_unset=True)
     if (new_font_id := series_blueprint.pop('font_id', None)) is not None:
         log.debug(f'Series[{series.id}].font_id = {font_map[new_font_id].id}')
         series.font = font_map[new_font_id]
@@ -323,7 +331,7 @@ def import_blueprint(
 
     # Update each attribute of the Series object based on import
     update_series = UpdateSeries(**series_blueprint)
-    for attr, value in update_series.dict().items():
+    for attr, value in update_series.model_dump(exclude_unset=True).items():
         if getattr(series, attr) != value:
             log.debug(f'Series[{series.id}].{attr} = {value}')
             setattr(series, attr, value)
