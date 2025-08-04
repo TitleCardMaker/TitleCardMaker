@@ -10,7 +10,7 @@ from app.logging.logger import log, Logger
 from app.settings import BACKEND_ROOT, CONFIG_ROOT, TCM_ROOT, settings
 from modules.BaseCardType import BaseCardType
 from modules.FormatString import FormatString
-from modules.RemoteCardType2 import RemoteCardType
+from modules.RemoteCardType import RemoteCardType
 from modules.TitleCard import TitleCard
 from modules.Version import Version
 

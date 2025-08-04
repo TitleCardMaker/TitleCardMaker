@@ -5,7 +5,7 @@ from typing import Any, Callable, TYPE_CHECKING, TypeVar
 from yaml import safe_load
 
 from app.logging.logger import log
-from modules.RemoteCardType2 import RemoteCardTypeV1
+from modules.RemoteCardType import RemoteCardTypeV1
 from modules.TitleCard import TitleCard
 
 if TYPE_CHECKING:

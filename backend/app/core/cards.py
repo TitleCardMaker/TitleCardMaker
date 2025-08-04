@@ -45,7 +45,7 @@ from app.schemas.card_type import LocalCardTypeModels
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
 from modules.FormatString import FormatString
-from modules.RemoteCardType2 import RemoteCardType
+from modules.RemoteCardType import RemoteCardType
 from modules.RemoteFile import RemoteFile
 from modules.SeasonTitleRanges import SeasonTitleRanges
 from modules.TieredSettings import TieredSettings
