@@ -1,0 +1,175 @@
+[project]
+name = "titlecardmaker"
+version = "2.0-alpha"
+description = "An automated title card creation program for Plex, Emby, and Jellyfin"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "regex==2024.11.6",
+    "num2words==0.5.14",
+    "pyyaml==6.0.2",
+    "titlecase==2.4.1",
+    "tqdm==4.67.1",
+    "fonttools==4.58.4",
+    "plexapi==4.17.0",
+    "tenacity==9.1.2",
+    "tinydb==4.8.2",
+    "schedule==1.2.2",
+    "tmdbapis==1.2.28",
+    "python-multipart==0.0.20",
+    "jinja2==3.1.6",
+    "apscheduler==3.11.0",
+    "tzdata==2025.2",
+    "fastapi-pagination==0.13.2",
+    "bcrypt==4.2.0",
+    "pillow==11.2.1",
+    "passlib[bcrypt]>=1.7.4",
+    "thefuzz==0.22.1",
+    "loguru==0.7.3",
+    "rich==14.0.0",
+    "unidecode==1.4.0",
+    "click==8.2.1",
+    "websockets==15.0.1",
+    "colorama==0.4.6",
+    "better-exceptions==0.3.3",
+    "ruamel-yaml==0.18.14",
+    "uvicorn==0.34.3",
+    "pydantic==2.11.7",
+    "requests==2.32.4",
+    "imagesize==1.4.1",
+    "alembic==1.16.2",
+    "cryptography==42.0.8",
+    "python-jose[cryptography]==3.3.0",
+    "python-dotenv==1.0.1",
+    "fastapi==0.115.13",
+    "charset-normalizer==3.4.0",
+    "win32-setctime==1.1.0",
+    "sqlalchemy==2.0.41",
+    "huey>=2.5.1",
+    "starlette==0.46.2",
+    "urllib3==2.4.0",
+    "six==1.16.0",
+    "curl-cffi==0.7.3",
+    "pydantic-settings==2.9.1",
+    "setuptools==80.9.0",
+    "pytz==2025.2",
+    "croniter==6.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "setuptools>=73.0.1",
+    "ruff>=0.6.1",
+    "mkdocs-material>=9.5.33",
+    "mkdocs-glightbox>=0.4.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "app",
+    "modules",
+]
+
+[tool.pyright]
+include = [
+    "./app",
+    "./modules"
+]
+exclude = [
+    "./archives",
+    "./config",
+    "**__pycache__",
+    "**.ruff_cache",
+    "**.venv"
+]
+
+reportGeneralTypeIssues = false
+reportInvalidStringEscapeSequence = false
+reportIncompatibleMethodOverride = false
+
+[tool.ruff]
+exclude = [
+    ".git",
+    ".git-rewrite",
+    ".mypy_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "config",
+    "archives",
+    "modules/.objects",
+    "app/alembic/",
+    "modules/global_objects.py",
+]
+
+line-length = 88
+indent-width = 4
+
+# Assume Python 3.13
+target-version = "py313"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+select = ["E4", "E7", "E9", "F"]
+ignore = ['F541', 'F403', 'F405']
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed, or log variable
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?)|log)$"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "single"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+[tool.pylint.master]
+ignore = [
+    "archives",
+    "assets",
+    "config",
+    "docs",
+    "fonts",
+]
+init-hook='import sys; sys.path.append("/mnt/user/Media/TitleCardMaker")'
+extension-pkg-whitelist = "pydantic"
+
+[tool.pylint.message_control]
+disable = [
+    "logging-fstring-interpolation",
+    "f-string-without-interpolation",
+    "redefined-outer-name",
+    "broad-except",
+    "pointless-string-statement",
+    "invalid-name",
+    "missing-module-docstring",
+    "duplicate-code",
+    "too-many-lines",
+    "too-few-public-methods",
+    "too-many-locals",
+    "too-many-statements",
+    "too-many-arguments",
+    "too-many-instance-attributes",
+    "anomalous-backslash-in-string",
+    "dangerous-default-value",
+]

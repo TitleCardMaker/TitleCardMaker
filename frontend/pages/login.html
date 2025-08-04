@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Login - TitleCardMaker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/internal_assets/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/internal_assets/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/internal_assets/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/internal_assets/favicon/site.webmanifest">
+
+  <!-- Formantic UI -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.3/dist/jquery.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.js"></script>
+
+  <script type="text/javascript" defer>
+    {% include "/js/login.js" %}
+  </script>
+
+  <link rel="stylesheet" type="text/css" href="/css/login.css?v={{current_version}}"/>
+</head>
+
+<body onload="">
+  <div class="pusher">
+    <div id="login">
+      <img src="/internal_assets/tcm_no_lettering.svg">
+
+      <h2>Log In</h2>
+      <div class="ui elastic inverted segment">
+        <form id="login-form">
+          <div class="text field">
+            <input id="username" type="text" required="" autofocus tabindex="0" name="username">
+            <label>Username</label>
+          </div>
+
+          <div class="text field">
+            <input id="password" type="password" required="" tabindex="0" name="password">
+            <label>Password</label>
+          </div>
+
+          <a onclick="submitForm();">Login</a>
+        </form>
+
+        <a class="forgot" href="https://titlecardmaker.com/user_guide/connections/#forgotten-login" target="_blank">Forgot Password?</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

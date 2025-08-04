@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Fonts - TitleCardMaker</title>
+  {% include "/pages/html_boilerplate.html" %}
+
+  <script type="text/javascript">
+    {% include "/js/fonts.js" %}
+  </script>
+
+  <link rel="stylesheet" type="text/css" href="/css/fonts.css?v={{preferences.current_version}}"/>
+
+  <template id="font-template">
+    <div class="ui styled fluid accordion">
+      <div class="title">
+        <i class="dropdown icon"></i>
+        {name}
+      </div>
+      <div class="ui loading content segment">
+        <div class="ui two column very relaxed stackable grid">
+          <div class="nine wide column">
+            <form data-label="font-form" class="ui form">
+              <div class="field">
+                <label>Name</label>
+                <input name="name" type="text" placeholder="Font Name" minlength="1">
+              </div>
+
+              <div class="field">
+                <label data-value="file">File</label>
+                <div class="ui file input">
+                  <input name="font_file" type="file" accept=".otf,.ttf,.ttc,.font/*">
+                </div>
+              </div>
+
+              <div class="three fields">
+                <div class="field" data-value="color">
+                  <label>
+                    Color
+                    <span class="inline color circle"></span>
+                    <a href="https://imagemagick.org/script/color.php#color_names" target="_blank">
+                      <i class="external alternate small icon"></i>
+                    </a>
+                  </label>
+                  <input name="color" type="text" placeholder="Default">
+                </div>
+
+                <div class="field">
+                  <label>Text Case</label>
+                  <div class="ui clearable selection dropdown" data-value="title_case">
+                    <input name="title_case" type="hidden">
+                    <div class="default text">Default</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                      <div class="item" data-value="blank">Blank</div>
+                      <div class="item" data-value="lower">Lowercase</div>
+                      <div class="item" data-value="source">Source</div>
+                      <div class="item" data-value="title">Title</div>
+                      <div class="item" data-value="upper">Uppercase</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>Title Split Modifier</label>
+                  <input name="line_split_modifier" type="number" placeholder="0">
+                </div>
+              </div>
+
+              <div class="three fields">
+                <div class="field">
+                  <label>Size</label>
+                  <div class="ui right labeled input">
+                    <input name="size" type="number" placeholder="100">
+                    <div class="ui basic label">%</div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>Kerning</label>
+                  <div class="ui right labeled input">
+                    <input name="kerning" type="number" placeholder="100">
+                    <div class="ui basic label">%</div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>Stroke Width</label>
+                  <div class="ui right labeled input">
+                    <input name="stroke_width" type="number" placeholder="100">
+                    <div class="ui basic label">%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="three fields">
+                <div class="field">
+                  <label>Interline Spacing</label>
+                  <input name="interline_spacing" type="number" placeholder="0">
+                </div>
+
+                <div class="field">
+                  <label>Interword Spacing</label>
+                  <input name="interword_spacing" type="number" placeholder="0">
+                </div>
+
+                <div class="field">
+                  <label>Vertical Shift</label>
+                  <input name="vertical_shift" type="number" placeholder="0">
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Character Replacements</label>
+                <div class="unstackable fields">
+                  <div data-value="in-replacements" class="four wide right aligned field">
+                    <label>Text to Replace</label>
+                    <!-- <input name="replacements_in" type="text"> -->
+                  </div>
+                  <div data-value="out-replacements" class="four wide field">
+                    <label>Replacement Text</label>
+                    <!-- <input name="replacements_out" type="text"> -->
+                  </div>
+                </div>
+              </div>
+              <!-- Add replacement button -->
+              <div class="field">
+                <div data-action="populateReplacements" class="circular ui icon mini green button" data-tooltip="Suggest character replacements">
+                  <i class="magic icon"></i>
+                  Analyze Font Replacements
+                </div>
+                <div data-action="addReplacement" class="circular ui icon mini button" onclick="addBlankReplacement(this);">
+                  <i class="plus square outline icon"></i>
+                  Add Replacement
+                </div>
+              </div>
+
+              <!-- Buttons -->
+              <button class="ui primary icon button" data-action="save" type="submit">
+                <i class="save icon"></i>
+                Save
+              </button>
+
+              <button class="ui floating dropdown teal icon button" data-action="transfer" data-value="font_ids">
+                <i class="file import icon"></i>
+                <span class="text">Transfer</span>
+                <div class="menu">
+                  <div class="ui icon search input">
+                    <i class="search icon"></i>
+                    <input type="text" placeholder="Search Fonts..">
+                  </div>
+                  <div class="scrolling menu"></div>
+                </div>
+              </button>
+
+              <button class="ui negative button" data-action="delete">
+                <i class="trash icon"></i>
+                Delete
+              </button>
+
+            </form>
+          </div>
+
+          <div class="seven wide column">
+            <button data-action="refresh" class="ui blue tertiary compact button">
+              <i class="redo icon"></i>
+              Refresh Preview
+            </button>
+            <form data-value="preview-form" class="ui form">
+              <div class="two fields">
+                <div class="eight wide field">
+                  <label>Preview Card Type</label>
+                  <div class="ui clearable selection card-type dropdown">
+                    <input name="card_type" type="hidden">
+                    <div class="default text">None</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu"><!-- Added asynchronously --></div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Preview Title<a><i class="sort alphabet down icon"></i></a></label>
+                  <input name="title_text" placeholder="Example Title" value="Example Title">
+                </div>
+              </div>
+            </form>
+            <div class="ui fluid raised card">
+              <div class="content">
+                <img alt="Preview Title Card" src="/public/blank.png">
+              </div>
+            </div>
+            <div class="ui bottom attached floating info message">
+              <i class="exclamation icon"></i>
+              A custom Font file must be <b>uploaded</b> and <b>submitted</b> in order to appear in the live preview.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+</head>
+
+<body onload="getAllFonts();">
+  <div class="pusher">
+    <!-- Static header and sidebar -->
+    <div id="page-header">
+      {% include "/pages/header.html" %}
+    </div>
+    <div id="nav-menu">
+      {% include "/pages/sidebar.html" %}
+    </div>
+
+    <!-- Actual page content -->
+    <div id="main-content" class="article">
+      <h1 class="ui header">Fonts</h1>
+
+      <!-- Add font button -->
+      <button class="ui primary tertiary icon button" onclick="addFont()" id="create-font">
+        <i class="plus icon"></i>
+        Create New Font
+      </button>
+      <div class="ui active centered inline blue elastic loader" id="loader"></div>
+
+      <div id="fonts"><!-- Elements added asynchronously --></div>
+
+      <div class="ui compact floating info message">
+        <div class="header">What are Fonts?</div>
+        <ul class="list">
+          <li>A custom Font can override the default Font characteristics - such as color, size, etc. - of a Title Card.</li>
+          <li>Custom Fonts can be assigned as part of a Template.</li>
+          <li>Custom Font definitions can be overwritten per-Series or Episode.</li>
+          <li>Creating a <i>Named Font</i> (on this Page) allows the custom Font to be reused by multiple Series or Templates.</li>
+          <li>Only custom <i>Named Fonts</i> can have custom Font files, Series and Episode Fonts cannot.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Font transfer Modal -->
+    <div id="transfer-font-modal" class="ui basic modal">
+      <div class="ui icon header">
+        <i class="exchange alternate icon"></i>
+        Transfer all references of this Font?
+      </div>
+      <div class="center aligned scrolling content">
+        <div class="center aligned actions">
+          <div data-action="cancel-transfer" class="ui green ok basic inverted button">
+            <i class="remove icon"></i>
+            No
+          </div>
+          <div data-action="transfer-only" class="ui green ok inverted button">
+            <i class="check icon"></i>
+            Yes
+          </div>
+          <div data-action="transfer-with-delete" class="ui red ok inverted button">
+            <i class="trash alternate outline icon"></i>
+            Yes, and delete this Font afterwards
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>

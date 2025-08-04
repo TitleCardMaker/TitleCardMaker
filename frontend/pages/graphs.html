@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Graphs - TitleCardMaker</title>
+  {% include "/pages/html_boilerplate.html" %}
+
+  <script type="text/javascript" defer>
+    {% include "/js/graphs.js" %}
+  </script>
+
+  <link rel="stylesheet" type="text/css" href="/css/logs.css?v={{preferences.current_version}}">
+</head>
+
+<body onload="initAll();">
+  <div class="pusher">
+    <!-- Static header and sidebar -->
+    <div id="page-header">
+      {% include "/pages/header.html" %}
+    </div>
+    <div id="nav-menu">
+      {% include "/pages/system_sidebar.html" %}
+    </div>
+
+    <!-- Actual page content -->
+    <div id="main-content" class="article">
+      <h1 class="ui header">System Graphs</h1>
+
+      <!-- Filter Controls -->
+      <div class="ui segment">
+        <div class="ui header">
+          <i class="filter icon"></i>
+          <div class="content">
+            Filter Options
+            <div class="sub header" onclick="resetFilters()" style="cursor: pointer;">
+              Reset Filters <i class="eraser icon"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="ui three column grid">
+          <!-- Date Range -->
+          <div class="column">
+            <div class="ui form">
+              <div class="two fields">
+                <div class="field">
+                  <label>Start Date</label>
+                  <div class="ui calendar">
+                    <div class="ui input left icon">
+                      <i class="calendar icon"></i>
+                      <input name="start_date" type="text" placeholder="Start date">
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>End Date</label>
+                  <div class="ui calendar">
+                    <div class="ui input left icon">
+                      <i class="calendar icon"></i>
+                      <input name="end_date" type="text" placeholder="End date">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Days Filter -->
+          <div class="column">
+            <div class="ui form">
+              <div class="field">
+                <label>Quick Filter</label>
+                <div class="ui right labeled input">
+                  <input name="days" type="number" placeholder="14" min="1" max="365">
+                  <div class="ui basic label">
+                    days
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slice Control -->
+          <div class="column">
+            <div class="ui form">
+              <div class="field">
+                <label>Data Sampling</label>
+                <div class="ui right labeled input">
+                  <input name="slice" type="number" placeholder="1" min="1" max="10" value="1">
+                  <div class="ui basic label">
+                    every Nth point
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Counts Graph -->
+      <div class="ui segment">
+        <h2 class="ui header">Card Counts</h2>
+        <canvas id="graph"></canvas>
+      </div>
+
+      <!-- Database Counts Graph -->
+      <div class="ui segment">
+        <h2 class="ui header">Database Counts</h2>
+        <canvas id="dbCountsGraph"></canvas>
+      </div>
+
+      <!-- Task Durations Graph -->
+      <div class="ui segment">
+        <h2 class="ui header">Task Durations</h2>
+        <canvas id="taskDurationsGraph"></canvas>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@^2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@^1"></script>
+</html>

@@ -1,0 +1,459 @@
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+from pydantic import FilePath, PositiveFloat, confloat, conint, constr
+
+from app.schemas.base import Base, BaseCardModel
+from modules.BaseCardType import (
+    BaseCardType,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
+)
+
+if TYPE_CHECKING:
+    from modules.preferences import Preferences
+    from app.yaml.font import Font
+
+
+class CutoutTitleCard(BaseCardType):
+    """
+    This class describes a type of CardType that is very loosely based
+    off of /u/Phendrena's Willow title card set. These cards feature a
+    solid color overlay with the episode text cut out to reveal the
+    source image.
+    """
+
+    """API Parameters"""
+    API_DETAILS = CardTypeDescription(
+        name='Cutout',
+        identifier='cutout',
+        example='/public/cards/cutout.jpg',
+        creators=['/u/Phendrena', 'CollinHeist'],
+        source='builtin',
+        supports_custom_fonts=True,
+        supports_custom_seasons=False,
+        supported_extras=[
+            Extra(
+                name='Overlay Color',
+                identifier='overlay_color',
+                description='Color of the solid overlay to cut text out of',
+                tooltip=(
+                    'This color does not support transparency. Use the Overlay '
+                    'Transparency extra for that. Default is <c>black</c>.'
+                ),
+                default='black',
+            ),
+            Extra(
+                name='Overlay Transparency',
+                identifier='overlay_transparency',
+                description='How transparent to make the overlay color.',
+                tooltip=(
+                    'Number between <v>0.0</v> and <v>1.0</v>. Default is '
+                    '<v>0.0</v> (no transparency).'
+                ),
+                default=0.0,
+            ),
+            Extra(
+                name='Edge Blurring',
+                identifier='blur_edges',
+                description='Whether to blur the edges of the number cutout',
+                tooltip=(
+                    'Either <v>True</v> or <v>False</v>. If <v>True</v>, then '
+                    'the cutout of the episode text is blurred. Default is '
+                    '<v>False</v>.'
+                ),
+                default='False',
+            ),
+            Extra(
+                name='Blur Profile',
+                identifier='blur_profile',
+                description='How to blur the edges of the number cutout',
+                tooltip=(
+                    'Blur formatted as <v>{radius}x{sigma}</v>. Higher '
+                    '<v>{sigma}</v> values has the effect of a "stronger" '
+                    'blur. Default is <v>0x30</v>.'
+                ),
+                default='0x30',
+            ),
+            Extra(
+                name='Cutout Vertical Shift',
+                identifier='cutout_vertical_shift',
+                description='Additional vertical shift to apply to the cutout',
+                tooltip=(
+                    'Number between <v>-1800</v> and <v>1800</v>. Default is '
+                    '<v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
+            Extra(
+                name='Title Horizontal Shift',
+                identifier='title_horizontal_shift',
+                description='Horizontal shift to apply to the title text',
+                tooltip=(
+                    'Number between <v>-3200</v> and <v>3200</v>. Default is '
+                    '<v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
+        ],
+        description=[
+            'Title card featuring a solid color overlaying the source image.',
+            'Episode text cuts out the overlay to reveal the underlying source '
+            'image.',
+        ]
+    )
+
+    """Directory where all reference files used by this card are stored"""
+    REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'cutout'
+    OLIVIER_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'olivier'
+    SW_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'star_wars'
+
+    """Characteristics for title splitting by this class"""
+    TITLE_CHARACTERISTICS = {
+        'max_line_width': 34,
+        'max_line_count': 3,
+        'style': 'bottom',
+    }
+
+    """Characteristics of the default title font"""
+    TITLE_FONT = str((OLIVIER_REF_DIRECTORY / 'Montserrat-Bold.ttf').resolve())
+    TITLE_COLOR = 'white'
+    FONT_REPLACEMENTS = {}
+
+    """Whether this CardType uses season titles for archival purposes"""
+    USES_SEASON_TITLE = False
+
+    """How to name archive directories for this type of card"""
+    ARCHIVE_NAME = 'Cutout Style'
+
+    """Default fonts and color for series count text"""
+    EPISODE_TEXT_FORMAT = '{to_cardinal(episode_number)}'
+    EPISODE_TEXT_FONT = SW_REF_DIRECTORY / 'HelveticaNeue-Bold.ttf'
+
+    """Custom blur profiles"""
+    BLUR_PROFILE = '0x20'
+    NUMBER_BLUR_PROFILE = '0x10'
+
+    __slots__ = (
+        'blur_edges',
+        'cutout_vertical_shift',
+        'episode_text',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_kerning',
+        'font_size',
+        'font_vertical_shift',
+        'number_blur_profile',
+        'output_file',
+        'overlay_color',
+        'overlay_transparency',
+        'source_file',
+        'title_horizontal_shift',
+        'title_text',
+        '__text_mask',
+    )
+
+    def __init__(self, *,
+            source_file: Path,
+            card_file: Path,
+            title_text: str,
+            episode_text: str,
+            font_color: str = TITLE_COLOR,
+            font_file: str = TITLE_FONT,
+            font_interline_spacing: int = 0,
+            font_interword_spacing: int = 0,
+            font_kerning: float = 1.0,
+            font_size: float = 1.0,
+            font_vertical_shift: int = 0,
+            blur: bool = False,
+            grayscale: bool = False,
+            blur_edges: bool = False,
+            blur_profile: str = NUMBER_BLUR_PROFILE,
+            cutout_vertical_shift: int = 0,
+            overlay_color: str = 'black',
+            overlay_transparency: float = 0.0,
+            title_horizontal_shift: int = 0,
+            preferences: 'Preferences | None' = None,
+            **unused,
+        ) -> None:
+        """Construct a new instance of this Card."""
+
+        # Initialize the parent class - this sets up an ImageMagickInterface
+        super().__init__(blur, grayscale, preferences=preferences)
+
+        self.source_file = source_file
+        self.output_file = card_file
+
+        # Ensure characters that need to be escaped are
+        self.title_text = self.image_magick.escape_chars(title_text)
+        # Format episode text to split into 1/2 lines depending on word count
+        self.episode_text = self.image_magick.escape_chars(
+            self._format_episode_text(episode_text).upper()
+        )
+
+        # Font/card customizations
+        self.font_color = font_color
+        self.font_file = font_file
+        self.font_interline_spacing = font_interline_spacing
+        self.font_interword_spacing = font_interword_spacing
+        self.font_kerning = font_kerning
+        self.font_size = font_size
+        self.font_vertical_shift = font_vertical_shift
+
+        # Optional extras
+        self.blur_edges = blur_edges
+        self.cutout_vertical_shift = cutout_vertical_shift
+        self.number_blur_profile = blur_profile
+        self.overlay_color = overlay_color
+        self.overlay_transparency = overlay_transparency
+        self.title_horizontal_shift = title_horizontal_shift
+
+        # Implementation details
+        self.__text_mask: Path | None = None
+
+
+    def _format_episode_text(self, episode_text: str) -> str:
+        """
+        Format the given episode text into the appropriate multi-line
+        string.
+
+        Args:
+            episode_text: Episode text to format.
+
+        Returns:
+            Formatted multi (or single) line episode text.
+        """
+
+        # Has and, split around that
+        if ' and ' in episode_text:
+            top, bottom = episode_text.split(' and ')
+            return f'{top}\nand {bottom}'
+
+        # Has more than three words, split in half
+        if len(episode_text.split(' ')) > 3:
+            words = episode_text.split(' ')
+            top, bottom = words[:len(words)//2], words[len(words)//2:]
+            top, bottom = ' '.join(top), ' '.join(bottom)
+            return f'{top}\n{words}'
+
+        # Split about dash (likely a 10-100 number)
+        return '\n'.join(episode_text.split('-'))
+
+
+    @property
+    def title_text_commands(self) -> ImageMagickCommands:
+        """Subcommand for adding title text to the source image."""
+
+        font_size = 50 * self.font_size
+        font_kerning = 1 * self.font_kerning
+        font_interword_spacing = 35 + int(self.font_interword_spacing)
+        font_vertical_shift = 100 + self.font_vertical_shift
+        x = self.title_horizontal_shift
+
+        return [
+            f'-gravity south',
+            f'-pointsize {font_size}',
+            f'-fill "{self.font_color}"',
+            f'-font "{self.font_file}"',
+            f'-interline-spacing {self.font_interline_spacing}',
+            f'-interword-spacing {font_interword_spacing}',
+            f'-kerning {font_kerning}',
+            f'-annotate {x:+}+{font_vertical_shift} "{self.title_text}"',
+        ]
+
+
+    @property
+    def episode_text_mask(self) -> ImageMagickCommands:
+        """
+        Subcommands for adding the episode text mask used in the cutout.
+        """
+
+        # Base commands for all text generation
+        blur = f'-blur "{self.number_blur_profile}"' if self.blur_edges else ''
+        text_commands = [
+            f'-set colorspace sRGB',
+            f'-background transparent',
+            f'-density 200',
+            f'-pointsize 500',
+            f'-gravity center',
+            f'-interline-spacing -300',
+            f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
+            f'-fill white',
+            f'+size',
+            f'label:"{self.episode_text}"',
+            # Resize with 100px margin on all sides
+            f'-resize 3100x1700',
+            f'-extent "{self.TITLE_CARD_SIZE}"',
+        ]
+
+        # A non-zero cutout shift requires an intermediate image
+        if self.cutout_vertical_shift != 0:
+            # Determine which direction to add padding to in order to
+            # generate indicated shift
+            gravity = 'north' if self.cutout_vertical_shift > 0 else 'south'
+
+            # Create temporary image
+            self.__text_mask = self.image_magick.get_random_filename(
+                self.source_file
+            )
+            self.image_magick.run([
+                f'convert',
+                *text_commands,
+                # Adjust bounds to effectively shift image up/down
+                # this is required since -page and -geometry offsets
+                # do not affect mask images used in image mask
+                # composition
+                f'-gravity {gravity}',
+                f'-extent 3200x{1800 + abs(self.cutout_vertical_shift)}',
+                # Re-center to final mask dimensions
+                f'-gravity center -extent 3200x1800',
+                blur,
+                f'"{self.__text_mask.resolve()}"',
+            ])
+
+            # Add to primary image as a file composition
+            return [f'"{self.__text_mask.resolve()}"']
+
+        # No cutout shift, can generate mask on-the-fly
+        return [
+            fr'\(',
+            *text_commands,
+            blur,
+            fr'\)'
+        ]
+
+
+    @property
+    def transparency_overlay_commands(self) -> ImageMagickCommands:
+        """Subcommand to turn the overlay semi-transparent"""
+
+        # Transparency is disabled, return blank command
+        if self.overlay_transparency <= 0:
+            return []
+
+        return [
+            # Add source image
+            fr'\( "{self.source_file.resolve()}"',
+            # Scale the alpha channel by the given transparency
+            f'-alpha set',
+            f'-channel A',
+            f'-evaluate multiply {self.overlay_transparency:.2f}',
+            f'+channel',
+            # Apply styling
+            *self.resize_and_style,
+            fr'\)',
+            # Add semi-transparent source on top of composition
+            f'-composite',
+        ]
+
+
+    @staticmethod
+    def is_custom_font(font: 'Font', extras: dict) -> bool:
+        """
+        Determine whether the given font characteristics constitute a
+        default or custom font.
+
+        Args:
+            font: The Font being evaluated.
+            extras: Dictionary of extras for evaluation.
+
+        Returns:
+            True if a custom font is indicated, False otherwise.
+        """
+
+        custom_extras = (
+            'overlay_color' in extras and extras['overlay_color'] != 'black'
+        )
+
+        return (custom_extras
+            or (
+                font.color != CutoutTitleCard.TITLE_COLOR
+                or font.file != CutoutTitleCard.TITLE_FONT
+                or font.interline_spacing != 0
+                or font.interword_spacing != 0
+                or font.kerning != 1.0
+                or font.size != 1.0
+                or font.vertical_shift != 0
+            )
+        )
+
+
+    @staticmethod
+    def is_custom_season_titles(
+            custom_episode_map: bool,
+            episode_text_format: str,
+        ) -> bool:
+        """
+        Determine whether the given attributes constitute custom or
+        generic season titles.
+
+        Args:
+            custom_episode_map: Whether the EpisodeMap was customized.
+            episode_text_format: The episode text format in use.
+
+        Returns:
+            True if custom season titles are indicated, False otherwise.
+        """
+
+        return episode_text_format != CutoutTitleCard.EPISODE_TEXT_FORMAT
+
+
+    def create(self) -> None:
+        """Create this object's defined Title Card."""
+
+        # Masked Alpha Composition layers must be ordered as:
+        # [Replace Black Parts of Mask] | [Replace White Parts of Mask] | [Mask]
+
+        self.image_magick.run([
+            f'convert',
+            f'-set colorspace sRGB',
+            # Create solid-color overlay
+            fr'\( -size "{self.TITLE_CARD_SIZE}"',
+            fr'xc:"{self.overlay_color}" \)',
+            # Resize and optionally blur source image
+            fr'\( "{self.source_file.resolve()}"',
+            *self.resize_and_style,
+            fr'\)',
+            # Create/add cutout of episode text
+            *self.episode_text_mask,
+            # Use masked alpha composition to combine images
+            f'-gravity center',
+            f'-composite',
+            *self.transparency_overlay_commands,
+            # Add title text
+            f'-density 200',
+            *self.title_text_commands,
+            # Attempt to overlay mask
+            *self.add_overlay_mask(self.source_file),
+            # Create card
+            *self.resize_output,
+            f'"{self.output_file.resolve()}"',
+        ])
+
+        self.image_magick.delete_intermediate_images(self.__text_mask)
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    # pyright: reportInvalidTypeForm=false
+    class CardModel(BaseCardModel):
+        title_text: str
+        episode_text: constr(to_upper=True)
+        font_color: str = CutoutTitleCard.TITLE_COLOR
+        font_file: FilePath = CutoutTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_size: PositiveFloat = 1.0
+        font_vertical_shift: int = 0
+        blur_edges: bool = False
+        blur_profile: constr(pattern=r'^\d+x\d+$') = CutoutTitleCard.BLUR_PROFILE
+        cutout_vertical_shift: int = 0
+        overlay_color: str = 'black'
+        overlay_transparency: confloat(ge=0.0, le=1.0) = 0.0
+        title_horizontal_shift: conint(ge=-3200, le=3200) = 0
+
+    return CardModel

@@ -9,17 +9,14 @@ __pycache__/
 # PEP 582
 __pypackages__/
 
-app/assets/preview/card*
+backend/modules/.objects/
 backups/
 config/
-cypress/results/
-cypress/screenshots/
+config copy/
+tests/cypress/results/
+tests/cypress/screenshots/
 fonts/
-front/node_modules/
-front/
-frontend/
-front_nui/
-modules/.objects/
+frontend/public/preview/card*
 node_modules/
 yml/
 *._*
@@ -30,4 +27,3 @@ missing.yml
 preferences.yml
 temp*.jpg
 uv.lock
-.vscode/settings.json

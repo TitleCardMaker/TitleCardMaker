@@ -1,0 +1,63 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Favicon -->
+<link rel="apple-touch-icon" sizes="180x180" href="/public/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/public/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/public/favicon/favicon-16x16.png">
+<link rel="manifest" href="/public/favicon/site.webmanifest">
+
+<!-- JQuery -->
+<script type="text/javascript" src="/js/dist/jquery.min.js"></script>
+
+<!-- Formantic UI -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.js"></script>
+
+<!-- JS Files -->
+<script type="text/javascript" src="/js/loadStaticContent.js?v={{ preferences.current_version }}&websocket={{ preferences.display_live_messages }}"></script>
+<script type="text/javascript" src="/js/loadCardTypes.js?v={{ preferences.current_version }}"></script>
+<script type="text/javascript" src="/js/theme.js?v={{ preferences.current_version }}"></script>
+<script type="text/javascript" src="/js/helper.js?v={{ preferences.current_version }}"></script>
+<script type="text/javascript" src="/js/tablesort.js?v={{ preferences.current_version }}"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    // Error icon if a Connection is invalid
+    {% if preferences.invalid_connections %}
+      if ($('#nav-menu a[href="/connections"]').length > 0) {
+        $('#nav-menu a[href="/connections"] i').toggleClass('red', true);
+      } else {
+        $('#nav-menu a[href="/settings"] i').toggleClass('red', true);
+      }
+    {% endif %}
+
+    // Turn on accessible colormode if enabled
+    {% if preferences.colorblind_mode %}
+      $('body').toggleClass('accessible', true);
+    {% endif %}
+
+    // Update link for this page's external documentation link
+    let docSite = '';
+    if      (location.pathname === '/') { }
+    else if (location.pathname.startsWith('/series')) { docSite = 'user_guide/series/'; }
+    else if (location.pathname === '/add')            { docSite = 'user_guide/new_series'; }
+    else if (location.pathname === '/card-templates') { docSite = 'user_guide/templates'; }
+    else if (location.pathname === '/fonts')          { docSite = 'user_guide/fonts'; }
+    else if (location.pathname === '/sync')           { docSite = 'user_guide/syncs'; }
+    else if (location.pathname === '/settings')       { docSite = 'user_guide/settings/'; }
+    else if (location.pathname === '/system')         { docSite = 'user_guide/system/'; }
+    else if (location.pathname.startsWith('/graphs')) { }
+    else if (location.pathname === '/connections')    { docSite = 'user_guide/connections/'; }
+    else if (location.pathname === '/scheduler')      { }
+    else if (location.pathname === '/import')         { }
+    else if (location.pathname === '/logs')           { docSite = 'user_guide/logs/' }
+    document.getElementById('documentation-link').href = `https://titlecardmaker.com/${docSite}`;
+  });
+</script>
+
+<!-- Styles -->
+<link rel="stylesheet" type="text/css" href="/css/style.css"/>
+<link rel="stylesheet" type="text/css" href="/css/sidebar.css"/>
+
+<!-- Color background on iOS Safari -->
+<meta name="theme-color" content="#1b1c1d" />

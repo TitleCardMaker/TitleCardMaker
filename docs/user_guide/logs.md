@@ -104,7 +104,7 @@ and end of the operation. TCM will log the start of all API requests with a
 message _like_:
 
 ```log
-Starting POST "/api/cards/key"
+Starting POST "/api/v2/series/add"
 ```
 
 and will end it with a message _like_:

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>TitleCardMaker</title>
+  {% include "/pages/html_boilerplate.html" %}
+
+  <script type="text/javascript">
+    {% include "/js/home.js" %}
+  </script>
+
+  <link rel="stylesheet" type="text/css" href="/css/home.css?v={{preferences.current_version}}"/>
+
+  <!-- Templates -->
+  <template id="series-template">
+    {% if preferences.reduced_animations %}
+    <div class="ui raised card transition">
+    {% else %}
+    <div class="ui raised card transition hidden"> <!-- Start hidden so they can be transitioned in -->
+    {% endif %}
+      <div class="blurring dimmable image">
+        <div class="ui dimmer">
+          <div class="content">
+            <div class="center">
+              <a>
+                <div class="ui inverted button">View</div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <img loading="lazy" onerror="this.onerror=null; this.src='/public/placeholder.jpg'">
+      </div>
+      <div>
+        <div class="ui attached progress">
+          <div class="green bar"></div> <!-- Monitored, created -->
+          <div class="red bar"></div> <!-- Monitored, missing -->
+          <div class="blue bar"></div> <!-- Unmonitored, created -->
+          <div class="orange bar"></div> <!-- Unonitored, missing -->
+        </div>
+      </div>
+      <div class="text content" tabindex="0">
+        <a>
+          <div class="ui tiny header series-name"></div>
+        </a>
+      </div>
+    </div>
+  </template>
+
+  <template id="series-row-template">
+    {% if preferences.reduced_animations %}
+    <tr>
+    {% else %}
+    <tr class="transition hidden">
+    {% endif %}
+      <td class="selectable" data-row="select">
+        <a data-action="select">
+          <div data-value="select" class="ui right aligned fitted checkbox">
+            <input type="checkbox">
+            <label></label>
+          </div>
+        </a>
+      </td>
+      <td data-row="name" class="collapsing selectable">
+        <a>
+          <h4 class="ui image header">
+            <img class="ui tiny rounded image">
+            <div class="content" data-value="name">{SERIES}</div>
+          </h4>
+        </a>
+      </td>
+      <td data-row="year" class="center aligned">{YEAR}</td>
+      <td data-row="libraries" class="center aligned">
+        <div data-value="libraries" class="ui compact multiple selection dropdown">
+          <input name="libraries" type="hidden">
+          <i class="dropdown icon"></i>
+          <div class="default text">None</div>
+          <div class="menu">
+            {% for connection_id, (connection_type, libraries) in preferences.libraries.items() %}
+              {% for library in libraries %}
+                <div class="vertical item" data-value="{{ connection_type }}::{{ connection_id }}::{{ library }}">
+                  <span class="description">{{ connection_type }}</span>
+                  <span class="text">{{ library }}</span>
+                </div>
+              {% endfor %}
+            {% endfor %}
+          </div>
+        </div>
+      </td>
+      <td data-row="card_count" class="center aligned selectable">
+        <a>
+          <span data-value="card_count">{N} / {Y} Cards</span>
+          <div class="ui bottom attached multiple progress" data-total="134" data-value="112,22">
+            <div class="green bar"></div>
+            <div class="red bar"></div>
+          </div>
+        </a>
+      </td>
+      <td data-row="status" class="center aligned selectable"><a></a></td>
+      <td class="center aligned selectable" data-row="process"><a><i class="images outline icon"></i></a></td>
+    </tr>
+  </template>
+
+  <template id="blank-tab-template">
+    <div class="ui bottom attached tab uninvertible segment">
+      <form class="ui uninvertible form">
+        <div class="ui field">
+          <label>Filter Name</label>
+          <input type="text" name="filter_name" placeholder="Name" value="New Filter" oninput="updateTitle(this);">
+        </div>
+        <div class="ui divider"></div>
+        <!-- Conditions added later -->
+      </form>
+  
+      <div class="ui icon button" onclick="addFilterCondition(this);">
+        <i class="plus circle icon"></i>
+        Add Condition
+      </div>
+  
+      <div class="ui right floated red icon button" onclick="deleteFilter(this);">
+        <i class="trash alternate outline icon"></i>
+        Delete Filter
+      </div>
+    </div>
+  </template>
+  
+  <template id="filter-template">
+    <div class="fields">
+      <div class="five wide field" data-label="field">
+        <label>Field</label>
+        <div class="ui selection clearable search dropdown">
+          <input type="hidden" name="field" onchange="updateConditions(this);">
+          <i class="dropdown icon"></i>
+          <div class="default text">Field Name</div>
+          <div class="menu"></div>
+        </div>
+      </div>
+  
+      <div class="five wide field" data-label="condition">
+        <label>Condition</label>
+        <div class="ui selection dropdown">
+          <input type="hidden" name="condition">
+          <i class="dropdown icon"></i>
+          <div class="default text">Condition Type</div>
+          <div class="menu"></div>
+        </div>
+      </div>
+  
+      <div class="five wide disabled field" data-label="reference">
+        <label>Reference</label>
+        <input type="text" name="reference" placeholder="Reference Value">
+      </div>
+
+      <div class="one wide field" data-label="reference">
+        <label></label>
+        <button class="ui icon tertiary red button" onclick="deleteCondition(this);" data-tooltip="Delete Condition">
+          <i class="times circle icon"></i>
+        </button>
+      </div>
+    </div>
+  </template>
+</head>
+
+<body onload="initAll();">
+  <div>
+    <!-- Static header and sidebar -->
+    <div id="page-header">
+      {% include "/pages/header.html" %}
+    </div>
+    <div id="nav-menu">
+      {% include "/pages/home_sidebar.html" %}
+    </div>
+
+    <!-- Actual page content -->
+    <div id="main-content" class="article">
+      <!-- Toolbar -->
+      <div id="toolbar" class="ui menu">
+        <a class="item" data-action="filter" onclick="$('#filter-modal').modal({blurring: true}).modal('show');">
+          <i class="filter icon"></i>
+          Filter
+        </a>
+        <div class="ui dropdown item">
+          <i class="ui sort icon"></i>
+          Sort
+          <div class="menu">
+            <a class="item" onclick="sortSeries('name');">
+              <i class="ui sort alphabet down icon"></i>
+              Name
+            </a>
+            <a class="item" onclick="sortSeries('id');">
+              <i class="ui sort icon"></i>
+              Recently Added
+            </a>
+            <a class="item" onclick="sortSeries('sync');">
+              <i class="sync icon"></i>
+              Sync
+            </a>
+            <a class="item" onclick="sortSeries('cards');">
+              <i class="ui sort amount down icon"></i>
+              Title Cards
+            </a>
+            <a class="item" onclick="sortSeries('year')">
+              <i class="ui sort numeric down icon"></i>
+              Year
+            </a>
+          </div>
+        </div>
+        <!-- <a class="item" onclick="$('#filter-modal').modal('show');">
+          <i class="ui solid filter icon"></i>
+          Filter
+        </a> -->
+        {% if preferences.home_page_table_view %}
+        <a class="item" data-action="select" onclick="toggleAllSelection();">
+          <i class="exchange alternate icon"></i>
+          Toggle Selection
+        </a>
+        <a class="disabled item" data-action="unselect" onclick="clearSelection();">
+          <i class="times icon"></i>
+          Clear Selection
+        </a>
+        <div class="ui dropdown disabled item" data-action="edit">
+          <i class="caret down icon"></i>
+          More
+          <div class="menu">
+            <div class="divider"></div>
+            <a class="item" onclick="batchChangeStatus('monitored');">
+              <i class="ui eye outline green icon"></i>
+              Monitor
+            </a>
+            <a class="item" onclick="batchChangeStatus('unmonitored');">
+              <i class="ui eye slash outline yellow icon"></i>
+              Unmonitor
+            </a>
+            <a class="item" onclick="batchChangeStatus('disabled');">
+              <i class="ui times circle outline red icon"></i>
+              Disable
+            </a>
+            <a class="item" onclick="batchProcess();">
+              <i class="ui images outline blue icon"></i>
+              Create Title Cards
+            </a>
+            <a class="item" onclick="batchLoad(false);">
+              <i class="hdd outline icon"></i>
+              Load Title Cards
+            </a>
+            <a class="item" onclick="batchLoad(true);">
+              <i class="hdd outline orange icon"></i>
+              Force-Reload Title Cards
+            </a>
+            <div class="divider"></div>
+            <a class="item" onclick="batchDeleteEpisodes();">
+              <i class="red play circle outline icon"></i>
+              Delete Episodes
+            </a>
+            <a class="item" onclick="batchDeleteCards();">
+              <i class="red images outline icon"></i>
+              Delete Title Cards
+            </a>
+            <a class="item" onclick="batchDeleteSeries();">
+              <i class="red trash alternate outline icon"></i>
+              Delete Series
+            </a>
+          </div>
+        </div>
+        {% endif %}
+        <div class="right menu">
+          <a class="item" data-action="enable-counts" onclick="toggleCounts(true);">
+            <i class="green check circle outline icon"></i>
+            Display Counts
+          </a>
+          <a class="item" data-action="disable-counts" onclick="toggleCounts(false);">
+            <i class="red times circle outline icon"></i>
+            Hide Counts
+          </a>
+          {% if preferences.home_page_table_view %}
+            <a class="item" data-action="change-display" onclick="toggleGlobalDisplayStyle('poster');">
+              <i class="file image outline icon"></i>
+              Poster View
+            </a>
+          {% else %}
+            <a class="item" data-action="change-display" onclick="toggleGlobalDisplayStyle('table');">
+              <i class="table icon"></i>
+              Table View
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      
+      <!-- Loader -->
+      <div class="ui active centered inline blue elastic loader" id="loader"></div>
+
+      <!-- Actual series content, added asynchronously -->
+      {% if preferences.home_page_table_view %}
+      <table class="ui basic sortable striped celled unstackable table">
+        <thead>
+          <tr>
+            <th class="center aligned collapsing no-sort">Select</th>
+            <th class="six wide collapsing" onclick="sortSeries('name');">Series</th>
+            <th class="center aligned collapsing" onclick="sortSeries('year');">Year</th>
+            <th class="center aligned">Libraries</th>
+            <th data-column="card_count" class="center aligned">Title Cards</th>
+            <th class="center aligned collapsing">Status</th>
+            <th class="center aligned collapsing no-sort">Create<br>Cards</th>
+          </tr>
+        </thead>
+        <tbody id="series-table"></tbody>
+      </table>
+      {% else %}
+      <div id="series-list" class="ui cards"></div>
+      {% endif %}
+      <div id="pagination" class="ui centered pagination menu"><!-- Pagination added later --></div>
+      
+      <!-- Statistics -->
+      <div class="ui equal width stackable grid">
+        <div class="column">
+          <div class="ui mini horizontal statistics">
+            <div class="ui statistic" data-value="series">
+              <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+              <div class="label">Series</div>
+            </div>
+            <div class="ui statistic" data-value="monitored">
+              <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+              <div class="label">Monitored</div>
+            </div>
+            <div class="ui statistic" data-value="unmonitored">
+              <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+              <div class="label">Unmonitored</div>
+            </div>
+            <div class="ui statistic" data-value="disabled">
+              <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+              <div class="label">Disabled</div>
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div class="ui mini horizontal statistics">
+            <a href="/card-templates">
+              <div class="ui statistic" data-value="templates">
+                <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+                <div class="label">Templates</div>
+              </div>
+            </a>
+            <a href="/fonts">
+              <div class="ui statistic" data-value="fonts">
+                <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+                <div class="label">Fonts</div>
+              </div>
+            </a>
+            <a href="/sync">
+              <div class="ui statistic" data-value="syncs">
+                <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+                <div class="label">Syncs</div>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="column">
+          <div class="ui mini horizontal statistics">
+            <div class="ui statistic" data-value="episodes">
+              <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+              <div class="label">Episodes</div>
+            </div>
+            <div class="ui statistic" data-value="title-cards">
+              <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+              <div class="label">Cards</div>
+            </div>
+            <div class="ui statistic" data-value="loaded-title-cards">
+              <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+              <div class="label">Loaded Cards</div>
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div class="ui mini horizontal statistics">
+            <div class="ui statistic" data-value="filesize">
+              <div class="value"><div class="ui active inline mini slow blue loader"></div></div>
+              <div class="label">Mega-tera-giga-bytes</div>
+            </div>
+            <a href="/graphs">
+              <div class="ui statistic">
+                <div class="value"><i class="chart bar yellow icon"></i></div>
+                <div class="label"><span class="ui yellow text">View Graphs</span></div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="ui uninvertible modal" id="filter-modal">
+      <div class="header">Filters</div>
+      <div class="content">
+        <div class="ui top attached tabular wrapping uninvertible menu">
+          <!-- Tab selector added later -->
+          <div class="item add-tab" data-tab="add" onclick="addTab(undefined, true);"><i class="plus circle blue icon"></i></div>
+        </div>
+        <!-- Tabs added later -->
+      </div>
+    
+      <div class="actions">
+        <button class="ui gray button" onclick="unapplyFilter();">
+          <i class="eraser icon"></i>
+          Unapply Filters
+        </button>
+        <button class="ui blue button" onclick="serializeAllFilters();">
+          <i class="check icon"></i>
+          Save & Apply Filter
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

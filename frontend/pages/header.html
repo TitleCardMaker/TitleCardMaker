@@ -1,0 +1,51 @@
+<div id="tcm-logo" class="ui inverted basic button">
+  <a onclick="toggleNavMenu();"> 
+    <img alt="Title Card Maker Logo" src="/public/tcm_no_lettering.svg" style="margin: auto; max-width: 43px; max-height: 43px;">
+  </a>
+</div>
+
+<div id="header-search" class="ui transparent input">
+  <div id="search-bar" class="ui search">
+    <div class="ui icon input">
+    <input class="prompt" type="text" placeholder="Search...">
+    <i class="search icon"></i>
+    </div>
+    <div class="results"></div>
+  </div>
+</div>
+
+<!-- Right aligned header content -->
+<div class="right aligned content" data-position="right">
+  <!-- Documentation -->
+  <div data-tooltip="View this Page's Documentation" data-position="bottom center">
+    <a id="documentation-link" class="ui inverted primary teal button" target="_blank">
+      <i class="book icon"></i>
+    </a>
+  </div>
+
+  <!-- Server Logs -->
+  <div data-tooltip="View logs" data-position="bottom center">
+    <a class="ui inverted primary green button" href="/logs">
+      <i class="server icon"></i>
+    </a>
+  </div>
+
+  <!-- Toggle Theme -->
+  <div id="theme-toggle" data-tooltip="Toggle site theme" data-position="bottom center">
+    <div class="ui inverted primary blue animated button" onclick="toggleTheme()">
+      <div class="visible content"><i class="sun outline icon"></i></div>
+      <div class="hidden content"><i class="moon outline icon"></i></div>
+    </div>
+  </div>
+
+  <!-- Support button -->
+  <!-- TODO: Untoggle on public release -->
+  <!-- <div id="support-button">
+    <a href="https://github.com/sponsors/CollinHeist" target="_blank">
+      <div class="ui transition looping pulsating red button">
+        <i class="heart icon"></i> Support
+      </div>
+    </a>
+  </div> -->
+</div>
+<!-- <script type="text/javascript" src="/templates/js/theme.js"></script> -->
