@@ -54,8 +54,9 @@ function queryLatestCards(page=1) {
         base.querySelector('.card').href = `/series/${card.series_id}`;
         base.querySelector('.image img').src = card.file_url;
         base.querySelector('[data-label="series_name"]').innerText = card.series?.name;
-        base.querySelector('[data-label="episode"]').innerText = 
-          `Season ${card.episode.season_number} Episode ${card.episode.episode_number}`;
+        base.querySelector('[data-label="episode"]').innerText = card.episode
+          ? `Season ${card.episode.season_number} Episode ${card.episode.episode_number}`
+          : 'No associated episode';
         base.querySelector('[data-label="creation"]').innerText = timeDiffString(
           _utcToLocal(new Date(card.created)), undefined, undefined, 1,
         )
