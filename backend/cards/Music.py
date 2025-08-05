@@ -14,6 +14,8 @@ from pydantic import (
     validator,
 )
 
+from app.info.episode import EpisodeInfo
+from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
@@ -26,8 +28,6 @@ from modules.BaseCardType import (
     Shadow,
     TextCase,
 )
-from app.logging.logger import log # noqa: F401
-from app.info.episode import EpisodeInfo
 from modules.FormatString import FormatString
 from modules.Title import SplitCharacteristics
 

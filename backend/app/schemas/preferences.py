@@ -19,7 +19,6 @@ from app.schemas.base import (
     InterfaceType,
     UNSPECIFIED,
 )
-
 from modules.FormatString import FormatString
 
 

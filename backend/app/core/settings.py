@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.config import PreferencesLocal
 from app.models.connection import Connection
 from app.schemas.preferences import EpisodeDataSourceToggle
-from modules.cards.available import CARD_CLASSES, DEFAULT_BLUR_PROFILES
+from app.core.card_registry import CARD_CLASSES, DEFAULT_BLUR_PROFILES
 
 
 def get_episode_data_sources(db: Session) -> list[EpisodeDataSourceToggle]:

@@ -449,7 +449,7 @@ class BaseCardType(ImageMaker, ABC):
             )
 
         # Register card type descriptions and blur profiles into global lists
-        from modules.cards.available import (
+        from app.core.card_registry import (
             CARD_CLASSES, DEFAULT_BLUR_PROFILES, LocalCards
         )
         DEFAULT_BLUR_PROFILES[cls.API_DETAILS.identifier] = cls.BLUR_PROFILE
