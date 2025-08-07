@@ -46,7 +46,7 @@ class LandscapeTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Landscape',
         identifier='landscape',
-        example='/public/cards/landscape.jpg',
+        example='/public/cards/landscape.webp',
         creators=['CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,

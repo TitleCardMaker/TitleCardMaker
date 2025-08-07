@@ -109,7 +109,7 @@ class ComicBookTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Comic Book',
         identifier='comic book',
-        example='/public/cards/comic book.jpg',
+        example='/public/cards/comic book.webp',
         creators=['CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,

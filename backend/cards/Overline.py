@@ -31,7 +31,7 @@ class OverlineTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Overline',
         identifier='overline',
-        example='/public/cards/overline.jpg',
+        example='/public/cards/overline.webp',
         creators=['CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,

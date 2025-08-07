@@ -30,7 +30,7 @@ class CalligraphyTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Calligraphy',
         identifier='calligraphy',
-        example='/public/cards/calligraphy.jpg',
+        example='/public/cards/calligraphy.webp',
         creators=['CollinHeist', '/u/Recker_Man'],
         source='builtin',
         supports_custom_fonts=True,

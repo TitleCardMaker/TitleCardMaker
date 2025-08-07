@@ -27,7 +27,7 @@ class CutoutTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Cutout',
         identifier='cutout',
-        example='/public/cards/cutout.jpg',
+        example='/public/cards/cutout.webp',
         creators=['/u/Phendrena', 'CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,

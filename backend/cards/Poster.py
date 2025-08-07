@@ -21,7 +21,7 @@ class PosterTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Poster',
         identifier='poster',
-        example='/public/cards/poster.jpg',
+        example='/public/cards/poster.webp',
         creators=['/u/battleoflight', 'CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,

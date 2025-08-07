@@ -26,7 +26,7 @@ class FadeTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Fade',
         identifier='fade',
-        example='/public/cards/fade.jpg',
+        example='/public/cards/fade.webp',
         creators=['Yozora', 'CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,

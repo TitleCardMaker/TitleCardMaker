@@ -33,7 +33,7 @@ class TintedGlassTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Tinted Glass',
         identifier='tinted glass',
-        example='/public/cards/tinted glass.jpg',
+        example='/public/cards/tinted glass.webp',
         creators=['/u/RaceDebriefF1', 'CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,

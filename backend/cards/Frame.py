@@ -29,7 +29,7 @@ class FrameTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Frame',
         identifier='frame',
-        example='/public/cards/frame.jpg',
+        example='/public/cards/frame.webp',
         creators=['CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,

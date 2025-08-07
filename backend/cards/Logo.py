@@ -25,7 +25,7 @@ class LogoTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Logo',
         identifier='logo',
-        example='/public/cards/logo.jpg',
+        example='/public/cards/logo.webp',
         creators=['CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,

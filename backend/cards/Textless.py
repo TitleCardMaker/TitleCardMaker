@@ -22,7 +22,7 @@ class TextlessTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Textless',
         identifier='textless',
-        example='/public/cards/textless.jpg',
+        example='/public/cards/textless.webp',
         creators=['CollinHeist'],
         source='builtin',
         supports_custom_fonts=False,

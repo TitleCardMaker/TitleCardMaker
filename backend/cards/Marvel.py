@@ -33,7 +33,7 @@ class MarvelTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Marvel',
         identifier='marvel',
-        example='/public/cards/marvel.jpg',
+        example='/public/cards/marvel.webp',
         creators=['CollinHeist', 'RedHeadJedi'],
         source='builtin',
         supports_custom_fonts=True,

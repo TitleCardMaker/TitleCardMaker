@@ -208,7 +208,7 @@ class RomanNumeralTitleCard(BaseCardType):
     API_DETAILS = CardTypeDescription(
         name='Roman Numeral',
         identifier='roman numeral',
-        example='/public/cards/roman.jpg',
+        example='/public/cards/roman.webp',
         creators=['CollinHeist'],
         source='builtin',
         supports_custom_fonts=True,
