@@ -1,10 +1,11 @@
-from os import getenv
 from pathlib import Path
+from typing import Annotated
 
 from requests import Response, get
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 from tinydb import where
 
+from app.core.config import config
 from app.logging.logger import log
 from modules.PersistentDatabase import PersistentDatabase
 
@@ -19,11 +20,10 @@ class RemoteFile:
     remote file if it DNE.
     """
 
-    """Base URL to look for remote content at"""
-    BASE_URL = getenv(
-        'TCM_CARD_TYPE_URL',
-        'https://github.com/CollinHeist/TitleCardMaker-CardTypes/raw/web-ui'
-    ).removesuffix('/')
+    BASE_URL: Annotated[
+        str,
+        'Base URL to look for remote content at'
+    ] = config.CARD_TYPE_REPOSITORY.removesuffix('/')
 
     """Temporary directory all files will be downloaded into"""
     TEMP_DIR = Path(__file__).parent / '.objects'

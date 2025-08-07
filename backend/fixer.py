@@ -145,7 +145,7 @@ tmdb_group.add_argument(
 args = parser.parse_args()
 
 # Parse preference file for options that might need it
-if not (pp := PreferenceParser(args.preferences, settings.IS_DOCKER)).valid:
+if not (pp := PreferenceParser(args.preferences, settings.config.IS_DOCKER)).valid:
     sys_exit(1)
 set_preference_parser(pp)
 

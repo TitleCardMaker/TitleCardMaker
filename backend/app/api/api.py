@@ -1,13 +1,12 @@
 from logging import Logger
-from os import getenv
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import MetaData, text
 from sqlalchemy.orm import Session
 
 from app.api.v2 import v2_router
-from app.dependencies import get_database, get_logger, get_preferences
-from modules.preferences import Preferences
+from app.dependencies import get_database, get_logger
+from app.settings import settings
 
 
 # Create sub router for all API requests
@@ -39,7 +38,6 @@ def health_check(
 @api_router.post('/reset')
 def reset_database(
     db: Session = Depends(get_database),
-    preferences: Preferences = Depends(get_preferences),
     log: Logger = Depends(get_logger),
 ) -> None:
     """
@@ -52,11 +50,8 @@ def reset_database(
 
     from app.db.database import engine
 
-    if getenv('TCM_TESTING', 'false') != 'TRUE':
-        raise HTTPException(
-            status_code=401,
-            detail='Unauthorized',
-        )
+    if not settings.config.TESTING_MODE:
+        raise HTTPException(status_code=401, detail='Unauthorized')
 
     # Delete all tables in the database in reverse order so children
     # are removed before parents
@@ -71,4 +66,4 @@ def reset_database(
     db.commit()
 
     # Reset the global preferences
-    preferences.reset(log=log)
+    settings.reset(log=log)
