@@ -2,7 +2,7 @@
 # pyright: reportInvalidTypeForm=false
 from typing import Literal
 
-from pydantic import constr, validator
+from pydantic import constr, field_validator
 
 from app.schemas.base import Base, UNSPECIFIED
 
@@ -24,12 +24,13 @@ class NewBaseSync(Base):
     required_tags: list[str] = []
     excluded_tags: list[str] = []
 
-    @validator('template_ids', pre=False)
-    def validate_unique_template_ids(cls, val: list[int]) -> list[int]:
+    @field_validator('template_ids', mode='after')
+    @classmethod
+    def validate_unique_template_ids(cls, value: list[int]) -> list[int]:
         if (cls.__name__.startswith(('New', 'Update'))
-            and len(val) != len(set(val))):
+            and len(value) != len(set(value))):
             raise ValueError('Template IDs must be unique')
-        return val
+        return value
 
 class NewMediaServerSync(NewBaseSync):
     required_libraries: list[str] = []
@@ -86,8 +87,9 @@ class UpdateSync(Base):
     required_series_type: SonarrSeriesType | None = UNSPECIFIED
     excluded_series_type: SonarrSeriesType | None = UNSPECIFIED
 
-    @validator('template_ids', pre=False)
-    def validate_unique_template_ids(cls, val):
-        if len(val) != len(set(val)):
+    @field_validator('template_ids', mode='after')
+    @classmethod
+    def validate_unique_template_ids(cls, value: list[int]) -> list[int]:
+        if len(value) != len(set(value)):
             raise ValueError('Template IDs must be unique')
-        return val
+        return value
