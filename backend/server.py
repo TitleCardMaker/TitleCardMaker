@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 load_dotenv()
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
-from starlette.middleware.cors import CORSMiddleware
 
 from app.api.api import api_router
 from app.api.pages import router as pages_router
+from app.api.sockets import router as sockets_router
 from app.core.boot import initialize_app, initialize_huey, teardown_app, teardown_huey
 from app.middleware import middlewares
 
@@ -54,11 +54,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Configure Application by adding pagination, all API routers, and page
-# navigation
+# Configure Application by adding pagination, all API routers, page
+# navigation, and websockets
 add_pagination(app)
 app.include_router(api_router)
 app.include_router(pages_router)
+app.include_router(sockets_router)
 
 # Add middleware in the correct order
 for middleware in middlewares:
