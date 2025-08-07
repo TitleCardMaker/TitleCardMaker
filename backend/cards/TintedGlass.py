@@ -538,12 +538,13 @@ def get_validator_model() -> type[Base]:
         ) = TintedGlassTitleCard.DEFAULT_ROUNDING_RADIUS
         vertical_adjustment: int = 0
 
-        @validator('box_adjustments')
-        def parse_box_adjustments(cls, val: str) -> tuple[int, int, int, int]:
+        @field_validator('box_adjustments', mode='after')
+        @classmethod
+        def parse_box_adjustments(cls, value: str) -> tuple[int, int, int, int]:
             """Convert box adjustment strings to a tuple of integers"""
 
             adjustments = tuple(
-                map(int, re_match(BoxAdjustmentRegex, val).groups())
+                map(int, re_match(BoxAdjustmentRegex, value).groups())
             )
             if len(adjustments) != 4:
                 raise ValueError(

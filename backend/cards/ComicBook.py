@@ -2,9 +2,9 @@ from math import cos, sin, pi as PI
 from pathlib import Path
 from random import uniform
 from re import match as re_match
-from typing import TYPE_CHECKING, Literal, Self
+from typing import TYPE_CHECKING, Any, Literal, Self
 
-from pydantic import FilePath, constr, model_validator, validator
+from pydantic import FilePath, constr, field_validator, model_validator
 
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
@@ -329,7 +329,7 @@ class ComicBookTitleCard(BaseCardType):
             index_banner_shift: int = 0,
             hide_title_banner: bool = False,
             hide_index_banner: bool = False,
-            **unused,
+            **unused: Any
         ) -> None:
         """Construct a new instance of this Card."""
 
@@ -763,8 +763,13 @@ def get_validator_model() -> type[Base]:
         hide_title_banner: bool = False
         hide_index_banner: bool = False
 
-        @validator('title_text_rotation_angle', 'index_text_rotation_angle')
-        def validate_random_angle(cls, val: str | float) -> float:
+        @field_validator(
+            'title_text_rotation_angle',
+            'index_text_rotation_angle',
+            mode='after',
+        )
+        @classmethod
+        def validate_random_angle(cls, value: str | float) -> float:
             """
             Validate the rotation angles. This verifies the randomized angles
             are valid, generates them if necessary, and limits all angles
@@ -772,11 +777,11 @@ def get_validator_model() -> type[Base]:
             """
 
             # If angle is a random range string, replace with random value in range
-            if isinstance(val, str):
+            if isinstance(value, str):
                 # Get bounds from the random range string
                 lower, upper = map(
                     float,
-                    re_match(RandomAngleRegex, val).groups() # type: ignore
+                    re_match(RandomAngleRegex, value).groups() # type: ignore
                 )
 
                 # Lower bound cannot be above upper bound
@@ -785,7 +790,7 @@ def get_validator_model() -> type[Base]:
 
                 return uniform(lower, upper) % 360
 
-            return val % 360
+            return value % 360
 
         @model_validator(mode='after')
         def assign_unassigned_color(self) -> Self:

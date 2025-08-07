@@ -3,7 +3,7 @@ from random import choice
 from re import compile as re_compile
 from typing import TYPE_CHECKING, Any, NamedTuple
 
-from pydantic import FilePath, PositiveFloat, validator
+from pydantic import FilePath, PositiveFloat, field_validator
 
 from app.logging.logger import log
 from app.schemas.base import Base, BaseCardTypeAllText
@@ -837,14 +837,15 @@ def get_validator_model() -> type[Base]:
         season_text_color: str = RomanNumeralTitleCard.SEASON_TEXT_COLOR
         season_text_size: PositiveFloat = 1.0
 
-        @validator('episode_text')
-        def validate_episode_text_numeral(cls, val: str) -> str:
+        @field_validator('episode_text', mode='after')
+        @classmethod
+        def validate_episode_text_numeral(cls, value: str) -> str:
             """
             Remove all non-digits from the episode text, and verify the
             number can be represented by a roman numeral.
             """
 
-            val = ''.join(c for c in val if c.isdigit())
+            val = ''.join(c for c in value if c.isdigit())
             if not (0 <= int(val) <= RomanNumeralTitleCard.MAX_ROMAN_NUMERAL):
                 raise ValueError(
                     f'Episode text number must be between 0 and '

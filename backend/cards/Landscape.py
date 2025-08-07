@@ -9,8 +9,8 @@ from pydantic import (
     PositiveInt,
     conint,
     constr,
+    field_validator,
     model_validator,
-    validator,
 )
 
 from app.logging.logger import log # noqa: F401
@@ -615,11 +615,12 @@ def get_validator_model() -> type[Base]:
         rounding_radius: conint(ge=0, le=500) = LandscapeTitleCard.ROUNDING_RADIUS
         shadow_color: str = LandscapeTitleCard.SHADOW_COLOR
 
-        @validator('box_adjustments')
-        def parse_box_adjustments(cls, val: str) -> tuple[int, int, int, int]:
+        @field_validator('box_adjustments', mode='after')
+        @classmethod
+        def parse_box_adjustments(cls, value: str) -> tuple[int, int, int, int]:
             """Convert box adjustment strings to a tuple of integers"""
 
-            return tuple(map(int, re_match(BoxAdjustmentRegex, val).groups())) # type: ignore
+            return tuple(map(int, re_match(BoxAdjustmentRegex, value).groups()))
 
         @model_validator(mode='after')
         def assign_unassigned_color(self) -> Self:

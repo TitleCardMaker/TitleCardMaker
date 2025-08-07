@@ -10,8 +10,8 @@ from pydantic import (
     confloat,
     conint,
     constr,
+    field_validator,
     model_validator,
-    validator,
 )
 
 from app.info.episode import EpisodeInfo
@@ -1218,14 +1218,15 @@ def get_validator_model() -> type[Base]:
         truncate_long_titles: PositiveInt | Literal['False'] = 3
         watched: bool | None = None
 
-        @validator('control_colors', allow_reuse=True)
-        def parse_control_colors(cls, val: str) -> tuple[str, str, str, str]:
+        @field_validator('control_colors', mode='after')
+        @classmethod
+        def parse_control_colors(cls, value: str) -> tuple[str, str, str, str]:
             """
             Parse the control color string into a tuple of individual
             colors.
             """
 
-            return tuple(re_match(ControlColorRegex, val).groups()) # type: ignore
+            return tuple(re_match(ControlColorRegex, value).groups())
 
         @model_validator(mode='after')
         def assign_unassigned_player_action(self) -> Self:

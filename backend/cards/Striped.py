@@ -5,7 +5,14 @@ from random import choice as random_choice, randint
 from re import IGNORECASE, compile as re_compile
 from typing import TYPE_CHECKING, Any, Literal, Sequence, Union
 
-from pydantic import FilePath, PositiveFloat, confloat, conint, constr, validator
+from pydantic import (
+    FilePath,
+    PositiveFloat,
+    confloat,
+    conint,
+    constr,
+    field_validator,
+)
 
 from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardTypeAllText
@@ -897,17 +904,18 @@ def get_validator_model() -> type[Base]:
         separator: str = ' - '
         text_position: TextPosition = StripedTitleCard.DEFAULT_TEXT_POSITION
 
-        @validator('polygons')
-        def validate_size_boundaries(cls, val: str) -> str:
+        @field_validator('polygons', mode='after')
+        @classmethod
+        def validate_size_boundaries(cls, value: str) -> str:
             """
             Validate the polygon definition does not provide any invalid
             size boundaries.
             """
 
             # Remove random[] part of string for parsing
-            temp = val
-            if 'random[' in val:
-                temp = val.split('random[')[1].split(']')[0]
+            temp = value
+            if 'random[' in value:
+                temp = value.split('random[')[1].split(']')[0]
 
             # Parse size range individually
             for range_ in temp.removesuffix('+').split(','):
@@ -923,6 +931,6 @@ def get_validator_model() -> type[Base]:
                         f'upper bound ({upper})'
                     )
 
-            return val
+            return value
 
     return CardModel
