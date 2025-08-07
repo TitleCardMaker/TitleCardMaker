@@ -8,11 +8,10 @@ from tinydb import where
 from tinydb.queries import QueryInstance
 
 from app.info.base import InterfaceID
-from app.magick.base import ImageMaker
 from app.info.episode import EpisodeInfo, EpisodeInfoV1
 from app.info.series import SeriesInfo, SeriesInfoV1
-from app.yaml.season_posters import SeasonPosterSet
 from app.logging.logger import Logger, log
+from app.yaml.season_posters import SeasonPosterSet
 from modules.Episode import Episode
 from modules.PersistentDatabase import PersistentDatabase
 from modules.StyleSet import StyleSet
@@ -375,8 +374,9 @@ class MediaServer(ABC):
 
         # If still above the limit, warn and return
         if small_image.stat().st_size > self.filesize_limit:
-            log.warning(f'Cannot reduce filesize of "{image.resolve()}" below '
-                        f'limit')
+            log.warning(
+                f'Cannot reduce filesize of "{image.resolve()}" below limit'
+            )
             return None
 
         # Compression successful, log and return intermediate image
@@ -554,20 +554,24 @@ class MediaServerV1(ABC):
             or image.stat().st_size < self.filesize_limit):
             return image
 
-        # Start with a quality of 90%, decrement by 5% each time
-        quality = 95
+        # Start with a quality of 95%, decrement by 5% each time
+        quality = 100
         small_image = image
 
         # Compress the given image until below the filesize limit
-        while small_image.stat().st_size > self.filesize_limit:
+        while quality > 0 and small_image.stat().st_size > self.filesize_limit:
             # Process image, exit if cannot be reduced
             quality -= 5
-            small_image = ImageMaker.reduce_file_size(image, quality)
-            if small_image is None:
-                log.warning(
-                    f'Cannot reduce filesize of "{image.resolve()}" below limit'
-                )
-                return None
+            # TODO Verify if need to resize with .resize((W, H))
+            Image.open(small_image)\
+                .save(small_image, optimize=True, quality=quality)
+
+        # If still above the limit, warn and return
+        if small_image.stat().st_size > self.filesize_limit:
+            log.warning(
+                f'Cannot reduce filesize of "{image.resolve()}" below limit'
+            )
+            return None
 
         # Compression successful, log and return intermediate image
         log.debug(f'Compressed "{image.resolve()}" with {quality}% quality')
