@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Self
+from typing import TYPE_CHECKING, Any, Literal, Self
 
 from pydantic import PositiveFloat, conint, FilePath, model_validator
 
@@ -16,7 +16,6 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -448,13 +447,12 @@ class CascadeTitleCard(BaseCardType):
             italicize_title_text: bool = False,
             glass_color: str = DEFAULT_GLASS_COLOR,
             glass_edge_color: str = DEFAULT_GLASS_EDGE_COLOR,
-            preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

@@ -12,7 +12,6 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -112,13 +111,12 @@ class StarWarsTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             episode_text_color: str = EPISODE_TEXT_COLOR,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Initialize the CardType object."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         # Store source and output file
         self.source_file = source_file

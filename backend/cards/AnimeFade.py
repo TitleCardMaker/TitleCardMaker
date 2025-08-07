@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal, Self
 
 from pydantic import FilePath, PositiveFloat, model_validator
 
+from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
@@ -10,11 +11,9 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 TextPosition = Literal['bottom', 'center']
 
@@ -150,13 +149,12 @@ class AnimeFadeTitleCard(BaseCardType):
             kanji_vertical_shift: float = 0.0,
             season_text_color: str | None = None,
             text_position: TextPosition = 'bottom',
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         # Store source and output file
         self.source_file = source_file

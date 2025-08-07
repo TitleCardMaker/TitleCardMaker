@@ -13,7 +13,6 @@ from modules.BaseCardType import (
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 
 class FadeTitleCard(BaseCardType):
@@ -126,13 +125,12 @@ class FadeTitleCard(BaseCardType):
             episode_text_font_size: float = 1.0,
             logo_size: float = 1.0,
             separator: str = '•',
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         # Store indicated files
         self.source_file = source_file

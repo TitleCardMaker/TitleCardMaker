@@ -3,10 +3,9 @@ from pathlib import Path
 from re import match as re_match
 from typing import TYPE_CHECKING, Any, Literal, Self
 
-from pydantic import FilePath, conint, constr, model_validator, validator
+from pydantic import FilePath, conint, constr, field_validator, model_validator
 
-from app.schemas.base import Base
-from app.schemas.base import BaseCardTypeCustomFontNoText
+from app.schemas.base import Base, BaseCardTypeCustomFontNoText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -16,7 +15,6 @@ from modules.BaseCardType import (
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 
 BoxCoordinates = namedtuple('BoxCoordinates', ('x0', 'y0', 'x1', 'y1'))
@@ -189,12 +187,11 @@ class TintedGlassTitleCard(BaseCardType):
             glass_color: str = DARKEN_COLOR,
             rounding_radius: int = DEFAULT_ROUNDING_RADIUS,
             vertical_adjustment: int = 0,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         # Store object attributes
         self.source = source_file

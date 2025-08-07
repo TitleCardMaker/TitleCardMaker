@@ -33,7 +33,6 @@ from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 class ControlColors(NamedTuple): # pylint: disable=missing-class-docstring
     shuffle: str
@@ -439,13 +438,12 @@ class MusicTitleCard(BaseCardType):
             round_corners: bool = True,
             subtitle: str = '',
             timeline_color: str = DEFAULT_TIMELINE_COLOR,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 
 from pydantic import FilePath, PositiveFloat, validator
 
+from app.logging.logger import log
 from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
@@ -12,10 +13,8 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from app.logging.logger import log
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -338,13 +337,12 @@ class RomanNumeralTitleCard(BaseCardType):
             roman_numeral_color: str = ROMAN_NUMERAL_TEXT_COLOR,
             season_text_color: str = SEASON_TEXT_COLOR,
             season_text_size: float = 1.0,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         # Store object attributes
         self.output_file = card_file

@@ -12,14 +12,13 @@ from typing import (
 
 from titlecase import titlecase
 
+from app.logging.logger import log
 from app.magick.base import Dimensions, ImageMaker, ImageMagickCommands
 from app.schemas.card import CardTypeDescription, Extra
-from app.logging.logger import log
 from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 CardDescription = CardTypeDescription
 type TextCase = Literal['blank', 'lower', 'source', 'title', 'upper']
@@ -353,14 +352,12 @@ class BaseCardType(ImageMaker, ABC):
     def __init__(self,
             blur: bool = False,
             grayscale: bool = False,
-            *,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """
         Construct a new CardType. Must call super().__init__() to
-        initialize the parent ImageMaker class (for PreferenceParser and
-        ImageMagickInterface objects).
+        initialize the parent ImageMaker class (for ImageMagickInterface
+        objects).
 
         Args:
             blur: Whether to blur the source image. Defaults to False.
@@ -369,7 +366,7 @@ class BaseCardType(ImageMaker, ABC):
         """
 
         # Initialize parent ImageMaker
-        super().__init__(preferences=preferences)
+        super().__init__()
 
         # Object starts as valid
         self.valid = True

@@ -14,7 +14,6 @@ from modules.BaseCardType import (
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 
 TextSide = Literal['left', 'right']
@@ -172,13 +171,12 @@ class NegativeSpaceTitleCard(BaseCardType):
             episode_text_vertical_offset: int = 0,
             text_side: TextSide | Literal['random'] = DEFAULT_TEXT_SIDE,
             title_text_horizontal_offset: int = 0,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

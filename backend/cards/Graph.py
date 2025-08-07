@@ -13,6 +13,7 @@ from pydantic import (
     model_validator,
 )
 
+from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
     BaseCardType,
@@ -22,11 +23,9 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Line,
 )
-from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 
 TextPosition = Literal[
@@ -313,13 +312,12 @@ class GraphTitleCard(BaseCardType):
             omit_gradient: bool = False,
             percentage: float = 0.75,
             text_position: TextPosition = 'lower left',
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

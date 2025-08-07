@@ -3,12 +3,11 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import FilePath
 
+from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, CardTypeDescription
-from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -72,13 +71,12 @@ class TextlessTitleCard(BaseCardType):
             card_file: Path,
             blur: bool = False,
             grayscale: bool = False,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         # Store input/output files
         self.source_file = source_file

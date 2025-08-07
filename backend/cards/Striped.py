@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Literal, Sequence, Union
 
 from pydantic import FilePath, PositiveFloat, confloat, conint, constr, validator
 
+from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
@@ -15,11 +16,9 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-from app.logging.logger import log # noqa: F401
 from modules.Title import SplitCharacteristics
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -476,13 +475,12 @@ class StripedTitleCard(BaseCardType):
             polygons: str = DEFAULT_POLYGON_STRING,
             separator: str = ' - ',
             text_position: TextPosition = DEFAULT_TEXT_POSITION,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

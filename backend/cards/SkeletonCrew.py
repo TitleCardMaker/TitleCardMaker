@@ -4,6 +4,7 @@ from typing import Any, Literal, TYPE_CHECKING, Self
 
 from pydantic import PositiveFloat, model_validator
 
+from app.logging.logger import log  # noqa: F401
 from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
     BaseCardType,
@@ -12,10 +13,8 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Extra,
 )
-from app.logging.logger import log  # noqa: F401
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -190,13 +189,12 @@ class SkeletonCrewTitleCard(BaseCardType):
             # Builtins
             blur: bool = False,
             grayscale: bool = False,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

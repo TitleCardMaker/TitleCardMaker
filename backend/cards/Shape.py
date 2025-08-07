@@ -30,7 +30,6 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -332,13 +331,12 @@ class ShapeTitleCard(BaseCardType):
             shape_width: int = SHAPE_WIDTH,
             stroke_color: str = 'black',
             text_position: TextPosition = 'lower left',
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

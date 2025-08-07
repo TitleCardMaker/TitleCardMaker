@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import FilePath, PositiveFloat, confloat, conint, constr
 
@@ -12,7 +12,6 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -176,13 +175,12 @@ class CutoutTitleCard(BaseCardType):
             overlay_color: str = 'black',
             overlay_transparency: float = 0.0,
             title_horizontal_shift: int = 0,
-            preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

@@ -20,7 +20,6 @@ from modules.BaseCardType import (
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 
 Country = Literal[
@@ -220,13 +219,12 @@ class FormulaOneTitleCard(BaseCardType):
             flag: Path | None = None,
             frame_year: int = 2024,
             race: str = 'GRAND PRIX',
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

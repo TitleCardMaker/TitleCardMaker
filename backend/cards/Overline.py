@@ -16,7 +16,6 @@ from modules.BaseCardType import (
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 LinePosition = Literal['top', 'bottom']
 
@@ -183,13 +182,12 @@ class OverlineTitleCard(BaseCardType):
             line_width: int = LINE_THICKNESS,
             omit_gradient: bool = False,
             separator: str = '-',
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

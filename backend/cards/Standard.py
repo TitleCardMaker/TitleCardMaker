@@ -3,18 +3,17 @@ from typing import TYPE_CHECKING, Annotated, Any
 
 from pydantic import FilePath, PositiveFloat
 
+from app.logging.logger import log # noqa: F401
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
     Extra,
     ImageMagickCommands,
 )
-from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 
 class StandardTitleCard(BaseCardType):
@@ -183,13 +182,12 @@ class StandardTitleCard(BaseCardType):
             episode_text_stroke_color: str = DEFAULT_STROKE_COLOR,
             episode_text_vertical_shift: int = 0,
             omit_gradient: bool = False,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

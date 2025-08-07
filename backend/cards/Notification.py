@@ -11,6 +11,7 @@ from pydantic import (
     validator,
 )
 
+from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
@@ -20,11 +21,9 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Rectangle,
 )
-from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
-    from modules.preferences import Preferences
 
 Position = Literal['left', 'right']
 
@@ -220,13 +219,12 @@ class NotificationTitleCard(BaseCardType):
             glass_color: str = GLASS_COLOR,
             position: Position = 'right',
             separator: str = '-',
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

@@ -7,7 +7,6 @@ from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, Extra, CardTypeDescription
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -104,13 +103,12 @@ class PosterTitleCard(BaseCardType):
             grayscale: bool = False,
             logo_file: Path | None = None,
             episode_text_color: str = EPISODE_TEXT_COLOR,
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         # Store indicated files
         self.source_file = source_file

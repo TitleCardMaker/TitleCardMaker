@@ -12,7 +12,6 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -170,13 +169,12 @@ class DividerTitleCard(BaseCardType):
             text_gravity: TextGravity | None = None,
             title_text_position: TitleTextPosition = 'left',
             text_position: TextPosition = 'lower right',
-            preferences: 'Preferences | None' = None,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

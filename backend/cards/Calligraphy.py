@@ -1,9 +1,10 @@
 from pathlib import Path
 from random import random
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from pydantic import FilePath, PositiveFloat, model_validator
 
+from app.info.episode import EpisodeInfo
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
     BaseCardType,
@@ -13,10 +14,8 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Shadow,
 )
-from app.info.episode import EpisodeInfo
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 
@@ -193,13 +192,12 @@ class CalligraphyTitleCard(BaseCardType):
             randomize_texture: bool = True,
             separator: str = '-',
             shadow_color: str = 'black',
-            preferences: 'Preferences | None' = None,
-            **unused,
+            **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         self.source_file = source_file
         self.output_file = card_file

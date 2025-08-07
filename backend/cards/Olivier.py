@@ -3,8 +3,7 @@ from typing import TYPE_CHECKING, Any, Literal, Self
 
 from pydantic import FilePath, PositiveFloat, constr, model_validator
 
-from app.schemas.base import Base
-from app.schemas.base import BaseCardTypeCustomFontNoText
+from app.schemas.base import Base, BaseCardTypeCustomFontNoText
 from modules.BaseCardType import (
     BaseCardType,
     CardTypeDescription,
@@ -13,7 +12,6 @@ from modules.BaseCardType import (
 )
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from app.yaml.font import Font
 
 GradientType = Literal['original', 'improved']
@@ -168,7 +166,6 @@ class OlivierTitleCard(BaseCardType):
             # Builtins
             blur: bool = False,
             grayscale: bool = False,
-            preferences: 'Preferences | None' = None,
             # Extras
             episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
@@ -181,7 +178,7 @@ class OlivierTitleCard(BaseCardType):
         """Construct a new instance of this card."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
-        super().__init__(blur, grayscale, preferences=preferences)
+        super().__init__(blur, grayscale)
 
         # Store source and output file
         self.source_file = source_file

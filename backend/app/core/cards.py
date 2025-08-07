@@ -451,10 +451,7 @@ def create_card(
     """
 
     # Create Card
-    card_maker = CardClass(
-        **CardTypeModel.model_dump(),
-        preferences=get_preferences()
-    )
+    card_maker = CardClass(**CardTypeModel.model_dump())
     card_maker.create()
 
     # If file exists, card was created successfully - add to database
