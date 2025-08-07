@@ -22,6 +22,21 @@ const globalBlurProfiles = {{ DEFAULT_BLUR_PROFILES | tojson }};
 let allConnections;
 async function getAllConnections() {
   allConnections = await fetch('/api/v2/connection/all').then(resp => resp.json());
+  
+  // Check if no connections are available
+  if (!allConnections || allConnections.length === 0) {
+    // Disable all form fields
+    $('#settings-form .field').addClass('disabled');
+
+    // Disable the save button
+    const saveButton = document.getElementById('save-changes');
+    if (saveButton) {
+      saveButton.disabled = true;
+      saveButton.classList.add('disabled');
+    }
+
+    return;
+  }
 }
 
 // Get all available Templates
@@ -32,6 +47,11 @@ let allTemplates = [];
  * dropdowns with these values (and a placeholder).
  */
 function getTemplates() {
+  // Safety check: if no connections are available, don't proceed
+  if (!allConnections || allConnections.length === 0) {
+    return;
+  }
+  
   $.ajax({
     type: 'GET',
     url: '/api/v2/available/templates',
@@ -56,6 +76,11 @@ function getTemplates() {
  * valid Connections.
  */
 function getEpisodeDataSources() {
+  // Safety check: if no connections are available, don't proceed
+  if (!allConnections || allConnections.length === 0) {
+    return;
+  }
+  
   $.ajax({
     type: 'GET',
     url: '/api/v2/settings/episode-data-source',
@@ -78,6 +103,11 @@ function getEpisodeDataSources() {
  * valid Connections.
  */
 function getImageSourcePriority() {
+  // Safety check: if no connections are available, don't proceed
+  if (!allConnections || allConnections.length === 0) {
+    return;
+  }
+  
   $.ajax({
     type: 'GET',
     url: '/api/v2/settings/image-source-priority',
@@ -240,6 +270,12 @@ function updatePreviewTitleCard(allCards, previewCardType) {
  * shown with the results of the request.
  */
 function updateGlobalSettings() {
+  // Safety check: if no connections are available, don't proceed
+  if (!allConnections || allConnections.length === 0) {
+    showErrorToast({title: 'No Connections Available', response: 'Please define a Connection first before updating settings.'});
+    return;
+  }
+  
   // Mark button as loading
   $('#save-changes').toggleClass('loading', true);
 
@@ -379,6 +415,12 @@ async function initAll() {
   initializeCardQualitySlider();
 
   await getAllConnections();
+
+  // If no connections are available, stop initialization here
+  if (!allConnections || allConnections.length === 0) {
+    return;
+  }
+
   getEpisodeDataSources();
   getTemplates();
   getImageSourcePriority();
