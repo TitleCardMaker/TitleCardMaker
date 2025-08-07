@@ -7,11 +7,11 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.event import listens_for
 from unidecode import unidecode
 
-from app.settings import settings
+from app.core.config import config
 
 
 # URL of the SQL Database - based on whether in Docker or not
-if settings.IS_DOCKER:
+if config.IS_DOCKER:
     SQLALCHEMY_DATABASE_URL = 'sqlite:////config/db.sqlite'
 else:
     SQLALCHEMY_DATABASE_URL = 'sqlite:///../config/db.sqlite'
@@ -30,7 +30,7 @@ engine = create_engine(
 )
 
 # URL to the Blueprints SQL database
-if settings.IS_DOCKER:
+if config.IS_DOCKER:
     BLUEPRINT_SQL_DATABASE_URL = 'sqlite:////tcm/modules/.objects/blueprints.db'
 else:
     BLUEPRINT_SQL_DATABASE_URL = 'sqlite:///./modules/.objects/blueprints.db'

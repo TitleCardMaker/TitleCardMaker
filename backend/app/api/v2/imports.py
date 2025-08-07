@@ -19,13 +19,6 @@ from sqlalchemy.orm import Session
 from yaml import safe_load
 from yaml.parser import ParserError
 
-from app.db.query import (
-    get_all_templates,
-    get_media_interface,
-    get_series
-)
-from app.dependencies import get_database, get_logger, get_preferences
-from app.db.users import get_current_user
 from app.core.imports import (
     download_image,
     import_card_content,
@@ -49,9 +42,15 @@ from app.core.series import (
     set_series_database_ids,
 )
 from app.core.sources import download_series_logo
+from app.db.query import (
+    get_all_templates,
+    get_media_interface,
+    get_series
+)
+from app.dependencies import get_database, get_logger
+from app.db.users import get_current_user
 from app.models.episode import Episode
 from app.models.font import Font as FontModel
-from modules.preferences import Preferences as PrefencesModel
 from app.models.series import Series as SeriesModel
 from app.models.sync import Sync as SyncModel
 from app.models.template import Template as TemplateModel
@@ -65,6 +64,7 @@ from app.schemas.imports import (
 from app.schemas.preferences import Preferences
 from app.schemas.series import Series, Template
 from app.schemas.sync import Sync
+from app.settings import settings
 from app.logging.logger import Logger
 
 
@@ -79,7 +79,6 @@ import_router = APIRouter(
 def import_global_options_yaml(
         import_yaml: ImportYaml = Body(...),
         log: Logger = Depends(get_logger),
-        preferences: PrefencesModel = Depends(get_preferences),
     ) -> Preferences:
     """
     Import the global options from the preferences defined in the given
@@ -90,11 +89,11 @@ def import_global_options_yaml(
 
     # Parse raw YAML into dictionary
     if not (yaml_dict := parse_raw_yaml(import_yaml.yaml)):
-        return preferences # type: ignore
+        return settings # type: ignore
 
     # Modify the preferences  from the YAML dictionary
     try:
-        return parse_preferences(preferences, yaml_dict, log=log) # type: ignore
+        return parse_preferences(settings, yaml_dict, log=log) # type: ignore
     except ValidationError as exc:
         log.exception('Invalid YAML')
         raise HTTPException(
@@ -190,7 +189,6 @@ def import_fonts_yaml(
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: PrefencesModel = Depends(get_preferences),
     ) -> list[NamedFont]:
     """
     Import all Fonts defined in the given YAML. This does NOT import any
@@ -226,7 +224,7 @@ def import_fonts_yaml(
         # If there is a Font file, copy into asset directory
         if font_file is not None:
             if font_file.exists():
-                font_directory = preferences.asset_directory / 'fonts'
+                font_directory = settings.asset_directory / 'fonts'
                 file_path = font_directory / str(font.id) / font_file.name
                 copyfile(font_file, file_path)
 
@@ -244,7 +242,6 @@ def import_template_yaml(
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: PrefencesModel = Depends(get_preferences),
     ) -> list[Template]:
     """
     Import all Templates defined in the given YAML.
@@ -258,7 +255,7 @@ def import_template_yaml(
 
     # Create NewTemplate objects from the YAML dictionary
     try:
-        new_templates = parse_templates(db, preferences, yaml_dict)
+        new_templates = parse_templates(db, settings, yaml_dict)
     except ValidationError as exc:
         log.exception('Invalid YAML')
         raise HTTPException(
@@ -284,7 +281,6 @@ def import_series_yaml(
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: PrefencesModel = Depends(get_preferences),
     ) -> list[Series]:
     """
     Import all Series defined in the given YAML.
@@ -298,7 +294,7 @@ def import_series_yaml(
 
     # Create NewSeries objects from the YAML dictionary
     try:
-        new_series = parse_series(db, preferences, yaml_dict, log=log)
+        new_series = parse_series(db, settings, yaml_dict, log=log)
     except ValidationError as exc:
         log.exception('Invalid YAML')
         raise HTTPException(
@@ -310,7 +306,7 @@ def import_series_yaml(
     all_series = []
     for series in new_series:
         # Add to batabase
-        new_series_dict = series.dict()
+        new_series_dict = series.model_dump()
         templates = get_all_templates(db, new_series_dict)
         series = SeriesModel(**new_series_dict)
         db.add(series)
@@ -340,8 +336,10 @@ def import_series_yaml(
     return all_series
 
 
-@import_router.post('/series/{series_id}/cards/files',
-                    tags=['Title Cards', 'Series'])
+@import_router.post(
+    '/series/{series_id}/cards/files',
+    tags=['Title Cards', 'Series']
+)
 async def import_card_files_for_series(
         series_id: int,
         cards: list[UploadFile] = [],
@@ -561,8 +559,10 @@ async def import_mediux_yaml_for_series(
         log.trace(f'Deleted temporary image ({image})')
 
 
-@import_router.post('/series/{series_id}/cards/directory',
-                    tags=['Title Cards', 'Series'])
+@import_router.post(
+    '/series/{series_id}/cards/directory',
+    tags=['Title Cards', 'Series']
+)
 def import_card_directory_for_series(
         series_id: int,
         card_directory: ImportCardDirectory = Body(...),

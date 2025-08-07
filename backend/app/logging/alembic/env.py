@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 
-from app.settings import settings
+from app.core.config import config as app_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -38,7 +38,7 @@ def run_migrations_offline() -> None:
     """
 
     url = config.get_main_option('sqlalchemy.url')
-    if settings.IS_DOCKER:
+    if app_config.IS_DOCKER:
         url = '/config/logs/logs.sqlite'
 
     context.configure(
@@ -66,7 +66,7 @@ def run_migrations_online() -> None:
     )
 
     url = config.get_main_option('sqlalchemy.url')
-    if settings.IS_DOCKER:
+    if app_config.IS_DOCKER:
         url = '/config/logs/logs.sqlite'
 
     with connectable.connect() as connection:

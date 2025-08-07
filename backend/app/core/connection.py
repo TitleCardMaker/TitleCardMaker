@@ -8,14 +8,12 @@ from app.dependencies import (
     get_emby_interfaces,
     get_jellyfin_interfaces,
     get_plex_interfaces,
-    get_preferences,
     get_sonarr_interfaces,
     get_tmdb_interfaces,
     get_tvdb_interfaces,
 )
 from app.core.auth import encrypt
 from app.models.connection import Connection
-from modules.preferences import Preferences
 from app.schemas.base import UNSPECIFIED
 from app.schemas.connection import (
     NewEmbyConnection,
@@ -38,6 +36,7 @@ from app.interfaces.v2 import (
     JellyfinInterface,
     PlexInterface,
 )
+from app.settings import settings
 
 
 _MediaServerInterface = (EmbyInterface, JellyfinInterface, PlexInterface)
@@ -52,7 +51,6 @@ type _UpdateConnection = Union[
 
 def initialize_connections(
         db: Session,
-        preferences: Preferences,
         *,
         log: Logger = log,
     ) -> None:
@@ -63,7 +61,6 @@ def initialize_connections(
 
     Args:
         db: Database with Connection definitions to query.
-        preferences: Preferences whose `use_*` toggles to set.
         log: Logger for all log messages.
     """
 
@@ -83,7 +80,7 @@ def initialize_connections(
 
         # Set use_ toggle
         use_connection = any(connection.enabled for connection in connections)
-        setattr(preferences, f'use_{interface_type.lower()}', use_connection)
+        setattr(settings, f'use_{interface_type.lower()}', use_connection)
 
         # Initialize an Interface for each Connection (if enabled)
         for connection in connections:
@@ -101,19 +98,21 @@ def initialize_connections(
                 )
                 interface = interface_group[connection.id]
                 if isinstance(interface, _MediaServerInterface):
-                    preferences.libraries[connection.id] = (
+                    settings.libraries[connection.id] = (
                         interface_type,
                         interface.get_libraries()
                     )
-                    log.trace(f'Preferences.libraries[{connection.id}] = '
-                              f'{preferences.libraries[connection.id]}')
+                    log.trace(
+                        f'Settings.libraries[{connection.id}] = '
+                        f'{settings.libraries[connection.id]}'
+                    )
             except Exception:
-                preferences.invalid_connections.append(connection.id)
+                settings.invalid_connections.append(connection.id)
                 log.exception(f'Error initializing {connection}')
 
     # Log any invalid Connections
-    if preferences.invalid_connections:
-        log.info(f'Disabled Connection(s) {preferences.invalid_connections}')
+    if settings.invalid_connections:
+        log.info(f'Disabled Connection(s) {settings.invalid_connections}')
 
 
 def add_connection(
@@ -156,14 +155,13 @@ def add_connection(
     log.info(f'Created {connection}')
 
     # Update global use_ attribute
-    preferences = get_preferences()
-    setattr(preferences, f'use_{connection.interface_type.lower()}', True)
+    setattr(settings, f'use_{connection.interface_type.lower()}', True)
 
     # Assign global EDS if unset
-    if preferences.episode_data_source is None:
-        preferences.episode_data_source = connection.id
+    if settings.episode_data_source is None:
+        settings.episode_data_source = connection.id
         log.info(f'Set global Episode Data Source to {connection}')
-        preferences.commit()
+        settings.commit()
 
     # Update InterfaceGroup
     if connection.enabled:
@@ -172,7 +170,7 @@ def add_connection(
                 connection.id, connection.interface_kwargs, log=log
             )
         except Exception as exc:
-            preferences.invalid_connections.append(connection.id)
+            settings.invalid_connections.append(connection.id)
             raise exc
 
     return connection
@@ -185,7 +183,7 @@ def update_connection(
         update_object: _UpdateConnection,
         *,
         log: Logger = log,
-    ) -> Preferences:
+    ) -> Connection:
     """
     Update the given Connection, refreshing the interface if any
     attributes were changed.
@@ -197,7 +195,7 @@ def update_connection(
         log: Logger for all log messages.
 
     Returns:
-        Modified Preferences with any updated attributes.
+        Modified Connection with any updated attributes.
 
     Raises:
         HTTPException (404): There is no Connection with the given ID.
@@ -227,23 +225,22 @@ def update_connection(
     # If any values were changed, commit to database
     if changed:
         db.commit()
-        preferences = get_preferences()
         if connection.enabled:
             # Attempt to re-initialize Interface with new details
             try:
                 interface_group.refresh(
                     interface_id, connection.interface_kwargs, log=log
                 )
-                if interface_id in preferences.invalid_connections:
-                    preferences.invalid_connections.remove(interface_id)
+                if interface_id in settings.invalid_connections:
+                    settings.invalid_connections.remove(interface_id)
             except Exception as exc:
-                if interface_id not in preferences.invalid_connections:
-                    preferences.invalid_connections.append(interface_id)
+                if interface_id not in settings.invalid_connections:
+                    settings.invalid_connections.append(interface_id)
                 raise exc
         # Connection is disabled, remove from group
         else:
             interface_group.disable(interface_id)
-            if interface_id in preferences.invalid_connections:
-                preferences.invalid_connections.remove(interface_id)
+            if interface_id in settings.invalid_connections:
+                settings.invalid_connections.remove(interface_id)
 
     return connection

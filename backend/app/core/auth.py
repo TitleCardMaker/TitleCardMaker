@@ -1,21 +1,20 @@
 from base64 import urlsafe_b64encode
-from typing import Any
-from cryptography.fernet import Fernet
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from logging import getLogger, ERROR
 from pathlib import Path
 from secrets import token_hex
+from typing import Any
 
+from cryptography.fernet import Fernet
 from jose import jwt
 from passlib.context import CryptContext
 
-from app.core.config import settings
-from app.settings import CONFIG_ROOT
+from app.core.config import CONFIG_ROOT, config
 from app.logging.logger import log
 
 
 """File where the private key is stored"""
-if settings.IS_DOCKER:
+if config.IS_DOCKER:
     KEY_FILE = Path('/config/.key.txt')
 else:
     KEY_FILE = CONFIG_ROOT / '.key.txt'
@@ -103,18 +102,14 @@ def create_access_token(
         JWT string of the encoded data and expiration date.
     """
 
-    if expires_delta:
-        expires = datetime.utcnow() + expires_delta
-    else:
-        expires = datetime.utcnow() + timedelta(days=7)
-
+    expires = datetime.now(UTC) + (expires_delta or timedelta(days=7))
     to_encode = data.copy()
     to_encode.update({'exp': expires})
 
     return jwt.encode(
         to_encode,
         get_secret_key(),
-        algorithm=settings.CRYPTO_ALGORITHM
+        algorithm=config.CRYPTO_ALGORITHM
     )
 
 

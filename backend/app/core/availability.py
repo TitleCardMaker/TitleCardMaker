@@ -1,21 +1,14 @@
 from datetime import datetime, timedelta
-from os import getenv
 from json import loads
 
 from fastapi import HTTPException
 from requests import JSONDecodeError, get
 
-from modules.preferences import Preferences
-from app.schemas.card import LocalCardType, RemoteCardType
+from app.core.config import config
 from app.logging.logger import log, Logger
+from app.settings import settings
+from app.schemas.card import LocalCardType, RemoteCardType
 from modules.Version import Version
-
-
-# URL for user card types
-USER_CARD_TYPE_URL = getenv(
-    'TCM_CARD_TYPE_URL',
-    'https://raw.githubusercontent.com/CollinHeist/TitleCardMaker-CardTypes/web-ui'
-).removesuffix('/') + '/cards.json'
 
 
 def get_latest_version(
@@ -62,12 +55,9 @@ def get_latest_version(
     return Version(response.json().get('name', '').strip())
 
 
-def get_local_cards(preferences: Preferences) -> list[LocalCardType]:
+def get_local_cards() -> list[LocalCardType]:
     """
     Get the list of available locally specified card types.
-
-    Args:
-        preferences: Global preferences.
 
     Returns:
         List of LocalCardType objects.
@@ -75,7 +65,7 @@ def get_local_cards(preferences: Preferences) -> list[LocalCardType]:
 
     return [
         card_class.API_DETAILS
-        for card_class in preferences.local_card_types.values()
+        for card_class in settings.local_card_types.values()
     ]
 
 
@@ -100,8 +90,8 @@ def get_remote_cards(*, log: Logger = log) -> list[RemoteCardType]:
     try:
         if _cache['expires'] <= datetime.now():
             log.debug('Refreshing cached RemoteCardTypes..')
-            log.trace(f'Querying "{USER_CARD_TYPE_URL}"')
-            if not (text := get(USER_CARD_TYPE_URL, timeout=30).text):
+            log.trace(f'Querying "{config.CARD_TYPE_URL}"')
+            if not (text := get(config.CARD_TYPE_URL, timeout=30).text):
                 raise JSONDecodeError
             response = loads(text)
             _cache['content'] = response

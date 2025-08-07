@@ -3,17 +3,16 @@ from typing import Literal, Union, overload
 from sqlalchemy.orm import Session, object_session
 
 from app.db.query import get_template
-from app.dependencies import get_preferences
 from app.models.episode import Episode
-from modules.preferences import Preferences
 from app.models.series import Library, Series
 from app.models.template import Template
 from app.schemas.availability import ReturnAvailableTemplateSchema
+from app.settings import Settings, settings
 
 
 @overload
 def get_effective_template(
-        obj: Preferences | Series | Episode,
+        obj: Settings | Series | Episode,
         series: Series,
         episode: Episode | None = None,
         library: Library | None = None,
@@ -24,7 +23,7 @@ def get_effective_template(
 
 @overload
 def get_effective_template(
-        obj: Preferences | Series | Episode,
+        obj: Settings | Series | Episode,
         series: Series,
         episode: Episode | None = None,
         library: Library | None = None,
@@ -34,7 +33,7 @@ def get_effective_template(
     ...
 
 def get_effective_template(
-        obj: Preferences | Series | Episode,
+        obj: Settings | Series | Episode,
         series: Series,
         episode: Episode | None = None,
         library: Library | None = None,
@@ -60,7 +59,7 @@ def get_effective_template(
     """
 
     # Object is global Preferences, query for each Template as evaluated
-    if isinstance(obj, Preferences) and obj.default_templates:
+    if isinstance(obj, Settings) and obj.default_templates:
         db: Session = object_session(series)
         for template_id in obj.default_templates:
             if ((template := get_template(db, template_id, raise_exc=False))
@@ -138,7 +137,7 @@ def get_effective_templates(
 
     # No Series or Episode Templates, return global Template
     return (
-        get_effective_template(get_preferences(), series, episode, library),
+        get_effective_template(settings, series, episode, library),
         None,
         None,
     )

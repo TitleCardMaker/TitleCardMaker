@@ -15,7 +15,7 @@ from app.db.query import (
     get_series
 )
 from app.db.pagination import Page
-from app.dependencies import get_database, get_logger, get_preferences
+from app.dependencies import get_database, get_logger
 from app.db.users import get_current_user
 from app.core.cards import (
     create_episode_cards,
@@ -28,6 +28,7 @@ from app.core.cards import (
     get_episode_cards_with_cache,
     get_card_with_cache,
 )
+from app.core.config import INTERNAL_ASSET_DIRECTORY
 from app.core.episodes import update_episode_config
 from app.core.series import (
     load_all_series_title_cards,
@@ -57,7 +58,6 @@ from app.schemas.font import DefaultFont
 from app.schemas.series import UpdateSeries
 from app.settings import settings
 from modules.FormatString import FormatString
-from modules.preferences import Preferences
 from modules.TieredSettings import TieredSettings
 
 
@@ -74,7 +74,6 @@ def create_preview_card(
         card: PreviewTitleCard = Body(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> str:
     """
     Create a preview title card. This uses a fixed source file and
@@ -85,7 +84,7 @@ def create_preview_card(
     """
 
     # Get the effective card class
-    CardClass = preferences.get_card_type_class(card.card_type, log=log)
+    CardClass = settings.get_card_type_class(card.card_type, log=log)
     if CardClass is None:
         raise HTTPException(
             status_code=400,
@@ -99,9 +98,9 @@ def create_preview_card(
     format_data = {
         'series_full_name': 'Test Series (2020)', 'series_name': 'Test Series',
         'season_episode_max': 10, 'series_episode_max': 20,
-        'logo_file': preferences.INTERNAL_ASSET_DIRECTORY / 'logo.png',
-        'poster_file': preferences.INTERNAL_ASSET_DIRECTORY / 'preview' / 'poster.webp',
-        'backdrop_file': preferences.INTERNAL_ASSET_DIRECTORY / 'preview' / 'art.jpg',
+        'logo_file': INTERNAL_ASSET_DIRECTORY / 'logo.png',
+        'poster_file': INTERNAL_ASSET_DIRECTORY / 'preview' / 'poster.webp',
+        'backdrop_file': INTERNAL_ASSET_DIRECTORY / 'preview' / 'art.jpg',
     }
 
     # Get preview season and episode text
@@ -147,16 +146,16 @@ def create_preview_card(
         font_template_dict = font.card_properties
 
     # Determine appropriate Source and Output file
-    preview_dir = preferences.INTERNAL_ASSET_DIRECTORY / 'preview'
+    preview_dir = settings.INTERNAL_ASSET_DIRECTORY / 'preview'
     source = preview_dir / (('art' if 'art' in card.style else 'unique') + '.jpg')
-    output = preview_dir / f'card-{card.style}{preferences.card_extension}'
+    output = preview_dir / f'card-{card.style}{settings.card_extension}'
 
     # Resolve all settings
     card_settings = TieredSettings.new_settings(
-        preferences.global_extras.get(card.card_type, {}),
+        settings.global_extras.get(card.card_type, {}),
         format_data,
         DefaultFont,
-        preferences.card_properties,
+        settings.card_properties,
         font_template_dict,
         {'source_file': source, 'card_file': output},
         card.model_dump(),
@@ -182,7 +181,7 @@ def create_preview_card(
     # Delete output if it exists, then create Card
     CardClass, CardTypeModel = validate_card_type_model(card_settings, log=log)
     output.unlink(missing_ok=True)
-    card_maker = CardClass(**CardTypeModel.dict(), preferences=preferences)
+    card_maker = CardClass(**CardTypeModel.model_dump(), preferences=settings)
     card_maker.create()
 
     # Card created, return URI
@@ -203,7 +202,6 @@ def create_preview_card_for_episode(
         query_watched_statuses: bool = Query(default=False),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> str:
     """
     Create a preview Title Card for the given Episode.
@@ -238,8 +236,11 @@ def create_preview_card_for_episode(
         get_watched_statuses(db, episode.series, [episode], log=log)
 
     # Determine appropriate Source and Output file
-    output = preferences.INTERNAL_ASSET_DIRECTORY / 'preview' \
-        / f'card-unique{preferences.card_extension}'
+    output = (
+        INTERNAL_ASSET_DIRECTORY
+        / 'preview'
+        / f'card-unique{settings.card_extension}'
+    )
     output.unlink(missing_ok=True)
 
     # Create Card for this Episode
@@ -271,7 +272,7 @@ def create_preview_card_for_episode(
 
     # Delete output if it exists, then create Card
     CardClass, CardTypeModel = validate_card_type_model(card_settings, log=log)
-    card_maker = CardClass(**CardTypeModel.dict(), preferences=preferences)
+    card_maker = CardClass(**CardTypeModel.model_dump(), preferences=settings)
     card_maker.create()
 
     # Card created, return URI
@@ -304,7 +305,7 @@ def get_recently_created_title_cards(
     # Convert to UTC timezone for DB comparison - assume after is in TZ
     # timezone if none was provided
     if after.tzinfo is None:
-        after = settings.TIMEZONE.localize(after)
+        after = settings.config.TIMEZONE.localize(after)
     after = after.astimezone(pytz.timezone('UTC'))
 
     return paginate(

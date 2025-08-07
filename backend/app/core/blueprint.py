@@ -5,9 +5,11 @@ from fastapi import HTTPException
 from requests import get
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_preferences
 from app.core.cards import refresh_remote_card_types
 from app.core.sources import get_series_mask_images
+from app.info.episode import EpisodeInfo
+from app.info.series import SeriesInfo
+from app.logging.logger import log, Logger
 from app.models.blueprint import Blueprint, BlueprintSeries
 from app.models.episode import Episode
 from app.models.font import Font
@@ -17,9 +19,7 @@ from app.schemas.blueprint import ExportBlueprint
 from app.schemas.episode import UpdateEpisode
 from app.schemas.font import NewNamedFont
 from app.schemas.series import NewTemplate, UpdateSeries
-from app.logging.logger import log, Logger
-from app.info.episode import EpisodeInfo
-from app.info.series import SeriesInfo
+from app.settings import settings
 from modules.TieredSettings import TieredSettings
 
 
@@ -83,7 +83,7 @@ def generate_series_blueprint(
     export_obj['series'] =  TieredSettings.filter(series.export_properties)
     if (export_obj['series'].get('card_type') is None
         and all(template.card_type is None for template in templates)):
-        export_obj['series']['card_type'] = get_preferences().default_card_type
+        export_obj['series']['card_type'] = settings.default_card_type
 
     # Add Series Source Images
     if mask_images:
@@ -270,7 +270,7 @@ def import_blueprint(
 
         # Download Font file if provided
         if font_content:
-            font_directory = get_preferences().asset_directory / 'fonts'
+            font_directory = settings.asset_directory / 'fonts'
             file_path: Path = font_directory / str(new_font.id) / font.file
             file_path.parent.mkdir(exist_ok=True, parents=True)
             file_path.write_bytes(font_content)
@@ -396,9 +396,8 @@ def import_blueprint(
             log.debug(f'Wrote {len(response.content)} bytes to "{filename}"')
 
     # Add ID to imported set
-    preferences = get_preferences()
-    preferences.imported_blueprints.add(blueprint.id)
-    preferences.commit()
+    settings.imported_blueprints.add(blueprint.id)
+    settings.commit(log=log)
 
     # Commit changes to Database; refesh card types
     if changed:

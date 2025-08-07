@@ -21,12 +21,12 @@ from thefuzz.fuzz import partial_token_sort_ratio as partial_ratio
 from unidecode import unidecode
 
 from app.db.database import Base
-from app.dependencies import get_preferences
+from app.info.series import SeriesInfo
+from app.logging.logger import Logger, log
 from app.models.template import SeriesTemplates, Template
 from app.schemas.connection import ServerName
+from app.settings import settings
 from modules.CleanPath import CleanPath
-from app.logging.logger import Logger, log
-from app.info.series import SeriesInfo
 
 if TYPE_CHECKING:
     from sqlalchemy.event import Events
@@ -411,7 +411,7 @@ class Series(Base):
             directory = self.directory
 
         return (
-            CleanPath(get_preferences().card_directory) # type: ignore
+            CleanPath(settings.card_directory) # type: ignore
             / directory
         )
 
@@ -421,7 +421,7 @@ class Series(Base):
         """Path-safe source subdirectory for this Series."""
 
         return (
-            CleanPath(get_preferences().source_directory) # type: ignore
+            CleanPath(settings.source_directory) # type: ignore
             / self.path_safe_name
         )
 
@@ -633,7 +633,7 @@ class Series(Base):
 
 
     def get_logo_file(self,
-            season_number: Optional[int] = None,
+            season_number: int | None = None,
             *,
             fallback: bool = False,
         ) -> Path:
@@ -652,7 +652,7 @@ class Series(Base):
         """
 
         # Root Source Directory for this Series
-        source_dir = Path(get_preferences().source_directory) \
+        source_dir = Path(settings.source_directory) \
             / self.path_safe_name
 
         # If no season number was provided, use series-wide logo
@@ -668,7 +668,7 @@ class Series(Base):
     
 
     def get_logo_uri(self,
-            season_number: Optional[int] = None,
+            season_number: int | None = None,
         ) -> tuple[bool, str]:
         """
         Get the existence status and file URI for the indicated logo.
@@ -688,9 +688,7 @@ class Series(Base):
             filename = f'logo_season{season_number}.png'
 
         # Path to the logo in the source directory
-        logo =  get_preferences().source_directory \
-            / self.path_safe_name \
-            / filename
+        logo =  settings.source_directory / self.path_safe_name / filename
 
         if logo.exists():
             return (
@@ -702,7 +700,7 @@ class Series(Base):
 
 
     def get_backdrop_file(self,
-            season_number: Optional[int] = None,
+            season_number: int | None = None,
             *,
             fallback: bool = False,
         ) -> Path:
@@ -720,8 +718,7 @@ class Series(Base):
             under the global source directory.
         """
 
-        source_dir = Path(get_preferences().source_directory) \
-            / self.path_safe_name
+        source_dir = Path(settings.source_directory) / self.path_safe_name
 
         # If no season number was provided, use Series-wide poster
         if season_number is None:
@@ -736,7 +733,7 @@ class Series(Base):
 
 
     def get_backdrop_uri(self,
-            season_number: Optional[int] = None,
+            season_number: int | None = None,
         ) -> tuple[bool, str]:
         """
         Get the existence status and file URI for the indicated
@@ -757,9 +754,7 @@ class Series(Base):
             filename = f'backdrop_season{season_number}.jpg'
 
         # Path to the backdrop in the source directory
-        backdrop =  get_preferences().source_directory \
-            / self.path_safe_name \
-            / filename
+        backdrop =  settings.source_directory / self.path_safe_name / filename
 
         if backdrop.exists():
             size = backdrop.stat().st_size
@@ -780,7 +775,7 @@ class Series(Base):
             under the global source directory.
         """
 
-        return Path(get_preferences().source_directory) \
+        return Path(settings.source_directory) \
             / self.path_safe_name \
             / 'poster.jpg'
 
@@ -818,7 +813,7 @@ class Series(Base):
                 yield library['interface_id'], library['name']
 
 
-    def get_library(self, name: str, /) -> Optional[Library]:
+    def get_library(self, name: str, /) -> Library | None:
         """
         Get the Library with the given name.
 

@@ -4,17 +4,10 @@ from typing import Literal, overload
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.db.query import get_connection, get_interface
-from app.dependencies import (
-    get_database,
-    get_imagemagick_interface,
-    get_preferences
-)
 from app.core.templates import get_effective_templates
-from app.models.episode import Episode
-from app.models.series import Library, Series
-from app.schemas.card import SourceImage
-from app.schemas.preferences import Style
+from app.db.query import get_connection, get_interface
+from app.dependencies import get_database, get_imagemagick_interface
+from app.logging.logger import Logger, log
 from app.interfaces.web import WebInterface
 from app.interfaces.v2 import (
     EmbyInterface,
@@ -24,8 +17,12 @@ from app.interfaces.v2 import (
     TMDbInterface,
     TVDbInterface,
 )
+from app.models.episode import Episode
+from app.models.series import Library, Series
+from app.schemas.card import SourceImage
+from app.schemas.preferences import Style
+from app.settings import settings
 from modules.TieredSettings import TieredSettings
-from app.logging.logger import Logger, log
 
 
 def download_all_series_logos(*, log: Logger = log) -> None:
@@ -74,9 +71,8 @@ def resolve_source_settings(
     )
 
     # Resolve styles
-    preferences = get_preferences()
     watched_style: Style = TieredSettings.resolve_singular_setting(
-        preferences.default_watched_style,
+        settings.default_watched_style,
         getattr(global_template, 'watched_style', None),
         getattr(series_template, 'watched_style', None),
         series.watched_style,
@@ -85,7 +81,7 @@ def resolve_source_settings(
         episode.watched_style,
     )
     unwatched_style: Style = TieredSettings.resolve_singular_setting(
-        preferences.default_unwatched_style,
+        settings.default_unwatched_style,
         getattr(global_template, 'unwatched_style', None),
         getattr(series_template, 'unwatched_style', None),
         series.unwatched_style,
@@ -213,7 +209,7 @@ def download_series_logo(
 
     # Resolve image source priority
     image_source_priority = TieredSettings.resolve_singular_setting(
-        get_preferences().image_source_priority,
+        settings.image_source_priority,
         series.image_source_priority,
     )
 
@@ -339,7 +335,7 @@ def download_episode_source_image(
     )
 
     # Resolve ISP setting
-    global_isp = get_preferences().image_source_priority
+    global_isp = settings.image_source_priority
     image_source_priority = TieredSettings.resolve_singular_setting(
         global_isp,
         getattr(global_template, 'image_source_priority', None),

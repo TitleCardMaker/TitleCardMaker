@@ -3,7 +3,8 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database
+from app.logging.logger import Logger, log
 from app.models.card import Card
 from app.models.duration import TaskDuration
 from app.models.episode import Episode
@@ -15,7 +16,7 @@ from app.models.sync import Sync
 from app.models.template import Template
 from app.models.user import User
 from app.schemas.statistic import NewSnapshot
-from app.logging.logger import Logger, log
+from app.settings import settings
 
 
 def snapshot_database(*, log: Logger = log) -> None:
@@ -54,7 +55,7 @@ def take_snapshot(db: Session, *, log: Logger = log) -> None:
         cards_created = db.query(func.max(Card.id)).scalar() or 0
 
     snapshot = NewSnapshot(
-        blueprints=len(get_preferences().imported_blueprints),
+        blueprints=len(settings.imported_blueprints),
         cards=db.query(Card.id).count(),
         episodes=db.query(Episode.id).count(),
         fonts=db.query(Font.id).count(),

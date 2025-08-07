@@ -9,10 +9,12 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 from app.db.query import get_all_templates, get_sync
-from app.dependencies import get_database, get_logger, get_preferences
 from app.db.users import get_current_user
+from app.dependencies import get_database, get_logger
 from app.core.series import delete_series
-from app.core.sync import add_sync, run_sync
+from app.core.sync import add_sync, run_sync, CURRENTLY_RUNNING_SYNC
+from app.logging.logger import Logger
+from app.models.sync import Sync as SyncModel
 from app.schemas.sync import (
     EmbySync,
     JellyfinSync,
@@ -26,8 +28,8 @@ from app.schemas.sync import (
     UpdateSync,
 )
 from app.schemas.series import Series
-from app.models.sync import Sync as SyncModel
-from app.logging.logger import Logger
+from app.settings import settings
+
 
 
 # Create sub router for all /sync API requests
@@ -241,13 +243,12 @@ def run_sync_(
     """
 
     # Do not run Sync if any Sync is already running
-    if (running_sync := get_preferences().currently_running_sync) is not None:
+    if CURRENTLY_RUNNING_SYNC is not None:
         raise HTTPException(
             status_code=422,
-            detail=f'Sync {running_sync} is already running',
+            detail=f'Sync {CURRENTLY_RUNNING_SYNC} is already running',
         )
 
     # Get existing Sync, raise 404 if DNE
     sync = get_sync(db, sync_id, raise_exc=True)
-
     return run_sync(db, sync, background_tasks, log=log)

@@ -12,20 +12,20 @@ from fastapi import (
 from sqlalchemy.orm import Session
 from unidecode import unidecode
 
-from app.db.query import get_font
-from app.dependencies import get_database, get_logger, get_preferences
-from app.db.users import get_current_user
 from app.core.font import delete_font_files
+from app.db.query import get_font
+from app.dependencies import get_database, get_logger
+from app.db.users import get_current_user
+from app.logging.logger import Logger
 from app.models.episode import Episode
 from app.models.font import Font
-from modules.preferences import Preferences
 from app.schemas.font import (
     FontAnalysis,
     NamedFont,
     NewNamedFont,
     UpdateNamedFont
 )
-from app.logging.logger import Logger
+from app.settings import settings
 from modules.FontValidator import FontValidator
 
 
@@ -75,7 +75,7 @@ def create_font(
     """
 
     # Add to database
-    font = Font(**new_font.dict())
+    font = Font(**new_font.model_dump())
     db.add(font)
     db.commit()
 
@@ -88,7 +88,6 @@ async def add_font_file(
         file: UploadFile,
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> NamedFont:
     """
     Add a custom font file to the specified Font.
@@ -119,7 +118,7 @@ async def add_font_file(
             )
 
     # Write to file
-    font_directory = preferences.asset_directory / 'fonts'
+    font_directory = settings.asset_directory / 'fonts'
     file_path = font_directory / str(font.id) / file.filename # type: ignore
     file_path.parent.mkdir(exist_ok=True, parents=True)
     file_path.write_bytes(file_content)
@@ -180,7 +179,7 @@ def update_font(
 
     # Update other attributes
     changed = False
-    for attribute, value in update_font.dict().items():
+    for attribute, value in update_font.model_dump().items():
         if getattr(font, attribute) != value:
             setattr(font, attribute, value)
             changed = True
@@ -212,7 +211,6 @@ def delete_font(
         font_id: int,
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
     Delete the Font with the given ID. This also deletes the font's
@@ -225,19 +223,19 @@ def delete_font(
     font = get_font(db, font_id, raise_exc=True)
 
     # Delete from global setting if indicated
-    if font_id in preferences.default_fonts.values():
-        preferences.default_fonts = {
+    if font_id in settings.default_fonts.values():
+        settings.default_fonts = {
             card_type: id_
-            for card_type, id_ in preferences.default_fonts.items()
+            for card_type, id_ in settings.default_fonts.items()
             if id_ != font_id
         }
-        log.debug(f'{preferences.default_fonts = }')
+        log.debug(f'{settings.default_fonts = }')
 
     # Delete all files and the Font itself
     delete_font_files(font, log=log)
     db.delete(font)
     db.commit()
-    preferences.commit()
+    settings.commit(log=log)
 
 
 @font_router.get('/font/{font_id}/analysis')
@@ -268,7 +266,7 @@ def get_suggested_font_replacements(
 
     # Get ANY titles associated with this Font; if the Font is being
     # globally specified, query all Episode titles and translations
-    if font_id in get_preferences().default_fonts.values():
+    if font_id in settings.default_fonts.values():
         titles: set[str] = (
             set(val[0] for val in db.query(Episode.title).all())
             | set(
@@ -380,7 +378,6 @@ def transfer_font_references(
         delete_from: bool = Query(default=False),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> NamedFont:
     """
     Transfer all references for the given `from` Font to the given `to`
@@ -398,12 +395,12 @@ def transfer_font_references(
 
     # Perform reference transfer
     # Reassign global Fonts
-    for card_type, id_ in preferences.default_fonts.items():
+    for card_type, id_ in settings.default_fonts.items():
         if id_ == from_id:
             log.debug(
-                f'Preferences.global_font[{card_type}] = {from_id} -> {to_id}'
+                f'Settings.default_fonts[{card_type}] = {from_id} -> {to_id}'
             )
-            preferences.default_fonts[card_type] = to_id
+            settings.default_fonts[card_type] = to_id
     # Reassign Template Fonts
     for template in from_font.templates:
         log.debug(f'Template[{template.id}].font_id = {from_id} -> {to_id}')

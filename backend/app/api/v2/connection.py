@@ -41,7 +41,7 @@ from app.schemas.connection import (
     UpdateTVDb,
 )
 from app.logging.logger import Logger
-from modules.preferences import Preferences
+from app.settings import settings
 from app.interfaces.sonarr import SonarrInterface
 from app.interfaces.tautulli import TautulliInterface
 
@@ -488,7 +488,6 @@ def delete_connection(
         delete_title_cards: bool = Query(default=False),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
         emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
         jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
@@ -531,8 +530,8 @@ def delete_connection(
         pass
 
     # Remove from invalid Connection list
-    preferences.invalid_connections = [
-        id_ for id_ in preferences.invalid_connections if id_ != interface_id
+    settings.invalid_connections = [
+        id_ for id_ in settings.invalid_connections if id_ != interface_id
     ]
 
     # Delete any linked Syncs
@@ -576,18 +575,18 @@ def delete_connection(
             ]
 
     # Delete from global ISP if present
-    preferences.image_source_priority = [
-        id_ for id_ in preferences.image_source_priority
+    settings.image_source_priority = [
+        id_ for id_ in settings.image_source_priority
         if id_ != interface_id
     ]
 
     # Reset EDS if set
-    if preferences.episode_data_source == interface_id:
+    if settings.episode_data_source == interface_id:
         new_eds = db.query(Connection)\
             .filter(Connection.id != interface_id)\
             .first()
         if new_eds:
-            preferences.episode_data_source = new_eds.id
+            settings.episode_data_source = new_eds.id
             log.warning('Reset global Episode Data Source')
         else:
             log.critical('Cannot reassign global Episode Data Source')
@@ -619,7 +618,7 @@ def delete_connection(
     log.info(f'Deleting {connection}')
 
     # Commit changes to global options and Database
-    preferences.commit()
+    settings.commit(log=log)
     db.commit()
 
 
@@ -707,10 +706,7 @@ def add_tautulli_integration(
 
 
 @connection_router.get('/{interface_id}/libraries')
-def get_interface_libraries(
-        interface_id: int,
-        preferences: Preferences = Depends(get_preferences),
-    ) -> list[str]:
+def get_interface_libraries(interface_id: int) -> list[str]:
     """
     Get the list of previously queried libraries for the given
     Connection.
@@ -718,13 +714,12 @@ def get_interface_libraries(
     - interface_id: ID of the Connection whose libraries to return.
     """
 
-    return preferences.libraries.get(interface_id, [])[1]
+    return settings.libraries.get(interface_id, ('', []))[1]
 
 
 @connection_router.post('/{interface_id}/libraries')
 def refresh_interface_libraries(
         interface_id: int,
-        preferences: Preferences = Depends(get_preferences),
         emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
         jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
@@ -756,12 +751,12 @@ def refresh_interface_libraries(
         )
 
     # Query libraries, return result
-    preferences.libraries[interface_id] = (
+    settings.libraries[interface_id] = (
         interface_type,
         interface.get_libraries()
     )
 
-    return preferences.libraries[interface_id][1]
+    return settings.libraries[interface_id][1]
 
 
 @connection_router.delete('/{interface_id}/libraries')
@@ -772,7 +767,6 @@ def delete_interface_libraries(
         library_name: str | None = Query(default=None),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> int:
     """
     Delete any libraries associated with the given Connection which are
@@ -791,13 +785,13 @@ def delete_interface_libraries(
 
     # Perform backup if indicated
     if backup:
-        backup_data(preferences.current_version, log=log)
+        backup_data(settings.current_version, log=log)
 
     # If deleting unlinked then query any Series with at least one library
     keep_list: list[str] = []
     if unlinked:
         # Get list of all libraries to keep
-        keep_list = preferences.libraries.get(interface_id, ('', []))[1]
+        keep_list = settings.libraries.get(interface_id, ('', []))[1]
         series_list = db.query(Series)\
             .filter(func.json_array_length(Series.libraries) > 0)\
             .all()

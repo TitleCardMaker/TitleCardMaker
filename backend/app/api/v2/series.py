@@ -19,7 +19,6 @@ from unidecode import unidecode
 from app.dependencies import (
     get_database,
     get_logger,
-    get_preferences,
     require_interface,
     require_tmdb_interface,
     TMDbInterface
@@ -36,10 +35,11 @@ from app.core.series import (
     query_and_filter_series,
     update_series_config,
     get_series_with_cache,
-    get_series_overview_with_cache,
-    get_series_extended_with_cache,
 )
 from app.db.users import get_current_user
+from app.interfaces.plex import PlexInterface
+from app.interfaces.web import WebInterface
+from app.logging.logger import Logger
 from app.models.series import Series as SeriesModel
 from app.schemas.filter import SeriesFilter
 from app.schemas.series import (
@@ -53,10 +53,7 @@ from app.schemas.series import (
     SeriesSearchResult,
     UpdateSeries
 )
-from app.logging.logger import Logger
-from app.interfaces.plex import PlexInterface
-from modules.preferences import Preferences
-from app.interfaces.web import WebInterface
+from app.settings import settings
 
 
 series_router = APIRouter(
@@ -469,17 +466,14 @@ def download_series_poster_(
 
 
 @series_router.delete('/series/{series_id}/poster')
-def delete_series_poster(
-        series: SeriesModel = Depends(require_series),
-        preferences: Preferences = Depends(get_preferences),
-    ) -> None:
+def delete_series_poster(series: SeriesModel = Depends(require_series)) -> None:
     """
     Delete the poster for the given Series.
 
     - series_id: ID of the Series to delete the poster of.
     """
 
-    poster_path = preferences.asset_directory / str(series.id) / 'poster.jpg'
+    poster_path = settings.asset_directory / str(series.id) / 'poster.jpg'
     small_poster = poster_path.parent / 'poster-750.jpg'
 
     poster_path.unlink(missing_ok=True)
@@ -510,7 +504,6 @@ async def set_series_poster(
         file: UploadFile | None = None,
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> str:
     """
     Set the poster for the given series.
@@ -556,7 +549,7 @@ async def set_series_poster(
             )
 
     # Valid poster provided, download into asset directory
-    poster_path = preferences.asset_directory / str(series.id) / 'poster.jpg'  
+    poster_path = settings.asset_directory / str(series.id) / 'poster.jpg'  
     series.poster_file = str(poster_path)
     poster_path.parent.mkdir(exist_ok=True, parents=True)
     poster_path.write_bytes(poster_content) # type: ignore

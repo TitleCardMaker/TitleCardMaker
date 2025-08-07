@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.db.query import get_series
 from app.db.users import get_current_user
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database
 from app.models.card import Card
 from app.models.duration import TaskDuration
 from app.models.episode import Episode
@@ -25,7 +25,7 @@ from app.schemas.statistic import (
     Snapshot,
     Statistic,
 )
-from modules.preferences import Preferences
+from app.settings import settings
 
 
 statistics_router = APIRouter(
@@ -38,7 +38,6 @@ statistics_router = APIRouter(
 @statistics_router.get('/system')
 def get_system_statistics(
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences),
     ) -> list[Statistic]:
     """Get all system statistics."""
 
@@ -59,7 +58,7 @@ def get_system_statistics(
         .with_entities(func.sum(Card.filesize))\
         .scalar()
     asset_size = 0 if asset_size is None else asset_size
-    formatted_filesize = preferences.format_filesize(asset_size)
+    formatted_filesize = settings.format_filesize(asset_size)
 
     return [
         Statistic(
@@ -118,7 +117,6 @@ def get_system_statistics(
 def get_series_statistics(
         series_id: int,
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences),
     ) -> list[Statistic]:
     """
     Get the statistics for the given Series.
@@ -144,8 +142,8 @@ def get_series_statistics(
         EpisodeCount(value=episode_count, value_text=f'{episode_count:,}'),
         AssetSize(
             value=asset_size,
-            value_text=preferences.format_filesize(asset_size)[0],
-            unit=preferences.format_filesize(asset_size)[1],
+            value_text=settings.format_filesize(asset_size)[0],
+            unit=settings.format_filesize(asset_size)[1],
         ),
     ]
 

@@ -1,12 +1,11 @@
 from os import getenv
 from pathlib import Path
 from re import IGNORECASE, compile as re_compile
-from typing import Callable, Iterable
+from typing import TYPE_CHECKING, Callable, Iterable
 
 from tqdm import tqdm
 from yaml import dump
 
-from modules import global_objects
 from app.interfaces.v1 import (
     EmbyInterfaceV1,
     JellyfinInterfaceV1,
@@ -19,6 +18,9 @@ from app.logging.logger import log
 from app.settings import TQDM_KWARGS
 from modules.Show import Show
 from modules.ShowArchive import ShowArchive
+
+if TYPE_CHECKING:
+    from modules.PreferenceParser import PreferenceParser
 
 
 def notify(message: str) -> Callable:
@@ -58,19 +60,21 @@ class Manager:
     VALID_EXECUTION_MODES = ('serial', 'batch')
 
 
-    def __init__(self, check_tautulli: bool = True) -> None:
+    def __init__(self,
+            preferences: 'PreferenceParser',
+            *,
+            check_tautulli: bool = True,
+        ) -> None:
         """
-        Constructs a new instance of the Manager. This uses the global
-        PreferenceParser object in preferences, and optionally creates
-        interfaces as indicated by that parser.
+        Constructs a new instance of the Manager.
 
         Args:
+            preferences: PreferenceParser to use for the Manager.
             check_tautulli: Whether to check Tautulli integration (for
                 fast start).
         """
 
-        # Get the global preferences
-        self.preferences = global_objects.pp
+        self.preferences = preferences
 
         # Optionally integrate with Tautulli
         if check_tautulli and self.preferences.use_tautulli:
@@ -134,23 +138,28 @@ class Manager:
 
         if (self.preferences.use_emby
             and len(self.preferences.emby_yaml_writers) > 0):
-            for writer, update_args in zip(self.preferences.emby_yaml_writers,
-                                        self.preferences.emby_yaml_update_args):
+            for writer, update_args in zip(
+                self.preferences.emby_yaml_writers,
+                self.preferences.emby_yaml_update_args
+            ):
                 writer.update_from_emby(self.emby_interface, **update_args)
 
         if (self.preferences.use_jellyfin
             and len(self.preferences.jellyfin_yaml_writers) > 0):
             for writer, update_args in zip(
-                    self.preferences.jellyfin_yaml_writers,
-                    self.preferences.jellyfin_yaml_update_args):
+                self.preferences.jellyfin_yaml_writers,
+                self.preferences.jellyfin_yaml_update_args
+            ):
                 writer.update_from_jellyfin(
                     self.jellyfin_interface, **update_args
                 )
 
         if (self.preferences.use_plex
             and len(self.preferences.plex_yaml_writers) > 0):
-            for writer, update_args in zip(self.preferences.plex_yaml_writers,
-                                        self.preferences.plex_yaml_update_args):
+            for writer, update_args in zip(
+                self.preferences.plex_yaml_writers,
+                self.preferences.plex_yaml_update_args
+            ):
                 writer.update_from_plex(self.plex_interface, **update_args)
 
         if (self.preferences.use_sonarr
@@ -203,8 +212,11 @@ class Manager:
         """Assign all interfaces to each Show known to this Manager"""
 
         # Assign interfaces for each show
-        for show in tqdm(self.shows + self.archives,desc='Assigning interfaces',
-                         **TQDM_KWARGS):
+        for show in tqdm(
+            self.shows + self.archives,
+            desc='Assigning interfaces',
+            **TQDM_KWARGS
+        ):
             show.assign_interfaces(
                 self.emby_interface,
                 self.jellyfin_interface,
@@ -219,8 +231,11 @@ class Manager:
         """Set the series ID's of each Show known to this Manager"""
 
         # For each show in the Manager, set series IDs
-        for show in tqdm(self.shows + self.archives, desc='Setting series IDs',
-                         **TQDM_KWARGS):
+        for show in tqdm(
+            self.shows + self.archives,
+            desc='Setting series IDs',
+            **TQDM_KWARGS
+        ):
             # Select interfaces based on what's enabled
             show.set_series_ids()
 
@@ -318,8 +333,11 @@ class Manager:
         """Create season posters for all shows."""
 
         # For each show in the Manager, create its posters
-        for show in tqdm(self.shows + self.archives,
-                         desc='Creating season posters',**TQDM_KWARGS):
+        for show in tqdm(
+            self.shows + self.archives,
+            desc='Creating season posters',
+            **TQDM_KWARGS
+        ):
             show.create_season_posters()
 
 

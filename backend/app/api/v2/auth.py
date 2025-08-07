@@ -8,8 +8,7 @@ from app.core.auth import (
     create_access_token,
     get_password_hash
 )
-from app.core.config import settings
-from app.dependencies import get_database, get_logger, get_preferences
+from app.dependencies import get_database, get_logger
 from app.db.users import authenticate_user, get_current_user, get_user
 from app.models.user import User as UserModel
 from app.schemas.auth import (
@@ -18,7 +17,7 @@ from app.schemas.auth import (
     ReturnUserSchema,
     UpdateUser,
 )
-from modules.preferences import Preferences
+from app.settings import settings
 
 
 # Create sub router for all /auth API requests
@@ -32,16 +31,15 @@ auth_router = APIRouter(
 def enable_authentication(
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> ReturnUserSchema:
     """
     Enable Authentication on this server. If there are no existing Users
     when enabled then a temporary User is created.
     """
 
-    # Enable auth globally
-    preferences.require_auth = True
-    preferences.commit()
+    # Enable authentication globally
+    settings.require_auth = True
+    settings.commit(log=log)
 
     # Get current users
     users = db.query(UserModel).all()
@@ -66,7 +64,6 @@ def disable_authentication(
         revoke_access: bool = Query(default=False),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
     Disable the Authentication requirement on this server.
@@ -75,8 +72,8 @@ def disable_authentication(
     """
 
     # Disable authentication requirement
-    preferences.require_auth = False
-    preferences.commit()
+    settings.require_auth = False
+    settings.commit(log=log)
     log.warning(f'Disabling Authentication')
 
     # If revoking access, deleting existing User entries
@@ -125,7 +122,6 @@ def delete_user(
         username: str = Query(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
     Delete the User with the given Username. If there are no remaining
@@ -151,8 +147,8 @@ def delete_user(
     # If there are no more active Users, disable authentication to avoid L/O
     if len(db.query(UserModel).all()) == 0:
         log.warning(f'No remaining active users - disabling authentication')
-        preferences.require_auth = False
-        preferences.commit()
+        settings.require_auth = False
+        settings.commit(log=log)
 
 
 @auth_router.get('/all', dependencies=[Depends(get_current_user)])
@@ -241,11 +237,11 @@ def login_for_access_token(
     # Create new access token for this User
     access_token = create_access_token(
         data={'sub': user.username, 'uid': user.hashed_password},
-        expires_delta=settings.AUTH_EXPIRATION_TIME,
+        expires_delta=settings.config.AUTH_EXPIRATION_TIME,
     )
     log.info(
         f'Authenticated User({user.username}) for '
-        f'{settings.AUTH_EXPIRATION_TIME}'
+        f'{settings.config.AUTH_EXPIRATION_TIME}'
     )
 
     return ReturnTokenSchema(
@@ -257,7 +253,6 @@ def login_for_access_token(
 @auth_router.post('/reset')
 def reset_all_authentication(
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences),
         log: Logger = Depends(get_logger),
     ) -> None:
     """
@@ -267,7 +262,7 @@ def reset_all_authentication(
     Intended only for testing setup and teardown.
     """
 
-    if not settings.TESTING_MODE:
+    if not settings.config.TESTING_MODE:
         raise HTTPException(status_code=401, detail='Unauthorized')
 
     # Delete all Users from the database
@@ -276,5 +271,5 @@ def reset_all_authentication(
     db.commit()
 
     # Do not require authentication
-    preferences.require_auth = False
-    preferences.commit()
+    settings.require_auth = False
+    settings.commit(log=log)

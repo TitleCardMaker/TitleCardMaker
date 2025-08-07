@@ -19,16 +19,15 @@ from app.core.availability import get_latest_version
 from app.core.backup import backup_data, restore_backup
 from app.core.cache import get_cache_manager
 from app.core.cards import refresh_remote_card_types
-from app.core.config import settings
 from app.core.connection import initialize_connections
 from app.core.schedule import huey
 from app.core.settings import apply_card_type_blur_profiles
 from app.db.database import engine as db_engine, SQLALCHEMY_DATABASE_URL
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database
 from app.logging.database import logs_engine, LOGS_DATABASE_URL
 from app.logging.logger import contextualize, log as logger, Logger
 from app.models.user import User
-from app.settings import BACKEND_ROOT, FRONTEND_ROOT
+from app.settings import BACKEND_ROOT, FRONTEND_ROOT, settings
 from modules.BackgroundTasks import TracebackSuppressedPackages
 
 
@@ -47,7 +46,7 @@ def initialize_root_directories(*, log: Logger = logger) -> None:
     """
 
     # Exit if not on Docker
-    if not settings.IS_DOCKER:
+    if not settings.config.IS_DOCKER:
         return None
 
     # Initialize root directories
@@ -77,16 +76,14 @@ def mount_static_app_directories(app: FastAPI, *, log: Logger = logger) -> None:
         log: The logger to use for logging.
     """
 
-    prefs = get_preferences()
-
     for (mount, directory) in (
         ('/css', FRONTEND_ROOT / 'css'),
         ('/js', FRONTEND_ROOT / 'js'),
         ('/pages', FRONTEND_ROOT / 'pages'),
         ('/public', FRONTEND_ROOT / 'public'),
-        ('/assets', prefs.asset_directory),
-        ('/cards', prefs.card_directory),
-        ('/source', prefs.source_directory),
+        ('/assets', settings.asset_directory),
+        ('/cards', settings.card_directory),
+        ('/source', settings.source_directory),
     ):
         try:
             app.mount(mount, StaticFiles(directory=directory))
@@ -105,8 +102,6 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
         app: The FastAPI application to mount the directories into.
         log: The logger to use for logging.
     """
-
-    preferences = get_preferences()
 
     # Initialize Alembic config (simulating config.ini)
     for engine, url, migration_directory in (
@@ -128,7 +123,7 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
                 continue
 
             log.info('Pending schema migration - performing database backup')
-            backup = backup_data(preferences.current_version, log=log)
+            backup = backup_data(settings.current_version, log=log)
 
             # Perform database migrations
             try:
@@ -154,7 +149,7 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
             # Store current DB schema
             with engine.begin() as connection:
                 context = MigrationContext.configure(connection)
-                preferences.current_db_schema = context.get_current_revision()
+                settings.current_db_schema = context.get_current_revision()
 
 
 def disable_authentication(db: Session, *, log: Logger = logger) -> None:
@@ -166,14 +161,14 @@ def disable_authentication(db: Session, *, log: Logger = logger) -> None:
         log: The logger to use for logging.
     """
 
-    if not settings.DISABLE_AUTH:
+    if not settings.config.DISABLE_AUTH:
         return None
 
     # If authentication is required, disable it
-    if (preferences := get_preferences()).require_auth:
+    if settings.require_auth:
         log.warning('Disabling Authentication (TCM_DISABLE_AUTH=TRUE)')
-        preferences.require_auth = False
-        preferences.commit()
+        settings.require_auth = False
+        settings.commit()
 
     # Delete all existing Users
     db.query(User).delete()
@@ -211,9 +206,8 @@ def initialize_app(app: FastAPI) -> None:
 
     log = contextualize(logger)
 
-    preferences = get_preferences()
-    preferences.available_version = get_latest_version(raise_exc=False)
-    preferences.log_startup(log=log)
+    settings.available_version = get_latest_version(raise_exc=False)
+    settings.log_startup(log=log)
 
     initialize_root_directories(log=log)
     mount_static_app_directories(app, log=log)
@@ -229,7 +223,7 @@ def initialize_app(app: FastAPI) -> None:
         disable_authentication(db, log=log)
 
         try:
-            initialize_connections(db, preferences, log=log)
+            initialize_connections(db, log=log)
         except Exception:
             log.exception('Error initializing Connections')
 

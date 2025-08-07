@@ -1,11 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 from app.magick.base import ImageMagickCommands, ImageMaker
-
-if TYPE_CHECKING:
-    from modules.preferences import Preferences
-    from modules.PreferenceParser import PreferenceParser
 
 
 type _LogoPlacement = Literal['top', 'middle', 'bottom']
@@ -65,12 +61,11 @@ class SeasonPoster(ImageMaker):
             omit_gradient: bool = False,
             omit_logo: bool = False,
             text_placement: _TextPlacement = 'top',
-            preferences: 'PreferenceParser | Preferences | None' = None,
         ) -> None:
         """Initialize this SeasonPoster object."""
 
         # Initialize parent object for the ImageMagickInterface
-        super().__init__(preferences=preferences)
+        super().__init__()
 
         # Store provided file attributes
         self.source = source

@@ -1,19 +1,17 @@
 from typing import Literal
 
 from fastapi import APIRouter, Body, Depends
-from fastapi_pagination import paginate
 from sqlalchemy.orm import Session
 
-from app.db.query import get_connection, get_font, get_template
-from app.db.pagination import Page
-from app.dependencies import get_database, get_logger, get_preferences
-from app.db.users import get_current_user
 from app.core.cards import refresh_remote_card_types
-from modules.preferences import Preferences
+from app.db.query import get_connection, get_font, get_template
+from app.dependencies import get_database, get_logger
+from app.db.users import get_current_user
+from app.logging.logger import Logger
 from app.models.template import Template as TemplateModel
 from app.schemas.base import UNSPECIFIED
 from app.schemas.series import NewTemplate, Template, UpdateTemplate
-from app.logging.logger import Logger
+from app.settings import settings
 
 
 # Create sub router for all /templates API requests
@@ -129,7 +127,7 @@ def update_template_(
 def delete_template(
         template_id: int,
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the specified Template.
@@ -141,11 +139,11 @@ def delete_template(
     get_template(db, template_id, raise_exc=True)
 
     # Delete from global template list, if present
-    if template_id in preferences.default_templates:
-        preferences.default_templates = [
-            tid for tid in preferences.default_templates if tid != template_id
+    if template_id in settings.default_templates:
+        settings.default_templates = [
+            tid for tid in settings.default_templates if tid != template_id
         ]
-        preferences.commit()
+        settings.commit(log=log)
 
     # Delete Template from database
     db.delete(get_template(db, template_id, raise_exc=True))

@@ -1,4 +1,3 @@
-from app.core.config import PreferencesLocal
 from app.interfaces.base import InterfaceGroup as IG
 from app.interfaces.emby import EmbyInterface
 from app.interfaces.magick import ImageMagickInterface
@@ -7,13 +6,14 @@ from app.interfaces.plex import PlexInterface
 from app.interfaces.sonarr import SonarrInterface
 from app.interfaces.tmdb import TMDbInterface
 from app.interfaces.tvdb import TVDbInterface
+from app.settings import settings
 
 
 # Initialize all interfaces
 ImageMagickInterfaceLocal = None
 try:
     ImageMagickInterfaceLocal = ImageMagickInterface(
-        use_magick_prefix=PreferencesLocal.use_magick_prefix,
+        use_magick_prefix=settings.use_magick_prefix,
     )
 except Exception:
     pass
@@ -34,5 +34,4 @@ __all__ = [
     'SonarrInterfaces',
     'TMDbInterfaces',
     'TVDbInterfaces',
-    'PreferencesLocal',
 ]

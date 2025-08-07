@@ -7,11 +7,11 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
-from app.dependencies import get_preferences
+from app.logging.logger import log # noqa: F401
 from app.schemas.blueprint import BlueprintFont
 from app.schemas.font import TitleCase
+from app.settings import settings
 
-from app.logging.logger import log # noqa: F401
 
 if TYPE_CHECKING:
     from sqlalchemy.event import Events
@@ -70,7 +70,7 @@ class Font(Base):
         if self.file_name is None:
             return None
 
-        font_directory = get_preferences().asset_directory / 'fonts'
+        font_directory = settings.asset_directory / 'fonts'
         if not (file := font_directory / str(self.id)/ self.file_name).exists():
             return None
 

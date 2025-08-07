@@ -24,7 +24,7 @@ from app.core.sources import download_episode_source_images
 from app.core.templates import get_effective_templates
 from app.core.translate import translate_episode
 from app.db.query import get_font, get_media_interface
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database
 from app.exceptions import (
     InvalidCardSettings,
     InvalidFormatString,
@@ -42,6 +42,7 @@ from app.schemas.base import Base
 from app.schemas.font import DefaultFont
 from app.schemas.card import NewTitleCard, TitleCardReduced
 from app.schemas.card_type import LocalCardTypeModels
+from app.settings import settings
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
 from modules.FormatString import FormatString
@@ -208,7 +209,7 @@ def clean_database(*, log: Logger = log) -> None:
         db.commit()
 
         # Delete duplicate Cards
-        if not get_preferences().library_unique_cards:
+        if not settings.library_unique_cards:
             subquery = db\
                 .query(
                     Card.episode_id,
@@ -236,7 +237,7 @@ def refresh_all_remote_card_types(*, log: Logger = log) -> None:
         log: Logger for all log messages.
     """
 
-    get_preferences().parse_local_card_types(log=log)
+    settings.parse_local_card_types(log=log)
 
     with next(get_database()) as db:
         refresh_remote_card_types(db, reset=True, log=log)
@@ -265,8 +266,7 @@ def refresh_remote_card_types(
         return set(obj[0] for obj in db.query(model.card_type).distinct().all())
 
     # Get all card types globally, from Templates, Series, and Episodes
-    preferences = get_preferences()
-    card_identifiers = {preferences.default_card_type} \
+    card_identifiers = {settings.default_card_type} \
         | _get_unique_card_types(Template) \
         | _get_unique_card_types(Series) \
         | _get_unique_card_types(Episode)
@@ -281,11 +281,11 @@ def refresh_remote_card_types(
         # Skip blank identifiers, and builtin or local cards
         if (card_identifier is None
             or card_identifier in TitleCardCreator.CARD_TYPES
-            or card_identifier in preferences.local_card_types):
+            or card_identifier in settings.local_card_types):
             continue
 
         # If not resetting, skip already loaded types
-        if not reset and card_identifier in preferences.remote_card_types:
+        if not reset and card_identifier in settings.remote_card_types:
             continue
 
         # Get reference hash of card
@@ -299,7 +299,7 @@ def refresh_remote_card_types(
         log.debug(f'Loading RemoteCardType[{card_identifier}]..')
         card_type = RemoteCardType(card_identifier, card_hash, log=log)
         if card_type.valid and card_type is not None and card_type.card_class:
-            preferences.remote_card_types[card_identifier] =card_type.card_class
+            settings.remote_card_types[card_identifier] =card_type.card_class
 
 
 def _card_type_model_to_json(model: Base) -> dict:
@@ -388,7 +388,7 @@ def validate_card_type_model(
     """
 
     # Initialize class of the card type being created
-    CardClass = get_preferences().get_card_type_class(
+    CardClass = settings.get_card_type_class(
         card_settings['card_type'], log=log
     )
     if CardClass is None:
@@ -493,7 +493,6 @@ def resolve_card_settings(
     """
 
     # Get effective Template(s) for this Series and Episode
-    preferences = get_preferences()
     series = episode.series
     global_template, series_template, episode_template =get_effective_templates(
         series, episode, library
@@ -509,7 +508,7 @@ def resolve_card_settings(
 
     # Determine the card type
     card_type: str = TieredSettings.resolve_singular_setting(
-        preferences.default_card_type,
+        settings.default_card_type,
         global_template_dict.get('card_type'),
         series_template_dict.get('card_type'),
         series.card_type,
@@ -529,10 +528,10 @@ def resolve_card_settings(
         series_font_dict = series_template.font.card_properties
     elif global_template and global_template.font:
         global_font_dict = global_template.font.card_properties
-    elif preferences.default_fonts.get(card_type) is not None:
+    elif settings.default_fonts.get(card_type) is not None:
         global_font_dict = get_font(
             object_session(episode), # type: ignore
-            preferences.default_fonts[card_type],
+            settings.default_fonts[card_type],
             raise_exc=True,
         ).card_properties
 
@@ -540,7 +539,7 @@ def resolve_card_settings(
     card_settings: dict[str, Any] = TieredSettings.new_settings(
         {'hide_season_text': False, 'hide_episode_text': False},
         DefaultFont,
-        preferences.card_properties,
+        settings.card_properties,
         {
             'logo_file': series.get_logo_file(
                 episode.season_number
@@ -570,7 +569,7 @@ def resolve_card_settings(
 
     # Resolve all extras
     card_extras = TieredSettings.new_settings(
-        preferences.global_extras.get(card_settings['card_type'], {}),
+        settings.global_extras.get(card_settings['card_type'], {}),
         global_template_dict.get('extras', {}),
         series_template_dict.get('extras', {}),
         series.extras, # type: ignore
@@ -595,7 +594,7 @@ def resolve_card_settings(
         / f'{filename}{logo_file.suffix}'
 
     # Get the effective card class
-    CardClass = preferences.get_card_type_class(
+    CardClass = settings.get_card_type_class(
         card_settings['card_type'], log=log
     )
     if CardClass is None:
@@ -742,7 +741,7 @@ def resolve_card_settings(
         )
     else:
         card_settings['source_file'] = CleanPath(
-            preferences.source_directory \
+            settings.source_directory \
                 / series.path_safe_name \
                 / FormatString.new(
                     card_settings['source_file'],
@@ -765,7 +764,7 @@ def resolve_card_settings(
 
     # Get card folder
     if card_settings.get('directory') is None:
-        series_directory = Path(preferences.card_directory) \
+        series_directory = Path(settings.card_directory) \
             / series.path_safe_name
     else:
         series_directory = Path(card_settings['directory'][:254])
@@ -778,20 +777,20 @@ def resolve_card_settings(
             name='title card filename', series=series, episode=episode, log=log,
         )
         # Add library-specific identifier to filename if indicated
-        if library is not None and preferences.library_unique_cards:
+        if library is not None and settings.library_unique_cards:
             filename += f' [{library["interface"]} {library["name"]}]'
         card_settings['card_file'] = series_directory \
-            / preferences.get_folder_format(episode_info) \
+            / settings.get_folder_format(episode_info) \
             / filename
     else:
         card_settings['card_file'] = series_directory \
-            / preferences.get_folder_format(episode_info) \
+            / settings.get_folder_format(episode_info) \
             / CleanPath.sanitize_name(card_settings['card_file'])
 
     # Add extension if needed
     card_file_name = card_settings['card_file'].name
-    if not card_file_name.endswith(preferences.VALID_IMAGE_EXTENSIONS):
-        new_name = card_file_name + preferences.card_extension
+    if not card_file_name.endswith(settings.VALID_IMAGE_EXTENSIONS):
+        new_name = card_file_name + settings.card_extension
         card_settings['card_file'] = card_settings['card_file'].parent /new_name
     card_settings['card_file'] =CleanPath(card_settings['card_file']).sanitize()
 
@@ -871,7 +870,7 @@ def create_episode_card(
     # Find existing Card
     existing_card: Card | None = None
     # Library unique mode is disabled, look for any Card for this Episode
-    if not get_preferences().library_unique_cards or not library:
+    if not settings.library_unique_cards or not library:
         existing_card = db.query(Card).filter_by(episode_id=episode.id).first()
     elif library:
         # Look for Card associated with this library OR no library (if
@@ -976,7 +975,7 @@ def create_episode_cards(
     # If parent Series has multiple libraries
     if episode.series.libraries:
         # In library unique mode, create Card for each library
-        if get_preferences().library_unique_cards:
+        if settings.library_unique_cards:
             changed = False
             for library in episode.series.libraries:
                 changed |= create_episode_card(

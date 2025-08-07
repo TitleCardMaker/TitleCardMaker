@@ -6,8 +6,8 @@ from typing import Annotated, NamedTuple
 
 from fastapi import HTTPException
 
+from app.core.config import TCM_ROOT, config as app_config
 from app.schemas.preferences import DatabaseBackup, SettingsBackup, SystemBackup
-from app.settings import TCM_ROOT, settings
 from app.logging.logger import Logger, log
 from modules.Version import Version
 
@@ -20,7 +20,7 @@ BACKUP_DT_FORMAT: Annotated[
 BACKUP_DIRECTORY: Annotated[
     Path,
     'Directory for all backups'
-] = Path('/config/backups' if settings.IS_DOCKER else TCM_ROOT / 'config' / 'backups')
+] = Path('/config/backups' if app_config.IS_DOCKER else TCM_ROOT / 'config' / 'backups')
 BACKUP_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
 
@@ -37,7 +37,7 @@ def delete_old_backups(*, log: Logger = log) -> None:
         log: Logger for all log messages.
     """
 
-    delete_before = datetime.now() - settings.BACKUP_RETENTION
+    delete_before = datetime.now() - app_config.BACKUP_RETENTION
 
     for backup in BACKUP_DIRECTORY.iterdir():
         # Backup subdirectories
@@ -113,7 +113,7 @@ def backup_data(
     backup_folder.mkdir(exist_ok=True, parents=True)
 
     # Identify source and destination files
-    pre = '' if settings.IS_DOCKER else '.'
+    pre = '' if app_config.IS_DOCKER else '.'
     config = Path(f'{pre}/config/config.pickle')
     config_backup = backup_folder / f'config.pickle.{version}'
     database = Path(f'{pre}/config/db.sqlite')
@@ -161,7 +161,7 @@ def restore_backup(backup: DataBackup | str, /, *, log: Logger = log):
 
     # Restore config
     if config and config.exists():
-        if settings.IS_DOCKER:
+        if app_config.IS_DOCKER:
             file_copy(config, Path('/config/config.pickle'))
         else:
             file_copy(config, Path('./config/config.pickle'))
@@ -171,7 +171,7 @@ def restore_backup(backup: DataBackup | str, /, *, log: Logger = log):
 
     # Restore database
     if database.exists():
-        if settings.IS_DOCKER:
+        if app_config.IS_DOCKER:
             file_copy(database, Path('/config/db.sqlite'))
         else:
             file_copy(database, Path('./config/db.sqlite'))

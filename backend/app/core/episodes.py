@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session, load_only
 
 from app.db.query import get_all_templates, get_font, get_interface
 from app.dependencies import (
-    get_preferences,
     get_sonarr_interfaces,
     get_tmdb_interfaces,
     get_tvdb_interfaces
@@ -19,12 +18,13 @@ from app.interfaces.v2 import (
     TMDbInterface,
     TVDbInterface,
 )
+from app.logging.logger import Logger, log
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.series import Series
 from app.schemas.base import UNSPECIFIED
 from app.schemas.episode import UpdateEpisode
-from app.logging.logger import Logger, log
+from app.settings import settings
 from modules.TieredSettings import TieredSettings
 from app.core.cache import (
     cache_series_episodes,
@@ -127,7 +127,7 @@ def get_all_episode_data(
     # Determine effective Episode data source
     g_template, s_template, _ = get_effective_templates(series)
     interface_id = TieredSettings.resolve_singular_setting(
-        get_preferences().episode_data_source,
+        settings.episode_data_source,
         getattr(g_template, 'data_source_id', None),
         getattr(s_template, 'data_source_id', None),
         series.data_source_id,
@@ -212,7 +212,7 @@ def refresh_episode_data(
     # Get effective sync specials toggle
     global_template, series_template, _ = get_effective_templates(series)
     sync_specials = TieredSettings.resolve_singular_setting(
-        get_preferences().sync_specials,
+        settings.sync_specials,
         getattr(global_template, 'sync_specials', None),
         getattr(series_template, 'sync_specials', None),
         series.sync_specials,
@@ -252,7 +252,7 @@ def refresh_episode_data(
             changed |= existing.add_watched_status(watched, log=log)
 
     # Get existing Episodes
-    if get_preferences().delete_missing_episodes:
+    if settings.delete_missing_episodes:
         new_keys = set(ei.index_str for ei, _ in all_episodes)
         all_existing = {ep.index_str: ep for ep in series.episodes}
         for delete_key in set(all_existing) - new_keys:

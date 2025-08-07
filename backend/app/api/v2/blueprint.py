@@ -16,15 +16,6 @@ from fastapi_pagination import paginate as paginate_sequence
 from PIL import Image
 from sqlalchemy.orm import Session
 
-from app.db.pagination import Page
-from app.db.query import get_blueprint, get_blueprint_set, get_series
-from app.dependencies import (
-    get_blueprint_database,
-    get_database,
-    get_logger,
-    get_preferences,
-)
-from app.db.users import get_current_user
 from app.core.blueprint import (
     generate_series_blueprint,
     get_blueprint_font_files,
@@ -34,6 +25,14 @@ from app.core.blueprint import (
 from app.core.episodes import get_all_episode_data
 from app.core.series import add_series
 from app.core.sources import get_series_mask_images
+from app.db.pagination import Page
+from app.db.query import get_blueprint, get_blueprint_set, get_series
+from app.dependencies import (
+    get_blueprint_database,
+    get_database,
+    get_logger,
+)
+from app.db.users import get_current_user
 from app.models.blueprint import Blueprint, BlueprintSeries
 from app.models.card import Card
 from app.models.episode import Episode as EpisodeModel
@@ -45,8 +44,8 @@ from app.schemas.blueprint import (
     RemoteBlueprintSet,
 )
 from app.schemas.series import Series
+from app.settings import settings
 from app.logging.logger import Logger
-from modules.preferences import Preferences
 from modules.TemporaryZip import TemporaryZip
 
 
@@ -142,7 +141,6 @@ async def export_series_blueprint_as_zip(
         mask_images: bool = Query(default=True),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> FileResponse:
     """
     Export a zipped file of the given Series' Blueprint (as JSON), any
@@ -202,9 +200,9 @@ async def export_series_blueprint_as_zip(
     card_file = Path(random_choice(filtered_cards)) if filtered_cards else None
 
     # Directories for zipping all Blueprint data and Fonts
-    tzip = TemporaryZip(preferences.TEMPORARY_DIRECTORY, background_tasks)
+    tzip = TemporaryZip(settings.temporary_directory, background_tasks)
     font_tzip = TemporaryZip(
-        preferences.TEMPORARY_DIRECTORY, background_tasks, name='fonts'
+        settings.temporary_directory, background_tasks, name='fonts'
     )
 
     # Copy all files into the zip directory
@@ -229,7 +227,7 @@ async def export_series_blueprint_as_zip(
     # Zip mask images if indicated
     if mask_images:
         mask_tzip = TemporaryZip(
-            preferences.TEMPORARY_DIRECTORY, background_tasks, name='sources'
+            settings.temporary_directory, background_tasks, name='sources'
         )
         for file in get_series_mask_images(series):
             mask_tzip.add_file(file, log=log)
@@ -249,7 +247,6 @@ async def export_series_blueprint_as_zip(
 def blacklist_blueprint(
         blueprint_id: int,
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
     Blacklist the indicated Blueprint. Once blacklisted, this Blueprint
@@ -259,8 +256,8 @@ def blacklist_blueprint(
     """
 
     # Add to blacklist, commit changes
-    preferences.blacklisted_blueprints.add(blueprint_id)
-    preferences.commit()
+    settings.blacklisted_blueprints.add(blueprint_id)
+    settings.commit(log=log)
 
     log.debug(f'Blacklisted Blueprint[{blueprint_id}]')
 
@@ -268,7 +265,7 @@ def blacklist_blueprint(
 @blueprint_router.delete('/blacklist/{blueprint_id}')
 def remove_blueprint_from_blacklist(
         blueprint_id: int,
-        preferences: Preferences = Depends(get_preferences),
+        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Un-blacklist the Blueprint for the indicated Series.
@@ -277,8 +274,8 @@ def remove_blueprint_from_blacklist(
     """
 
     try:
-        preferences.blacklisted_blueprints.remove(blueprint_id)
-        preferences.commit()
+        settings.blacklisted_blueprints.remove(blueprint_id)
+        settings.commit(log=log)
     except KeyError as exc:
         raise HTTPException(
             status_code=404,
@@ -295,7 +292,6 @@ def query_all_blueprints_(
         include_blacklisted: bool = Query(default=False),
         include_imported: bool = Query(default=False),
         include_missing_series: bool = Query(default=True),
-        preferences: Preferences = Depends(get_preferences),
     ) -> Page[RemoteBlueprint]: # pyright: ignore[reportInvalidTypeForm]
     """
     Query for all available Blueprints for all Series. Blacklisted
@@ -324,12 +320,12 @@ def query_all_blueprints_(
 
         # Exclude if blacklisted (and filtering)
         if (not include_blacklisted
-            and blueprint.id in preferences.blacklisted_blueprints):
+            and blueprint.id in settings.blacklisted_blueprints):
             return False
 
         # Exclude if previously imported (and filtering)
         if (not include_imported
-            and blueprint.id in preferences.imported_blueprints):
+            and blueprint.id in settings.imported_blueprints):
             return False
 
         # Exclude if creator does not match (and filtering)
@@ -340,9 +336,11 @@ def query_all_blueprints_(
         if not include_missing_series:
             # Determine if this Series already exists
             series_info = blueprint.series.as_series_info
-            series = db.query(SeriesModel)\
-                .filter(series_info.filter_conditions(SeriesModel))\
-                .first()
+            series = (
+                db.query(SeriesModel)
+                    .filter(series_info.filter_conditions(SeriesModel))
+                    .first()
+            )
 
             # Series not present, do not include
             if series is None:

@@ -1,6 +1,6 @@
 """Support multiple interface connections
 Create new Connections SQL table / Model
-- Turn existing connection details from global Preferences into
+- Turn existing connection details from global Settings into Connection
   Connection objects which are assigned during SQL migration.
 Modify Card table:
 - Add new interface_id and library_name columns
@@ -57,7 +57,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Mapped, Session, relationship
 
-from app.db.interfaces import PreferencesLocal
+from app.settings import settings
 
 Base = declarative_base()
 
@@ -215,88 +215,88 @@ def upgrade() -> None:
 
     # Turn existing connections from Preferences into Connection objects
     emby, jellyfin, plex, sonarr, tmdb = None, None, None, None, None
-    if hasattr(PreferencesLocal, 'emby_url') and PreferencesLocal.emby_url:
+    if hasattr(settings, 'emby_url') and settings.emby_url:
         emby = Connection(
             interface_type='Emby',
             enabled=True,
             name='Emby',
-            url=PreferencesLocal.emby_url,
-            api_key=PreferencesLocal.emby_api_key,
-            use_ssl=PreferencesLocal.emby_use_ssl,
-            username=PreferencesLocal.emby_username,
+            url=settings.emby_url,
+            api_key=settings.emby_api_key,
+            use_ssl=settings.emby_use_ssl,
+            username=settings.emby_username,
         )
         session.add(emby)
         session.commit()
         log.info(f'Created Emby Connection[{emby.id}]')
-    if hasattr(PreferencesLocal, 'jellyfin_url') and PreferencesLocal.jellyfin_url:
+    if hasattr(settings, 'jellyfin_url') and settings.jellyfin_url:
         jellyfin = Connection(
             interface_type='Jellyfin',
             enabled=True,
             name='Jellyfin',
-            url=PreferencesLocal.jellyfin_url,
-            api_key=PreferencesLocal.jellyfin_api_key,
-            use_ssl=PreferencesLocal.jellyfin_use_ssl,
-            username=PreferencesLocal.jellyfin_username,
+            url=settings.jellyfin_url,
+            api_key=settings.jellyfin_api_key,
+            use_ssl=settings.jellyfin_use_ssl,
+            username=settings.jellyfin_username,
         )
         session.add(jellyfin)
         session.commit()
         log.info(f'Created Jellyfin Connection[{jellyfin.id}]')
-    if hasattr(PreferencesLocal, 'plex_url') and PreferencesLocal.plex_url:
+    if hasattr(settings, 'plex_url') and settings.plex_url:
         plex = Connection(
             interface_type='Plex',
             enabled=True,
             name='Plex',
-            url=PreferencesLocal.plex_url,
-            api_key=PreferencesLocal.plex_token,
-            use_ssl=PreferencesLocal.plex_use_ssl,
-            integrate_with_pmm=PreferencesLocal.plex_integrate_with_pmm,
+            url=settings.plex_url,
+            api_key=settings.plex_token,
+            use_ssl=settings.plex_use_ssl,
+            integrate_with_pmm=settings.plex_integrate_with_pmm,
         )
         session.add(plex)
         session.commit()
         log.info(f'Created Plex Connection[{plex.id}]')
-    if hasattr(PreferencesLocal, 'sonarr_url') and PreferencesLocal.sonarr_url:
+    if hasattr(settings, 'sonarr_url') and settings.sonarr_url:
         sonarr = Connection(
             interface_type='Sonarr',
             enabled=True,
             name='Sonarr',
-            url=PreferencesLocal.sonarr_url,
-            api_key=PreferencesLocal.sonarr_api_key,
-            use_ssl=PreferencesLocal.sonarr_use_ssl,
-            downloaded_only=PreferencesLocal.sonarr_downloaded_only,
+            url=settings.sonarr_url,
+            api_key=settings.sonarr_api_key,
+            use_ssl=settings.sonarr_use_ssl,
+            downloaded_only=settings.sonarr_downloaded_only,
         )
         session.add(sonarr)
         session.commit()
         log.info(f'Created Sonarr Connection[{sonarr.id}]')
         log.warning(f'Cannot migrate Sonarr Libraries data - resetting')
-    if hasattr(PreferencesLocal, 'tmdb_api_key') and PreferencesLocal.tmdb_api_key:
+    if hasattr(settings, 'tmdb_api_key') and settings.tmdb_api_key:
         tmdb = Connection(
             interface_type='TMDb',
             enabled=True,
             name='TMDb',
-            api_key=PreferencesLocal.tmdb_api_key,
-            minimum_dimensions=f'{PreferencesLocal.tmdb_minimum_width}x{PreferencesLocal.tmdb_minimum_height}',
-            skip_localized=PreferencesLocal.tmdb_skip_localized,
-            logo_language_priority=PreferencesLocal.tmdb_logo_language_priority,
+            api_key=settings.tmdb_api_key,
+            minimum_dimensions=f'{settings.tmdb_minimum_width}x{settings.tmdb_minimum_height}',
+            skip_localized=settings.tmdb_skip_localized,
+            logo_language_priority=settings.tmdb_logo_language_priority,
         )
         session.add(tmdb)
         session.commit()
         log.info(f'Created TMDb Connection[{tmdb.id}]')
 
     # Migrate the global Episode data source and image source priorities
-    if emby and PreferencesLocal.episode_data_source in ('Emby', 'emby'):
-        PreferencesLocal.episode_data_source = emby.id
-    elif jellyfin and PreferencesLocal.episode_data_source in ('Jellyfin', 'jellyfin'):
-        PreferencesLocal.episode_data_source = jellyfin.id
-    elif sonarr and PreferencesLocal.episode_data_source in ('Sonarr', 'sonarr'):
-        PreferencesLocal.episode_data_source = sonarr.id
-    elif PreferencesLocal.episode_data_source in ('TMDb', 'tmdb'):
-        PreferencesLocal.episode_data_source = tmdb.id
+    if emby and settings.episode_data_source in ('Emby', 'emby'):
+        settings.episode_data_source = emby.id
+    elif jellyfin and settings.episode_data_source in ('Jellyfin', 'jellyfin'):
+        settings.episode_data_source = jellyfin.id
+    elif sonarr and settings.episode_data_source in ('Sonarr', 'sonarr'):
+        settings.episode_data_source = sonarr.id
+    elif settings.episode_data_source in ('TMDb', 'tmdb'):
+        settings.episode_data_source = tmdb.id
     else:
-        PreferencesLocal.episode_data_source = None
-    log.debug(f'Migrated Global Episode data source to {PreferencesLocal.episode_data_source}')
+        settings.episode_data_source = None
+    log.debug(f'Migrated Global Episode data source to {settings.episode_data_source}')
 
     isp = []
-    for source in PreferencesLocal.image_source_priority:
+    for source in settings.image_source_priority:
         if emby and source == 'Emby':
             isp.append(emby.id)
         elif jellyfin and source == 'Jellyfin':
@@ -305,7 +305,7 @@ def upgrade() -> None:
             isp.append(plex.id)
         elif tmdb and source == 'TMDb':
             isp.append(tmdb.id)
-    PreferencesLocal.image_source_priority = isp
+    settings.image_source_priority = isp
     log.debug(f'Migrated Global Image Source Priority to {isp}')
 
     # Migrate Loaded interface_id and library_name
@@ -574,8 +574,8 @@ def upgrade() -> None:
     with op.batch_alter_table('template', schema=None) as batch_op:
         batch_op.drop_column('episode_data_source')
 
-    # Commit changes to Preferences
-    PreferencesLocal.commit()
+    # Commit changes
+    settings.commit(log=log)
 
     log.debug(f'Upgraded SQL Schema to Version[{revision}]')
 

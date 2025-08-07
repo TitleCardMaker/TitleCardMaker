@@ -18,9 +18,9 @@ Create Date: 2023-10-29 17:47:41.469202
 from pathlib import Path
 from alembic import op
 import sqlalchemy as sa
-from app.logging.logger import contextualize
 
-from app.dependencies import get_preferences
+from app.logging.logger import contextualize
+from app.settings import settings
 from modules.CleanPath import CleanPath
 
 # revision identifiers, used by Alembic.
@@ -91,11 +91,15 @@ def upgrade() -> None:
 
     # Add new column
     with op.batch_alter_table('card', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('model_json', sa.JSON(), server_default='{}', nullable=False))
+        batch_op.add_column(sa.Column(
+            'model_json',
+            sa.JSON(),
+            server_default='{}',
+            nullable=False,
+        ))
 
     # Perform data migration
     session = Session(bind=op.get_bind())
-    preferences = get_preferences()
 
     # Initialize model_json for each Card
     for card in session.query(Card).all():
@@ -115,7 +119,7 @@ def upgrade() -> None:
         if 'logo_file' in card.extras:
             logo_file = Path(card.extras.pop('logo_file'))
         else:
-            logo_file = get_logo_file(card.series, preferences.source_directory)
+            logo_file = get_logo_file(card.series, settings.source_directory)
 
         # Get Pydantic model for this card type, initialize
         try:

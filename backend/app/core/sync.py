@@ -5,9 +5,10 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from app.db.query import get_all_templates, get_interface
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database
 from app.core.cards import delete_cards
 from app.core.series import add_series, delete_series
+from app.logging.logger import Logger, log
 from app.models.card import Card
 from app.models.connection import Connection
 from app.models.loaded import Loaded
@@ -20,7 +21,9 @@ from app.schemas.sync import (
     NewPlexSync,
     NewSonarrSync
 )
-from app.logging.logger import Logger, log
+from app.settings import settings
+
+CURRENTLY_RUNNING_SYNC: int | None = None
 
 
 def sync_all(*, log: Logger = log) -> None:
@@ -31,10 +34,11 @@ def sync_all(*, log: Logger = log) -> None:
         log: Logger for all log messages.
     """
 
+    global CURRENTLY_RUNNING_SYNC
+
     # Wait if there is a Sync currently running
     attempts = 5
-    while ((preferences := get_preferences()).currently_running_sync is not None
-        and attempts > 0):
+    while CURRENTLY_RUNNING_SYNC is not None and attempts > 0:
         log.debug('Sync is current running, waiting..')
         sleep(60)
         attempts -= 1
@@ -55,7 +59,7 @@ def sync_all(*, log: Logger = log) -> None:
                 sleep(30)
 
         # Remove un-synced Series if toggled
-        if preferences.delete_unsynced_series:
+        if settings.delete_unsynced_series:
             # Delete all Series which do not have an associated Sync
             to_delete = db.query(Series)\
                 .filter(Series.sync_id.is_(None))\
@@ -73,7 +77,7 @@ def sync_all(*, log: Logger = log) -> None:
                 delete_series(db, series, commit_changes=False, log=log)
             db.commit()
 
-    preferences.currently_running_sync = None
+    CURRENTLY_RUNNING_SYNC = None
 
 
 def add_sync(
@@ -175,8 +179,8 @@ def run_sync(
     """
 
     # Mark Sync as running
-    preferences = get_preferences()
-    preferences.currently_running_sync = sync.id
+    global CURRENTLY_RUNNING_SYNC
+    CURRENTLY_RUNNING_SYNC = sync.id
 
     # Get specified Interface
     interface = get_interface(sync.interface_id, raise_exc=True)
@@ -184,7 +188,7 @@ def run_sync(
     # Get this Interface's Connection
     if (connection := sync.connection) is None:
         log.error(f'Unable to communicate with {sync.interface}')
-        preferences.currently_running_sync = None
+        CURRENTLY_RUNNING_SYNC = None
         raise HTTPException(
             status_code=404,
             detail=f'Unable to communicate with {sync.interface}',
@@ -252,7 +256,7 @@ def run_sync(
         log.info(f'{sync} no new Series synced')
 
     # Clear the Sync ID of all Series which were not in the latest sync
-    if preferences.delete_unsynced_series:
+    if settings.delete_unsynced_series:
         for series in sync.series:
             if series not in existing_series:
                 series.sync_id = None
@@ -260,7 +264,7 @@ def run_sync(
         db.commit()
 
     # Process each newly added Series
-    preferences.currently_running_sync = None
+    CURRENTLY_RUNNING_SYNC = None
     return [
         add_series(new_series, background_tasks, db, log=log)
         for new_series in added

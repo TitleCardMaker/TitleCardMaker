@@ -3,11 +3,10 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.core.auth import get_secret_key, verify_password
-from app.dependencies import get_database, get_preferences
+from app.dependencies import get_database
 from app.models.user import User
-from modules.preferences import Preferences
+from app.settings import settings
 
 
 # OAuth2 scheme for authentication
@@ -33,7 +32,6 @@ def get_user(db: Session, username: str) -> User | None:
 _creds: dict[str, User] = {}
 def get_current_user(
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences),
         token: str = Depends(oath2_scheme),
     ) -> User | None:
     """
@@ -43,7 +41,6 @@ def get_current_user(
 
     Args:
         db: Session to query for Users.
-        preferences: Global Preferences.
         token: OAuth2 JWT whose data is the encrypted username of the
             active User.
 
@@ -57,7 +54,7 @@ def get_current_user(
     """
 
     # Do not authenticate if globally disabled
-    if not preferences.require_auth:
+    if not settings.require_auth:
         return None
 
     credential_exception = HTTPException(
@@ -68,7 +65,11 @@ def get_current_user(
 
     # Decode JWT, get encoded username
     try:
-        payload = jwt.decode(token, get_secret_key(), algorithms=[settings.CRYPTO_ALGORITHM])
+        payload = jwt.decode(
+            token,
+            get_secret_key(),
+            algorithms=[settings.config.CRYPTO_ALGORITHM],
+        )
         username: str | None = payload.get('sub')
         uid: str | None = payload.get('uid')
     except JWTError as exc:

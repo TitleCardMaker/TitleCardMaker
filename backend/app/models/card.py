@@ -6,7 +6,7 @@ from sqlalchemy import ForeignKey, JSON, func
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.config import PreferencesLocal
+from app.settings import settings
 from app.db.database import Base
 
 if TYPE_CHECKING:
@@ -80,6 +80,6 @@ class Card(Base):
         """URL to the Card file."""
 
         return self.card_file.replace(
-            str(PreferencesLocal.card_directory),
+            str(settings.card_directory),
             '/cards'
         )

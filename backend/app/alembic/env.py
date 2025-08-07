@@ -6,7 +6,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from app.settings import settings
+from app.core.config import config as app_config
 
 """
 Auto-detect db changes:
@@ -70,7 +70,7 @@ def run_migrations_offline() -> None:
     """
 
     url = config.get_main_option('sqlalchemy.url')
-    if settings.IS_DOCKER:
+    if app_config.IS_DOCKER:
         url = '/config/db.sqlite'
 
     context.configure(
@@ -101,7 +101,7 @@ def run_migrations_online() -> None:
     )
 
     url = config.get_main_option('sqlalchemy.url')
-    if settings.IS_DOCKER:
+    if app_config.IS_DOCKER:
         url = '/config/db.sqlite'
 
     with connectable.connect() as connection:

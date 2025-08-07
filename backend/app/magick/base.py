@@ -2,14 +2,13 @@ from abc import ABC, abstractmethod
 from math import ceil
 from pathlib import Path
 from random import sample
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING, Annotated, ClassVar
 
 from app.interfaces.magick import Dimensions, ImageMagickInterface
 from app.logging.logger import log
 from modules import global_objects
 
 if TYPE_CHECKING:
-    from modules.preferences import Preferences
     from modules.Show import Show
 
 type ImageMagickCommands = list[str]
@@ -26,7 +25,7 @@ class ImageMaker(ABC):
     """
 
     BASE_REF_DIRECTORY: Annotated[
-        Path,
+        ClassVar[Path],
         'Base reference directory for local assets'
     ] = Path(__file__).parent.parent.parent / 'assets'
 
@@ -44,39 +43,20 @@ class ImageMaker(ABC):
 
 
     @abstractmethod
-    def __init__(self,
-            *,
-            preferences: 'Preferences | None' = None,
-        ) -> None:
+    def __init__(self) -> None:
         """
         Initializes a new instance. This gives all subclasses access to
         an ImageMagickInterface via the image_magick attribute.
-
-        Args:
-            preferences: Global Preferences object to initialize the
-                `ImageMagickInterface` with.
         """
 
-        # No Preferences object, use global
-        if preferences is None:
-            self.card_dimensions = getattr(
-                global_objects.pp, 'card_dimensions', '3200x1800'
-            )
-            self.quality = getattr(global_objects.pp, 'card_quality', 92)
-            self.image_magick = ImageMagickInterface(
-                getattr(global_objects.pp, 'imagemagick_container', 'ImageMagick'),
-                getattr(global_objects.pp, 'use_magick_prefix', True),
-                getattr(global_objects.pp, 'executable', None),
-                getattr(global_objects.pp, 'imagemagick_timeout', 30),
-            )
-        # Preferences object provided, use directly
-        else:
-            self.card_dimensions = preferences.card_dimensions
-            self.quality = preferences.card_quality
-            self.image_magick = ImageMagickInterface(
-                use_magick_prefix=preferences.use_magick_prefix,
-                executable=preferences.imagemagick_executable,
-            )
+        from app.settings import settings
+
+        self.card_dimensions = settings.card_dimensions
+        self.quality = settings.card_quality
+        self.image_magick = ImageMagickInterface(
+            use_magick_prefix=settings.use_magick_prefix,
+            executable=settings.imagemagick_executable,
+        )
 
 
     @abstractmethod
@@ -87,7 +67,7 @@ class ImageMaker(ABC):
         should make ImageMagick calls through the parent class'
         ImageMagickInterface object.
         """
-        raise NotImplementedError(f'All ImageMaker objects must implement this')
+        raise NotImplementedError('All ImageMaker objects must implement this')
 
 
 class BaseSummary(ImageMaker):

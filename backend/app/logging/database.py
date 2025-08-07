@@ -3,10 +3,10 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from app.settings import settings
+from app.core.config import config
 
 
-if settings.IS_DOCKER:
+if config.IS_DOCKER:
     LOGS_DATABASE_URL = 'sqlite:////config/logs/logs.sqlite'
     LOGS_DATABASE_PATH = Path('/config/logs/logs.sqlite')
 else:

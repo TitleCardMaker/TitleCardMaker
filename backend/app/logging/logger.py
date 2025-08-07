@@ -1,6 +1,5 @@
 from datetime import datetime
 import logging
-from os import environ, getenv
 from random import choices as random_choices
 from string import hexdigits
 import sys
@@ -12,9 +11,9 @@ from loguru import logger as base_logger
 from loguru._logger import Logger
 from sqlalchemy.exc import OperationalError
 
+from app.core.config import LOG_ROOT, config
 from app.logging.database import LogsSessionLocal
 from app.logging.models import Log
-from app.settings import LOG_ROOT, settings
 
 if TYPE_CHECKING:
     class Record(TypedDict):
@@ -114,25 +113,33 @@ def contextualize(
         context_id: str | None = None
     ) -> Logger:
     """
-    Create a contextualized Logger.
+    Create a contextualized logger with a context ID for request
+    tracking.
 
     Args:
-        logger: Base Logger to initialize the ContextLogger with.
-        context_id: Context ID to utilize for logging. If not provided,
-            one is generated.
+        logger: Base logger to contextualize.
+        context_id: Context ID to bind to the logger. If None, a random
+            one will be generated.
+
+    Returns:
+        Contextualized logger with the context ID bound.
     """
 
     return logger.bind(context_id=context_id or generate_context_id())
 
 
 def _configure_logger(logger: Logger) -> Logger:
-    """Configure the logger."""
+    """Configure the logger with all sinks and handlers."""
 
+    # Remove default handler
+    logger.remove()
+
+    # Add handlers
     handlers = [
         # WARNING: The sys.stdout print WILL NOT have secrets redacted
         dict(
             sink=sys.stdout,
-            level=settings.CONSOLE_LOG_LEVEL,
+            level=config.CONSOLE_LOG_LEVEL,
             format='<level>[<bold>{level}</bold>] {message}</level>',
             colorize=True,
             backtrace=True,
@@ -141,7 +148,7 @@ def _configure_logger(logger: Logger) -> Logger:
         ),
         dict(
             sink=_sqlalchemy_sink,
-            level=settings.DATABASE_LOG_LEVEL,
+            level=config.DATABASE_LOG_LEVEL,
             format='{message}',
             colorize=False,
             backtrace=True,
@@ -162,11 +169,11 @@ def _configure_logger(logger: Logger) -> Logger:
         # environment w/o an event loop
         dict(
             sink=_websocket_logger,
-            level=getenv('TCM_LOG_WEBSOCKET', 'INFO'),
+            level=config.WEBSOCKET_LOG_LEVEL,
             format='{message}',
             colorize=False,
             backtrace=False,
-            enqueue=environ.get('TCM_V1', 'False') == 'False',
+            enqueue=config.LEGACY_MODE,
         ),
     ]
     levels = [
@@ -243,14 +250,14 @@ def initialize_logging() -> Logger:
 
     logger = _configure_logger(base_logger)
 
-    if settings.INTERCEPT_PLEX_LOGS:
+    if config.INTERCEPT_PLEX_LOGS:
         logger = _intercept_plex_logs(logger)
 
     # If intercepting all packages, use the root logger
-    if settings.PACKAGE_LOGGING.lower() == 'all':
+    if config.PACKAGE_LOGGING.lower() == 'all':
         logger = _intercept_package_logs(logger, '')
-    elif settings.PACKAGE_LOGGING:
-        for package in settings.PACKAGE_LOGGING.split(','):
+    elif config.PACKAGE_LOGGING:
+        for package in config.PACKAGE_LOGGING.split(','):
             logger = _intercept_package_logs(logger, package)
 
     return logger

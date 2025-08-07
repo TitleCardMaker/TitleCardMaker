@@ -15,6 +15,24 @@ from sqlalchemy.orm import (
     load_only,
 )
 
+from app.core.cards import (
+    create_episode_cards,
+    get_watched_statuses,
+    refresh_remote_card_types
+)
+from app.core.cache import (
+    cache_result,
+    cache_series_data,
+    get_cached_series_data,
+    invalidate_series_cache,
+    get_cache_manager
+)
+from app.core.episodes import refresh_episode_data
+from app.core.sources import (
+    download_episode_source_images,
+    download_series_logo,
+)
+from app.core.translate import translate_episode
 from app.db.query import (
     get_all_templates,
     get_connection,
@@ -27,22 +45,11 @@ from app.db.query import (
 from app.db.pagination import Page
 from app.dependencies import (
     get_database,
-    get_preferences,
     get_sonarr_interfaces,
     get_tmdb_interfaces,
     get_tvdb_interfaces
 )
-from app.core.cards import (
-    create_episode_cards,
-    get_watched_statuses,
-    refresh_remote_card_types
-)
-from app.core.episodes import refresh_episode_data
-from app.core.sources import (
-    download_episode_source_images,
-    download_series_logo,
-)
-from app.core.translate import translate_episode
+from app.logging.logger import Logger, log
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.loaded import Loaded
@@ -63,14 +70,7 @@ from app.schemas.series import (
     SeriesOverviewWithCounts,
     UpdateSeries
 )
-from app.logging.logger import Logger, log
-from app.core.cache import (
-    cache_result,
-    cache_series_data,
-    get_cached_series_data,
-    invalidate_series_cache,
-    get_cache_manager
-)
+from app.settings import settings
 
 
 """
@@ -325,7 +325,7 @@ def download_series_poster(
         return None
 
     # Get path to the poster to download, download
-    path = get_preferences().asset_directory / str(series.id) / 'poster.jpg'
+    path = settings.asset_directory / str(series.id) / 'poster.jpg'
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         # Download
@@ -539,7 +539,7 @@ def delete_series(
         log.trace(f'{series} Deleted posters')
 
     # Delete Source directory (and files) if necessary
-    if get_preferences().completely_delete_series:
+    if settings.completely_delete_series:
         _delete_folder(series.source_directory, log=log)
 
     # Delete Series; all child objects are deleted on cascade
@@ -593,7 +593,7 @@ def load_series_title_cards(
         if len(series.libraries) == 1:
             card_query = dict(episode_id=episode.id)
         elif (len(series.libraries) > 1
-            and not get_preferences().library_unique_cards):
+            and not settings.library_unique_cards):
             card_query = dict(episode_id=episode.id)
         else:
             card_query = dict(
@@ -611,7 +611,7 @@ def load_series_title_cards(
         if len(series.libraries) == 1:
             loaded_query = dict(episode_id=episode.id)
         elif (len(series.libraries) > 1
-            and not get_preferences().library_unique_cards):
+            and not settings.library_unique_cards):
             loaded_query = dict(
                 episode_id=episode.id,
                 interface_id=interface_id,
@@ -747,7 +747,7 @@ def load_episode_title_card(
     if len(episode.series.libraries) == 1:
         card_query = dict(episode_id=episode.id)
     elif (len(episode.series.libraries) > 1
-        and not get_preferences().library_unique_cards):
+        and not settings.library_unique_cards):
         card_query = dict(episode_id=episode.id)
     else:
         card_query = dict(
@@ -765,7 +765,7 @@ def load_episode_title_card(
     if len(episode.series.libraries) == 1:
         loaded_query = dict(card_id=card.id)
     elif (len(episode.series.libraries) > 1
-        and not get_preferences().library_unique_cards):
+        and not settings.library_unique_cards):
         loaded_query = dict(
             episode_id=episode.id,
             interface_id=interface_id,
@@ -842,7 +842,7 @@ def load_title_card(
     if len(card.episode.series.libraries) == 1:
         loaded_query = dict(card_id=card.id)
     elif (len(card.episode.series.libraries) > 1
-        and not get_preferences().library_unique_cards):
+        and not settings.library_unique_cards):
         loaded_query = dict(
             episode_id=card.episode.id,
             interface_id=interface_id,

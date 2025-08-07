@@ -7,14 +7,14 @@ from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
 
-from app.dependencies import get_preferences
 from app.db.database import Base
 from app.info.episode import EpisodeInfo
 from app.interfaces.base import WatchedStatus
+from app.logging.logger import Logger, log
 from app.models.template import EpisodeTemplates, Template
 from app.schemas.connection import ServerName
 from app.schemas.preferences import Style
-from app.logging.logger import Logger, log
+from app.settings import settings
 from modules.TieredSettings import TieredSettings
 
 if TYPE_CHECKING:
@@ -472,7 +472,7 @@ class Episode(Base):
                 source_name = f's{self.season_number}e{self.episode_number}.jpg'
 
         # Return full path for this source base and Series
-        return (get_preferences().source_directory \
+        return (settings.source_directory \
             / self.series.path_safe_name \
             / source_name
         ).resolve()
@@ -491,7 +491,7 @@ class Episode(Base):
             or f's{self.season_number}e{self.episode_number}-mask.png'
         )
 
-        return get_preferences().source_directory \
+        return settings.source_directory \
             / self.series.path_safe_name \
             / source_name
 

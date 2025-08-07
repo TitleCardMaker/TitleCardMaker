@@ -22,8 +22,8 @@ from app.core.series import (
 from app.core.sources import download_all_series_logos
 from app.core.snapshot import add_task_duration, snapshot_database
 from app.core.sync import sync_all
-from app.dependencies import get_database, get_preferences
-from app.logging.logger import Logger, contextualize, log
+from app.dependencies import get_database
+from app.logging.logger import Logger, contextualize
 from app.models.duration import TaskDuration
 from app.schemas.schedule import TaskDetails
 from app.settings import CONFIG_ROOT, settings
@@ -121,7 +121,6 @@ def is_task_running(task_id: TaskID, /) -> bool:
     return huey.is_locked(task_id) or _task_running_state.get(task_id, False)
 
 
-prefs = get_preferences()
 class RecurringTask:
     """
     A class that combines the creation of wrapped core Task functions
@@ -177,7 +176,7 @@ class RecurringTask:
         self.task_id = task_id
         self.default_cronstr = default_cronstr
         self.cron = crontab(
-            *prefs.task_schedules.get(task_id, default_cronstr).split()
+            *settings.task_schedules.get(task_id, default_cronstr).split()
         )
         self.error_message = error_message
         self.priority = priority
@@ -212,7 +211,7 @@ class RecurringTask:
                 return None
 
             # Mark task as running, log start time
-            start_time = datetime.now(tz=settings.TIMEZONE)
+            start_time = datetime.now(tz=settings.config.TIMEZONE)
             _task_running_state[self.task_id] = True
 
             # Run wrapped task
@@ -224,7 +223,7 @@ class RecurringTask:
 
             # Log task finishing
             log_.info(f'Task[{self.task_id}] finished execution')
-            end_time = datetime.now(tz=settings.TIMEZONE)
+            end_time = datetime.now(tz=settings.config.TIMEZONE)
             _task_running_state[self.task_id] = False
 
             # Attempt to add TaskDuration record to database
@@ -319,7 +318,7 @@ RecurringTasks: dict[TaskID, RecurringTask] = {
         internal=True,
     ),
     JOB_BACKUP_DATABASE: RecurringTask(
-        task_func=lambda log: backup_data(get_preferences().current_version, log=log),
+        task_func=lambda log: backup_data(settings.current_version, log=log),
         description='Backup the database and global settings',
         task_id=JOB_BACKUP_DATABASE,
         default_cronstr='0 0 */1 * *',
@@ -360,14 +359,14 @@ RecurringTasks: dict[TaskID, RecurringTask] = {
 def get_task_details(db: Session, task_id: TaskID, /) -> TaskDetails:
     ...
 
-    crontab = prefs.task_schedules.get(
+    crontab = settings.task_schedules.get(
         task_id,
         RecurringTasks[task_id].default_cronstr
     )
 
     next_run: datetime = croniter(crontab).get_next(
         datetime,
-        datetime.now(tz=settings.TIMEZONE),
+        datetime.now(tz=settings.config.TIMEZONE),
     )
 
     # Get the last run details

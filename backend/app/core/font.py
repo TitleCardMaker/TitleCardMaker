@@ -1,13 +1,13 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_preferences
+from app.logging.logger import Logger, log
 from app.models.episode import Episode
 from app.models.font import Font
 from app.models.series import Series
 from app.schemas.availability import ReturnAvailableFontSchema
 from app.schemas.font import NamedFont
-from app.logging.logger import Logger, log
+from app.settings import settings
 
 
 def get_effective_fonts(
@@ -79,7 +79,7 @@ def delete_font_files(font: Font, *, log: Logger = log) -> None:
     """
 
     # If this Font's directory does not exist, exit
-    font_dir = get_preferences().asset_directory / 'fonts' / str(font.id)
+    font_dir = settings.asset_directory / 'fonts' / str(font.id)
     if not font_dir.exists():
         return None
 

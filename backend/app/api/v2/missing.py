@@ -13,17 +13,17 @@ from app.dependencies import (
     SonarrInterface,
     get_database,
     get_logger,
-    get_preferences,
     require_interface,
 )
 from app.db.users import get_current_user
+from app.logging.logger import Logger
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
-from modules.preferences import Preferences
 from app.models.series import Series as SeriesModel
 from app.schemas.episode import ReducedEpisodeData
 from app.schemas.series import SearchResult, Series
-from app.logging.logger import Logger
+from app.settings import settings
+
 
 # Create sub router for all /fonts API requests
 missing_router = APIRouter(
@@ -65,12 +65,11 @@ def get_missing_cards(
 @missing_router.get('/logos')
 def get_missing_logos(
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences),
     ) -> list[Series]:
     """Get all Series which do not have an associated logo."""
 
     # Get all source subfolders
-    source_directory = preferences.source_directory
+    source_directory = settings.source_directory
     directories = set(source_directory.glob('*'))
 
     # Get set of series names with no logos

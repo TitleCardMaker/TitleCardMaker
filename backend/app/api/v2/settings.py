@@ -8,7 +8,7 @@ from app.core.settings import (
 )
 from app.db.query import get_font, get_template
 from app.db.users import get_current_user
-from app.dependencies import get_database, get_logger, get_preferences
+from app.dependencies import get_database, get_logger
 from app.models.connection import Connection
 from app.schemas.preferences import (
     EpisodeDataSourceToggle,
@@ -17,7 +17,7 @@ from app.schemas.preferences import (
     UpdatePreferences,
 )
 from app.logging.logger import Logger
-from modules.preferences import Preferences as PreferencesModel
+from app.settings import settings
 
 
 # Create sub router for all /settings API requests
@@ -29,21 +29,17 @@ settings_router = APIRouter(
 
 
 @settings_router.get('/settings')
-def get_global_settings(
-    preferences: PreferencesModel = Depends(get_preferences),
-) -> Preferences:
+def get_global_settings() -> Preferences:
     """Get the global settings"""
 
-    return preferences # type: ignore
+    return settings # type: ignore
 
 
 @settings_router.get('/version')
-def get_current_version(
-    preferences: PreferencesModel = Depends(get_preferences),
-) -> str:
+def get_current_version() -> str:
     """Get the version of TitleCardMaker that is currently running."""
 
-    return str(preferences.current_version)
+    return str(settings.current_version)
 
 
 @settings_router.patch('/update')
@@ -51,7 +47,6 @@ def update_global_settings(
     update_preferences: UpdatePreferences = Body(...),
     db: Session = Depends(get_database),
     log: Logger = Depends(get_logger),
-    preferences: PreferencesModel = Depends(get_preferences),
 ) -> Preferences:
     """
     Update all global settings.
@@ -67,17 +62,17 @@ def update_global_settings(
         for template_id in update_preferences.default_templates:
             get_template(db, template_id, raise_exc=True)
 
-    preferences.update_values(
+    settings.update_values(
+        log=log,
         **update_preferences.model_dump(exclude_unset=True),
-        log=log
     )
     refresh_remote_card_types(db, log=log)
-    preferences.determine_imagemagick_prefix(log=log)
+    settings.determine_imagemagick_prefix(log=log)
 
     # Update card type object blur profiles
     apply_card_type_blur_profiles()
 
-    return preferences # type: ignore
+    return settings # type: ignore
 
 
 @settings_router.get('/episode-data-source')
@@ -93,13 +88,12 @@ def get_global_episode_data_source(
 def get_image_source_priority(
     db: Session = Depends(get_database),
     log: Logger = Depends(get_logger),
-    preferences: PreferencesModel = Depends(get_preferences),
 ) -> list[ImageSourceToggle]:
     """Get the global image source priority."""
 
     # Add all selected Connections
     sources, source_ids = [], []
-    for interface_id in preferences.image_source_priority:
+    for interface_id in settings.image_source_priority:
         if (isp_connection := db.get(Connection, interface_id)) is None:
             log.warning(f'No Connection with ID {interface_id}')
             continue

@@ -6,10 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.core.schedule import TaskID, get_task_details, RecurringTasks
 from app.db.users import get_current_user
-from app.dependencies import get_database, get_logger, get_preferences
+from app.dependencies import get_database, get_logger
 from app.logging.logger import Logger
 from app.schemas.schedule import TaskDetails
-from modules.preferences import Preferences
+from app.settings import settings
 
 
 # Create sub router for all /scheduler API requests
@@ -21,10 +21,7 @@ scheduler_router = APIRouter(
 
 
 @scheduler_router.post('/type/toggle')
-def toggle_schedule_type(
-        log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
-    ) -> None:
+def toggle_schedule_type(log: Logger = Depends(get_logger)) -> None:
     """
     Toggle the global scheduling between basic and advanced. Basic
     scheduling mode using standard intervals, while advanced scheduling
@@ -32,19 +29,18 @@ def toggle_schedule_type(
     """
 
     # Toggle scheduling method
-    if preferences.advanced_scheduling:
+    if settings.advanced_scheduling:
         log.info('Disabling advanced Task scheduling')
     else:
         log.info('Enabling advanced Task scheduling')
-    preferences.advanced_scheduling = not preferences.advanced_scheduling
-    preferences.commit()
+    settings.advanced_scheduling = not settings.advanced_scheduling
+    settings.commit(log=log)
 
 
 @scheduler_router.put('/type/{mode}')
 def set_the_scheduler_type(
         mode: Literal['advanced', 'basic'],
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> None:
     """
     Set the scheduler to the given mode.
@@ -57,15 +53,14 @@ def set_the_scheduler_type(
         log.info('Enabling advanced Task scheduling')
     else:
         log.info('Disabling advanced Task scheduling')
-    preferences.advanced_scheduling = mode == 'advanced'
-    preferences.commit()
+    settings.advanced_scheduling = mode == 'advanced'
+    settings.commit(log=log)
 
 
 @scheduler_router.get('/scheduled')
 def get_scheduled_tasks(
         show_internal: bool = Query(default=False),
         db: Session = Depends(get_database),
-        preferences: Preferences = Depends(get_preferences),
     ) -> list[TaskDetails]:
     """
     Get scheduling details for all defined Tasks.
@@ -77,7 +72,7 @@ def get_scheduled_tasks(
         get_task_details(db, task_id)
         for task_id in RecurringTasks
         if (
-            show_internal or preferences.advanced_scheduling
+            show_internal or settings.advanced_scheduling
             or not RecurringTasks[task_id].internal
         )
     ]
@@ -129,7 +124,6 @@ def reschedule_task_deprecated(
         update_crontab: str = Query(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> TaskDetails:
     """
     Reschedule the given Task with a new interval.
@@ -156,8 +150,8 @@ def reschedule_task_deprecated(
 
     # Reschedule with modified interval
     log.info(f'Task[{task_id}] rescheduling to "{update_crontab}"')
-    preferences.task_schedules[task_id] = update_crontab
-    preferences.commit()
+    settings.task_schedules[task_id] = update_crontab
+    settings.commit(log=log)
 
     return get_task_details(db, task_id)
 
@@ -168,7 +162,6 @@ def reschedule_task(
         update_crontab: str = Query(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> TaskDetails:
     """
     Reschedule the given Task with a new interval.
@@ -195,8 +188,8 @@ def reschedule_task(
 
     # Reschedule with modified interval
     log.info(f'Task[{task_id}] rescheduling to "{update_crontab}"')
-    preferences.task_schedules[task_id] = update_crontab
-    preferences.commit()
+    settings.task_schedules[task_id] = update_crontab
+    settings.commit(log=log)
 
     return get_task_details(db, task_id)
 

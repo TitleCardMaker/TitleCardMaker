@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Any, Callable, Iterable, cast
+from typing import Annotated, Any, Callable, ClassVar, Iterable, cast
 
 from fastapi import HTTPException
 from tinydb import Query, where
@@ -25,9 +25,9 @@ from app.interfaces.base import (
 )
 from app.info.episode import EpisodeInfo, EpisodeInfoV1
 from app.info.series import SeriesInfo, SeriesInfoV1
+from app.interfaces.web import WebInterface
 from app.logging.logger import Logger, log
 from modules.PersistentDatabase import PersistentDatabase
-from app.interfaces.web import WebInterface
 
 
 def catch_and_log(
@@ -1345,8 +1345,10 @@ class TMDbInterfaceV1(EpisodeDataSourceV1, WebInterface):
         'zh': r'第 {number} 集',
     }
 
-    """Filename for where to store blacklisted entries"""
-    __BLACKLIST_DB = 'tmdb_blacklist.json'
+    __BLACKLIST_DB: Annotated[
+        ClassVar[str],
+        'Filename for where to store blacklisted entries'
+    ] = 'tmdb_blacklist.json'
 
 
     def __init__(self, api_key: str) -> None:

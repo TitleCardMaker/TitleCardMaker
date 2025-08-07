@@ -7,7 +7,6 @@ from app.dependencies import (
     get_jellyfin_interfaces,
     get_logger,
     get_plex_interfaces,
-    get_preferences,
     get_sonarr_interfaces,
     require_emby_interface,
     require_jellyfin_interface,
@@ -47,9 +46,9 @@ from app.schemas.card_type import Extra
 from app.schemas.preferences import StyleOption
 from app.schemas.series import MediaServerLibrary
 from app.schemas.sync import Tag
+from app.settings import settings
 from app.logging.logger import Logger
-from modules.preferences import Preferences
-from modules.cards.available import LocalCards
+from app.core.card_registry import LocalCards
 
 
 # Extra variable overrides
@@ -107,7 +106,6 @@ def get_latest_available_version(
 def get_all_available_card_types(
         show_excluded: bool = Query(default=False),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> list[CardTypeDescription]:
     """
     Get a list of all available card types (local and remote).
@@ -116,18 +114,14 @@ def get_all_available_card_types(
     the returned list.
     """
 
-    all_cards = (
-        LocalCards
-        + get_local_cards(preferences)
-        + get_remote_cards(log=log)
-    )
+    all_cards = LocalCards + get_local_cards() + get_remote_cards(log=log)
 
     if show_excluded:
         return all_cards
 
     return [
         card for card in all_cards
-        if card.identifier not in preferences.excluded_card_types
+        if card.identifier not in settings.excluded_card_types
     ]
 
 
@@ -139,12 +133,10 @@ def get_builtin_card_types() -> list[BuiltinCardType]:
 
 
 @availablility_router.get('/card-types/local', tags=['Title Cards'])
-def get_local_card_types_(
-        preferences: Preferences = Depends(get_preferences),
-    ) -> list[LocalCardType]:
+def get_local_card_types_() -> list[LocalCardType]:
     """Get all locally defined card types."""
 
-    return get_local_cards(preferences)
+    return get_local_cards()
 
 
 @availablility_router.get('/card-types/remote', tags=['Title Cards'])
@@ -160,7 +152,6 @@ def get_remote_card_types_(
 def get_all_supported_extras(
         show_excluded: bool = Query(default=False),
         log: Logger = Depends(get_logger),
-        preferences: Preferences = Depends(get_preferences),
     ) -> list[Extra]:
     """
     Get details of all the available Extras for local and remote card
@@ -172,16 +163,16 @@ def get_all_supported_extras(
 
     local_extras = [
         {'card_type': identifier} | extra.dict()
-        for identifier, CardClass in preferences.local_card_types.items()
-        if (show_excluded or identifier not in preferences.excluded_card_types)
+        for identifier, CardClass in settings.local_card_types.items()
+        if (show_excluded or identifier not in settings.excluded_card_types)
         for extra in CardClass.API_DETAILS.supported_extras
     ]
 
     return [
-        {'card_type': card_type.identifier} | extra.dict()
+        {'card_type': card_type.identifier} | extra.model_dump()
         for card_type in LocalCards + get_remote_cards(log=log)
         if (show_excluded
-            or card_type.identifier not in preferences.excluded_card_types)
+            or card_type.identifier not in settings.excluded_card_types)
         for extra in card_type.supported_extras
     ] + local_extras + VARIABLE_OVERRIDES
 

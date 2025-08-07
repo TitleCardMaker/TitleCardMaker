@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Iterator, TypeVar
+from typing import Iterator, TypeVar
 
 from fastapi import HTTPException, Query, Request
 from huey import SqliteHuey
@@ -11,7 +11,6 @@ from app.db.interfaces import (
     ImageMagickInterfaceLocal,
     JellyfinInterfaces,
     PlexInterfaces,
-    PreferencesLocal,
     SonarrInterfaces,
     TMDbInterfaces,
     TVDbInterfaces,
@@ -30,16 +29,14 @@ from app.interfaces.v2 import (
 )
 from app.logging.database import LogsSessionLocal
 from app.logging.logger import Logger, log
-
-if TYPE_CHECKING:
-    from modules.preferences import Preferences
+from app.settings import settings
 
 
 """Where to download the Blueprint SQL Database from"""
 BLUEPRINT_DATABASE_URL =\
     'https://github.com/CollinHeist/TCM-Blueprints-v2/raw/master/blueprints.db'
 """Where to read/write the Blueprint SQL database file"""
-BLUEPRINT_DATABASE_FILE = PreferencesLocal.TEMPORARY_DIRECTORY / 'blueprints.db'
+BLUEPRINT_DATABASE_FILE = settings.temporary_directory / 'blueprints.db'
 
 
 def get_database() -> Iterator[Session]:
@@ -153,12 +150,6 @@ def get_scheduler() -> SqliteHuey:
     return huey
 
 
-def get_preferences() -> 'Preferences':
-    """Dependency to get the global Preferences."""
-
-    return PreferencesLocal
-
-
 def get_logger(request: Request) -> Logger:
     """
     Get the contextualized Logger from the Request object.
@@ -264,7 +255,7 @@ def refresh_imagemagick_interface() -> None:
 
     global ImageMagickInterfaceLocal
     ImageMagickInterfaceLocal = ImageMagickInterface(
-        use_magick_prefix=PreferencesLocal.use_magick_prefix,
+        use_magick_prefix=settings.use_magick_prefix,
     )
 
 
@@ -566,7 +557,6 @@ __all__ = [
     'get_first_tvdb_interface',
     'get_jellyfin_interfaces',
     'get_logger',
-    'get_preferences',
     'get_plex_interfaces',
     'get_sonarr_interfaces',
     'get_tmdb_interfaces',

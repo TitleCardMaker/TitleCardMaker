@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 
-from app.core.config import PreferencesLocal
+from app.core.card_registry import CARD_CLASSES, DEFAULT_BLUR_PROFILES
 from app.models.connection import Connection
 from app.schemas.preferences import EpisodeDataSourceToggle
-from app.core.card_registry import CARD_CLASSES, DEFAULT_BLUR_PROFILES
+from app.settings import settings
 
 
 def get_episode_data_sources(db: Session) -> list[EpisodeDataSourceToggle]:
@@ -22,7 +22,7 @@ def get_episode_data_sources(db: Session) -> list[EpisodeDataSourceToggle]:
             interface=connection.interface_type,
             interface_id=connection.id,
             name=connection.name,
-            selected=PreferencesLocal.episode_data_source == connection.id,
+            selected=settings.episode_data_source == connection.id,
         )
         for connection in db.query(Connection).all()
     ]
@@ -35,7 +35,7 @@ def apply_card_type_blur_profiles() -> None:
     """
 
     # Apply custom profile mappings
-    for identifier, profile in PreferencesLocal.default_blur_profiles.items():
+    for identifier, profile in settings.default_blur_profiles.items():
         if identifier not in CARD_CLASSES:
             continue
 
@@ -43,5 +43,5 @@ def apply_card_type_blur_profiles() -> None:
 
     # Reset default profiles
     for card_type, blur in DEFAULT_BLUR_PROFILES.items():
-        if card_type not in PreferencesLocal.default_blur_profiles:
+        if card_type not in settings.default_blur_profiles:
             CARD_CLASSES[card_type].BLUR_PROFILE = blur

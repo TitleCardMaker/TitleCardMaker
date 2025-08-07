@@ -22,7 +22,7 @@ from app.dependencies import (
     get_tmdb_interfaces,
     refresh_imagemagick_interface
 )
-from app.exceptions import InvalidCardSettings, MissingSourceImage
+from app.exceptions import InvalidCardSettings
 from app.info.series import SeriesInfo
 from app.interfaces.web import WebInterface
 from app.logging.logger import Logger, log
@@ -59,8 +59,8 @@ from app.schemas.sync import (
     NewPlexSync,
     NewSonarrSync
 )
+from app.settings import Settings, settings
 from modules.EpisodeMap import EpisodeMap
-from modules.preferences import Preferences
 from modules.PreferenceParser import PreferenceParser
 from modules.TieredSettings import TieredSettings
 
@@ -380,21 +380,19 @@ def _remove_unspecifed_args(**dict_kwargs: Any) -> dict:
 
 
 def parse_preferences(
-        preferences: Preferences,
         yaml_dict: YamlDict,
         *,
         log: Logger = log,
-    ) -> Preferences:
+    ) -> Settings:
     """
     Modify the preferences for the given YAML.
 
     Args:
-        preferences: Preferences to modify.
         yaml_dict: Dictionary of YAML attributes to parse.
         log: Logger for all log messages.
 
     Returns:
-        Modified Preferences.
+        Modified settings..
 
     Raises:
         HTTPException (422) if there are any YAML formatting errors.
@@ -409,9 +407,9 @@ def parse_preferences(
     options = _get(yaml_dict, 'options', default={})
 
     # Determine which media server to query default styles from
-    if preferences.use_emby:
+    if settings.use_emby:
         media_server = 'emby'
-    elif preferences.use_jellyfin:
+    elif settings.use_jellyfin:
         media_server = 'jellyfin'
     else:
         media_server = 'plex'
@@ -459,11 +457,11 @@ def parse_preferences(
         ),
     ))
 
-    preferences.update_values(log=log, **update_preferences.dict())
+    settings.update_values(log=log, **update_preferences.dict())
     refresh_imagemagick_interface()
-    preferences.determine_imagemagick_prefix(log=log)
+    settings.determine_imagemagick_prefix(log=log)
 
-    return preferences
+    return settings
 
 
 def parse_emby(
@@ -1015,11 +1013,7 @@ def parse_fonts(
     return fonts
 
 
-def parse_templates(
-        db: Session,
-        preferences: Preferences,
-        yaml_dict: YamlDict
-    ) -> list[NewTemplate]:
+def parse_templates(db: Session, yaml_dict: YamlDict) -> list[NewTemplate]:
     """
     Create NewTemplate objects for any defined templates in the given
     YAML.
@@ -1027,18 +1021,17 @@ def parse_templates(
     Args:
         db: Database to query for custom Fonts if indicated by any
             templates.
-        preferences: Preferences to standardize styles.
         yaml_dict: Dictionary of YAML attributes to parse.
 
     Returns:
         List of NewTemplates that match any defined YAML templates.
 
     Raises:
-        HTTPException (404) if an indicated Font name cannot be found in
+        HTTPException (404): An indicated Font name cannot be found in
             the database.
-        HTTPException (422) if there are any YAML formatting errors.
-        Pydantic ValidationError if a NewTemplate object cannot be
-            created from the given YAML.
+        HTTPException (422): There are any YAML formatting errors.
+        ValidationError: A NewTemplate object cannot be created from the
+            given YAML.
     """
 
     # Return empty list if no header
@@ -1128,10 +1121,10 @@ def parse_templates(
             hide_episode_text=_get(template_dict, 'hide_episode_text', type_=bool),
             unwatched_style=_get(
                 template_dict, 'unwatched_style',
-                type_=preferences.standardize_style
+                type_=settings.standardize_style
             ), watched_style=_get(
                 template_dict, 'watched_style',
-                type_=preferences.standardize_style
+                type_=settings.standardize_style
             ),
             extra_keys=list(extras.keys()),
             extra_values=list(extras.values()),
@@ -1142,7 +1135,6 @@ def parse_templates(
 
 def parse_series(
         db: Session,
-        preferences: Preferences,
         yaml_dict: YamlDict,
         *,
         log: Logger = log,
@@ -1153,11 +1145,7 @@ def parse_series(
     Args:
         db: Database to query for custom Fonts and Templates if
             indicated by any series.
-        preferences: Preferences to standardize styles and query for
-            the default media server.
         yaml_dict: Dictionary of YAML attributes to parse.
-        default_library: Optional default Library name to apply to the
-            Series if one is not manually specified within YAML.
         log: Logger for all log messages.
 
     Returns:
@@ -1298,9 +1286,9 @@ def parse_series(
         if (library_name := _get(series_dict, 'library', 'name')):
             # No explicit server specification, use global enables
             if not (media_server := _get(series_dict, 'library', 'media_server')):
-                if preferences.use_emby:
+                if settings.use_emby:
                     media_server = 'Emby'
-                elif preferences.use_jellyfin:
+                elif settings.use_jellyfin:
                     media_server = 'Jellyfin'
                 else:
                     media_server = 'Plex'
@@ -1333,12 +1321,12 @@ def parse_series(
             unwatched_style=_get(
                 series_dict,
                 'unwatched_style',
-                type_=preferences.standardize_style
+                type_=settings.standardize_style
             ),
             watched_style=_get(
                 series_dict,
                 'watched_style',
-                type_=preferences.standardize_style
+                type_=settings.standardize_style
             ),
             translations=_parse_translations(series_dict, default=None),
             template_id=template_id,

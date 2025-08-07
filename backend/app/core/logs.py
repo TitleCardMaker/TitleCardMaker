@@ -13,7 +13,7 @@ def clear_log_data(*, log: Logger = log) -> None:
     with next(get_log_database()) as db:
         cutoff_date = (
             datetime.now()
-            - timedelta(days=settings.LOG_RETENTION_DAYS)
+            - timedelta(days=settings.config.LOG_RETENTION_DAYS)
         )
 
         log_query = db.query(Log).filter(Log.timestamp < cutoff_date)
