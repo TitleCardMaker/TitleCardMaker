@@ -6,7 +6,7 @@ from re import findall, compile as re_compile
 from shlex import split as command_split
 from string import hexdigits
 from subprocess import Popen, PIPE, TimeoutExpired
-from typing import Literal, NamedTuple, overload
+from typing import Annotated, ClassVar, Literal, NamedTuple, overload
 
 from imagesize import get as im_get
 
@@ -53,8 +53,15 @@ class ImageMagickInterface:
     """Directory for all temporary images created during image creation"""
     TEMP_DIR = Path(__file__).parent / '.objects'
 
-    """Temporary file location for svg -> png conversion"""
-    TEMPORARY_SVG_FILE = TEMP_DIR / 'temp_logo.svg'
+    TEMPORARY_SVG_FILE: Annotated[
+        ClassVar[Path],
+        'Temporary file location for svg -> png conversion'
+    ] = TEMP_DIR / 'temp_logo.svg'
+
+    TEMPORARY_COMPRESSION_FILE: Annotated[
+        ClassVar[Path],
+        'Temporary file location for image compression'
+    ] = TEMP_DIR / 'temp_compression'
 
     """Characters that must be escaped in commands"""
     __REQUIRED_ESCAPE_CHARACTERS = ('\\', '"', '`', '%')
@@ -143,6 +150,45 @@ class ImageMagickInterface:
             string = string.replace(char, f'\{char}')
 
         return string
+
+
+    def reduce_file_size(self, image: Path, quality: int = 90) -> Path | None:
+        """
+        Reduce the file size of the given image.
+
+        Args:
+            image: Path to the image to reduce the file size of.
+            quality: Quality of the reduction. 100 being no reduction, 0
+                being complete reduction. Passed to ImageMagick -quality.
+
+        Returns:
+            Path to the created image. None if the image cannot be
+            compressed.
+        """
+
+        # Verify quality is 0-100
+        if (quality := int(quality)) not in range(0, 100):
+            return None
+
+        # If image DNE, warn and return
+        if not image.exists():
+            log.warning(
+                f'Cannot reduce file size of non-existent image '
+                f'"{image.resolve()}"'
+            )
+            return None
+
+        # Downsample and reduce quality of source image
+        new_image = self.TEMPORARY_COMPRESSION_FILE.with_suffix(image.suffix)
+        self.run([
+            f'convert',
+            f'"{image.resolve()}"',
+            f'-sampling-factor 4:2:0',
+            f'-quality {quality}%',
+            f'"{new_image.resolve()}"',
+        ])
+
+        return new_image
 
 
     def run(self, command: str | list[str]) -> tuple[bytes, bytes]:
