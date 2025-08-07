@@ -3,14 +3,9 @@
 from datetime import datetime
 from typing import Any, Self
 
-from pydantic import PositiveFloat, model_validator, validator
+from pydantic import PositiveFloat, field_validator, model_validator
 
-from app.schemas.base import (
-    Base,
-    DictKey,
-    UNSPECIFIED,
-    validate_argument_lists_to_dict,
-)
+from app.schemas.base import Base, DictKey, UNSPECIFIED
 from app.schemas.ids import EmbyID, IMDbID, JellyfinID, TMDbID, TVDbID, TVRageID
 from app.schemas.preferences import Style
 
@@ -115,9 +110,10 @@ class UpdateEpisode(Base):
     extras: dict[DictKey, str] | None = UNSPECIFIED
     translations: dict[str, str] = UNSPECIFIED
 
-    @validator('*', pre=True)
-    def validate_arguments(cls, v):
-        return None if v == '' else v
+    @field_validator('*', mode='before')
+    @classmethod
+    def validate_arguments(cls, value: str) -> str | None:
+        return None if value == '' else value
 
     @model_validator(mode='after')
     def validate_unique_template_ids(self) -> Self:

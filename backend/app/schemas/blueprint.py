@@ -5,7 +5,7 @@ from json import loads
 from re import sub as re_sub, IGNORECASE
 from typing import Any, Optional, Self
 
-from pydantic import Field, PositiveInt, model_validator, root_validator, validator
+from pydantic import Field, PositiveInt, field_validator, model_validator, root_validator
 
 from app.schemas.base import Base
 from app.schemas.font import TitleCase
@@ -138,9 +138,10 @@ class RemoteBlueprint(Base):
     json_: Blueprint = Field(alias='json')
     set_ids: list[int] = []
 
-    @validator('json_', pre=True)
-    def parse_blueprint_json(cls, v):
-        return v if isinstance(v, dict) else loads(v)
+    @field_validator('json_', mode='before')
+    @classmethod
+    def parse_blueprint_json(cls, value: str) -> dict:
+        return value if isinstance(value, dict) else loads(value)
 
     @model_validator(mode='after')
     def finalize_preview_urls(self) -> Self:

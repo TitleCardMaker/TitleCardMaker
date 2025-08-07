@@ -2,16 +2,11 @@
 # pyright: reportInvalidTypeForm=false, reportIncompatibleVariableOverride=false
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Any, Literal, Self, Union
+from typing import Annotated, Any, Literal
 
-from pydantic import model_validator, validator
+from pydantic import field_validator
 
-from app.schemas.base import (
-    Base,
-    DictKey,
-    ImageSource,
-    validate_argument_lists_to_dict
-)
+from app.schemas.base import Base, DictKey, ImageSource
 from app.schemas.font import TitleCase
 from app.schemas.preferences import Style
 
@@ -91,9 +86,10 @@ class PreviewTitleCard(Base):
     font_vertical_shift: int | None = None
     extras: dict[DictKey, str] | None = None
 
-    @validator('*', pre=True)
-    def validate_arguments(cls, v):
-        return None if v == '' else v
+    @field_validator('*', mode='before')
+    @classmethod
+    def validate_arguments(cls, value: str) -> str:
+        return None if value == '' else value
 
 class NewTitleCard(Base):
     series_id: int
@@ -103,13 +99,15 @@ class NewTitleCard(Base):
     filesize: int | None = None
     card_type: str
 
-    @validator('card_file', pre=True)
-    def convert_paths_to_str(cls, v):
-        return str(v)
+    @field_validator('card_file', mode='before')
+    @classmethod
+    def convert_paths_to_str(cls, value: str) -> str:
+        return str(value)
 
-    @validator('source_file', pre=True)
-    def convert_path_to_filename(cls, v):
-        return Path(v).name
+    @field_validator('source_file', mode='before')
+    @classmethod
+    def convert_path_to_filename(cls, value: str) -> str:
+        return Path(value).name
 
 """
 Update classes
