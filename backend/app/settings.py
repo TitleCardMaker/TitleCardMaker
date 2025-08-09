@@ -86,6 +86,10 @@ class Settings(SerializationMixin):
         Path('/config/card_types') if IS_DOCKER else CONFIG_ROOT / 'card_types'
     )
 
+    backup_directory: SerializationExclusion[Path] = (
+        Path('/config/backups') if IS_DOCKER else CONFIG_ROOT / 'backups'
+    )
+
     temporary_directory: SerializationExclusion[Path] = (
         BACKEND_ROOT / 'modules' / '.objects'
     )
