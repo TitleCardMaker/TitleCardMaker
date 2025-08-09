@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from huey.consumer import Consumer
 from rich.console import Console
 from rich.traceback import Traceback
+from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 from starlette.staticfiles import StaticFiles
 
@@ -103,6 +104,12 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
         log: The logger to use for logging.
     """
 
+    def store_db_schema(engine: Engine) -> str:
+        with engine.begin() as connection:
+            context = MigrationContext.configure(connection)
+            settings.current_db_schema = context.get_current_revision()
+            log.info(f'Current DB Schema: {settings.current_db_schema}')
+
     # Initialize Alembic config (simulating config.ini)
     for engine, url, migration_directory in (
         (db_engine, SQLALCHEMY_DATABASE_URL, APP_ROOT / 'alembic'),
@@ -119,37 +126,34 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
         script = ScriptDirectory.from_config(alembic_config)
         with engine.begin() as connection:
             context = MigrationContext.configure(connection)
-            if context.get_current_revision() == script.get_current_head():
-                continue
+            if context.get_current_revision() != script.get_current_head():
+                log.info('Pending schema migration - performing database backup')
+                backup = backup_data(settings.current_version, log=log)
 
-            log.info('Pending schema migration - performing database backup')
-            backup = backup_data(settings.current_version, log=log)
+                # Perform database migrations
+                try:
+                    command.upgrade(alembic_config, 'head')
+                except Exception:
+                    output = StringIO()
+                    console = Console(file=output)
+                    console.print(Traceback(
+                        show_locals=True,
+                        locals_max_length=512,
+                        locals_max_string=512,
+                        extra_lines=2,
+                        indent_guides=False,
+                        suppress=TracebackSuppressedPackages,
+                    ))
+                    log.error(f'SQL Migration Error:\n{output.getvalue()}')
+                    log.critical('Unable to migrate and initialize Database')
+                    if backup:
+                        log.info('Restoring from backup..')
+                        restore_backup(backup, log=log)
+                    sys_exit(1)
 
-            # Perform database migrations
-            try:
-                command.upgrade(alembic_config, 'head')
-            except Exception:
-                output = StringIO()
-                console = Console(file=output)
-                console.print(Traceback(
-                    show_locals=True,
-                    locals_max_length=512,
-                    locals_max_string=512,
-                    extra_lines=2,
-                    indent_guides=False,
-                    suppress=TracebackSuppressedPackages,
-                ))
-                log.error(f'SQL Migration Error:\n{output.getvalue()}')
-                log.critical('Unable to migrate and initialize Database')
-                if backup:
-                    log.info('Restoring from backup..')
-                    restore_backup(backup, log=log)
-                sys_exit(1)
-
-            # Store current DB schema
-            with engine.begin() as connection:
-                context = MigrationContext.configure(connection)
-                settings.current_db_schema = context.get_current_revision()
+            # Store schema version for the non-logging database
+            if engine == db_engine:
+                store_db_schema(engine)
 
 
 def disable_authentication(db: Session, *, log: Logger = logger) -> None:
