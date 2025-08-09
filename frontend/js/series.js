@@ -2693,7 +2693,7 @@ function uploadSourceImages() {
     contentType: false,
     processData: false,
     success: () => {
-      showInfoToast(files.length > 1 ? 'Source Images uploaded' : 'Source Image uploaded');
+      showInfoToast(files.length > 1 ? 'Source Images Uploaded' : 'Source Image uploaded');
       getSourceFileData();
     },
     error: response => showErrorToast({title: 'Error Updating Logo', response}),
