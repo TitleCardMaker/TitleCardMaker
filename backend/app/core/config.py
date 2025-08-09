@@ -15,7 +15,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 Application root directories
 """
 IS_DOCKER = getenv('TCM_IS_DOCKER') == 'TRUE'
-TCM_ROOT = Path(__file__).parent.parent.parent
+TCM_ROOT = Path(__file__).parent.parent.parent.parent
 BACKEND_ROOT = TCM_ROOT / 'backend'
 FRONTEND_ROOT = TCM_ROOT / 'frontend'
 INTERNAL_ASSET_DIRECTORY = FRONTEND_ROOT / 'public'
