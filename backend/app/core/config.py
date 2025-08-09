@@ -97,6 +97,11 @@ class AppConfig(BaseSettings):
     ] = False
 
     # Backup
+    BACKUP_DT_FORMAT: Annotated[
+        str,
+        'Naming scheme for backup subfolders'
+    ] = Field(default='%Y-%m-%d_%H-%M-%S')
+
     BACKUP_RETENTION_DAYS: Annotated[
         int,
         'How long to keep old backups'

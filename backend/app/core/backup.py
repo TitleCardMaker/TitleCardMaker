@@ -2,26 +2,15 @@ from datetime import datetime
 from pathlib import Path
 from shutil import copy as file_copy
 from sqlite3 import connect, OperationalError
-from typing import Annotated, NamedTuple
+from typing import NamedTuple
 
 from fastapi import HTTPException
 
-from app.core.config import TCM_ROOT, config as app_config
+from app.core.config import CONFIG_ROOT, config as app_config
 from app.schemas.preferences import DatabaseBackup, SettingsBackup, SystemBackup
+from app.settings import settings
 from app.logging.logger import Logger, log
 from modules.Version import Version
-
-
-BACKUP_DT_FORMAT: Annotated[
-    str,
-    'Naming scheme for backup subfolders'
-] = '%Y-%m-%d_%H-%M-%S'
-
-BACKUP_DIRECTORY: Annotated[
-    Path,
-    'Directory for all backups'
-] = Path('/config/backups' if app_config.IS_DOCKER else TCM_ROOT / 'config' / 'backups')
-BACKUP_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
 
 class DataBackup(NamedTuple): # pylint: disable=missing-class-docstring
@@ -39,11 +28,11 @@ def delete_old_backups(*, log: Logger = log) -> None:
 
     delete_before = datetime.now() - app_config.BACKUP_RETENTION
 
-    for backup in BACKUP_DIRECTORY.iterdir():
+    for backup in settings.backup_directory.iterdir():
         # Backup subdirectories
         if backup.is_dir():
             try:
-                date = datetime.strptime(backup.name, BACKUP_DT_FORMAT)
+                date = datetime.strptime(backup.name, app_config.BACKUP_DT_FORMAT)
             except ValueError:
                 log.warning(f'Cannot identify date of backup file "{backup}"')
                 continue
@@ -58,7 +47,7 @@ def delete_old_backups(*, log: Logger = log) -> None:
             try:
                 date = datetime.strptime(
                     backup.name.rsplit('.')[-1],
-                    BACKUP_DT_FORMAT
+                    app_config.BACKUP_DT_FORMAT
                 )
             except ValueError:
                 log.debug(f'Cannot identify date of backup file "{backup}"')
@@ -78,7 +67,7 @@ def delete_backup(folder_name: str | Path, *, log: Logger = log) -> None:
         log: Logger for all log messages.
     """
 
-    if not (folder := Path(BACKUP_DIRECTORY / folder_name)).exists():
+    if not (folder := Path(settings.backup_directory / folder_name)).exists():
         log.debug(f'Specified backup folder ({folder}) does not exist')
         return None
 
@@ -109,14 +98,15 @@ def backup_data(
     """
 
     # Store backups in a dated subfolder
-    backup_folder = BACKUP_DIRECTORY / datetime.now().strftime(BACKUP_DT_FORMAT)
+    settings.backup_directory.mkdir(exist_ok=True, parents=True)
+    backup_folder = settings.backup_directory \
+        / datetime.now().strftime(app_config.BACKUP_DT_FORMAT)
     backup_folder.mkdir(exist_ok=True, parents=True)
 
     # Identify source and destination files
-    pre = '' if app_config.IS_DOCKER else '.'
-    config = Path(f'{pre}/config/config.pickle')
-    config_backup = backup_folder / f'config.pickle.{version}'
-    database = Path(f'{pre}/config/db.sqlite')
+    config = CONFIG_ROOT / 'settings.json'
+    config_backup = backup_folder / f'settings.json.{version}'
+    database = CONFIG_ROOT / 'db.sqlite'
     database_backup = backup_folder / f'db.sqlite.{version}'
 
     delete_old_backups(log=log)
@@ -125,11 +115,15 @@ def backup_data(
     if config.exists():
         file_copy(config, config_backup)
         log.info(f'Performed settings backup ({config_backup})')
+    else:
+        log.warning(f'Cannot backup settings from "{config.resolve()}"')
 
     # Backup database
     if database.exists():
         file_copy(database, database_backup)
         log.info(f'Performed database backup ({database_backup})')
+    else:
+        log.warning(f'Cannot backup database from "{database.resolve()}"')
 
     return DataBackup(config=config_backup, database=database_backup)
 
@@ -146,9 +140,9 @@ def restore_backup(backup: DataBackup | str, /, *, log: Logger = log):
 
     # If a folder name was provided, search for the config/db files
     if isinstance(backup, str):
-        folder = BACKUP_DIRECTORY / backup
+        folder = settings.backup_directory / backup
         try:
-            config = next(folder.glob('config.pickle*'))
+            config = next(folder.glob('settings.json*'))
             database = next(folder.glob('db.sqlite*'))
         except StopIteration as exc:
             log.exception(f'Unable to identify backup data from folder')
@@ -161,20 +155,14 @@ def restore_backup(backup: DataBackup | str, /, *, log: Logger = log):
 
     # Restore config
     if config and config.exists():
-        if app_config.IS_DOCKER:
-            file_copy(config, Path('/config/config.pickle'))
-        else:
-            file_copy(config, Path('./config/config.pickle'))
+        file_copy(config, CONFIG_ROOT / 'settings.json')
         log.debug(f'Restored backup from "{config}"')
     else:
         log.warning(f'Cannot restore backup from "{config}"')
 
     # Restore database
     if database.exists():
-        if app_config.IS_DOCKER:
-            file_copy(database, Path('/config/db.sqlite'))
-        else:
-            file_copy(database, Path('./config/db.sqlite'))
+        file_copy(database, CONFIG_ROOT / 'db.sqlite')
         log.debug(f'Restored backup from "{database}"')
     else:
         log.warning(f'Cannot restore backup from "{database}"')
@@ -193,7 +181,7 @@ def list_available_backups(*, log: Logger = log) -> list[SystemBackup]:
 
     def _parse_version_number(file: Path) -> str:
         """Parse the version number from the given file."""
-        return file.name[len('config.pickle') + 1:]
+        return file.name[len('settings.json') + 1:]
 
     def _parse_schema_version(file: Path) -> str | None:
         """Parse the alembic schema version from the given file."""
@@ -209,10 +197,10 @@ def list_available_backups(*, log: Logger = log) -> list[SystemBackup]:
             connection.close()
 
     backups: list[SystemBackup] = []
-    for subfolder in BACKUP_DIRECTORY.glob('2*'):
+    for subfolder in settings.backup_directory.glob('2*'):
         # Find setting and database files
         try:
-            settings = next(subfolder.glob('config.pickle*'))
+            settings_file = next(subfolder.glob('settings.json*'))
             database = next(subfolder.glob('db.sqlite*'))
         except StopIteration:
             log.debug(f'Missing backup file(s) from "{subfolder}"')
@@ -220,9 +208,11 @@ def list_available_backups(*, log: Logger = log) -> list[SystemBackup]:
 
         # Skip if there's no version or schema
         if (not (schema := _parse_schema_version(database))
-            or not (version := _parse_version_number(settings))):
-            log.debug(f'Unable to identify database schema or version from '
-                      f'"{subfolder}')
+            or not (version := _parse_version_number(settings_file))):
+            log.debug(
+                f'Unable to identify database schema or version from '
+                f'"{subfolder}'
+            )
             continue
 
         backups.append(SystemBackup(
@@ -232,10 +222,12 @@ def list_available_backups(*, log: Logger = log) -> list[SystemBackup]:
                 schema_version=schema,
             ),
             settings=SettingsBackup(
-                filename=settings.name,
-                filesize=settings.stat().st_size,
+                filename=settings_file.name,
+                filesize=settings_file.stat().st_size,
             ),
-            timestamp=datetime.strptime(settings.parent.name, BACKUP_DT_FORMAT),
+            timestamp=datetime.strptime(
+                settings_file.parent.name, app_config.BACKUP_DT_FORMAT
+            ),
             version=version,
             folder_name=subfolder.name,
         ))
