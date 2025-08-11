@@ -411,12 +411,11 @@ class Settings(SerializationMixin):
         log.critical("ImageMagick doesn't appear to be installed")
 
 
-    def log_startup(self, log: Logger = log) -> None:
+    def log_startup(self, *, log: Logger = log) -> None:
         """Log the startup details of TCM."""
 
-        if log:
-            log.info(f'Starting TitleCardMaker ({self.current_version})')
-            self.determine_imagemagick_prefix(log=log)
+        log.info(f'Starting TitleCardMaker ({self.current_version})')
+        self.determine_imagemagick_prefix(log=log)
 
 
     @staticmethod
@@ -473,6 +472,12 @@ class Settings(SerializationMixin):
 
 
 settings: Annotated[Settings, 'Global settings instance'] = Settings()
+
+def reset_settings() -> None:
+    """Reset the settings to their default values."""
+    global settings
+    settings._preferences_file.unlink(missing_ok=True)
+    settings = Settings()
 
 
 TQDM_KWARGS = {
