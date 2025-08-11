@@ -5,7 +5,7 @@ import {
 {% endif %}
 
 /** @type {?number} ID of the Sync which is currently running */
-const currentlyRunningSync = {{preferences.currently_running_sync|tojson}};
+const currentlyRunningSync = {{currently_running_sync|tojson}};
 
 /**
  * Submit an API request to get all defined Connections. The dropdowns for each
