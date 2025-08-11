@@ -66,4 +66,4 @@ def reset_database(
     db.commit()
 
     # Reset the global preferences
-    settings.reset(log=log)
+    # settings.reset(log=log) # TODO: reimplement

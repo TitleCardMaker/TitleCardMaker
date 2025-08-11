@@ -338,17 +338,7 @@ class Settings(SerializationMixin):
             if hasattr(self, name) and value != '_UnspecifiedValue':
                 setattr(self, name, value)
                 log.debug(f'Settings.{name} = {value}')
-        self.commit()
-
-
-    def reset(self) -> None:
-        """Reset all settings to defaults."""
-        # Reinitialize with defaults
-        for field_name, field_info in self.model_fields.items():
-            if hasattr(field_info, 'default'):
-                setattr(self, field_name, field_info.default)
-        self.commit()
-        log.info('Reset settings to defaults')
+        self.commit(log=log)
 
 
     def get_folder_format(self, episode_info: EpisodeInfo) -> str:

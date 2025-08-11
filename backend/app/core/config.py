@@ -59,7 +59,7 @@ class AppConfig(BaseSettings):
     INTERCEPT_PLEX_LOGS: Annotated[
         bool,
         'Whether to intercept Plex logs'
-    ] = Field(default=False, alias='PLEX_LOGGING')
+    ] = Field(default=False)
 
     PACKAGE_LOGGING: Annotated[
         str,
@@ -111,7 +111,7 @@ class AppConfig(BaseSettings):
     BACKUP_RETENTION_DAYS: Annotated[
         int,
         'How long to keep old backups'
-    ] = Field(default=21, alias='BACKUP_RETENTION')
+    ] = Field(default=21)
 
     @property
     def BACKUP_RETENTION(self) -> timedelta:
@@ -138,14 +138,13 @@ class AppConfig(BaseSettings):
     TESTING_MODE: Annotated[
         bool,
         'Whether the server is in testing mode'
-    ] = Field(default=False, alias='TESTING')
+    ] = Field(default=False, alias='TCM_TESTING')
 
     CARD_TYPE_REPOSITORY: Annotated[
         str,
         'URL to the card type repository'
     ] = Field(
         default='https://raw.githubusercontent.com/CollinHeist/TitleCardMaker-CardTypes/web-ui',
-        alias='CARD_TYPE_URL',
     )
 
     @property
@@ -156,25 +155,22 @@ class AppConfig(BaseSettings):
     LEGACY_MODE: Annotated[
         bool,
         'Whether to enable the legacy TitleCardMaker'
-    ] = Field(default=False, alias='V1')
+    ] = Field(default=False)
 
     V1_PREFERENCE_FILE: Annotated[
         Path,
         'Path to the global preferences.yml file'
-    ] = Field(
-        default=CONFIG_ROOT / 'preferences.yml',
-        alias='PREFERENCES_FILE',
-    )
+    ] = Field(default=CONFIG_ROOT / 'preferences.yml')
 
     V1_CARD_QUALITY: Annotated[
         int,
         'Image compression quality to utilize'
-    ] = Field(default=92, alias='CARD_QUALITY')
+    ] = Field(default=92)
 
     V1_IMAGEMAGICK_CONTAINER: Annotated[
         str | None,
         'Docker container to execute ImageMagick commands within'
-    ] = Field(default=None, alias='IMAGEMAGICK_DOCKER')
+    ] = Field(default=None)
 
     V1_RUNTIME: Annotated[
         str | None,
