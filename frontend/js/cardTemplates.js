@@ -216,7 +216,7 @@ function updateTemplate(templateId) {
 
   $.ajax({
     type: 'PATCH',
-    url: `/api/v2/templates/${templateId}`,
+    url: `/api/v2/templates/template/${templateId}`,
     data: JSON.stringify(data),
     contentType: 'application/json',
     /**
