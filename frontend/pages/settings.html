@@ -58,12 +58,11 @@
       <div class="ui stackable grid">
         <div id="settings" class="sixteen wide column">
           <h1 class="ui header">Settings</h1>
-          {% if not preferences.use_emby and not preferences.use_jellyfin and not preferences.use_plex and not preferences.use_sonarr %}
-            <div class="ui warning floating message">
-              <i class="exclamation triangle icon"></i>
-              Please add a Connection on the <a href="/connections">Connections</a> page before configuring Settings.
-            </div>
-          {% endif %}
+
+          <div class="ui warning floating message" id="no-connections-warning">
+            <i class="exclamation triangle icon"></i>
+            Please add a Connection on the <a href="/connections">Connections</a> page before configuring Settings.
+          </div>
 
           {% if preferences.available_version is not none and preferences.available_version > preferences.current_version %}
           <div class="ui floating compact info message">

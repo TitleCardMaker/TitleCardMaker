@@ -36,6 +36,8 @@ async function getAllConnections() {
     }
 
     return;
+  } else {
+    document.getElementById('no-connections-warning').remove();
   }
 }
 
