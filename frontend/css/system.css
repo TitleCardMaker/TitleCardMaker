@@ -62,30 +62,8 @@
   line-height: 1.4;
 }
 
-/* Enhanced section headers */
-/* .ui.header {
-  margin-top: 3rem;
-  margin-bottom: 2rem;
-  color: #ffffff;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 0.8rem;
-  position: relative;
-  font-weight: 600;
-} */
-
 .ui.header:first-child {
   margin-top: 1.5rem;
-}
-
-.ui.header::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 60px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--tcm-blue-color), transparent);
-  border-radius: 1px;
 }
 
 /* Enhanced icon styling */
