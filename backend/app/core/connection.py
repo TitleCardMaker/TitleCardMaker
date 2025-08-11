@@ -138,7 +138,6 @@ def add_connection(
         Newly created Connection.
     """
 
-
     # Convert AnyUrl to string for database storage
     connection_data = new_connection.model_dump()
     if 'url' in connection_data and connection_data['url'] is not None:
@@ -157,12 +156,6 @@ def add_connection(
     # Update global use_ attribute
     setattr(settings, f'use_{connection.interface_type.lower()}', True)
 
-    # Assign global EDS if unset
-    if settings.episode_data_source is None:
-        settings.episode_data_source = connection.id
-        log.info(f'Set global Episode Data Source to {connection}')
-        settings.commit()
-
     # Update InterfaceGroup
     if connection.enabled:
         try:
@@ -172,6 +165,18 @@ def add_connection(
         except Exception as exc:
             settings.invalid_connections.append(connection.id)
             raise exc
+
+    # Assign global EDS if unset
+    if settings.episode_data_source is None:
+        settings.episode_data_source = connection.id
+        log.info(f'Set global Episode Data Source to {connection}')
+        settings.commit(log=log)
+    # Assign global ISP if unset
+    if (not settings.image_source_priority
+        and connection.interface_type != 'Sonarr'):
+        settings.image_source_priority = [connection.id]
+        log.info(f'Set global Image Source Priority to [{connection}]')
+        settings.commit(log=log)
 
     return connection
 

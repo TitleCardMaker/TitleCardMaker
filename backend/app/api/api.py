@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.v2 import v2_router
 from app.dependencies import get_database, get_logger
-from app.settings import settings
+from app.settings import reset_settings, settings
 
 
 # Create sub router for all API requests
@@ -65,5 +65,4 @@ def reset_database(
         db.execute(table.delete())
     db.commit()
 
-    # Reset the global preferences
-    # settings.reset(log=log) # TODO: reimplement
+    reset_settings()
