@@ -283,7 +283,7 @@ describe('Card Templates', () => {
 
             cy.wrap($template).find('img[content-type="unwatched"]')
               .should('have.attr', 'src')
-              .and('match', /^\/internal_assets\/preview\//)
+              .and('match', /^\/public\/preview\//)
             cy.wrap($template).find('img[content-type="watched"]')
               .should('have.attr', 'src')
               .should('eq', '/public/blank.png')
@@ -341,11 +341,6 @@ describe('Card Templates', () => {
       // Check length again
       cy.get('#templates > .accordion').should('have.length', templateCount - 1);
     });
-  });
-
-  // TODO
-  it('Assigns a global default Template', () => {
-
   });
 
 });
