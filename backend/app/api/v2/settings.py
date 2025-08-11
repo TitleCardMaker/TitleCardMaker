@@ -62,6 +62,12 @@ def update_global_settings(
         for template_id in update_preferences.default_templates:
             get_template(db, template_id, raise_exc=True)
 
+    # Create card and source directories if they don't exist
+    if update_preferences.card_directory:
+        update_preferences.card_directory.mkdir(parents=True, exist_ok=True)
+    if update_preferences.source_directory:
+        update_preferences.source_directory.mkdir(parents=True, exist_ok=True)
+
     settings.update_values(
         log=log,
         **update_preferences.model_dump(exclude_unset=True),

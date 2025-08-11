@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import (
-    DirectoryPath,
     FilePath,
     PositiveInt,
     conint,
@@ -107,8 +106,8 @@ class ImageSourceOption(Base):
 Update classes
 """
 class UpdatePreferences(Base):
-    card_directory: DirectoryPath = UNSPECIFIED
-    source_directory: DirectoryPath = UNSPECIFIED
+    card_directory: Path = UNSPECIFIED
+    source_directory: Path = UNSPECIFIED
     completely_delete_series: bool = UNSPECIFIED
     card_width: PositiveInt = UNSPECIFIED
     card_height: PositiveInt = UNSPECIFIED
