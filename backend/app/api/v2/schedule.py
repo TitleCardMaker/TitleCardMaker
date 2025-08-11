@@ -179,7 +179,7 @@ def reschedule_task(
 
     # Verify schedule is valid
     try:
-        crontab(update_crontab)
+        crontab(*update_crontab.split(' '))
     except ValueError as exc:
         raise HTTPException(
             status_code=422,
