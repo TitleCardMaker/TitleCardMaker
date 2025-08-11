@@ -4,6 +4,7 @@ from pathlib import Path
 from random import sample
 from typing import TYPE_CHECKING, Annotated, ClassVar
 
+from app.core.config import config
 from app.interfaces.magick import Dimensions, ImageMagickInterface
 from app.logging.logger import log
 from modules import global_objects
@@ -37,7 +38,7 @@ class ImageMaker(ABC):
     than just these types, but these are the most common across all
     OS's.
     """
-    VALID_IMAGE_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.tiff', '.gif', '.webp')
+    VALID_IMAGE_EXTENSIONS = config.VALID_IMAGE_EXTENSIONS
 
     __slots__ = ('card_dimensions', 'quality', 'image_magick')
 

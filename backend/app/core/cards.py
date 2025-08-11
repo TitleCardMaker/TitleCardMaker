@@ -789,7 +789,7 @@ def resolve_card_settings(
 
     # Add extension if needed
     card_file_name = card_settings['card_file'].name
-    if not card_file_name.endswith(settings.VALID_IMAGE_EXTENSIONS):
+    if not card_file_name.endswith(settings.config.VALID_IMAGE_EXTENSIONS):
         new_name = card_file_name + settings.card_extension
         card_settings['card_file'] = card_settings['card_file'].parent /new_name
     card_settings['card_file'] =CleanPath(card_settings['card_file']).sanitize()

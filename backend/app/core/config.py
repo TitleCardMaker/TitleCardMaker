@@ -90,6 +90,12 @@ class AppConfig(BaseSettings):
             self._TIMEZONE = timezone('UTC')
         return self._TIMEZONE
 
+    # Valid image extensions
+    VALID_IMAGE_EXTENSIONS: Annotated[
+        tuple[str, ...],
+        'Valid image extensions'
+    ] = ('.jpg', '.jpeg', '.png', '.tiff', '.gif', '.webp')
+
     # Execution mode
     IS_DOCKER: Annotated[
         bool,

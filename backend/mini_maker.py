@@ -77,7 +77,7 @@ def aspect_ratio_batch(
     ) -> None:
 
     for file in directory.glob('*'):
-        if (file.suffix.lower() in AspectRatioFixer.VALID_IMAGE_EXTENSIONS
+        if (file.suffix.lower() in settings.config.VALID_IMAGE_EXTENSIONS
             and not file.stem.endswith(postfix)):
             AspectRatioFixer(
                 source=file,
