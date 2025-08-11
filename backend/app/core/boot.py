@@ -104,16 +104,27 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
         log: The logger to use for logging.
     """
 
-    def store_db_schema(engine: Engine) -> str:
+    def store_db_schema(engine: Engine, db_attribute: str) -> str:
         with engine.begin() as connection:
             context = MigrationContext.configure(connection)
-            settings.current_db_schema = context.get_current_revision()
-            log.info(f'Current DB Schema: {settings.current_db_schema}')
+            version = context.get_current_revision()
+            setattr(settings, db_attribute, version)
+            log.info(f'Settings.{db_attribute} = {version}')
 
     # Initialize Alembic config (simulating config.ini)
-    for engine, url, migration_directory in (
-        (db_engine, SQLALCHEMY_DATABASE_URL, APP_ROOT / 'alembic'),
-        (logs_engine, LOGS_DATABASE_URL, APP_ROOT / 'logging' / 'alembic'),
+    for engine, url, migration_directory, db_attribute in (
+        (
+            db_engine,
+            SQLALCHEMY_DATABASE_URL,
+            APP_ROOT / 'alembic',
+            'current_db_schema',
+        ),
+        (
+            logs_engine,
+            LOGS_DATABASE_URL,
+            APP_ROOT / 'logging' / 'alembic',
+            'current_logging_db_schema',
+        ),
     ):
         alembic_config = Config()
         alembic_config.set_main_option('sqlalchemy.url', url)
@@ -121,11 +132,11 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
             'script_location', str(migration_directory)
         )
 
-        # Backup database if migration is about to be performed
         backup = None
         script = ScriptDirectory.from_config(alembic_config)
         with engine.begin() as connection:
             context = MigrationContext.configure(connection)
+            # Backup database if migration is about to be performed
             if context.get_current_revision() != script.get_current_head():
                 log.info('Pending schema migration - performing database backup')
                 backup = backup_data(settings.current_version, log=log)
@@ -151,9 +162,7 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
                         restore_backup(backup, log=log)
                     sys_exit(1)
 
-            # Store schema version for the non-logging database
-            if engine == db_engine:
-                store_db_schema(engine)
+            store_db_schema(engine, db_attribute)
 
 
 def disable_authentication(db: Session, *, log: Logger = logger) -> None:

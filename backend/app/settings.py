@@ -188,6 +188,7 @@ class Settings(SerializationMixin):
     current_version: SerializationExclusion[Version | None] = None
     available_version: SerializationExclusion[Version | None] = None
     current_db_schema: SerializationExclusion[str | None] = None
+    current_logging_db_schema: SerializationExclusion[str | None] = None
     server_boot_time: SerializationExclusion[datetime | None] = None
 
 
