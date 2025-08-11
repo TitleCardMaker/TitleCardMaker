@@ -16,6 +16,7 @@ from tmdbapis import (
 from tmdbapis.objs.reload import Episode as TMDbEpisode, Movie as TMDbMovie
 from tmdbapis.objs.image import Still as TMDbStill
 
+from app.core.config import config
 from app.interfaces.base import (
     EpisodeDataSource,
     EpisodeDataSourceV1,
@@ -297,11 +298,15 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         self.language_priority = language_priority
         self._interface_id = interface_id
 
-        # Create API object, validate key
+        # Create API object, validate key (if not in testing mode)
         try:
-            self.api: TMDbAPIs = DecoratedAPI(TMDbAPIs(api_key, self.session))
+            if config.TESTING_MODE:
+                self.api: None = None
+                log.info('Creating fake TMDb connection for testing')
+            else:
+                self.api: TMDbAPIs = DecoratedAPI(TMDbAPIs(api_key, self.session))
         except Unauthorized as exc:
-            log.critical('TMDb API key is invalid')
+            log.error('TMDb API key is invalid')
             raise HTTPException(
                 status_code=401,
                 detail='Invalid API Key'
