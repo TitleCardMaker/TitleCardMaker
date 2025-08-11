@@ -146,7 +146,7 @@ def create_preview_card(
         font_template_dict = font.card_properties
 
     # Determine appropriate Source and Output file
-    preview_dir = settings.INTERNAL_ASSET_DIRECTORY / 'preview'
+    preview_dir = INTERNAL_ASSET_DIRECTORY / 'preview'
     source = preview_dir / (('art' if 'art' in card.style else 'unique') + '.jpg')
     output = preview_dir / f'card-{card.style}{settings.card_extension}'
 
