@@ -1,0 +1,241 @@
+/* System page specific styles */
+
+/* Enhanced list styling for system details and links */
+.ui.relaxed.divided.list {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.ui.relaxed.divided.list .item {
+  padding: 1.2rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s ease;
+}
+
+.ui.relaxed.divided.list .item:last-child {
+  border-bottom: none;
+}
+
+.ui.relaxed.divided.list .item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+.ui.relaxed.divided.list .item .content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ui.relaxed.divided.list .item .header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.3rem;
+}
+
+.ui.relaxed.divided.list .item .header a {
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.ui.relaxed.divided.list .item .header a:hover {
+  color: var(--tcm-blue-color);
+}
+
+.ui.relaxed.divided.list .item .description {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.4;
+}
+
+/* Enhanced section headers */
+/* .ui.header {
+  margin-top: 3rem;
+  margin-bottom: 2rem;
+  color: #ffffff;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.8rem;
+  position: relative;
+  font-weight: 600;
+} */
+
+.ui.header:first-child {
+  margin-top: 1.5rem;
+}
+
+.ui.header::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--tcm-blue-color), transparent);
+  border-radius: 1px;
+}
+
+/* Enhanced icon styling */
+.ui.relaxed.divided.list .item .header i.icon {
+  margin-right: 0.5rem;
+  opacity: 0.8;
+  font-size: 1rem;
+}
+
+.ui.relaxed.divided.list .item .description i.icon {
+  margin-left: 0.3rem;
+}
+
+/* URL styling */
+.ui.relaxed.divided.list .item .description .url {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Value styling */
+.ui.relaxed.divided.list .item .description .version-value,
+.ui.relaxed.divided.list .item .description .schema-value,
+.ui.relaxed.divided.list .item .description .uptime-value {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Execution mode styling */
+.ui.relaxed.divided.list .item .description .execution-mode {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+}
+
+.ui.relaxed.divided.list .item .description .execution-mode i.icon {
+  font-size: 0.9rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .ui.relaxed.divided.list {
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+  
+  .ui.relaxed.divided.list .item {
+    padding: 1rem 0;
+  }
+  
+  .ui.relaxed.divided.list .item .header {
+    font-size: 1rem;
+  }
+  
+  .ui.relaxed.divided.list .item .description {
+    font-size: 0.9rem;
+  }
+}
+
+/* Dark theme enhancements */
+body.dark .ui.relaxed.divided.list {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+body.dark .ui.relaxed.divided.list .item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Light theme support */
+body:not(.dark) .ui.relaxed.divided.list {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body:not(.dark) .ui.relaxed.divided.list .item {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+body:not(.dark) .ui.relaxed.divided.list .item:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body:not(.dark) .ui.relaxed.divided.list .item .header {
+  color: #2c3e50;
+}
+
+body:not(.dark) .ui.relaxed.divided.list .item .header a {
+  color: #2c3e50;
+}
+
+body:not(.dark) .ui.relaxed.divided.list .item .description {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body:not(.dark) .ui.header {
+  color: #2c3e50;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+body:not(.dark) .ui.header::after {
+  background: linear-gradient(90deg, var(--tcm-blue-color), transparent);
+}
+
+/* Light theme support for new elements */
+body:not(.dark) .ui.relaxed.divided.list .item .description .url {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body:not(.dark) .ui.relaxed.divided.list .item .description .version-value,
+body:not(.dark) .ui.relaxed.divided.list .item .description .schema-value,
+body:not(.dark) .ui.relaxed.divided.list .item .description .uptime-value {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+body:not(.dark) .ui.relaxed.divided.list .item .header i.icon {
+  opacity: 0.7;
+}
+
+/* Enhanced table styling for backups */
+#system-backups {
+  margin-top: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#system-backups thead th {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  color: #ffffff;
+}
+
+#system-backups tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Light theme table support */
+body:not(.dark) #system-backups thead th {
+  background: rgba(0, 0, 0, 0.05);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+  color: #2c3e50;
+}
+
+body:not(.dark) #system-backups tbody tr:hover {
+  background: rgba(0, 0, 0, 0.03);
+}

@@ -51,10 +51,13 @@
       <div class="ui relaxed divided list">
         <div class="item">
           <div class="content">
-            <a class="header" href="/changelog#{{ preferences.current_version }}">Current Version</a>
+            <a class="header" href="/changelog#{{ preferences.current_version }}">
+              <i class="code branch icon"></i>
+              Current Version
+            </a>
             <div class="description">
-              {{ preferences.current_version }}
-              <i class="copy outline link icon"></i>
+              <span class="version-value">{{ preferences.current_version }}</span>
+              <i class="copy outline link icon" data-clipboard-text="{{ preferences.current_version }}" title="Copy version"></i>
             </div>
           </div>
         </div>
@@ -68,31 +71,57 @@
 
         <div class="item">
           <div class="content">
-            <div class="header">Execution Mode</div>
+            <div class="header">
+              <i class="ui server icon"></i>
+              Execution Mode
+            </div>
             <div class="description">
-              {% if preferences.is_docker %}
-              Docker
-              {% else %}
-              Non-Docker
-              {% endif %}
+              <span class="execution-mode">
+                {% if preferences.is_docker %}
+                <i class="ui docker icon"></i> Docker
+                {% else %}
+                <i class="ui desktop icon"></i> Non-Docker
+                {% endif %}
+              </span>
             </div>
           </div>
         </div>
 
         <div class="item">
           <div class="content">
-            <div class="header">Database Schema</div>
+            <div class="header">
+              <i class="ui database icon"></i>
+              Primary Database Schema
+            </div>
             <div class="description">
-              {{ preferences.current_db_schema }}
-              <i class="copy outline link icon"></i>
+              <span class="schema-value">{{ preferences.current_db_schema }}</span>
+              <i class="copy outline link icon" data-clipboard-text="{{ preferences.current_db_schema }}" title="Copy schema"></i>
             </div>
           </div>
         </div>
 
         <div class="item">
           <div class="content">
-            <div class="header">Uptime</div>
-            <div class="description" data-value="uptime">{{ preferences.server_boot_time }}</div>
+            <div class="header">
+              <i class="ui file alternate outline icon"></i>
+              Logging Database Schema
+            </div>
+            <div class="description">
+              <span class="schema-value">{{ preferences.current_logging_db_schema }}</span>
+              <i class="copy outline link icon" data-clipboard-text="{{ preferences.current_db_schema }}" title="Copy schema"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="content">
+            <div class="header">
+              <i class="ui clock outline icon"></i>
+              Uptime
+            </div>
+            <div class="description" data-value="uptime">
+              <span class="uptime-value">{{ preferences.server_boot_time }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -103,22 +132,40 @@
       <div class="ui relaxed divided list">
         <div class="item">
           <div class="content">
-            <a class="header" href="https://titlecardmaker.com/">Website</a>
-            <div class="description">https://titlecardmaker.com/</div>
+            <a class="header" href="https://titlecardmaker.com/" target="_blank">
+              <i class="ui globe icon"></i>
+              Website
+            </a>
+            <div class="description">
+              <span class="url">https://titlecardmaker.com/</span>
+              <i class="copy outline link icon" data-clipboard-text="https://titlecardmaker.com/" title="Copy URL"></i>
+            </div>
           </div>
         </div>
 
         <div class="item">
           <div class="content">
-            <a class="header" href="https://discord.gg/bJ3bHtw8wH">Discord</a>
-            <div class="description">https://discord.gg/bJ3bHtw8wH</div>
+            <a class="header" href="https://discord.gg/bJ3bHtw8wH" target="_blank">
+              <i class="ui discord icon"></i>
+              Discord
+            </a>
+            <div class="description">
+              <span class="url">https://discord.gg/bJ3bHtw8wH</span>
+              <i class="copy outline link icon" data-clipboard-text="https://discord.gg/bJ3bHtw8wH" title="Copy URL"></i>
+            </div>
           </div>
         </div>
 
         <div class="item">
           <div class="content">
-            <a class="header" href="https://github.com/TitleCardMaker/TitleCardMaker-WebUI">Source Code</a>
-            <div class="description">https://github.com/TitleCardMaker/TitleCardMaker-WebUI</div>
+            <a class="header" href="https://github.com/TitleCardMaker/TitleCardMaker-WebUI" target="_blank">
+              <i class="ui github icon"></i>
+              Source Code
+            </a>
+            <div class="description">
+              <span class="url">https://github.com/TitleCardMaker/TitleCardMaker-WebUI</span>
+              <i class="copy outline link icon" data-clipboard-text="https://github.com/TitleCardMaker/TitleCardMaker-WebUI" title="Copy URL"></i>
+            </div>
           </div>
         </div>
       </div>
