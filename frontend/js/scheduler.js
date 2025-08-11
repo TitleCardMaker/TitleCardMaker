@@ -64,7 +64,7 @@ function updateScheduledTasks() {
 
     // Submit API request to reschedule this task
     $.ajax({
-      type: 'PUT',
+      type: 'PATCH',
       url: `/api/v2/scheduler/task/${taskId}?update_crontab=${update_crontab}`,
       contentType: 'application/json',
       error: response => showErrorToast({title: 'Error Recheduling Task', response}),
