@@ -16,6 +16,8 @@ from app.core.cache import (
     cache_card_data,
     get_cached_card_data,
     invalidate_card_cache,
+    invalidate_all_card_cache,
+    invalidate_card_cache_pattern,
     get_cache_manager,
     invalidate_episode_cache
 )
@@ -169,7 +171,7 @@ def clean_database(*, log: Logger = log) -> None:
         ]
         for card in set(unlinked_cards):
             log.debug(f'Deleting unlinked {card}')
-            invalidate_card_cache(card.id)
+            invalidate_card_cache(card)
             card.file.unlink(missing_ok=True)
             db.delete(card)
         db.commit()
@@ -223,7 +225,7 @@ def clean_database(*, log: Logger = log) -> None:
             )
             for card in to_delete.all():
                 log.debug(f'Deleting duplicate {card}')
-                invalidate_card_cache(card.id)
+                invalidate_card_cache(card)
                 card.file.unlink(missing_ok=True)
                 db.delete(card)
             db.commit()
@@ -436,7 +438,7 @@ def create_card(
         library: Library | None,
         *,
         log: Logger = log,
-    ) -> None:
+    ) -> Card | None:
     """
     Create the given Card, adding the resulting entry to the Database.
 
@@ -448,6 +450,9 @@ def create_card(
             attributes of to the CardClass.
         library: Library associated with Card.
         log: Logger for all log messages.
+
+    Returns:
+        The created Card, or None if the Card creation failed.
     """
 
     # Create Card
@@ -460,10 +465,17 @@ def create_card(
             db, card_model, CardTypeModel, card_file, library, commit=True
         )
         log.info(f'Created {card}')
-    # Card file does not exist, log failure
-    else:
-        log.warning(f'Card creation failed')
-        card_maker.image_magick.print_command_history(log=log)
+        
+        # Invalidate series cache since we created a new card for this series
+        from app.core.cache import invalidate_series_cache
+        invalidate_series_cache(card.series_id)
+        log.debug(f'Invalidated series cache for series {card.series_id} after creating card')
+        
+        return card
+
+    log.warning(f'Card creation failed')
+    card_maker.image_magick.print_command_history(log=log)
+    return None
 
 
 def resolve_card_settings(
@@ -824,7 +836,7 @@ def create_episode_card(
         *,
         raise_exc: bool = True,
         log: Logger = log,
-    ) -> bool:
+    ) -> Card | None:
     """
     Create the singular Title Card for the given Episode in the given
     library.
@@ -836,7 +848,7 @@ def create_episode_card(
         log: Logger for all log messages.
 
     Returns:
-        True if a new Card was created, False otherwise.
+        The created Card, or None if the Card creation failed.
 
     Raises:
         HTTPException: If the card settings are invalid and `raise_exc`
@@ -852,7 +864,7 @@ def create_episode_card(
     except (HTTPException, InvalidCardSettings) as exc:
         if raise_exc:
             raise exc
-        return False
+        return None
 
     # Get a validated card class, and card type Pydantic model
     CardClass, CardTypeModel = validate_card_type_model(card_settings, log=log)
@@ -885,16 +897,14 @@ def create_episode_card(
 
     # No existing Card, begin creation
     if not existing_card:
-        create_card(db, card, CardClass, CardTypeModel, library, log=log)
-        return True
+        return create_card(db, card, CardClass, CardTypeModel, library, log=log)
 
     # Existing Card file doesn't exist anymore, remove from db and recreate
     if not existing_card.exists:
         log.debug(f'{episode} Card not found - creating')
         db.delete(existing_card)
         db.commit()
-        create_card(db, card, CardClass, CardTypeModel, library, log=log)
-        return True
+        return create_card(db, card, CardClass, CardTypeModel, library, log=log)
 
     # Function to get the existing val
     def _get_existing(attribute: str) -> Any:
@@ -936,16 +946,15 @@ def create_episode_card(
 
     # Not different, nothing else to do
     if not different:
-        return False
+        return None
 
     # If different, delete existing file, remove from database, create Card
     log.debug(f'{episode} Card config changed - recreating')
     Path(existing_card.card_file).unlink(missing_ok=True)
     db.delete(existing_card)
     db.commit()
-    create_card(db, card, CardClass, CardTypeModel, library, log=log)
 
-    return True
+    return create_card(db, card, CardClass, CardTypeModel, library, log=log)
 
 
 def create_episode_cards(
@@ -980,7 +989,7 @@ def create_episode_cards(
             for library in episode.series.libraries:
                 changed |= create_episode_card(
                     db, episode, library, raise_exc=raise_exc, log=log
-                )
+                ) is not None
             return changed
 
         # Only create Card for primary library
@@ -993,13 +1002,9 @@ def create_episode_cards(
         db, episode, None, raise_exc=raise_exc, log=log
     )
 
-    # Invalidate card cache since we created new cards
+    # Invalidate caches since we created new cards
     if result:
-        invalidate_card_cache(episode.id)
-        log.debug(
-            f'Invalidated card cache after creating cards for episode '
-            f'{episode.id}'
-        )
+        invalidate_card_cache(result)
 
     return result
 
@@ -1058,6 +1063,12 @@ def delete_cards(
         List of file names of the deleted cards.
     """
 
+    # Get series IDs before deletion for cache invalidation
+    series_ids_to_invalidate = set()
+    for card in card_query.all():
+        if card.series_id:
+            series_ids_to_invalidate.add(card.series_id)
+
     # Delete all associated Card files
     deleted = []
     for card in card_query.all():
@@ -1065,6 +1076,7 @@ def delete_cards(
             card_file.unlink()
             log.debug(f'Deleted "{card_file.resolve()}" Title Card')
             deleted.append(str(card_file))
+            invalidate_card_cache(card)
 
     # Delete from database
     if card_query:
@@ -1073,11 +1085,6 @@ def delete_cards(
         loaded_query.delete()
     if commit:
         db.commit()
-    
-    # Invalidate card cache since we deleted cards
-    if deleted:
-        invalidate_card_cache('card*')
-        log.debug(f'Invalidated card cache after deleting {len(deleted)} cards')
 
     return deleted
 
@@ -1099,6 +1106,7 @@ def get_series_cards_with_cache(
     Returns:
         List of Card objects
     """
+
     # Try to get from cache first
     cached_cards = get_cached_series_cards(series_id)
     if cached_cards is not None:

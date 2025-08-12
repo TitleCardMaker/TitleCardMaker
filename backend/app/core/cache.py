@@ -6,6 +6,7 @@ from functools import wraps
 import hashlib
 
 from app.logging.logger import log
+from app.models.card import Card
 from app.schemas.schedule import Hours
 
 
@@ -772,23 +773,86 @@ def invalidate_episode_cache(episode_id: int) -> int:
     return total_invalidated
 
 
-def invalidate_card_cache(card_id: int) -> int:
+def invalidate_card_cache(card: Card) -> int:
     """
     Invalidate all cache entries related to a specific card.
+    This function invalidates card, episode, and series caches
+    since cards are related to both episodes and series.
     
     Args:
-        card_id: Card ID
+        card: Card object to invalidate cache for
         
     Returns:
         Number of entries invalidated.
     """
 
-    # Invalidate card data
     total_invalidated = 0
-    if (card_cache := get_cache_manager('card')).delete(f'card_data:{card_id}'):
+    
+    # Invalidate card data
+    if (card_cache := get_cache_manager('card')).delete(f'card_data:{card.id}'):
         total_invalidated += 1
 
-    # Invalidate pattern-based entries
-    total_invalidated += card_cache.invalidate_pattern(f'*card_id={card_id}*')
+    # Invalidate pattern-based entries for the card
+    total_invalidated += card_cache.invalidate_pattern(f'*card_id={card.id}*')
 
+    # Invalidate episode cache since cards are related to episodes
+    if hasattr(card, 'episode_id') and card.episode_id:
+        episode_cache = get_cache_manager('episode')
+        if episode_cache.delete(f'episode_data:{card.episode_id}'):
+            total_invalidated += 1
+        
+        # Invalidate pattern-based entries for the episode
+        pattern = f'*episode_id={card.episode_id}*'
+        total_invalidated += episode_cache.invalidate_pattern(pattern)
+        total_invalidated += card_cache.invalidate_pattern(pattern)
+
+    # Invalidate series cache since cards are related to series
+    if hasattr(card, 'series_id') and card.series_id:
+        # Invalidate series data
+        series_cache = get_cache_manager('series')
+        if series_cache.delete(f'series_data:{card.series_id}'):
+            total_invalidated += 1
+
+        # Invalidate series cards and episodes
+        total_invalidated += card_cache.invalidate_pattern(
+            f'series_cards*:{card.series_id}'
+        )
+        total_invalidated += card_cache.invalidate_pattern(
+            f'series_episodes*:{card.series_id}'
+        )
+
+        # Invalidate pattern-based entries for the series
+        pattern = f'*series_id={card.series_id}*'
+        total_invalidated += series_cache.invalidate_pattern(pattern)
+        total_invalidated += card_cache.invalidate_pattern(pattern)
+        total_invalidated += episode_cache.invalidate_pattern(pattern)
+
+    log.debug(f'Invalidated {total_invalidated} card cache entries')
     return total_invalidated
+
+
+def invalidate_all_card_cache() -> int:
+    """
+    Invalidate all card cache entries.
+    
+    Returns:
+        Number of entries invalidated.
+    """
+    
+    card_cache = get_cache_manager('card')
+    return card_cache.clear()
+
+
+def invalidate_card_cache_pattern(pattern: str) -> int:
+    """
+    Invalidate card cache entries matching a pattern.
+    
+    Args:
+        pattern: Pattern to match (supports wildcards)
+        
+    Returns:
+        Number of entries invalidated.
+    """
+    
+    card_cache = get_cache_manager('card')
+    return card_cache.invalidate_pattern(pattern)
