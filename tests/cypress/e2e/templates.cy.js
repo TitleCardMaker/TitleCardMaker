@@ -235,7 +235,7 @@ describe('Card Templates', () => {
             .should('exist')
             .click()
           cy.wait('@refreshPreview');
-            
+
           // Watched and unwatched images should be populated
           cy.wrap($template).find('img[content-type="watched"]')
             .should('be.visible')
@@ -246,7 +246,7 @@ describe('Card Templates', () => {
             .should('have.attr', 'src')
             .should('include', '/public/preview/')
         })
-      
+
       // Refresh watched preview by clicking the image individually
       cy.reload()
       cy.get(`#template-id${templateId}`)
