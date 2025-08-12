@@ -211,7 +211,7 @@ def update_connection(
 
     # Update each attribute of the object
     changed = False
-    for attr, value in update_object.dict(exclude_defaults=True).items():
+    for attr, value in update_object.model_dump(exclude_defaults=True).items():
         if value != UNSPECIFIED and getattr(connection, attr) != value:
             # Update Connection
             if attr in ('api_key', 'url'):
@@ -247,5 +247,10 @@ def update_connection(
             interface_group.disable(interface_id)
             if interface_id in settings.invalid_connections:
                 settings.invalid_connections.remove(interface_id)
+
+        # Set global use_ flag
+        if interface_group:
+            setattr(settings, f'use_{connection.interface_type.lower()}', True)
+            log.debug(f'settings.use_{connection.interface_type.lower()} = True')
 
     return connection
