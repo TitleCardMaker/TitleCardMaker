@@ -215,6 +215,7 @@ class CacheManager:
 
         with self._lock:
             if key in self._cache:
+                log.trace(f'Removing {key} from cache')
                 del self._cache[key]
                 self.stats.deletes += 1
 
@@ -249,6 +250,7 @@ class CacheManager:
                 ]
 
             for key in keys_to_delete:
+                log.trace(f'Removing {key} from cache')
                 del self._cache[key]
                 invalidated += 1
 
