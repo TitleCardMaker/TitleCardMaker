@@ -473,11 +473,29 @@ class Settings(SerializationMixin):
 
 settings: Annotated[Settings, 'Global settings instance'] = Settings()
 
-def reset_settings() -> None:
+
+def reset_settings() -> Settings:
     """Reset the settings to their default values."""
+
     global settings
-    settings._preferences_file.unlink(missing_ok=True)
-    settings = Settings()
+
+    # Delete the preferences file
+    if settings._preferences_file and settings._preferences_file.exists():
+        settings._preferences_file.unlink(missing_ok=True)
+
+    # Get the default values from the class definition
+    default_settings = Settings()
+
+    # Reset all attributes to their default values
+    for attr_name, attr_value in default_settings.__dict__.items():
+        if not attr_name.startswith('_') and hasattr(settings, attr_name):
+            setattr(settings, attr_name, attr_value)
+
+    # Commit the reset settings
+    settings.commit()
+    settings.__init__()
+
+    return settings
 
 
 TQDM_KWARGS = {
