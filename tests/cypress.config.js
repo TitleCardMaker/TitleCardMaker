@@ -13,5 +13,15 @@ module.exports = defineConfig({
   },
   e2e: {
     baseUrl: 'http://localhost:4242',
+    setupNodeEvents(on, config) {
+      config.specPattern = [
+        'cypress/e2e/navigation.cy.js',
+        'cypress/e2e/scheduler.cy.js',
+        'cypress/e2e/settings.cy.js',
+        'cypress/e2e/templates.cy.js',
+        'cypress/e2e/auth.cy.js',
+      ]
+      return config
+    },
   },
 });
