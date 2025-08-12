@@ -1,4 +1,9 @@
 describe('Page Navigation', () => {
+  // Reset database to ensure clean state
+  it('Resets the database', () => {
+    cy.resetDatabase();
+  });
+
   // Navigate directly via URLs
   const pages = [
     { path: '/',               name: 'Home'                           },
