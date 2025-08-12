@@ -20,6 +20,8 @@ from app.logging.logger import Logger
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
 from app.models.series import Series as SeriesModel
+from app.models.loaded import Loaded as LoadedModel
+from app.schemas.card import ReturnUnloadedCardSchema
 from app.schemas.episode import ReducedEpisodeData
 from app.schemas.series import SearchResult, Series
 from app.settings import settings
@@ -59,6 +61,30 @@ def get_missing_cards(
                 EpisodeModel.season_number,
                 EpisodeModel.episode_number,
             )
+    )
+
+
+@missing_router.get('/cards-without-loaded')
+def get_cards_without_loaded(
+        db: Session = Depends(get_database),
+    ) -> Page[ReturnUnloadedCardSchema]: # type: ignore
+    """Get all Cards that do not have an associated Loaded record."""
+
+    return paginate(
+        db.query(CardModel)
+            .options(
+                load_only(
+                    CardModel.id,
+                    CardModel.episode_id,
+                    CardModel.card_file,
+                    CardModel.filesize,
+                    CardModel.library_name,
+                ),
+            )
+            .outerjoin(CardModel.loaded)
+            .outerjoin(CardModel.episode)
+            .filter(LoadedModel.id.is_(None))
+            .order_by(CardModel.id)
     )
 
 

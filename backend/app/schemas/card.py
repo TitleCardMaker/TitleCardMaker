@@ -191,3 +191,11 @@ class TitleCardExtended(Base):
     file_url: str
     loaded: LoadedDetails | None = None
     created: datetime
+
+class ReturnUnloadedCardSchema(Base):
+    id: int
+    episode_id: int
+    episode: EpisodeData
+    card_file: str
+    filesize: int
+    library_name: str | None = None
