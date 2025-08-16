@@ -76,10 +76,24 @@
         <img loading="lazy">
       </div>
       <div class="content">
-        <i data-action="blacklist" class="right floated eye slash outline icon"></i>
-        <i data-action="import" class="right floated cloud download alternate icon"></i>
-        <div data-value="count" class="ui right floated green mini circular label">0</div>
         <div class="header">
+          <i class="right floated ellipsis vertical icon" data-action="actions"></i>
+          <div class="ui uninvertible popup" style="width: 183px;" data-label="actions-popup">
+            <div class="ui vertical labeled icon uninvertible buttons">
+              <button class="ui uninvertible button" data-action="import">
+                <i class="cloud download alternate icon"></i>
+                Import
+              </button>
+              <button class="ui uninvertible button" data-action="blacklist">
+                <i class="eye slash outline icon"></i>
+                Hide
+              </button>
+              <button class="ui uninvertible button" data-action="filter-series">
+                <i class="filter icon"></i>
+                Filter Series
+              </button>
+            </div>
+          </div>
           <a class="no-link" data-action="search-series">
             <span data-value="name">{series_name}</span>
           </a>
@@ -91,7 +105,7 @@
           <span data-value="template-count"><b>{x}</b> Template</span>
           <span data-value="episode-count"><b>{x}</b> Episode Overrides</span>
           <span data-value="file-count"><b>{x}</b> Source Files</span>
-          <div class="ui mini uninvertible popup">
+          <div class="ui mini uninvertible popup" data-label="source-files">
             <div class="header">Imported Source Files</div>
             <div class="content"></div>
           </div>
@@ -101,7 +115,7 @@
       <div class="extra content">
         <a data-action="view-set" class="left floated">
           <i class="object group outline icon"></i>
-          <span data-value="set-count">{count} Associated Sets</span>
+          <span data-label="set-count"><b>{count}</b> Associated Sets</span>
         </a>
       </div>
     </div>
@@ -120,138 +134,174 @@
 
     <!-- Actual page content -->
     <div id="main-content" class="article">
-      <h1 class="ui header">Add Series or Blueprint</h1>
-
       {% if all_connections | length > 0 %}
-        <h4 class="ui horizontal left aligned divider header">
-          <i class="search icon"></i>
-          Browse Series
-        </h4>
-
-        <div class="ui blue right action left icon input">
+        <!-- Series Search Section -->
+        <section id="series-search">
+          <h3 class="ui horizontal left aligned divider header">
             <i class="search icon"></i>
-            <input id="search-query" type="text" placeholder="Search" autofocus>
-            <div data-value="interface_id" class="ui basic floating dropdown button" data-tooltip="Which connection to search">
-              <input name="interface_id" type="hidden">
-              <div class="default text"></div>
-              <i class="dropdown icon"></i>
-              <div class="menu"><!-- Added asynchronously --></div>
-            </div>
-          </div>
-          <button id="startSearch" class="ui primary button" onclick="querySeries(false);">Search</button>
-          <button class="ui primary red button" onclick="querySeries(true);">Display Missing</button>
+            Browse Series
+          </h3>
 
-          <form class="ui form" id="new-series">
-            <!-- <h4 class="ui dividing header">Configuration</h4> -->
+          <!-- Help Section -->
+          <div class="ui info message">
+            <!-- <div class="header">
+              <i class="info circle icon"></i>
+              Adding Series
+            </div> -->
+            <ul class="list">
+              <li><strong>Search Series:</strong> Use the search box to find Series from any configured Connection</li>
+              <li><strong>Configure Settings:</strong> Select libraries and Templates to assign to any added Series</li>
+              <li><strong>Show Missing:</strong> Search the selected Connection for any Series which are not in TitleCardMaker</li>
+              <li><strong>Bulk Adding:</strong> Utilize a <a href="/sync"><i class="sync icon"></i>Sync</a> to add multiple Series at once</li>
+            </ul>
+          </div>
+          
+          <div class="ui form">
             <div class="ui three fields">
               <div class="ui field">
-                <label>Libraries</label>
-                <div data-value="libraries" class="ui compact clearable search selection multiple dropdown">
+                <label for="search-query">Series Name</label>
+                <div class="ui blue right action left icon input">
+                  <i class="search icon"></i>
+                  <input id="search-query" type="text" placeholder="Series Name" autofocus aria-describedby="search-help">
+                  <div data-value="interface_id" class="ui basic floating dropdown button" data-tooltip="Which Connection to search" aria-label="Select Connection">
+                    <input name="interface_id" type="hidden">
+                    <div class="default text">Select Connection</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu"><!-- Added asynchronously --></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="ui field">
+                <label for="libraries-dropdown">Libraries</label>
+                <div id="libraries-dropdown" data-value="libraries" class="ui compact clearable search selection multiple dropdown">
                   <input name="libraries" type="hidden">
-                  <div class="default text">None</div>
+                  <div class="default text">All Libraries</div>
                   <i class="dropdown icon"></i>
                   <div class="menu"><!-- Added asynchronously --></div>
                 </div>
+                <p class="help">Select which Libraries to add to the Series</p>
               </div>
 
-              <div class="field">
-                <label>Templates</label>
-                <div data-value="template_ids" class="ui compact clearable search selection multiple dropdown">
+              <div class="ui field">
+                <label for="templates-dropdown">Templates</label>
+                <div id="templates-dropdown" data-value="template_ids" class="ui compact clearable search selection multiple dropdown">
                   <input data-value="template_ids" name="template_ids" type="hidden">
                   <i class="dropdown icon"></i>
-                  <div class="default text">None</div>
+                  <div class="default text">All Templates</div>
                   <div class="menu"><!-- Added asynchronously --></div>
                 </div>
+                <p class="help">Select which Templates to add to the Series</p>
               </div>
             </div>
-          </form>
+            
+            <div class="ui two fields">
+              <div class="ui field">
+                <button id="startSearch" class="ui primary button" onclick="querySeries(false);">
+                  <i class="search icon"></i>
+                  Search Series
+                </button>
+                <button class="ui red button" onclick="querySeries(true);">
+                  <i class="exclamation triangle icon"></i>
+                  Show Missing
+                </button>
+              </div>
+            </div>
+          </div>
 
-          <div id="search-results" class="ui raised segment"><!-- Added asynchronously --></div>
+          <div id="search-results" class="ui raised segment" style="display: none;"></div>
+        </section>
 
-          <!-- Blueprints -->
-          <h4 class="ui horizontal left aligned divider header">
+        <!-- Blueprints Section -->
+        <section id="blueprint-search">
+          <h3 class="ui horizontal left aligned divider header" style="margin-top: 1em;">
             <i class="sitemap icon"></i>
             Browse Blueprints
-          </h4>
+          </h3>
 
-          <div class="ui blue right action left icon input">
-            <i class="search icon"></i>
-            <input type="text" name="blueprint_series_name" placeholder="Filter by Name..">
-            <select data-value="order_by" class="ui compact selection dropdown">
-              <option value="date" selected="">Order by Date</option>
-              <option value="name">Order by Name</option>
-            </select>
+          <!-- Help Section -->
+          <div class="ui info message">
+            <!-- <div class="header">
+              <i class="info circle icon"></i>
+              Browsing Blueprints
+            </div> -->
+            <ul class="list">
+              <li><strong>Browse:</strong> Use the Browse Blueprints button to view user-submitted Blueprints</li>
+              <li><strong>Import:</strong> Click the <i class="ellipsis vertical icon"></i> icon and <i class="cloud download alternate icon"></i> <strong>Import</strong> button to add a Blueprint (and Series) to TitleCardMaker</li>
+              <li><strong>Filtering:</strong> Filter Blueprints by the Series name, whether it has already been imported, or if it is for a Series not in your TitleCardMaker</li>
+              <li><strong>Filter by Creator:</strong> Filter Blueprints by the creator by typing <strong>by:username</strong> in the search box, or clicking the username in the Blueprint card</li>
+              <li><strong>Hide Unwanted:</strong> Click the <i class="ellipsis vertical icon"></i> icon and <i class="eye slash outline icon"></i> <strong>Hide</strong> button to hide a Blueprint from future searches</li>
+            </ul>
           </div>
-          <button data-action="browse-blueprints" class="ui green button" onclick="queryAllBlueprints();">
-            Browse Blueprints
-          </button>
 
-          <br><br>
-          <div class="ui two fields">
-            <div data-value="include_missing_series" class="ui checkbox field">
-              <label>Only include existing Series</label>
-              <input type="checkbox" name="include_missing_series">
-              <p class="help">Exclude Blueprints for Series not in TitleCardMaker</p>
+          <div class="ui form">
+            <div class="ui grid">
+              <div class="four wide column">
+                <div class="ui field">
+                  <label for="blueprint-filter">Filter by Name</label>
+                  <div class="ui input">
+                    <input id="blueprint-filter" type="text" name="blueprint_series_name" placeholder="Series Name">
+                  </div>
+                </div>
+              </div>
+
+              <div class="three wide column">
+                <div class="ui field">
+                  <label for="blueprint-sort">Sort Order</label>
+                  <select id="blueprint-sort" data-value="order_by" class="ui compact selection dropdown">
+                    <option value="date" selected="">Date (Newest First)</option>
+                    <option value="name">Name (A-Z)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="four wide column">
+                <div data-value="include_missing_series" class="ui checkbox field">
+                  <input type="checkbox" name="include_missing_series">
+                  <label>Only include existing Series</label>
+                  <p class="help">Exclude Blueprints for Series not in TitleCardMaker</p>
+                </div>
+              </div>
+              
+              <div class="five wide column">
+                <div data-value="included_imported" class="ui checkbox field">
+                  <input type="checkbox" name="included_imported">
+                  <label>Include previously imported</label>
+                  <p class="help">Include Blueprints that have been previously imported</p>
+                </div>
+              </div>
+
+              <div class="eight wide column">
+                <div class="ui field">
+                  <button data-action="browse-blueprints" class="ui green button" onclick="queryAllBlueprints();">
+                    <i class="sitemap icon"></i>
+                    Browse Blueprints
+                  </button>
+                </div>
+              </div>
+
             </div>
-            <br>
-            <div data-value="included_imported" class="ui checkbox checkbox">
-              <label>Include previously imported</label>
-              <input type="checkbox" name="included_imported">
-              <p class="help">Include Blueprints that have been previously imported</p>
-            </div>
           </div>
 
-          <div class="ui raised segment">
-            <div id="all-blueprint-results" class="ui three stackable raised cards"><!-- Added asynchronously --></div>
+          <div class="ui raised segment" style="display: none;">
+            <div id="all-blueprint-results" class="ui three stackable raised cards"></div>
           </div>
-          <div id="blueprint-pagination" class="ui centered pagination menu"><!-- Pagination added later --></div>
+          
+          <div id="blueprint-pagination" class="ui centered pagination menu">
+            <!-- Pagination will be added here -->
+          </div>
 
-          <div class="ui raised segment" id="blueprint-sets"></div>
-        </div>
+          <div class="ui raised segment" id="blueprint-sets" style="display: none;"></div>
+        </section>
       {% else %}
-      <div class="ui warning floating message">
-        <i class="exclamation triangle icon"></i>
-        Please add a Connection on the <a href="/connections">Connections</a> page before adding a Series.
-      </div>
-      {% endif %}
-
-    <!-- Modals -->
-    <div id="add-series-modal" class="ui scrolling modal">
-      <i class="close icon"></i>
-      <div data-value="series-name-header" class="header">Add Series</div>
-      <div class="scrolling content">
-        <form class="ui form">
-          <!-- <h4 class="ui dividing header">Configuration</h4> -->
-          <div class="ui two fields">
-            <div class="ui field">
-              <label>Libraries</label>
-              <div data-value="libraries" class="ui compact clearable search selection multiple dropdown">
-                <input name="libraries" type="hidden">
-                <div class="default text">None</div>
-                <i class="dropdown icon"></i>
-                <div class="menu"><!-- Added asynchronously --></div>
-              </div>
-            </div>
-  
-            <div class="field">
-              <label>Templates</label>
-              <div data-value="template_ids" class="ui compact clearable search selection multiple dropdown">
-                <input data-value="template_ids" name="template_ids" type="hidden">
-                <i class="dropdown icon"></i>
-                <div class="default text">None</div>
-                <div class="menu"><!-- Added asynchronously --></div>
-              </div>
-            </div>
+        <div class="ui warning message">
+          <div class="header">
+            <i class="exclamation triangle icon"></i>
+            No Connections Available
           </div>
-        </form>
-      </div>
-      <div class="actions">
-        <button class="ui cancel button">Cancel</button>
-        <button data-action="add-series" class="ui green right labeled icon button">
-          <i class="plus icon"></i>
-          Add
-        </button>
-      </div>
+          <p>Please add a Connection on the <a href="/connections">Connections</a> page before adding a Series.</p>
+        </div>
+      {% endif %}
     </div>
   </div>
 </body>

@@ -589,18 +589,18 @@ function populateBlueprintCard(card, blueprint, blueprintId) {
   const sourceFileCount = blueprint.json.series.source_files.length;
   if (sourceFileCount === 0) {
     card.querySelector('[data-value="file-count"]').remove();
-    card.querySelector('.popup').remove();
+    card.querySelector('.popup[data-label="source-files"]').remove();
   } else {
     const text = `<b>${sourceFileCount}</b> Source File` + (sourceFileCount > 1 ? 's' : '');
     card.querySelector('[data-value="file-count"]').innerHTML = text;
-    card.querySelector('.popup .content').innerHTML = blueprint.json.series.source_files.join(', ');
+    card.querySelector('.popup[data-label="source-files"] .content').innerHTML = blueprint.json.series.source_files.join(', ');
   }
 
   card.querySelector('[data-value="description"]').innerHTML = '<p>' + blueprint.json.description.join('</p><p>') + '</p>';
 
   // Sets
-  if (blueprint.set_ids.length > 0) {
-    card.querySelector('[data-value="set-count"]').innerText = blueprint.set_ids.length > 1
+  if (blueprint.set_ids.length > 0 && card.querySelector('[data-label="set-count"]')) {
+    card.querySelector('[data-label="set-count"]').innerText = blueprint.set_ids.length > 1
       ? `${blueprint.set_ids.length} Associated Sets`
       : `1 Associated Set`;
   } else if (card.querySelector('.extra.content')) {

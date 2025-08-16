@@ -5,6 +5,11 @@
   /* overflow: scroll; */
 }
 
+/* Improve vertical centering of action icon */
+.blueprint.card .header i {
+  margin-top: 0.25em;
+}
+
 /* Remove color from linked Blueprint headers */
 .blueprint.card .header a {
   color: unset;
