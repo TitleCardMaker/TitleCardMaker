@@ -66,19 +66,39 @@ function queryLatestCards(page=1) {
 
       // Add elements to the page
       document.getElementById('loader')?.remove();
-      document.querySelector('.cards[data-label="cards"]').replaceChildren(...cards);
+      
+      if (cards.length === 0) {
+        // Show empty state message
+        document.getElementById('empty-state').style.display = '';
+        document.querySelector('.cards[data-label="cards"]').style.display = 'none';
+        document.getElementById('card-pagination').style.display = 'none';
+      } else {
+        // Hide empty state and show cards
+        document.getElementById('empty-state').style.display = 'none';
+        document.querySelector('.cards[data-label="cards"]').style.display = '';
+        document.getElementById('card-pagination').style.display = '';
+        
+        document.querySelector('.cards[data-label="cards"]').replaceChildren(...cards);
 
-      // Update pagination
-      updatePagination({
-        paginationElementId: 'card-pagination',
-        navigateFunction: queryLatestCards,
-        page: cardPage.page,
-        pages: cardPage.pages,
-        amountVisible: isSmallScreen() ? 5 : 15,
-        hideIfSinglePage: false,
-      });
+        // Update pagination
+        updatePagination({
+          paginationElementId: 'card-pagination',
+          navigateFunction: queryLatestCards,
+          page: cardPage.page,
+          pages: cardPage.pages,
+          amountVisible: isSmallScreen() ? 5 : 15,
+          hideIfSinglePage: false,
+        });
+      }
     },
-    error: response => showErrorToast({response, title: 'Error Querying Recent Cards'}),
+    error: response => {
+      showErrorToast({response, title: 'Error Querying Recent Cards'});
+      // Show empty state on error
+      document.getElementById('loader')?.remove();
+      document.getElementById('empty-state').style.display = 'block';
+      document.querySelector('.cards[data-label="cards"]').style.display = 'none';
+      document.getElementById('card-pagination').style.display = 'none';
+    },
   });
 }
 
@@ -88,7 +108,13 @@ function initAll() {
   $('.ui.calendar').calendar({
     initialDate: getLastLoginTime(),
     maxDate: new Date(),
-    onChange: () => queryLatestCards(),
+    onChange: () => {
+      // Reset display state when date changes
+      document.getElementById('empty-state').style.display = 'none';
+      document.querySelector('.cards[data-label="cards"]').style.display = 'block';
+      document.getElementById('card-pagination').style.display = 'block';
+      queryLatestCards();
+    },
   });
 
   // Query recent cards on page load

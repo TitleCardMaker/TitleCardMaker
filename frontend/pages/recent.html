@@ -9,8 +9,6 @@
     {% include "/js/recent.js" %}
   </script>
 
-  <link rel="stylesheet" type="text/css" href="/css/recent.css?v={{preferences.current_version}}">
-
   <!-- Templates -->
   <template id="card-template">
     <a class="ui card" href="">
@@ -59,6 +57,22 @@
       <h2 class="ui header">Title Cards</h2>
       <div class="ui active centered inline blue elastic loader" id="loader"></div>
       <div class="ui link cards" data-label="cards"></div>
+      
+      <!-- Empty state message using Fomantic UI -->
+      <div id="empty-state" class="ui icon message" style="display: none;">
+        <!-- <i class="icons">
+          <i class="red dont icon"></i>
+          <i class="inbox icon"></i>
+        </i> -->
+        <i class="orange images outline icon"></i>
+        <div class="content">
+          <div class="header">
+            No recently created Title Cards
+          </div>
+          <p>Try adjusting your date range or creating Title Cards with the <a href="/scheduler">Scheduler</a>.</p>
+        </div>
+      </div>
+
       <br>
       <div class="ui pagination menu" id="card-pagination"><!-- Added asynchronously --></div>
     </div>
