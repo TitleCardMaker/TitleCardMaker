@@ -1063,12 +1063,6 @@ def delete_cards(
         List of file names of the deleted cards.
     """
 
-    # Get series IDs before deletion for cache invalidation
-    series_ids_to_invalidate = set()
-    for card in card_query.all():
-        if card.series_id:
-            series_ids_to_invalidate.add(card.series_id)
-
     # Delete all associated Card files
     deleted = []
     for card in card_query.all():
