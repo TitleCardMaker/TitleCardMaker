@@ -108,18 +108,6 @@ class AnimeFadeTitleCard(BaseCardType):
                 ),
                 default='False',
             ),
-            Extra(
-                name='Kanji Vertical Shift',
-                identifier='kanji_vertical_shift',
-                description=(
-                    'Additional vertical offset to apply only to kanji text'
-                ),
-                tooltip=(
-                    'Positive values shift the Kanji up, negative values shift '
-                    'Kanji down. Default is <v>0</v>. Unit is pixels.'
-                ),
-                default=0,
-            ),
         ],
         description=[
             'A functional mix of the Anime and Fade card types.', 'This card '
@@ -186,11 +174,9 @@ class AnimeFadeTitleCard(BaseCardType):
         'kanji',
         'kanji_color',
         'kanji_font_size',
-        'kanji_vertical_shift',
         'logo_file',
         'logo_size',
         'output_file',
-        'require_kanji',
         'season_text',
         'season_text_color',
         'separator',
@@ -223,10 +209,8 @@ class AnimeFadeTitleCard(BaseCardType):
             separator: str = '·',
             logo_file: Path | None = None,
             logo_size: float = 1.0,
-            require_kanji: bool = False,
             kanji_color: str = TITLE_COLOR,
             kanji_font_size: float = 1.0,
-            kanji_vertical_shift: float = 0.0,
             season_text_color: str | None = None,
             text_position: TextPosition = 'bottom',
             **unused: Any,
@@ -250,8 +234,6 @@ class AnimeFadeTitleCard(BaseCardType):
         # Store kanji, set bool for whether to use it or not
         self.kanji = self.image_magick.escape_chars(kanji)
         self.use_kanji = kanji is not None
-        self.require_kanji = require_kanji
-        self.kanji_vertical_shift = kanji_vertical_shift
 
         # Font customizations
         self.font_color = font_color
@@ -425,7 +407,6 @@ class AnimeFadeTitleCard(BaseCardType):
                 'episode_text_color',
                 'episode_text_size',
                 'kanji_font_size',
-                'kanji_vertical_shift',
                 'logo_size',
             ):
                 if extra in extras:
@@ -453,7 +434,6 @@ class AnimeFadeTitleCard(BaseCardType):
                 'episode_text_size': 1.0,
                 'kanji_color': AnimeFadeTitleCard.TITLE_COLOR,
                 'kanji_font_size': 1.0,
-                'kanji_vertical_shift': 0,
             }
         )
 
@@ -529,7 +509,6 @@ def get_validator_model() -> type[Base]:
         require_kanji: bool = False
         kanji_color: str | None = AnimeFadeTitleCard.TITLE_COLOR
         kanji_font_size: PositiveFloat = 1.0
-        kanji_vertical_shift: int = 0
         separator: str = '·'
         logo_file: Path | None = None
         logo_size: PositiveFloat = 1.0
