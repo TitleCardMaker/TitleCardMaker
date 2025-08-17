@@ -145,6 +145,23 @@ coloring taking priority over the episode.
         <img src="../assets/anime_fade/separator.webp"/>
     </div>
 
+## Text Position
+
+The overall position of all text elements - including the kanji, title, season,
+and episode text - can be adjusted with the _Text Position_ extra. This can be
+`bottom` to position it like that in the [Anime](./anime.md) card; or `center`
+to position it like that in the [Fade](./fade.md) card.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="90"
+        data-left-label="center"
+        data-right-label="bottom">
+        <img src="../assets/anime_fade/text_position.webp"/>
+        <img src="../assets/anime_fade.webp"/>
+    </div>
+
 ## Mask Images
 
 This card also natively supports [mask images](../user_guide/mask_images.md).
