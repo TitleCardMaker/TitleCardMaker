@@ -49,3 +49,32 @@ i.sync.icon:hover {
   color: #2185d0;
   /* size: 110%; */
 }
+
+/* Toggle details button styling */
+[data-action="toggle-details"] {
+  background: #f8f9fa !important;
+  border: 1px solid #e1e4e8 !important;
+  color: #586069 !important;
+  font-size: 0.9em !important;
+  padding: 0.5em !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-action="toggle-details"]:hover {
+  background: #e1e4e8 !important;
+  border-color: #d1d5da !important;
+  color: #24292e !important;
+}
+
+/* Sync details section */
+.sync-details {
+  border-top: 1px solid #e1e4e8;
+  padding-top: 0.5em;
+  margin-top: 0.5em;
+}
+
+.sync-details p {
+  margin: 0.3em 0 !important;
+  font-size: 0.9em !important;
+  line-height: 1.4 !important;
+}

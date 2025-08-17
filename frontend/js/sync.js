@@ -396,6 +396,57 @@ function getAllSyncs() {
           clone.querySelector('.header').innerText = sync.name;
           clone.querySelector('.sync-meta').innerText = `Sync ID ${sync.id}`;
 
+          // Populate required tags
+          const requiredTags = sync.required_tags && sync.required_tags.length > 0 
+            ? sync.required_tags.join(', ') 
+            : 'None';
+          clone.querySelector('[data-value="required_tags"]').innerText = requiredTags;
+
+          // Populate required libraries
+          if (sync.required_libraries && sync.required_libraries.length) {
+            const requiredLibraries = sync.required_libraries && sync.required_libraries.length > 0 
+              ? sync.required_libraries.join(', ') 
+              : 'All Libraries';
+            clone.querySelector('[data-value="required_libraries"]').innerText = requiredLibraries;
+          } else {
+            clone.querySelector('p[data-label="required_libraries"]').remove()
+          }
+
+          // Populate excluded tags
+          const excludedTags = sync.excluded_tags && sync.excluded_tags.length > 0 
+            ? sync.excluded_tags.join(', ') 
+            : 'None';
+          clone.querySelector('[data-value="excluded_tags"]').innerText = excludedTags;
+
+          // Populate excluded libraries
+          const excludedLibraries = sync.excluded_libraries && sync.excluded_libraries.length > 0 
+            ? sync.excluded_libraries.join(', ') 
+            : 'None';
+          clone.querySelector('[data-value="excluded_libraries"]').innerText = excludedLibraries;
+
+          // Populate templates
+          const templates = sync.template_ids && sync.template_ids.length > 0 
+            ? `${sync.template_ids.length} template(s)` 
+            : 'None';
+          clone.querySelector('[data-value="templates"]').innerText = templates;
+
+          // Add toggle details functionality
+          const toggleButton = clone.querySelector('[data-action="toggle-details"]');
+          const detailsDiv = clone.querySelector('.sync-details');
+          toggleButton.onclick = () => {
+            const isHidden = detailsDiv.style.display === 'none';
+            detailsDiv.style.display = isHidden ? 'block' : 'none';
+
+            const icon = toggleButton.querySelector('i');
+            if (isHidden) {
+              icon.className = 'chevron up icon';
+              toggleButton.innerHTML = '<i class="chevron up icon"></i> Hide Details';
+            } else {
+              icon.className = 'chevron down icon';
+              toggleButton.innerHTML = '<i class="chevron down icon"></i> Show Details';
+            }
+          };
+
           // Edit sync if clicked
           clone.querySelector('i.edit').onclick = () => showEditModel(sync);
 

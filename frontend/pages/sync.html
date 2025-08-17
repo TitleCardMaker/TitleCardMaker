@@ -21,6 +21,19 @@
         <div class="meta">
           <div class="sync-meta">Sync ID {TEMPLATE ID}</div>
         </div>
+        <div class="description">
+          <div class="ui fluid button" data-action="toggle-details" style="margin-bottom: 0.5em;">
+            <i class="chevron down icon"></i>
+            Show Details
+          </div>
+          <div class="sync-details" style="display: none;">
+            <p><strong>Templates:</strong> <span data-value="templates">{TEMPLATES}</span></p>
+            <p><strong>Required Tags:</strong> <span data-value="required_tags">{REQUIRED_TAGS}</span></p>
+            <p data-label="required_libraries"><strong>Required Libraries:</strong> <span data-value="required_libraries">{REQUIRED_LIBRARIES}</span></p>
+            <p><strong>Excluded Tags:</strong> <span data-value="excluded_tags">{EXCLUDED_TAGS}</span></p>
+            <p><strong>Excluded Libraries:</strong> <span data-value="excluded_libraries">{EXCLUDED_LIBRARIES}</span></p>
+          </div>
+        </div>
       </div>
     </div>
   </template>
@@ -40,7 +53,16 @@
     <div id="main-content" class="article">
       <div class="ui grid">
         <div id="sync" class="sixteen wide column">
-          <h1 class="ui header">Syncs</h1>
+          <!-- <h1 class="ui header">Syncs</h1> -->
+          <h1 class="ui header">
+            <i class="sync icon"></i>
+            <div class="content">
+              Sync
+              <div class="sub header">
+                <span id="next-sync"></span>
+              </div>
+            </div>
+          </h1>
           
           {% if not preferences.use_emby and not preferences.use_jellyfin and not preferences.use_plex and not preferences.use_sonarr %}
             <div class="ui warning floating message">
@@ -48,7 +70,7 @@
               Please add an Emby, Jellyfin, Plex, or Sonarr Connection on the <a href="/connections">Connections</a> page before adding a Series.
             </div>
           {% else %}
-            <div id="next-sync" class="ui compact raised segment"></div>
+            <!-- <div id="next-sync" class="ui compact raised segment"></div> -->
           {% endif %}
 
           <!-- Emby -->
@@ -115,6 +137,17 @@
             </div>
           </section>
         </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="ui info message">
+        <ul class="list">
+          <li><strong>Automated Syncing:</strong> Syncs automatically add new Series from Emby, Jellyfin, Plex, or Sonarr to TitleCardMaker</li>
+          <li><strong>Filtering:</strong> Use Tags, Libraries, and other criteria to control which Series are synced</li>
+          <li><strong>Templates:</strong> Automatically apply Templates to newly synced Series for consistent styling</li>
+          <li><strong>Scheduling:</strong> Syncs run automatically from the <a href="/scheduler">Scheduler</a> to keep TitleCardMaker up to date</li>
+          <li><strong>Manual Sync:</strong> Click the <i class="sync icon"></i> icon to run a sync immediately</li>
+        </ul>
       </div>
     </div>
 
@@ -522,7 +555,7 @@
 
           <div class="field">
             <label>Tags</label>
-            <div data-value="excluded_tags" dropdown-type="sonarr-tags" class="ui fluid multiple search selection dropdown">
+            <div data-value="excluded_tags" dropdown-type="sonarr-tags" class="ui fluid multiple search selection dropdown additions">
               <input name="excluded_tags" type="hidden">
               <i class="dropdown icon"></i>
               <div class="default text">None</div>
