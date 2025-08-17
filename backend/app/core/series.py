@@ -912,7 +912,7 @@ def add_series(
     """
 
     # Convert object to dictionary
-    new_series_dict = new_series.dict()
+    new_series_dict = new_series.model_dump(exclude_unset=True)
 
     # If a Font, Sync, or any Templates were indicated, verify they exist
     get_font(db, getattr(new_series, 'font_id', None), raise_exc=True)
