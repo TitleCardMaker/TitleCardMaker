@@ -31,7 +31,8 @@ from app.core.cache import (
     get_cached_series_episodes,
     cache_episode_data,
     get_cached_episode_data,
-    get_cache_manager
+    get_cache_manager,
+    invalidate_series_cache,
 )
 
 
@@ -273,12 +274,17 @@ def refresh_episode_data(
             # Delete Episode (also deleted associated Loaded + Card objects)
             db.delete(all_existing[delete_key])
             changed = True
+            
+            # Invalidate series cache since we deleted cards for this series
+            invalidate_series_cache(series.id)
 
     # Log any new Episodes
     if len(new_episodes) > 1:
         log.info(f'{series} {len(new_episodes)} new Episodes')
+        invalidate_series_cache(series.id)
     elif len(new_episodes) == 1:
         log.info(f'{series} new Episode "{new_episodes[0].title}"')
+        invalidate_series_cache(series.id)
     else:
         log.trace(f'{series} has no new Episodes')
 
