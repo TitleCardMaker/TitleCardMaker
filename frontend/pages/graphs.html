@@ -32,12 +32,17 @@
           <i class="filter icon"></i>
           <div class="content">
             Filter Options
-            <div class="sub header" onclick="resetFilters()" style="cursor: pointer;">
-              Reset Filters <i class="eraser icon"></i>
+            <div class="sub header" style="cursor: pointer;">
+              <div class="ui horizontal basic labels">
+                <div class="ui small horizontal basic red label" onclick="resetFilters();" data-action="refresh">
+                  <i class="eraser icon"></i>
+                  Reset Filters
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        
+
         <div class="ui three column grid">
           <!-- Date Range -->
           <div class="column">
