@@ -99,123 +99,135 @@
 
     <!-- Actual page content -->
     <div id="main-content" class="article" style="overflow-x: scroll;">
-      <h1 class="ui header">Logs</h1>
-
-      <!-- Update logs -->
-      <button onclick="queryForLogs();" data-action="refresh" class="ui blue tertiary compact button">
-        <i class="redo icon"></i>
-        Refresh Logs
-      </button>
-      <div onclick="resetForm();" class="ui red tertiary compact button">
-        <i class="eraser icon"></i>
-        Clear Filters
-      </div>
+      <h1 class="ui header">System Logs</h1>
 
       <!-- Log filters -->
-      <form id="log-filters" class="ui form">
-        <div class="fields">
-          <!-- Contains substring -->
-          <div class="ui field">
-            <label>Message Contains</label>
-            <input name="contains" type="text" placeholder="Text..">
-          </div>
-          <!-- Context ID -->
-          <div class="ui field">
-            <label data-tooltip="Comma separated list of Context IDs to filter by">Context IDs</label>
-            <input name="context_id" type="text" placeholder="ID..">
-          </div>
-          <!-- Start Date -->
-          <div class="ui field">
-            <label>Start Date</label>
-            <div class="ui calendar" id="date-after">
-              <div class="ui input left icon">
-                <i class="calendar icon"></i>
-                <input name="after" type="text" placeholder="Start">
-              </div>
-            </div>
-          </div>
-          <!-- End Date -->
-          <div class="ui field">
-            <label>End Date</label>
-            <div class="ui calendar" id="date-before">
-              <div class="ui input left icon">
-                <i class="calendar icon"></i>
-                <input name="before" type="text" placeholder="End">
-              </div>
-            </div>
-          </div>
-          <!-- Log level -->
-          <div class="ui field">
-            <label>Minimum Level</label>
-            <div data-value="level" class="ui compact selection dropdown">
-              <input name="level" type="hidden">
-              <i class="dropdown icon"></i>
-              <div class="default text">Debug</div>
-              <div class="menu">
-                <div data-value="TRACE" class="item">Trace</div>
-                <div data-value="DEBUG" class="item">Debug</div>
-                <div data-value="INFO" class="item">Info</div>
-                <div data-value="WARNING" class="item">Warning</div>
-                <div data-value="ERROR" class="item">Error</div>
-                <div data-value="CRITICAL" class="item">Critical</div>
-              </div>
-            </div>
-          </div>
-          <!-- Lines per page -->
-          <div class="ui field">
-            <label>Page Size</label>
-            <div data-value="size" class="ui compact selection dropdown">
-              <input name="size" type="hidden">
-              <i class="dropdown icon"></i>
-              <div class="default text">250</div>
-              <div class="menu">
-                <div class="item">10</div>
-                <div class="item">25</div>
-                <div class="item">50</div>
-                <div class="item">100</div>
-                <div class="item">200</div>
-                <div class="item">250</div>
+      <div class="ui segment">
+        <div class="ui header">
+          <i class="filter icon"></i>
+          <div class="content">
+            Filter Options
+            <div class="sub header" style="cursor: pointer;">
+              <div class="ui horizontal basic labels">
+                <div class="ui small red label" onclick="resetForm(); queryForLogs();" data-action="refresh">
+                  <i class="eraser icon"></i>
+                  Reset Filters
+                </div>
+                <div class="ui small blue label" onclick="queryForLogs();" data-action="refresh">
+                  <i class="redo icon"></i>
+                  Refresh Logs
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </form>
-     
-      <!-- Logs -->
-      <table class="ui striped celled compact table" id="log-table">
-        <thead>
-          <tr>
-            <th class="center aligned collapsing">Level</th>
-            <th class="center aligned">Timestamp</th>
-            <th class="center aligned">Context ID</th>
-            <th>Message</th>
-          </tr>
-        </thead>
-        <tbody id="log-data"></tbody>
-        <!-- Pagination buttons -->
-        <tfoot>
-          <tr>
-            <th colspan="4">
-              <div id="pagination" class="ui pagination menu"><!-- Added asynchronously --></div>
-            </th>
-          </tr>
-        </tfoot>
-      </table>
+
+        <form id="log-filters" class="ui form">
+          <div class="fields">
+            <!-- Contains substring -->
+            <div class="ui field">
+              <label>Message Contains</label>
+              <input name="contains" type="text" placeholder="Text..">
+            </div>
+            <!-- Context ID -->
+            <div class="ui field">
+              <label data-tooltip="Comma separated list of Context IDs to filter by">Context IDs</label>
+              <input name="context_id" type="text" placeholder="ID..">
+            </div>
+            <!-- Start Date -->
+            <div class="ui field">
+              <label>Start Date</label>
+              <div class="ui calendar" id="date-after">
+                <div class="ui input left icon">
+                  <i class="calendar icon"></i>
+                  <input name="after" type="text" placeholder="Start">
+                </div>
+              </div>
+            </div>
+            <!-- End Date -->
+            <div class="ui field">
+              <label>End Date</label>
+              <div class="ui calendar" id="date-before">
+                <div class="ui input left icon">
+                  <i class="calendar icon"></i>
+                  <input name="before" type="text" placeholder="End">
+                </div>
+              </div>
+            </div>
+            <!-- Log level -->
+            <div class="ui field">
+              <label>Minimum Level</label>
+              <div data-value="level" class="ui compact selection dropdown">
+                <input name="level" type="hidden">
+                <i class="dropdown icon"></i>
+                <div class="default text">Debug</div>
+                <div class="menu">
+                  <div data-value="TRACE" class="item">Trace</div>
+                  <div data-value="DEBUG" class="item">Debug</div>
+                  <div data-value="INFO" class="item">Info</div>
+                  <div data-value="WARNING" class="item">Warning</div>
+                  <div data-value="ERROR" class="item">Error</div>
+                  <div data-value="CRITICAL" class="item">Critical</div>
+                </div>
+              </div>
+            </div>
+            <!-- Lines per page -->
+            <div class="ui field">
+              <label>Page Size</label>
+              <div data-value="size" class="ui compact selection dropdown">
+                <input name="size" type="hidden">
+                <i class="dropdown icon"></i>
+                <div class="default text">250</div>
+                <div class="menu">
+                  <div class="item">10</div>
+                  <div class="item">25</div>
+                  <div class="item">50</div>
+                  <div class="item">100</div>
+                  <div class="item">200</div>
+                  <div class="item">250</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <table class="ui striped celled compact table" id="log-table">
+          <thead>
+            <tr>
+              <th class="center aligned collapsing">Level</th>
+              <th class="center aligned">Timestamp</th>
+              <th class="center aligned">Context ID</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody id="log-data"></tbody>
+          <!-- Pagination buttons -->
+          <tfoot>
+            <tr>
+              <th colspan="4">
+                <div id="pagination" class="ui pagination menu"><!-- Added asynchronously --></div>
+              </th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
 
       <!-- Internal server errors -->
-      <h1 class="ui header">
-        <div class="content">
-          Internal Server Errors
-          <div class="sub header">
-            Unexpected errors which may indicate some bug within TCM. Click the
-            respective GitHub icon to open an Issue for that error.
+      <div class="ui segment">
+        <h2 class="ui header">
+          <div class="content">
+            Internal Server Errors
+            <div class="sub header">
+              Unexpected errors which may indicate some bug within TCM. Click the
+              respective GitHub icon to open an Issue for that error.
+            </div>
           </div>
+        </h2>
+        <div class="ui floating info message" id="no-internal-errors">
+          <p>No server errors!</p>
         </div>
-      </h1>
-      <div class="ui floating info message" id="no-internal-errors">
-        <p>No server errors!</p>
+        <div class="ui relaxed divided list" id="error-list"><!-- Added asynchronously --></div>
       </div>
-      <div class="ui relaxed divided list" id="error-list"><!-- Added asynchronously --></div>
     </div>
   </div>
 </body>
