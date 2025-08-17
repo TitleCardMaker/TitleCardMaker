@@ -10,7 +10,7 @@ description: >
 # Anime Card Type
 
 This card design was created by [CollinHeist](https://github.com/CollinHeist),
-and designed by Reddit User
+and designed by Reddit user
 [/u/Recker_Man](https://www.reddit.com/user/Recker_Man). Because this is the
 only card which explicitly supports adding kanji, this is the de-facto
 card type used for Anime series by _most_ users.
@@ -97,6 +97,44 @@ this gradient overlay, set the _Gradient Omission_ extra to `True`.
         <img src="../assets/anime/gradient.webp"/>
     </div>
 
+## Logo
+
+A logo file can optionally be added to various positions around the Card.
+
+### Position
+
+The position of the logo can be adjusted with the _Logo Position_ extra. By
+default, this is set to `omit` - meaning no logo file will be added. Setting
+this to any supported value other than `omit` will add the logo to the Card (if
+the file is available).
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="14.5"
+        data-left-label="top left"
+        data-right-label="omit">
+        <img src="../assets/anime/logo.webp"/>
+        <img src="../assets/anime.webp"/>
+    </div>
+
+### Size
+
+The default size of the logo is quite small (in order to be unobstrusive). This
+can be adjusted with the _Logo Size_ extra. Like all sizes, values greater than
+`#!yaml 1.0` will increase the size of the logo, and values less than
+`#!yaml 1.0` will decrease it.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="14.5"
+        data-left-label="3.0"
+        data-right-label="1.0">
+        <img src="../assets/anime/logo_size.webp"/>
+        <img src="../assets/anime/logo_position.webp"/>
+    </div>
+
 ## Kanji
 
 ### Adding Kanji
@@ -134,8 +172,8 @@ The color of the kanji text can be adjusted with the _Kanji Color_ extra.
 
 ### Requiring Kanji
 
-If you want to __require__ kanji text to be present in order for a Title Card
-to be created, you can set the _Require Kanji_ extra to `True`
+If you want to __require__ kanji text to be present in order for a Title Card to
+be created, you can set the _Require Kanji_ extra to `True`
 
 This is _generally_ not recommended as TCM will automatically delete and remake
 Cards if they were made without kanji (that was later added).
