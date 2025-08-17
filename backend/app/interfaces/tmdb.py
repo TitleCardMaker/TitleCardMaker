@@ -260,9 +260,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         'zh': r'第 {number} 集',
     }
 
-    """Filename for where to store blacklisted entries"""
-    __BLACKLIST_DB = 'tmdb_blacklist.json'
-
 
     def __init__(self,
             api_key: str,
@@ -917,11 +914,10 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             log: Logger for all log messages.
 
         Returns:
-            List of `tmdbapis.objs.image.Still` objects. If the series
-            is not found on TMDb, then None is returned.
+            List of `tmdbapis.objs.image.Still` objects.
 
         Raises:
-            HTTPException (404) if the given Series is not found on TMDb
+            HTTPException (404): The given Series is not found on TMDb
         """
 
         # Get the series, exit if series or backdrops DNE
@@ -935,12 +931,10 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                 detail=f'Series {series_info} not found on TMDb',
             ) from exc
 
-        # Blacklist if there are no backdrops
-        if len(series.backdrops) == 0:
+        if len(series.backdrops) == 0 or series.backdrops is None:
             log.info(f'Series {series_info} has no backdrops')
             return []
 
-        # Series found on TMDb, return all backdrops
         return series.backdrops
 
 
