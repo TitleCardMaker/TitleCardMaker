@@ -54,19 +54,21 @@ def update_global_settings(
     - update_preferences: UpdatePreferences containing fields to update.
     """
 
+    update_model = update_preferences.model_dump(exclude_unset=True)
+
     # Verify any specified Fonts/Templates exist
-    if 'default_fonts' in update_preferences.model_fields_set:
-        for font_id in update_preferences.default_fonts.values():
+    if update_model.get('default_fonts'):
+        for font_id in update_model['default_fonts'].values():
             get_font(db, font_id, raise_exc=True)
-    if 'default_templates' in update_preferences.model_fields_set:
-        for template_id in update_preferences.default_templates:
+    if update_model.get('default_templates'):
+        for template_id in update_model['default_templates']:
             get_template(db, template_id, raise_exc=True)
 
     # Create card and source directories if they don't exist
-    if update_preferences.card_directory:
-        update_preferences.card_directory.mkdir(parents=True, exist_ok=True)
-    if update_preferences.source_directory:
-        update_preferences.source_directory.mkdir(parents=True, exist_ok=True)
+    if update_model.get('card_directory'):
+        update_model['card_directory'].mkdir(parents=True, exist_ok=True)
+    if update_model.get('source_directory'):
+        update_model['source_directory'].mkdir(parents=True, exist_ok=True)
 
     settings.update_values(
         log=log,
