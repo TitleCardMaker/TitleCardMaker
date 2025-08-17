@@ -163,7 +163,7 @@ class AnimeTitleCard(BaseCardType):
                 identifier='season_text_color',
                 description='Color of the season text and separator charactor',
                 tooltip='Default is to match the Episode Text Color.',
-            )
+            ),
         ],
         description=[
             'Title card with all text aligned in the lower left of the image.',

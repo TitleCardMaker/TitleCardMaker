@@ -21,6 +21,7 @@ class Extra(Base):
 
 LocalCardTypeModels: dict[str, type[Base] | type[BaseCardModel]] = {
     'anime': Anime.get_validator_model(),
+    'anime fade': AnimeFade.get_validator_model(),
     'banner': Banner.get_validator_model(),
     'calligraphy': Calligraphy.get_validator_model(),
     'cascade': Cascade.get_validator_model(),

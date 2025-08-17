@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any, Literal, Self
+from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Literal, Self
 
 from pydantic import FilePath, PositiveFloat, model_validator
 
@@ -40,10 +40,92 @@ class AnimeFadeTitleCard(BaseCardType):
         supports_custom_fonts=True,
         supports_custom_seasons=True,
         supported_extras=[
-            
+            Extra(
+                name='Episode Text Color',
+                identifier='episode_text_color',
+                description='Color to utilize for the episode text',
+                tooltip='Default is <c>rgb(163,163,163)</c>.',
+                default='rgb(163,163,163)',
+            ),
+            Extra(
+                name='Episode Text Font Size',
+                identifier='episode_text_font_size',
+                description='Size adjustment for the season and episode text',
+                tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
+                default=1.0,
+            ),
+            Extra(
+                name='Season Text Color',
+                identifier='season_text_color',
+                description='Color of the season text and separator charactor',
+                tooltip='Default is to match the Episode Text Color.',
+            ),
+            Extra(
+                name='Text Position',
+                identifier='text_position',
+                description='Where on the image to position the text',
+                tooltip=(
+                    'Either <v>bottom</v> or <v>center</v>. Default is '
+                    '<v>bottom</v>.'
+                ),
+                default='bottom',
+            ),
+            Extra(
+                name='Separator Character',
+                identifier='separator',
+                description='Character to separate season and episode text',
+                tooltip='Default is <v>·</v>.',
+                default='·',
+            ),
+            Extra(
+                name='Logo Size',
+                identifier='logo_size',
+                description='Scalar for how much to scale the size of the logo',
+                tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
+                default=1.0,
+            ),
+            Extra(
+                name='Kanji Color',
+                identifier='kanji_color',
+                description='Color of the kanji text',
+                tooltip='Default is <c>white</c>.',
+                default='white',
+            ),
+            Extra(
+                name='Kanji Font Size',
+                identifier='kanji_font_size',
+                description='Font size of the kanji text',
+                tooltip='Number ≥<v>0.0</v>. Defaults to <v>1.0</v>.',
+                default=1.0,
+            ),
+            Extra(
+                name='Require Kanji Text',
+                identifier='require_kanji',
+                description='Whether to require kanji text for card creation',
+                tooltip=(
+                    'Either <v>True</v> or <v>False</v>. If <v>True</v>, cards '
+                    'without Kanji will not be created. Default is <v>False</v>.'
+                ),
+                default='False',
+            ),
+            Extra(
+                name='Kanji Vertical Shift',
+                identifier='kanji_vertical_shift',
+                description=(
+                    'Additional vertical offset to apply only to kanji text'
+                ),
+                tooltip=(
+                    'Positive values shift the Kanji up, negative values shift '
+                    'Kanji down. Default is <v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
         ],
         description=[
-            
+            'A functional mix of the Anime and Fade card types.', 'This card '
+            'is intended for use with older 4:3 aspect-ratio images/shows.',
+            'Like with the Anime card type, Japanese text (kanji) can be added '
+            'above the title text.',
         ]
     )
 
@@ -53,13 +135,13 @@ class AnimeFadeTitleCard(BaseCardType):
 
     """Characteristics for title splitting by this class"""
     TITLE_CHARACTERISTICS = {
-        'max_line_width': 12,
+        'max_line_width': 16,
         'max_line_count': 6,
         'style': 'bottom',
     }
 
     ARCHIVE_NAME: Annotated[
-        str,
+        ClassVar[str],
         'How to name archive directories for this type of card'
     ] = 'Anime Fade Style'
 
@@ -70,17 +152,17 @@ class AnimeFadeTitleCard(BaseCardType):
     FONT_REPLACEMENTS = {'♡': '', '☆': '', '＊': '', '✕': 'x', '♥': ''}
 
     USES_SEASON_TITLE: Annotated[
-        bool,
+        ClassVar[bool],
         'Whether this card type uses season titles for the purpose of archives'
     ] = True
 
     OVERLAY_IMAGE: Annotated[
-        Path,
+        ClassVar[Path],
         'Source path for the gradient image overlayed over all title cards'
     ] = FADE_REF_DIRECTORY / 'gradient_fade.png'
 
     KANJI_FONT: Annotated[
-        Path,
+        ClassVar[Path],
         'Path to the font to use for kanji text'
     ] = ANIME_REF_DIRECTORY / 'hiragino-mincho-w3.ttc'
 
@@ -107,7 +189,6 @@ class AnimeFadeTitleCard(BaseCardType):
         'kanji_vertical_shift',
         'logo_file',
         'logo_size',
-        'omit_gradient',
         'output_file',
         'require_kanji',
         'season_text',
@@ -142,7 +223,6 @@ class AnimeFadeTitleCard(BaseCardType):
             separator: str = '·',
             logo_file: Path | None = None,
             logo_size: float = 1.0,
-            omit_gradient: bool = False,
             require_kanji: bool = False,
             kanji_color: str = TITLE_COLOR,
             kanji_font_size: float = 1.0,
@@ -187,7 +267,6 @@ class AnimeFadeTitleCard(BaseCardType):
         self.episode_text_color = episode_text_color
         self.logo_file = logo_file
         self.logo_size = logo_size
-        self.omit_gradient = omit_gradient
         self.kanji_color = kanji_color
         self.kanji_font_size = kanji_font_size
         self.separator = separator
@@ -204,8 +283,8 @@ class AnimeFadeTitleCard(BaseCardType):
 
         base_commands = [
             f'-kerning 2',
-            f'-pointsize {67 * self.episode_text_size}',
-            f'-interword-spacing 25',
+            f'-pointsize {60 * self.episode_text_size}',
+            f'-interword-spacing 22',
             f'-font "{self.SERIES_COUNT_FONT.resolve()}"',
         ]
 
@@ -262,7 +341,7 @@ class AnimeFadeTitleCard(BaseCardType):
                 fr'\(',
                     f'-font "{self.KANJI_FONT.resolve()}"',
                     f'-kerning 2',
-                    f'-pointsize {85 * self.kanji_font_size}',
+                    f'-pointsize {68 * self.kanji_font_size}',
                     f'-fill "{self.kanji_color}"',
                     f'label:"{self.kanji}"',
                 fr'\)',
@@ -284,7 +363,7 @@ class AnimeFadeTitleCard(BaseCardType):
                     f'-kerning {self.font_kerning}',
                     f'-interline-spacing {self.font_interline_spacing}',
                     f'-interword-spacing {self.font_interword_spacing}',
-                    f'-pointsize {150 * self.font_size}',
+                    f'-pointsize {112 * self.font_size}',
                     f'-gravity southwest',
                     f'label:"{self.title_text}"',
                 f'\)',
@@ -454,7 +533,6 @@ def get_validator_model() -> type[Base]:
         separator: str = '·'
         logo_file: Path | None = None
         logo_size: PositiveFloat = 1.0
-        omit_gradient: bool = False
         episode_text_color: str = AnimeFadeTitleCard.EPISODE_TEXT_COLOR
         episode_text_font_size: PositiveFloat = 1.0
         logo_size: PositiveFloat = 1.0
