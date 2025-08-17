@@ -479,7 +479,7 @@ async def set_episode_source_image(
         uploaded_file = b64decode(url.removeprefix('data:image/jpg;base64,'))
 
     # Send error if both a URL and file were provided
-    if (url is not None
+    if (url
         and not url.startswith('data:image/jpg;base64,')
         and len(uploaded_file) > 0):
         raise HTTPException(
