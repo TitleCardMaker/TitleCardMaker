@@ -2990,19 +2990,28 @@ function refreshPreview() {
 }
 
 /**
- * Submit an API request to delete the logo of the given season number.
- * @param {number} seasonNumber Season number of the logo to delete.
+ * Submit an API request to delete the logo of the given season number/series.
+ * @param {number | null} seasonNumber Season number of the logo to delete. Or
+ * null if the logo is for the entire series.
  */
 function deleteLogo(seasonNumber) {
+  const query = seasonNumber ? `?season_number=${seasonNumber}` : '';
   $.ajax({
     type: 'DELETE',
-    url: `/api/v2/sources/series/{{ series.id }}/logo?season_number=${seasonNumber}`,
+    url: `/api/v2/sources/series/{{ series.id }}/logo${query}`,
     success: () => {
       showInfoToast('File Deleted');
-      // Remove image src
-      document.querySelector(`[data-season="${seasonNumber}"][data-type="logo"] img`).removeAttribute('src');
-      // Remove any color palettes
-      $(`[data-season="${seasonNumber}"][data-type="logo"] .palette .color`).remove();
+      if (seasonNumber) {
+        // Remove image src
+        document.querySelector(`[data-season="${seasonNumber}"][data-type="logo"] img`).removeAttribute('src');
+        // Remove any color palettes
+        $(`[data-season="${seasonNumber}"][data-type="logo"] .palette .color`).remove();
+      } else {
+        // Remove image src
+        document.getElementById('logo').removeAttribute('src');
+        // Remove any color palettes
+        $(`#logo-palette .color`).remove();
+      }
     },
     error: response => showErrorToast({title: 'Error Deleting File', response}),
   });
