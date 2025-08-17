@@ -232,7 +232,6 @@ class AnimeTitleCard(BaseCardType):
         'logo_size',
         'omit_gradient',
         'output_file',
-        'require_kanji',
         'season_text',
         'season_text_color',
         'separator',
@@ -269,7 +268,6 @@ class AnimeTitleCard(BaseCardType):
             logo_position: LogoPosition = 'omit',
             logo_size: float = 1.0,
             omit_gradient: bool = False,
-            require_kanji: bool = False,
             kanji_color: str = TITLE_COLOR,
             kanji_font_size: float = 1.0,
             kanji_stroke_color: str = 'black',
@@ -298,7 +296,6 @@ class AnimeTitleCard(BaseCardType):
         # Store kanji, set bool for whether to use it or not
         self.kanji = self.image_magick.escape_chars(kanji)
         self.use_kanji = kanji is not None
-        self.require_kanji = require_kanji
         self.kanji_vertical_shift = kanji_vertical_shift
 
         # Font customizations
