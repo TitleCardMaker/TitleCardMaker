@@ -1,15 +1,22 @@
 {% if False %}
 import {
-  AnyConnection, EpisodeDataSourceToggle, MediaServerLibrary,
-  RemoteBlueprintPage, RemoteBlueprintSet, SearchResult, SearchResultsPage,
+  AnyConnection,
+  EpisodeDataSourceToggle,
+  MediaServerLibrary,
+  RemoteBlueprintPage,
+  RemoteBlueprintSet,
+  SearchResult,
+  SearchResultsPage,
   Series, 
 } from './.types.js';
 {% endif %}
 
 /** @type {EpisodeDataSourceToggle} Which data sources are enabled*/
-const episodeDataSources = {{episode_data_sources|tojson}};
+const episodeDataSources = {{ episode_data_sources | tojson }};
+/** @type {number} The ID of the global episode data source */
+const globalEpisodeDataSource = {{ preferences.episode_data_source }};
 /** @type {AnyConnection[]} All globally defined and enabled Connections */
-const allConnections = {{all_connections|tojson}};
+const allConnections = {{ all_connections | tojson }};
 /** @type {number} Minimum interval between calls to add a new series */
 const _ADD_INTERVAL_MS = 5000;
 /** @type {number} Last execution time (from `Date().getTime()`) of adding a Series */
@@ -417,7 +424,7 @@ function querySeries(missing=false) {
   // Add placeholders while searching
   resultSegment.style.display = '';
   addPlaceholders(resultSegment, 10);
-  const interfaceId = $('input[name="interface_id"]').val() || {{preferences.episode_data_source}};
+  const interfaceId = $('input[name="interface_id"]').val() || globalEpisodeDataSource;
 
   // Submit API request
   const params = new URLSearchParams({
