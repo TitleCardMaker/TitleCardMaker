@@ -69,12 +69,15 @@ def translate_episode(
                 )
                 if (translation is None
                     or translation.lower() == episode.title.lower()):
-                    log.debug(f'{episode} no translation available for '
-                              f'{language_code}')
+                    log.debug(
+                        f'{episode} no translation available for {language_code}'
+                    )
                 else:
                     episode.translations[data_key] = translation
-                    log.debug(f'{episode} translated {language_code} '
-                              f'({data_key}) as "{translation}"')
+                    log.debug(
+                        f'{episode} translated {language_code} ({data_key}) as '
+                        f'"{translation}"'
+                    )
                     changed = True
                     break
 
