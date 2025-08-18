@@ -78,7 +78,7 @@ def query_logs(
                 # Can match any of the given context IDs
                 or_(*[
                     LogModel.context_id == context_id
-                    for context_id in context_id.split(',').replace('!', '')
+                    for context_id in context_id.replace('!', '').split(',')
                 ])
             ))
         # No !, allow null context IDs
