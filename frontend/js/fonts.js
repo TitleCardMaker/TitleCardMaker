@@ -500,7 +500,6 @@ function getAllFonts() {
     success: fonts => {
       // Get the currently active Font from the URL
       const activeFontId = window.location.hash.substring(1);
-      const fontTemplate = document.getElementById('font-template').content;
 
       // Populate font transfer dropdown in the template
       const transferItems = fonts.map(font => {
@@ -579,6 +578,10 @@ function getAllFonts() {
             $.ajax({
               type: 'GET',
               url: `/api/v2/fonts/font/${id}`,
+              /**
+               * Font queried, populate the font element with the font object.
+               * @param {NamedFont} font 
+               */
               success: font => {
                 populateFontElement(fontElement, font);
 
