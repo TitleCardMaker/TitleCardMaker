@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from sys import exit as sys_exit
@@ -6,9 +7,9 @@ from typing import Annotated, Any, Callable, ClassVar, Iterable, cast
 from fastapi import HTTPException
 from tinydb import Query, where
 from tmdbapis import (
+    NotFound,
     Poster,
     TMDbAPIs,
-    NotFound,
     TMDbException,
     TMDbImage,
     Unauthorized,
@@ -17,6 +18,8 @@ from tmdbapis.objs.reload import Episode as TMDbEpisode, Movie as TMDbMovie
 from tmdbapis.objs.image import Still as TMDbStill
 
 from app.core.config import config
+from app.info.episode import EpisodeInfo, EpisodeInfoV1
+from app.info.series import SeriesInfo, SeriesInfoV1
 from app.interfaces.base import (
     EpisodeDataSource,
     EpisodeDataSourceV1,
@@ -24,8 +27,7 @@ from app.interfaces.base import (
     SearchResult,
     WatchedStatus,
 )
-from app.info.episode import EpisodeInfo, EpisodeInfoV1
-from app.info.series import SeriesInfo, SeriesInfoV1
+from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
 from app.logging.logger import Logger, log
 from modules.PersistentDatabase import PersistentDatabase
@@ -118,11 +120,300 @@ class DecoratedAPI:
                     clog = log
 
                 # Log message and exception
-                clog.debug(f'Uncaught Exception from {function}'
-                                f'({args}, {kwargs})', exc)
+                clog.debug(
+                    f'Uncaught Exception from {function}({args}, {kwargs})',
+                    exc
+                )
                 raise TMDbException from exc
 
         return wrapper
+
+
+class TestingTMDBInterface:
+    @dataclass
+    class TMDbLanguage:
+        english_name: str
+        iso_639_1: str
+        name: str
+
+    @dataclass
+    class TMDbStill:
+        url: str
+        width: int
+        height: int
+        language: 'TestingTMDBInterface.TMDbLanguage | None'
+
+    def query_series(self,
+            query: str,
+            *,
+            log: Logger = log,
+        ) -> list[SearchResult]:
+
+        if query == 'Mr. Robot':
+            return [
+                SearchResult(
+                    name='Mr. Robot',
+                    year=2015,
+                    poster=(
+                        'https://image.tmdb.org/t/p/original/'
+                        'kv1nRqgebSsREnd7vdC2pSGjpLo.jpg'
+                    ),
+                    overview=[
+                        'A contemporary and culturally resonant drama about a '
+                        'young programmer, Elliot, who suffers from a '
+                        'debilitating anti-social disorder and decides that he '
+                        'can only connect to people by hacking them. He wields '
+                        'his skills as a weapon to protect the people that he '
+                        'cares about. Elliot will find himself in the '
+                        'intersection between a cybersecurity firm he works '
+                        'for and the underworld organizations that are '
+                        'recruiting him to bring down corporate America.'
+                    ],
+                    ongoing=False,
+                    tmdb_id=62560,
+                    tvdb_id=289590,
+                    imdb_id='tt4158110',
+                ),
+                SearchResult(
+                    name='Mr. Robot Digital After Show',
+                    year=2016,
+                    poster=(
+                        'https://image.tmdb.org/t/p/original/'
+                        '1BS8oN0AbWnOWOPLv49gfwrrpO2.jpg'
+                    ),
+                    overview=[
+                        'A live weekly online series, hosted by The Verge, '
+                        "that dives into the complexities of USA Network's "
+                        'critically acclaimed hacker drama, Mr. Robot. Each '
+                        'episode features an in-depth discussion about the '
+                        'most recent episode of Mr. Robot from both an '
+                        'artistic and technological perspective.'
+                    ],
+                    ongoing=True,
+                    tmdb_id=67088,
+                    tvdb_id=338622,
+                    imdb_id='tt6137444',
+                ),
+            ]
+
+        return []
+
+    def get_all_episodes(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
+
+        data: list[tuple[tuple[str, int, int, str | None], dict[str, Any]]] = []
+
+        if series_info.name == 'Mr. Robot':
+            data = [
+                (
+                    ('Mr. Robot_dec0d3d.doc', 0, 1, None),
+                    dict(
+                        airdate=datetime.datetime(2016, 6, 20, 0, 0),
+                        tmdb_id=1200247,
+                        tvdb_id=5647541,
+                    )
+                ),
+                (
+                    ('eps1.0_hellofriend.mov', 1, 1, None),
+                    dict(
+                        airdate=datetime.datetime(2015, 6, 24, 0, 0),
+                        imdb_id='tt4652838',
+                        tmdb_id=1057663,
+                        tvdb_id=5077068,
+                    )
+                ),
+                (
+                    ('eps1.1_ones-and-zer0es.mpeg', 1, 2, None),
+                    dict(
+                        airdate=datetime.datetime(2015, 7, 1, 0, 0),
+                        imdb_id='tt4686038',
+                        tmdb_id=1071733,
+                        tvdb_id=5240604,
+                    )
+                ),
+                (
+                    ('eps1.2_d3bug.mkv', 1, 3, None),
+                    dict(
+                        airdate=datetime.datetime(2015, 7, 8, 0, 0),
+                        imdb_id='tt4730002',
+                        tmdb_id=1073094,
+                        tvdb_id=5240605,
+                    )
+                ),
+            ]
+
+        return [
+            (EpisodeInfo(*args, **kwargs), WatchedStatus(0))
+            for args, kwargs in data
+        ]
+
+    def get_all_source_images(self,
+            series_info: SeriesInfo,
+            episode_info: EpisodeInfo,
+            *,
+            match_title: bool = True,
+            log: Logger = log,
+        ) -> list[TMDbStill]:
+
+        if series_info.name == 'Mr. Robot':
+            if (episode_info.season_number == 1
+                and episode_info.episode_number == 1):
+                return [
+                    TestingTMDBInterface.TMDbStill(
+                        url=(
+                            'https://image.tmdb.org/t/p/original/'
+                            'lNXkxjiVwWKXalBcDCpntXBBfOh.jpg'
+                        ),
+                        width=1920, height=1080, language=None,
+                    ),
+                    TestingTMDBInterface.TMDbStill(
+                        url=(
+                            'https://image.tmdb.org/t/p/original/'
+                            'gxtRwoeV50DuwJ4fLohwFOx4TRH.jpg'
+                        ),
+                        width=1920, height=1080, language=None
+                    ),
+                    TestingTMDBInterface.TMDbStill(
+                        url=(
+                            'https://image.tmdb.org/t/p/original/'
+                            'sNjAsSqeyTrYYkvmySOQJMTmi1G.jpg'
+                        ),
+                        width=2048, height=1152, language=None
+                    ),
+                ]
+
+        return []
+
+    def get_all_logos(self,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> list[TMDbStill] | None:
+
+        if series_info.name == 'Mr. Robot':
+            return [
+                TestingTMDBInterface.TMDbStill(
+                    url=(
+                        'https://image.tmdb.org/t/p/original/'
+                        'svmF6unZyV9tjzACsnGe5cQeK69.svg'
+                    ),
+                    width=4304,
+                    height=655,
+                    language=TestingTMDBInterface.TMDbLanguage(
+                        english_name='English',
+                        iso_639_1='en',
+                        name='English'
+                    )
+                ),
+                TestingTMDBInterface.TMDbStill(
+                    url=(
+                        'https://image.tmdb.org/t/p/original/'
+                        'wFcrshfqWx6w0Xdwrg8M0spavgY.png'
+                    ),
+                    width=4304,
+                    height=655,
+                    language=TestingTMDBInterface.TMDbLanguage(
+                        english_name='English',
+                        iso_639_1='en',
+                        name='English'
+                    )
+                ),
+                TestingTMDBInterface.TMDbStill(
+                    url=(
+                        'https://image.tmdb.org/t/p/original/'
+                        '99HyPKoLvUZ9aPzBcTgs1urSvC1.png'
+                    ),
+                    width=783,
+                    height=129,
+                    language=TestingTMDBInterface.TMDbLanguage(
+                        english_name='English',
+                        iso_639_1='en',
+                        name='English'
+                    )
+                ),
+            ]
+
+        return []
+
+    def get_all_backdrops(self,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> list[TMDbStill] | None:
+
+        if series_info.name == 'Mr. Robot':
+            return [
+                TestingTMDBInterface.TMDbStill(
+                    url=(
+                        'https://image.tmdb.org/t/p/original/'
+                        'uJUe985oIuRiD3hmHQYskIMc2WU.jpg'
+                    ),
+                    width=3840, height=2160, language=None,
+                ),
+                TestingTMDBInterface.TMDbStill(
+                    url=(
+                        'https://image.tmdb.org/t/p/original/'
+                        'hZOuVkhAWX9viLJuaIsMh8cM3Jz.jpg'
+                    ),
+                    width=1920, height=1080, language=None,
+                ),
+                TestingTMDBInterface.TMDbStill(
+                    url=(
+                        'https://image.tmdb.org/t/p/original/'
+                        'oB9XeZRZKe8DSPCfwezbwPXJ9LD.jpg'
+                    ),
+                    width=1920, height=1080,
+                    language=TestingTMDBInterface.TMDbLanguage(
+                        english_name='English',
+                        iso_639_1='en',
+                        name='English'
+                    )
+                ),
+            ]
+
+        return []
+
+    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
+        if series_info.name == 'Mr. Robot':
+            return (
+                'https://image.tmdb.org/t/p/'
+                'original/svmF6unZyV9tjzACsnGe5cQeK69.svg'
+            )
+
+        return None
+
+    def get_series_backdrop(self,
+            series_info: SeriesInfo,
+            *,
+            skip_localized_images: bool = False,
+            raise_exc: bool = True
+        ) -> str | None:
+
+        if series_info.name == 'Mr. Robot':
+            return (
+                'https://image.tmdb.org/t/p/original/'
+                'uJUe985oIuRiD3hmHQYskIMc2WU.jpg'
+            )
+
+        return None
+
+    def get_series_poster(self,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> str | None:
+
+        if series_info.name == 'Mr. Robot':
+            return (
+                'https://image.tmdb.org/t/p/original/'
+                'fj4d6Vdn7VsWAJUDvsnoVBnO6hn.jpg'
+            )
+
+        return None
 
 
 class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
@@ -429,6 +720,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         return None
 
 
+    @testing_override(TestingTMDBInterface.query_series)
     @catch_and_log('Error querying for series', default=[])
     def query_series(self,
             query: str,
@@ -469,6 +761,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         ]
 
 
+    @testing_override(TestingTMDBInterface.get_all_episodes)
     @catch_and_log('Error getting all episodes', default=[])
     def get_all_episodes(self,
             library_name: str,
@@ -821,6 +1114,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         return images[best_image['index']] if valid_image else None
 
 
+    @testing_override(TestingTMDBInterface.get_all_source_images)
     @catch_and_log('Error getting all source images', default=[])
     def get_all_source_images(self,
             series_info: SeriesInfo,
@@ -861,6 +1155,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         return images # type: ignore
 
 
+    @testing_override(TestingTMDBInterface.get_all_logos)
     @catch_and_log('Error getting all logos', default=None)
     def get_all_logos(self,
             series_info: SeriesInfo,
@@ -900,6 +1195,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         return sorted(series.logos, key=self.__sort_asset, reverse=True)
 
 
+    @testing_override(TestingTMDBInterface.get_all_backdrops)
     @catch_and_log('Error getting all backdrops', default=None)
     def get_all_backdrops(self,
             series_info: SeriesInfo,
@@ -1078,8 +1374,9 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
                 # If translation is generic, blacklist and skip
                 if self.__is_generic_title(title, language_code, episode_info):
-                    log.debug(f'Generic title "{title}" detected for '
-                              f'{episode_info}')
+                    log.debug(
+                        f'Generic title "{title}" detected for {episode_info}'
+                    )
                     return None
 
                 return title
@@ -1087,6 +1384,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         return None
 
 
+    @testing_override(TestingTMDBInterface.get_series_logo)
     @catch_and_log('Error getting series logo', default=None)
     def get_series_logo(self, series_info: SeriesInfo) -> str | None:
         """
@@ -1148,6 +1446,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         return best.url
 
 
+    @testing_override(TestingTMDBInterface.get_series_backdrop)
     @catch_and_log('Error setting series backdrop', default=None)
     def get_series_backdrop(self,
             series_info: SeriesInfo,
@@ -1169,7 +1468,8 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             no  images are available.
 
         Raises:
-            HTTPException (404): The Series is not found on TMDb.
+            HTTPException (404): The Series is not found on TMDb and
+            `raise_exc` is True.
         """
 
         # Get the series for this backdrop, exit if series or backdrop DNE
@@ -1202,6 +1502,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         return None
 
 
+    @testing_override(TestingTMDBInterface.get_series_poster)
     @catch_and_log('Error getting series poster', default=None)
     def get_series_poster(self,
             series_info: SeriesInfo,

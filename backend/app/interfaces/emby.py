@@ -2,10 +2,19 @@ from base64 import b64encode
 from datetime import datetime
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import TYPE_CHECKING, Iterator, Literal, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    ClassVar,
+    Iterator,
+    Literal,
+    Union,
+    overload,
+)
 
 from fastapi import HTTPException
 
+from app.core.config import config
 from app.info.episode import EmbyEpisodeDict, EpisodeInfo, EpisodeInfoV1
 from app.info.series import SeriesInfo, SeriesInfoV1
 from app.interfaces.base import (
@@ -19,15 +28,21 @@ from app.interfaces.base import (
     SyncInterface,
     WatchedStatus,
 )
+from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
-from app.yaml.season_posters import SeasonPosterSet
 from app.logging.logger import Logger, log
+from app.yaml.season_posters import SeasonPosterSet
 from modules.Episode import Episode
 from modules.StyleSet import StyleSet
 
 if TYPE_CHECKING:
     from app.models.card import Card
     from app.models.episode import Episode
+
+
+class TestingEmbyInterface:
+    def _map_libraries(self) -> dict[str, tuple[int, ...]]:
+        return { 'TV': (1, 2), 'TV 4K': (3, 4), 'Anime': (5, ) }
 
 
 class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
@@ -38,22 +53,25 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     cards can be loaded into).
     """
 
-    INTERFACE_TYPE = 'Emby'
+    INTERFACE_TYPE: ClassVar[str] = 'Emby'
 
-    """Default no filesize limit for all uploaded assets"""
-    DEFAULT_FILESIZE_LIMIT = None
-
-    """Filepath to the database of each episode's loaded card characteristics"""
-    LOADED_DB = 'loaded_emby.json'
+    DEFAULT_FILESIZE_LIMIT: Annotated[
+        ClassVar[str | None],
+        'Filesize limit for all uploading assets - no limit by default'
+    ] = None
 
     """Series ID's that can be set by Emby"""
     SERIES_IDS = ('emby_id', 'imdb_id', 'tmdb_id', 'tvdb_id')
 
-    """Datetime format string for airdates reported by Emby"""
-    AIRDATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f000000Z'
+    AIRDATE_FORMAT: Annotated[
+        ClassVar[str],
+        'Datetime format string for airdates reported by Emby'
+    ] = '%Y-%m-%dT%H:%M:%S.%f000000Z'
 
-    """Range of years to query series by"""
-    YEARS = ','.join(map(str, range(1960, datetime.now().year)))
+    YEARS: Annotated[
+        ClassVar[str],
+        'Range of years to query series by'
+    ] = ','.join(map(str, range(1960, datetime.now().year)))
 
 
     def __init__(self,
@@ -81,7 +99,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             log: Logger for all log messages.
 
         Raises:
-            SystemExit: Invalid URL/API key provided.
+            HTTPException (400): Invalid connection/user details.
         """
 
         # Intiialize parent classes
@@ -90,21 +108,22 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # Store attributes of this Interface
         self._interface_id = interface_id
         self.session = WebInterface('Emby', use_ssl, log=log)
-        self.url = url[:-1] if url.endswith('/') else url
+        self.url = url.removesuffix('/')
         self.__params = {'api_key': api_key}
         self.username = username
 
         # Authenticate with server
         try:
-            response = self.session.get(
-                f'{self.url}/System/Info',
-                params=self.__params
-            )
-            if not set(response).issuperset({'ServerName', 'Version', 'Id'}):
-                raise ConnectionError(f'Unable to authenticate with server')
+            if not config.TESTING_MODE:
+                response = self.session.get(
+                    f'{self.url}/System/Info',
+                    params=self.__params
+                )
+                if not set(response).issuperset({'ServerName', 'Version', 'Id'}):
+                    raise ConnectionError('Unable to authenticate with server')
         except Exception as e:
             log.critical(f'Cannot connect to Emby - returned error {e}')
-            log.exception(f'Bad Emby connection')
+            log.exception('Bad Emby connection')
             raise HTTPException(
                 status_code=400,
                 detail=f'Cannot connect to Emby - {e}',
@@ -112,7 +131,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Get user ID
         self.user_id = None
-        if self.username:
+        if self.username and not config.TESTING_MODE:
             if (user_id := self._get_user_id(username)) is None:
                 log.critical(f'Cannot identify ID of user "{username}"')
                 raise HTTPException(
@@ -121,8 +140,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 )
             self.user_id = user_id
 
-        # Get the ID's of all libraries within this server
-        self.libraries: dict[str, tuple[int]] = self._map_libraries()
+        self.libraries = self._map_libraries()
+
         self.activate()
 
 
@@ -152,7 +171,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         return None
 
 
-    def _map_libraries(self) -> dict[str, tuple[int]]:
+    @testing_override(TestingEmbyInterface._map_libraries)
+    def _map_libraries(self) -> dict[str, tuple[int, ...]]:
         """
         Map the libraries on this interface's Emby server.
 
@@ -170,7 +190,9 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Parse each library name into tuples of parent ID's
         return {
-            lib['Name']:tuple(int(folder['Id']) for folder in lib['SubFolders'])
+            lib['Name']: tuple(
+                int(folder['Id']) for folder in lib['SubFolders']
+            )
             for lib in libraries
         }
 
@@ -369,7 +391,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         """
 
         return [
-            user['Name'] for user in
+            user['Name']
+            for user in
             self.session.get(f'{self.url}/Users', params=self.__params)
         ]
 
@@ -393,8 +416,10 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name, series_info, raw_obj=True, log=log
         )
         if not series:
-            log.warning(f'Series "{series_info}" was not found under library '
-                        f'"{library_name}" in Emby')
+            log.warning(
+                f'Series "{series_info}" was not found under library '
+                f'"{library_name}" in Emby'
+            )
             return None
 
         # Remove existing Emby ID if one exists
@@ -517,7 +542,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Parse each library name into tuples of parent ID's
         return {
-            lib['Name']: list(folder['Path'] for folder in lib['SubFolders'])
+            lib['Name']: [folder['Path'] for folder in lib['SubFolders']]
             for lib in libraries
             if include_library(lib['Name'])
         }
@@ -1117,8 +1142,10 @@ class EmbyInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
     cards can be loaded into).
     """
 
-    """Default no filesize limit for all uploaded assets"""
-    DEFAULT_FILESIZE_LIMIT = None
+    DEFAULT_FILESIZE_LIMIT: Annotated[
+        ClassVar[str| None],
+        'Filesize limit for all uploading assets - no limit by default'
+    ] = None
 
     """Filepath to the database of each episode's loaded card characteristics"""
     LOADED_DB = 'loaded_emby.json'
@@ -1770,4 +1797,3 @@ class EmbyInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
         """
 
         return list(self.libraries)
-

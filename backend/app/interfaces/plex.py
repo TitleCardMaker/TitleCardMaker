@@ -1,24 +1,27 @@
 from datetime import datetime, timedelta
 from os import environ
 from pathlib import Path
-from re import IGNORECASE, compile as re_compile
+from re import IGNORECASE, compile as re_compile, Pattern
 from sys import exit as sys_exit
 from typing import (
     TYPE_CHECKING,
+    Annotated,
     Any,
     Callable,
+    ClassVar,
     Literal,
     NamedTuple,
     Union,
     cast
 )
 
+from app.core.config import config
 from fastapi import HTTPException
 from PIL import Image
 from plexapi.exceptions import PlexApiException
 from plexapi.library import LibrarySection as PlexLibrary
 from plexapi.video import Episode as PlexEpisode, Season as PlexSeason
-from plexapi.server import PlexServer, NotFound, Unauthorized
+from plexapi.server import PlexServer as PlexServerBase, NotFound, Unauthorized
 from plexapi.video import Show as PlexShow
 from requests.exceptions import (
     ConnectionError as PlexConnectionError,
@@ -28,6 +31,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 from tinydb import where
 from tqdm import tqdm
 
+from app.info.episode import EpisodeInfo, EpisodeInfoV1
+from app.info.series import SeriesInfo, SeriesInfoV1
 from app.interfaces.base import (
     EpisodeDataSource,
     EpisodeDataSourceV1,
@@ -39,8 +44,7 @@ from app.interfaces.base import (
     SyncInterface,
     WatchedStatus,
 )
-from app.info.episode import EpisodeInfo, EpisodeInfoV1
-from app.info.series import SeriesInfo, SeriesInfoV1
+from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
 from app.settings import TQDM_KWARGS
 from app.yaml.season_posters import SeasonPosterSet
@@ -104,6 +108,21 @@ def catch_and_log(
     return decorator
 
 
+class TestingPlexInterface:
+    def get_library_paths(self,
+            filter_libraries: list[str] = []
+        ) -> dict[str, list[str]]:
+
+        return {
+            'TV': ['/media/tv'],
+            'TV 4K': ['/media/tv_4k', '/media/tv_4k_2'],
+            'Anime': ['/media/anime'],
+        }
+
+    def get_libraries(self) -> list[str]:
+        return ['TV', 'TV 4K', 'Anime']
+
+
 class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     """
     An interface to Plex. This allows loading assets, querying series
@@ -112,14 +131,20 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     INTERFACE_TYPE = 'Plex'
 
-    """Series ID's that can be set by TMDb"""
-    SERIES_IDS = ('imdb_id', 'tmdb_id', 'tvdb_id') # type: ignore
+    SERIES_IDS: Annotated[
+        ClassVar[tuple[str, ...]],
+        "Series ID's that can be set by Plex"
+    ] = ('imdb_id', 'tmdb_id', 'tvdb_id')
 
-    """EXIF data to write to images if Kometa integration is enabled"""
-    EXIF_TAG = {'key': 0x4242, 'data': 'titlecard'}
+    EXIF_TAG: Annotated[
+        ClassVar[dict],
+        'EXIF data to write to images if Kometa integration is enabled'
+    ] = {'key': 0x4242, 'data': 'titlecard'}
 
-    """Episode titles that indicate a placeholder and are to be ignored"""
-    __TEMP_IGNORE_REGEX = re_compile(r'^(tba|tbd|episode \d+)$', IGNORECASE)
+    __TEMP_IGNORE_REGEX: Annotated[
+        ClassVar[Pattern],
+        'Regex to match episode titles that indicate a placeholder'
+    ] = re_compile(r'^(tba|tbd|episode \d+)$', IGNORECASE)
 
 
     def __init__(self,
@@ -145,6 +170,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 during upload.
             interface_id: ID of this interface.
             log: Logger for all log messages.
+
+        Raises:
+            HTTPException (400): Cannot connect to Plex.
+            HTTPException (401): Invalid Plex Token.
         """
 
         super().__init__(filesize_limit)
@@ -155,8 +184,12 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Create PlexServer object with these arguments
         try:
-            self.__token = api_key
-            self.__server = PlexServer(url, api_key, self.__session)
+            if config.TESTING_MODE and not TYPE_CHECKING:
+                self.__token = api_key
+                self.__server = None
+            else:
+                self.__token = api_key
+                self.__server = PlexServer(url, api_key, self.__session)
         except Unauthorized as exc:
             log.critical('Invalid Plex Token')
             raise HTTPException(
@@ -262,6 +295,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         return None
 
 
+    @testing_override(TestingPlexInterface.get_library_paths)
     @catch_and_log('Error getting library paths', default={})
     def get_library_paths(self,
             filter_libraries: list[str] = []
@@ -791,6 +825,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         return series.thumbUrl
 
 
+    @testing_override(TestingPlexInterface.get_libraries)
     @catch_and_log('Error getting library names', default=[])
     def get_libraries(self) -> list[str]:
         """

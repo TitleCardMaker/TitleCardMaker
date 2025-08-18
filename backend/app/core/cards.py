@@ -16,8 +16,6 @@ from app.core.cache import (
     cache_card_data,
     get_cached_card_data,
     invalidate_card_cache,
-    invalidate_all_card_cache,
-    invalidate_card_cache_pattern,
     get_cache_manager,
     invalidate_episode_cache
 )

@@ -2,10 +2,13 @@ from base64 import b64encode
 from datetime import datetime
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import TYPE_CHECKING, Literal, Union, overload
+from typing import TYPE_CHECKING, Annotated, ClassVar, Literal, Union, overload
 
 from fastapi import HTTPException
 
+from app.core.config import config
+from app.info.episode import EpisodeInfo, EpisodeInfoV1
+from app.info.series import SeriesInfo, SeriesInfoV1
 from app.interfaces.base import (
     EpisodeDataSource,
     EpisodeDataSourceV1,
@@ -17,17 +20,24 @@ from app.interfaces.base import (
     SyncInterface,
     WatchedStatus,
 )
+from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
-from app.info.episode import EpisodeInfo, EpisodeInfoV1
-from app.info.series import SeriesInfo, SeriesInfoV1
-from app.yaml.season_posters import SeasonPosterSet
 from app.logging.logger import Logger, log
+from app.yaml.season_posters import SeasonPosterSet
 from modules.Episode import Episode
 from modules.StyleSet import StyleSet
 
 if TYPE_CHECKING:
     from app.models.card import Card
     from app.models.episode import Episode
+
+
+class TestingJellyfinInterface:
+    def _get_user_id(self, username: str) -> str | None:
+        return '123'
+
+    def _map_libraries(self) -> dict[str, str]:
+        return { 'TV': 'abc', 'TV 4K': 'def', 'Anime': 'abcdef' }
 
 
 class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
@@ -40,8 +50,10 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
 
     INTERFACE_TYPE = 'Jellyfin'
 
-    """Series ID's that can be set by Jellyfin"""
-    SERIES_IDS = ('imdb_id', 'jellyfin_id', 'tmdb_id', 'tvdb_id')
+    SERIES_IDS: Annotated[
+        ClassVar[tuple[str, ...]],
+        "Series ID's that can be set by Jellyfin"
+    ] = ('imdb_id', 'jellyfin_id', 'tmdb_id', 'tvdb_id')
 
     """Datetime format string for airdates reported by Jellyfin"""
     AIRDATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f000000Z'
@@ -78,21 +90,21 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
         # Store attributes of this Interface
         self._interface_id = interface_id
         self.session = WebInterface('Jellyfin', use_ssl, log=log)
-        self.url = url[:-1] if url.endswith('/') else url
+        self.url = url.removesuffix('/')
         self.__params = {'api_key': api_key}
         self.username = username
 
         # Authenticate with server
         try:
-            response = self.session.get(
-                f'{self.url}/System/Info',
-                params=self.__params
-            )
-
-            if not set(response).issuperset({'ServerName', 'Version', 'Id'}):
-                raise ConnectionError(f'Unable to authenticate with server')
+            if not config.TESTING_MODE:
+                response = self.session.get(
+                    f'{self.url}/System/Info',
+                    params=self.__params
+                )
+                if not set(response).issuperset({'ServerName', 'Version', 'Id'}):
+                    raise ConnectionError('Unable to authenticate with server')
         except Exception as exc:
-            log.critical(f'Cannot connect to Jellyfin - returned error')
+            log.critical('Cannot connect to Jellyfin - returned error')
             log.exception('Bad Jellyfin connection')
             raise HTTPException(
                 status_code=400,
@@ -110,9 +122,11 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
 
         # # Get the ID's of all libraries within this server
         self.libraries = self._map_libraries()
+
         self.activate()
 
 
+    @testing_override(TestingJellyfinInterface._get_user_id)
     def _get_user_id(self, username: str) -> str | None:
         """
         Get the User ID associated with the given username.
@@ -139,6 +153,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
         return None
 
 
+    @testing_override(TestingJellyfinInterface._map_libraries)
     def _map_libraries(self) -> dict[str, str]:
         """
         Map the libraries on this interface's server.

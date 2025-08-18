@@ -2,25 +2,40 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from re import IGNORECASE, compile as re_compile
 from sys import exit as sys_exit
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, ClassVar, Literal
 
 from fastapi import HTTPException
 
+from app.core.config import config
+from app.info.episode import EpisodeInfo, EpisodeInfoV1
+from app.info.series import SeriesInfoV1, SeriesInfo
 from app.interfaces.base import (
     EpisodeDataSource,
     EpisodeDataSourceV1,
     SearchResult,
     WatchedStatus,
 )
-from app.info.episode import EpisodeInfo, EpisodeInfoV1
-from app.info.series import SeriesInfoV1, SeriesInfo
-from app.logging.logger import Logger, log
 from app.interfaces.base import Interface
 from app.interfaces.base import SyncInterface
+from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
+from app.logging.logger import Logger, log
 
 
 type SeriesType = Literal['anime', 'daily', 'standard']
+
+
+class TestingSonarrInterface:
+    def get_root_folders(self) -> list[Path]:
+        return [Path('/media/tv'), Path('/media/tv_4k'), Path('/media/anime')]
+
+    def get_all_tags(self) -> list[dict[Literal['id', 'label'], Any]]:
+
+        return [
+            {'label': 'anime', 'id': 1},
+            {'label': 'tv', 'id': 2},
+            {'label': 'star wars', 'id': 3},
+        ]
 
 
 class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface):
@@ -30,18 +45,22 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
     connects to an instance of Sonarr.
     """
 
-    INTERFACE_TYPE = 'Sonarr'
+    INTERFACE_TYPE: ClassVar[str] = 'Sonarr'
 
     REQUEST_TIMEOUT: Annotated[
-        int,
+        ClassVar[int],
         'Use a longer request timeout for Sonarr to handle slow databases'
     ] = 600
 
-    """Series ID's that can be set by Sonarr"""
-    SERIES_IDS = ('imdb_id', 'sonarr_id', 'tvdb_id', 'tvrage_id')
+    SERIES_IDS: Annotated[
+        ClassVar[tuple[str, ...]],
+        "Series ID's that can be set by Sonarr"
+    ] = ('imdb_id', 'sonarr_id', 'tvdb_id', 'tvrage_id')
 
-    """Series types that can be specified to filter a sync with"""
-    VALID_SERIES_TYPES = ('anime', 'daily', 'standard')
+    VALID_SERIES_TYPES: Annotated[
+        tuple[str, ...],
+        'Series types that can be specified to filter a sync with'
+    ] = ('anime', 'daily', 'standard')
 
     """Episode titles that indicate a placeholder and are to be ignored"""
     __TEMP_IGNORE_REGEX = re_compile(r'^(tba|tbd|episode \d+)$', IGNORECASE)
@@ -102,15 +121,16 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
 
         # Query system status to verify connection to Sonarr
         try:
-            status = self.get(
-                f'{self.url}system/status',
-                self.__standard_params,
-            )
-            if status.get('appName') != 'Sonarr':
-                raise HTTPException(
-                    status_code=401,
-                    detail='Invalid URL / API key',
+            if not config.TESTING_MODE:
+                status = self.get(
+                    f'{self.url}system/status',
+                    self.__standard_params,
                 )
+                if status.get('appName') != 'Sonarr':
+                    raise HTTPException(
+                        status_code=401,
+                        detail='Invalid URL / API key',
+                    )
         except Exception as e:
             log.critical(f'Cannot connect to Sonarr - returned error: "{e}"')
             raise e
@@ -118,6 +138,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
         self.activate()
 
 
+    @testing_override(TestingSonarrInterface.get_root_folders)
     def get_root_folders(self) -> list[Path]:
         """
         Get all the root folder paths from Sonarr.
@@ -127,7 +148,8 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
         """
 
         return [
-            Path(folder['path']) for folder in
+            Path(folder['path'])
+            for folder in
             self.get(f'{self.url}rootfolder', self.__standard_params)
         ]
 
@@ -404,8 +426,10 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
             # Skip permanent placeholder names if title matching is disabled
             if (not series_info.match_titles
                 and self.__ALWAYS_IGNORE_REGEX.match(episode['title'])):
-                log.trace(f'Temporarily ignoring "{episode["title"]}" of '
-                          f'{series_info} - placeholder title')
+                log.trace(
+                    f'Temporarily ignoring "{episode["title"]}" of '
+                    f'{series_info} - placeholder title'
+                )
                 continue
 
             # Get airdate of this episode
@@ -492,6 +516,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
         return None
 
 
+    @testing_override(TestingSonarrInterface.get_all_tags)
     def get_all_tags(self) -> list[dict[Literal['id', 'label'], Any]]:
         """
         Get all tags present in Sonarr.
