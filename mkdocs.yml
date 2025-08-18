@@ -220,6 +220,7 @@ nav:
     - Local Files: card_types/local.md
     - Built-in Card Types:
       - Anime: card_types/anime.md
+      - Anime Fade: card_types/anime_fade.md
       - Banner: card_types/banner.md
       - Calligraphy: card_types/calligraphy.md
       - Cascade: card_types/cascade.md

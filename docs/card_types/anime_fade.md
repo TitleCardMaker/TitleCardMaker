@@ -41,7 +41,7 @@ extra.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="15"
+        data-starting-point="19.68"
         data-left-label="RoyalBlue"
         data-right-label="white">
         <img src="../assets/anime_fade/episode_text_color.webp"/>
@@ -56,7 +56,7 @@ season text itself.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="15"
+        data-starting-point="12.95"
         data-left-label="PaleVioletRed1"
         data-right-label="white">
         <img src="../assets/anime_fade/season_text_color.webp"/>
@@ -75,7 +75,7 @@ This will also adjust the size of the _Alternate Text_.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="47.5"
+        data-starting-point="15.15"
         data-left-label="1.3"
         data-right-label="1.0">
         <img src="../assets/anime_fade/episode_text_font_size.webp"/>
@@ -118,7 +118,7 @@ The color of the kanji text can be adjusted with the _Kanji Color_ extra.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="14.5"
+        data-starting-point="13.8"
         data-left-label="MediumPurple1"
         data-right-label="white">
         <img src="../assets/anime_fade/kanji_color.webp"/>
@@ -138,7 +138,7 @@ coloring taking priority over the episode.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="90"
+        data-starting-point="10.6"
         data-left-label="·"
         data-right-label="//">
         <img src="../assets/anime_fade.webp"/>
@@ -155,7 +155,7 @@ to position it like that in the [Fade](./fade.md) card.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="90"
+        data-starting-point="15.44"
         data-left-label="center"
         data-right-label="bottom">
         <img src="../assets/anime_fade/text_position.webp"/>
@@ -168,13 +168,3 @@ This card also natively supports [mask images](../user_guide/mask_images.md).
 Like all mask images, TCM will automatically search for alongside the input
 Source Image in the Series' source directory, and apply this atop all other Card
 effects.
-
-!!! example "Example"
-
-    <div class="image-compare example-card"
-        data-starting-point="33.2"
-        data-left-label="Mask Image"
-        data-right-label="Resulting Title Card">
-        <img src="../assets/anime_fade/mask-raw.webp"/>
-        <img src="../assets/anime_fade/mask.webp"/>
-    </div>

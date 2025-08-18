@@ -47,6 +47,7 @@ TitleCardMaker currently has the following built-in card types:
 | Card Type                             | Preview                                              |
 | :-----------------------------------: | :--------------------------------------------------: |
 | [Anime](./anime.md)                   | <img src="./assets/anime.webp" width="350">          |
+| [Anime Fade](./anime_fade.md)         | <img src="./assets/anime_fade.webp" width="350">     |
 | [Banner](./banner.md)                 | <img src="./assets/banner.webp" width="350">         |
 | [Calligraphy](./calligraphy.md)       | <img src="./assets/calligraphy.webp" width="350">    |
 | [Cascade](./cascade.md)               | <img src="./assets/cascade.webp" width="350">        |

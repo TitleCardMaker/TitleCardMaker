@@ -53,6 +53,11 @@ TitleCardMaker:
         <img class="no-lightbox" src="./card_types/assets/anime.webp">
       </a>
     </figure>
+    <figure data-label="Anime Fade">
+      <a href="./card_types/anime_fade">
+        <img class="no-lightbox" src="./card_types/assets/anime_fade.webp">
+      </a>
+    </figure>
     <figure data-label="Banner">
       <a data-label="Banner" href="./card_types/banner">
         <img class="no-lightbox" src="./card_types/assets/banner.webp" loading="lazy">
