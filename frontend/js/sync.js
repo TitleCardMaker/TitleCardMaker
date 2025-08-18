@@ -57,6 +57,13 @@ function initConnectionDropdowns() {
       if (jellyfin.length === 0) { $('section[data-connection="jellyfin"]').remove(); }
       if (plex.length === 0) { $('section[data-connection="plex"]').remove(); }
       if (sonarr.length === 0) { $('section[data-connection="sonarr"]').remove(); }
+
+      // Display warning if there are no Connections
+      if (emby.length === 0 && jellyfin.length === 0 && plex.length === 0 && sonarr.length === 0) {
+        $('.ui.warning.floating.message').show();
+      } else {
+        $('.ui.warning.floating.message').hide();
+      }
     },
     error: response => showErrorToast({title: 'Error Querying Connections', response}),
   });
