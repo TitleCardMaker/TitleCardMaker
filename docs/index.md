@@ -210,7 +210,9 @@ TitleCardMaker:
 
 While the TCM Web UI is under active development, it is only accessible to
 project Sponsors. If you are interested, sponsor on
-[GitHub](https://github.com/sponsors/CollinHeist) for access.
+[GitHub](https://github.com/sponsors/CollinHeist) for access. For free users,
+there is a non-UI / command-line version (often referred to as "v1") which you
+can read about [here](https://github.com/CollinHeist/TitleCardMaker/wiki).
 
 Installation and startup instructions are [here](./getting_started/index.md).
 
