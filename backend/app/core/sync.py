@@ -176,6 +176,9 @@ def run_sync(
         background_tasks: BackgroundTasks to add tasks to for any newly
             added Series.
         log: Logger for all log messages.
+
+    Returns:
+        List of all newly added Series.
     """
 
     # Mark Sync as running

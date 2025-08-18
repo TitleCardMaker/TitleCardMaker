@@ -17,7 +17,7 @@ type SyncInterface = Literal['Emby', 'Jellyfin', 'Plex', 'Sonarr']
 SonarrKwargs = TypedDict('SonarrKwargs', {
     'required_tags': list[str], 'excluded_tags': list[str],
     'monitored_only': bool, 'downloaded_only': bool,
-    'required_series_type': str, 'excluded_series_type': str,
+    'required_series_type': str | None, 'excluded_series_type': str | None,
     'required_root_folders': list[str]
 })
 NonSonarrKwargs = TypedDict('NonSonarrKwargs', {
@@ -137,7 +137,7 @@ class Sync(Base):
         """
 
         if self.interface == 'Sonarr':
-            return { # type: ignore
+            return {
                 'required_tags': self.required_tags,
                 'excluded_tags': self.excluded_tags,
                 'monitored_only': self.monitored_only,

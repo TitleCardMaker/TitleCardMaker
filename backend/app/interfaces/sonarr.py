@@ -224,9 +224,9 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
                 or (required_tags
                     and not all(tag in show['tags'] for tag in required_tag_ids))
                 or (required_series_type
-                    and show['seriesType'] != required_series_type)
+                    and (show['seriesType'] != required_series_type))
                 or (excluded_series_type
-                    and show['seriesType'] == excluded_series_type)
+                    and (show['seriesType'] == excluded_series_type))
                 or (required_root_folders
                     and not any(show['rootFolderPath'].startswith(folder)
                                 for folder in required_root_folders))
