@@ -51,6 +51,77 @@ Cypress.Commands.add('login', (url, username, password) => {
     .click()
 });
 
+Cypress.Commands.add(
+  'createEmbyConnection',
+  (enabled=false) => {
+    cy.request(
+      'POST',
+      '/api/v2/connection/emby/new',
+      {
+        'name': 'Emby',
+        'interface_type': 'Emby',
+        'enabled': enabled,
+        'url': 'http:/localhost:8096/',
+        'api_key': 'abcdef',
+      }
+    );
+  }
+)
+
+Cypress.Commands.add(
+  'createJellyfinConnection',
+  (enabled=false) => {
+    cy.request(
+      'POST',
+      '/api/v2/connection/jellyfin/new',
+      {
+        'name': 'Jellyfin',
+        'interface_type': 'Jellyfin',
+        'enabled': enabled,
+        'url': 'http:/localhost:8096/',
+        'api_key': 'abcdef',
+      }
+    );
+  }
+)
+
+Cypress.Commands.add(
+  'createPlexConnection',
+  (enabled=false) => {
+    cy.request(
+      'POST',
+      '/api/v2/connection/plex/new',
+      {
+        'name': 'Plex',
+        'interface_type': 'Plex',
+        'enabled': enabled,
+        'url': 'http:/localhost:8096/',
+        'api_key': 'abcdef',
+      }
+    );
+  }
+)
+
+/**
+ * Create a new Connection to Sonarr.
+ */
+Cypress.Commands.add(
+  'createSonarrConnection',
+  (enabled=false) => {
+    cy.request(
+      'POST',
+      '/api/v2/connection/sonarr/new',
+      {
+        'name': 'Sonarr',
+        'interface_type': 'Sonarr',
+        'enabled': enabled,
+        'url': 'http:/localhost:8989/api/v3/',
+        'api_key': 'abcdef',
+      }
+    );
+  }
+)
+
 /**
  * Create a new Connection to TMDb. This uses the `TMDB_API_KEY` environment
  * variable as the API key.
@@ -70,6 +141,22 @@ Cypress.Commands.add(
         'interface_type': 'TMDb',
         'enabled': enabled,
         'api_key': Cypress.env('TMDB_API_KEY') || 'abcdef',
+      }
+    );
+  }
+);
+
+Cypress.Commands.add(
+  'createTVDbConnection',
+  (enabled=false) => {
+    cy.request(
+      'POST',
+      '/api/v2/connection/tvdb/new',
+      {
+        'name': 'TVDb',
+        'interface_type': 'TVDb',
+        'enabled': enabled,
+        'api_key': 'abcdef',
       }
     );
   }
@@ -185,7 +272,7 @@ Cypress.Commands.add(
       .click()
       // Find and click option
       .contains(optionText)
-      .click()
+      .click({ force: true })
 
     // Find parent
     cy.get(parentSelector)
