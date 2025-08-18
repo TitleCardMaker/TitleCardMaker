@@ -31,7 +31,7 @@ engine = create_engine(
 
 # URL to the Blueprints SQL database
 if config.IS_DOCKER:
-    BLUEPRINT_SQL_DATABASE_URL = 'sqlite:////tcm/modules/.objects/blueprints.db'
+    BLUEPRINT_SQL_DATABASE_URL = 'sqlite:////tcm/backend/modules/.objects/blueprints.db'
 else:
     BLUEPRINT_SQL_DATABASE_URL = 'sqlite:///./modules/.objects/blueprints.db'
 
