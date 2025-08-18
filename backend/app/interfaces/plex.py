@@ -21,7 +21,7 @@ from PIL import Image
 from plexapi.exceptions import PlexApiException
 from plexapi.library import LibrarySection as PlexLibrary
 from plexapi.video import Episode as PlexEpisode, Season as PlexSeason
-from plexapi.server import PlexServer as PlexServerBase, NotFound, Unauthorized
+from plexapi.server import PlexServer, NotFound, Unauthorized
 from plexapi.video import Show as PlexShow
 from requests.exceptions import (
     ConnectionError as PlexConnectionError,
