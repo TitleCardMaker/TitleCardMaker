@@ -457,6 +457,7 @@ async function getAllTemplates() {
   document.getElementById('templates').replaceChildren(...elements);
   refreshTheme();
   $('.ui.accordion').accordion({
+    duration: 750,
     /**
      * Callback when a template accordion is opened. When the template is
      * viewed, initialize the extra tabs. This is not done ahead of time
