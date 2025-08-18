@@ -19,6 +19,7 @@ module.exports = defineConfig({
         'cypress/e2e/scheduler.cy.js',
         'cypress/e2e/settings.cy.js',
         'cypress/e2e/templates.cy.js',
+        'cypress/e2e/sync.cy.js',
       ]
       return config
     },
