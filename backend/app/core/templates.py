@@ -6,7 +6,7 @@ from app.db.query import get_template
 from app.models.episode import Episode
 from app.models.series import Library, Series
 from app.models.template import Template
-from app.schemas.availability import ReturnAvailableTemplateSchema
+from app.schemas.availability import ReturnAvailableTemplateDict
 from app.settings import Settings, settings
 
 
@@ -143,12 +143,14 @@ def get_effective_templates(
     )
 
 
-def get_available_templates(db: Session) -> list[ReturnAvailableTemplateSchema]:
+def get_available_templates(
+        db: Session,
+    ) -> list[ReturnAvailableTemplateDict]:
     """
-    Get a list of all available template information.
+    Get a list of all available Template information.
 
     Args:
-        db: SQL database to query for the given object.
+        db: SQL database to query for Templates.
 
     Returns:
         List of dictionaries for all defined Templates.
@@ -157,7 +159,11 @@ def get_available_templates(db: Session) -> list[ReturnAvailableTemplateSchema]:
     # Cannot be AvailableTemplate objects as this return is passed
     # directly to Jinja templates
     return [
-        {'id': template.id, 'name': template.name} # type: ignore
+        ReturnAvailableTemplateDict(
+            id=template.id,
+            name=template.name,
+            sort_name=template.sort_name,
+        )
         for template in
         db.query(
             Template.id,

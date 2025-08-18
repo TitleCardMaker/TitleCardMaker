@@ -261,8 +261,10 @@ def get_plex_libraries(
     ]
 
 
-@availablility_router.get('/libraries/all',
-                          tags=['Emby', 'Jellyfin', 'Plex'])
+@availablility_router.get(
+    '/libraries/all',
+    tags=['Emby', 'Jellyfin', 'Plex']
+)
 def get_server_libraries(
         emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
         jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
@@ -366,7 +368,10 @@ def get_available_templates_(
     ) -> list[ReturnAvailableTemplateSchema]:
     """Get the names of all the available Templates."""
 
-    return get_available_templates(db)
+    return [
+        ReturnAvailableTemplateSchema.model_validate(template)
+        for template in get_available_templates(db)
+    ]
 
 
 @availablility_router.get('/styles')
