@@ -5,12 +5,14 @@ from urllib.parse import quote as url_quote, urlencode
 from fastapi import HTTPException
 from pydantic import BaseModel, ValidationError
 
+from app.core.config import config
 from app.interfaces.base import (
     EpisodeDataSource,
     Interface,
     SearchResult,
     WatchedStatus,
 )
+from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
@@ -317,7 +319,8 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         # Authenticate with TVDb, generate session token
         self.__api_key = api_key
         self.__token_expiration: datetime | None = None
-        self.__initialize_token(log=log) # This will initialize the interface
+        if not config.TESTING_MODE:
+            self.__initialize_token(log=log) # This will initialize the interface
 
 
     def __generate_login_token(self, api_key: str, *, log: Logger = log) -> str:

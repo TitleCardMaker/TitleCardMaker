@@ -143,6 +143,14 @@ class TestingTMDBInterface:
         height: int
         language: 'TestingTMDBInterface.TMDbLanguage | None'
 
+    def set_series_ids(self,
+            library_name: Any,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> None:
+        return None
+
     def query_series(self,
             query: str,
             *,
@@ -590,7 +598,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         try:
             if config.TESTING_MODE:
                 self.api: None = None
-                log.info('Creating fake TMDb connection for testing')
             else:
                 self.api: TMDbAPIs = DecoratedAPI(TMDbAPIs(api_key, self.session))
         except Unauthorized as exc:
@@ -634,6 +641,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             return -10 + dimension_score
 
 
+    @testing_override(TestingTMDBInterface.set_series_ids)
     @catch_and_log('Error setting series ID')
     def set_series_ids(self,
             library_name: Any,

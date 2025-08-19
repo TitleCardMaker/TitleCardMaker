@@ -44,6 +44,22 @@ class TestingEmbyInterface:
     def _map_libraries(self) -> dict[str, tuple[int, ...]]:
         return { 'TV': (1, 2), 'TV 4K': (3, 4), 'Anime': (5, ) }
 
+    def set_series_ids(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> None:
+        return None
+
+    def get_series_poster(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> SourceImage:
+        return None
+
 
 class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     """
@@ -397,6 +413,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         ]
 
 
+    @testing_override(TestingEmbyInterface.set_series_ids)
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
@@ -1050,6 +1067,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         return None
 
 
+    @testing_override(TestingEmbyInterface.get_series_poster)
     def get_series_poster(self,
             library_name: str,
             series_info: SeriesInfo,

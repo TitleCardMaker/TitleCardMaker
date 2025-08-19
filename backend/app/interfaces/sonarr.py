@@ -30,13 +30,52 @@ class TestingSonarrInterface:
         return [Path('/media/tv'), Path('/media/tv_4k'), Path('/media/anime')]
 
     def get_all_tags(self) -> list[dict[Literal['id', 'label'], Any]]:
-
         return [
             {'label': 'anime', 'id': 1},
             {'label': 'tv', 'id': 2},
             {'label': 'star wars', 'id': 3},
         ]
 
+    def query_series(self,
+            query: str,
+            *,
+            return_all: bool = False,
+            log: Logger = log,
+        ) -> list[SearchResult]:
+
+        if query == 'Test Series':
+            return [
+                SearchResult(
+                    name='Test Series 1',
+                    year=2025,
+                    poster='/public/styles/art.jpg',
+                    overview=['...'],
+                    ongoing=False,
+                    tmdb_id=123,
+                    tvdb_id=345,
+                    imdb_id='tt1234',
+                ),
+                SearchResult(
+                    name='Test Series 2',
+                    year=2025,
+                    poster='/public/styles/unique.jpg',
+                    overview=['lorem ipsum delor sit amet'],
+                    ongoing=True,
+                    tmdb_id=987,
+                    tvdb_id=654,
+                    imdb_id='tt9876',
+                ),
+            ]
+
+        return []
+
+    def set_series_ids(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> None:
+        return None
 
 class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface):
     """
@@ -215,7 +254,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
         # Go through each series in Sonarr
         series = []
         for show in all_series:
-            # Apply filters/exclusions
+            # Apply filters
             if ((monitored_only and not show['monitored'])
                 or (downloaded_only
                     and show.get('statistics', {}).get('sizeOnDisk', 0) == 0)
@@ -249,6 +288,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
         return series
 
 
+    @testing_override(TestingSonarrInterface.set_series_ids)
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
@@ -303,6 +343,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
         return None
 
 
+    @testing_override(TestingSonarrInterface.query_series)
     def query_series(self,
             query: str,
             *,
