@@ -544,7 +544,7 @@ function getAllFonts() {
 
       // Scroll to active Font if indicated
       if (activeFontId) {
-        document.getElementById(activeFontId).scrollIntoView({
+        document.getElementById(activeFontId)?.scrollIntoView({
           behavior: 'smooth',
           block: 'start',
         });
@@ -559,8 +559,7 @@ function getAllFonts() {
               value,
             )
           }
-        })
-      ;
+        });
 
       // Enable accordion/dropdown/checkbox elements
       $('.ui.accordion').accordion({
@@ -595,6 +594,17 @@ function getAllFonts() {
                   isSelected: (identifier) => identifier === '{{preferences.default_card_type}}',
                   showExcluded: false,
                   dropdownArgs: {},
+                });
+
+                // Enable transfer functionality
+                $('.dropdown[data-action="transfer"]').dropdown({
+                  action: 'hide',
+                  onChange: function(value, text, $selectedItem) {
+                    showTransferFontDialog(
+                      $selectedItem.closest('.accordion').data('id'),
+                      value,
+                    )
+                  }
                 });
 
                 // Refresh theme for newly added HTML
