@@ -414,9 +414,12 @@ def query_blueprints_by_info(
         .filter(*filters)\
         .all()
 
-    return blueprint_db.query(Blueprint)\
-        .filter(Blueprint.series_id.in_([bp.id for bp in blueprint_series]))\
-        .all() # type: ignore
+    return (
+        blueprint_db.query(Blueprint)
+            .filter(Blueprint.series_id.in_([bp.id for bp in blueprint_series]))
+            .filter(Blueprint.id.not_in(settings.blacklisted_blueprints))
+            .all()
+    ) # type: ignore
 
 
 @blueprint_router.post('/import/blueprint/{blueprint_id}', status_code=201)
@@ -445,8 +448,10 @@ def import_blueprint_and_series(
 
     # Series does not exist, create and add to database
     if not series:
-        log.debug(f'Blueprint Series {blueprint.series.as_series_info} not '
-                  f'found - adding to database')
+        log.debug(
+            f'Blueprint Series {blueprint.series.as_series_info} not found '
+            f'- adding to database'
+        )
         series = add_series(
             blueprint.series.as_new_series, background_tasks, db, log=log,
         )
