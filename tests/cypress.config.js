@@ -4,6 +4,8 @@ module.exports = defineConfig({
   projectId: "sod537",
   reporter: 'mochawesome',
   numTestsKeptInMemory: 5,
+  viewportHeight: 1080,
+  viewportWidth: 1920,
   reporterOptions: {
     reportDir: 'cypress/results',
     charts: true,
