@@ -1,13 +1,16 @@
 import asyncio
 import threading
 from datetime import datetime, timedelta
-from typing import Any, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, TypeVar
 from functools import wraps
 import hashlib
 
 from app.logging.logger import log
-from app.models.card import Card
+
 from app.schemas.schedule import Hours
+
+if TYPE_CHECKING:
+    from app.models.card import Card
 
 
 T = TypeVar('T')
@@ -153,19 +156,20 @@ class CacheManager:
 
         with self._lock:
             entry = self._cache.get(key)
-            
+
             if entry is None:
                 self.stats.misses += 1
                 return default
-            
+
             if entry.is_expired:
                 del self._cache[key]
                 self.stats.misses += 1
                 return default
-            
+
             # Mark as accessed
             entry.access()
             self.stats.hits += 1
+
             return entry.value
 
 
@@ -414,8 +418,8 @@ class CacheManager:
                 )
             
             return (
-                f"CacheManager({len(self._cache)}/{self.max_size} items: "
-                f"{', '.join(items_preview)})"
+                f'CacheManager({len(self._cache)}/{self.max_size} items: '
+                f'{", ".join(items_preview)})'
             )
 
 
@@ -773,7 +777,7 @@ def invalidate_episode_cache(episode_id: int) -> int:
     return total_invalidated
 
 
-def invalidate_card_cache(card: Card) -> int:
+def invalidate_card_cache(card: 'Card') -> int:
     """
     Invalidate all cache entries related to a specific card.
     This function invalidates card, episode, and series caches

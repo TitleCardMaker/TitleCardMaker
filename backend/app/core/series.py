@@ -21,7 +21,6 @@ from app.core.cards import (
     refresh_remote_card_types
 )
 from app.core.cache import (
-    cache_result,
     cache_series_data,
     get_cached_series_data,
     invalidate_series_cache,
@@ -1078,7 +1077,6 @@ def apply_filter(
     return query.filter(*criterion)
 
 
-@cache_result(ttl=1800, cache_type='series', key_prefix='series_query')
 def query_and_filter_series(
         db: Session,
         filter: SeriesFilter | None,
@@ -1291,21 +1289,3 @@ def get_series_extended_with_cache(
     log.debug(f'Cached series extended {series_id}')
     
     return extended
-
-
-def get_series_cards(db: Session, series_id: int) -> list:
-    """Get all cards for a series, cached."""
-    return db.query(Card).filter_by(series_id=series_id).all()
-
-@cache_result(ttl=1800, cache_type='card', key_prefix='series_cards')
-def get_series_cards_cached(db: Session, series_id: int) -> list:
-    return get_series_cards(db, series_id)
-
-
-def get_series_episodes(db: Session, series_id: int) -> list:
-    """Get all episodes for a series, cached."""
-    return db.query(Episode).filter_by(series_id=series_id).all()
-
-@cache_result(ttl=1800, cache_type='episode', key_prefix='series_episodes')
-def get_series_episodes_cached(db: Session, series_id: int) -> list:
-    return get_series_episodes(db, series_id)
