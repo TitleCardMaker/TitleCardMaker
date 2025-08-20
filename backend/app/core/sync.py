@@ -139,10 +139,7 @@ def get_sonarr_libraries(
     libraries: list[MediaServerLibrary] = []
     for interface_id, library in connection.determine_libraries(directory):
         # Get Connection of this library
-        interface = db.query(Connection)\
-            .filter_by(id=interface_id)\
-            .first()
-        if interface is None:
+        if (interface := db.get(Connection, interface_id)) is None:
             log.error(
                 f'No Connection of ID {interface_id} - cannot assign '
                 f'library'

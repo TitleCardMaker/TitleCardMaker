@@ -269,7 +269,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
                 or (required_root_folders
                     and not any(show['rootFolderPath'].startswith(folder)
                                 for folder in required_root_folders))
-                or show['year'] == 0):
+                or (show['year'] == 0)):
                 continue
 
             # Construct SeriesInfo object for this show

@@ -10,8 +10,8 @@ from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
-from app.schemas.connection import ServerName
 from app.logging.logger import log
+from app.schemas.connection import ServerName
 from modules.FormatString import FormatString
 
 if TYPE_CHECKING:
@@ -389,22 +389,19 @@ class Template(Base):
             True if the Template is equivalent, False otherwise.
         """
 
-        st_ranges, st_values = None, None
-        if self.season_titles:
-            st_ranges = list(self.season_titles.keys())
-            st_values = list(self.season_titles.values())
+        template_dict = other.model_dump(exclude_unset=True)
+        get = template_dict.get
 
         return (
-            self.filters == getattr(other, 'filters', [])
-            and self.card_type == getattr(other, 'card_type', None)
-            and self.hide_season_text == getattr(other, 'hide_season_text',None)
-            and self.hide_episode_text == getattr(other, 'hide_episode_text', None)
-            and st_ranges == getattr(other, 'season_title_ranges', None)
-            and st_values == getattr(other, 'season_title_values', None)
-            and self.episode_text_format == getattr(other, 'episode_text_format', None)
-            and self.translations == getattr(other, 'translations', [])
-            and self.extras == other.extras
-            and self.skip_localized_images == getattr(other, 'skip_localized_images', None)
+            self.filters == get('filters', [])
+            and self.card_type == get('card_type', None)
+            and self.hide_season_text == get('hide_season_text',None)
+            and self.hide_episode_text == get('hide_episode_text', None)
+            and self.season_titles == get('season_titles', None)
+            and self.episode_text_format == get('episode_text_format', None)
+            and self.translations == get('translations', [])
+            and self.extras == get('extras', {})
+            and self.skip_localized_images == get('skip_localized_images', None)
         )
 
 

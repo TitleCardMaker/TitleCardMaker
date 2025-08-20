@@ -300,57 +300,6 @@ function queryAllBlueprints(page=1, refresh=false) {
           },
           viewSetCallback: () => viewBlueprintSets(blueprint.id),
         });
-
-        const card = populateBlueprintCard(blueprintTemplate.content.cloneNode(true), blueprint, elementId); 
-
-        // When name/button is clicked, populate and focus to series search bar
-        card.querySelector('[data-action="search-series"]').onclick = () => {
-          $('#search-bar input').val(blueprint.series.name).focus();
-        }
-
-        // When creator is clicked, populate input and click
-        card.querySelector('[data-value="creator"]').onclick = () => {
-          $('input[name="blueprint_series_name"]').val(`by:${blueprint.creator}`).focus();
-          queryAllBlueprints();
-        }
-
-        // Assign function to import button
-        if (card.querySelector('[data-action="import"]')) {
-          card.querySelector('[data-action="import"]').onclick = () => importBlueprint(blueprint.id, elementId);
-        }
-
-        // Assign blacklist function to hide button
-        if (card.querySelector('[data-action="blacklist"]')) {
-          card.querySelector('[data-action="blacklist"]').onclick = () => {
-            $.ajax({
-              type: 'PUT',
-              url: `/api/v2/blueprints/blacklist/${blueprint.id}`,
-              success: () => {
-                // Remove Blueprint card from display
-                $(`#blueprint-id${blueprint.id}`).transition({animation: 'fade', duration: 800});
-                setTimeout(() => {
-                  document.getElementById(elementId).remove();
-                  showInfoToast('Blueprint Hidden');
-                }, 800);
-              },
-              error: response => showErrorToast({title: 'Error Hiding Blueprint', response}),
-            });
-          };
-        }
-
-        if (card.querySelector('[data-action="filter-series"]')) {
-          card.querySelector('[data-action="filter-series"]').onclick = () => {
-            $('input[name="blueprint_series_name"]').val(blueprint.series.name).focus();
-            queryAllBlueprints();
-          }
-        }
-
-        // Toggle Set viewer on button 
-        if (card.querySelector('[data-action="view-set"]')) {
-          card.querySelector('[data-action="view-set"]').onclick = () => viewBlueprintSets(blueprint.id);
-        }
-
-        return card;
       });
 
       // Add Blueprints to page
