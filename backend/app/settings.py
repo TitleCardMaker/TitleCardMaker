@@ -70,11 +70,11 @@ class Settings(SerializationMixin):
     # Paths and directories
     _preferences_file: SerializationExclusion[Path | None] = None
 
-    card_directory: SerializationExclusion[Path] = (
+    card_directory: Path = (
         Path('/config/cards') if IS_DOCKER else CONFIG_ROOT / 'cards'
     )
 
-    source_directory: SerializationExclusion[Path] = (
+    source_directory: Path = (
         Path('/config/source') if IS_DOCKER else CONFIG_ROOT / 'source'
     )
 
@@ -88,6 +88,10 @@ class Settings(SerializationMixin):
 
     backup_directory: SerializationExclusion[Path] = (
         Path('/config/backups') if IS_DOCKER else CONFIG_ROOT / 'backups'
+    )
+
+    log_directory: SerializationExclusion[Path] = (
+        Path('/config/logs') if IS_DOCKER else CONFIG_ROOT / 'logs'
     )
 
     temporary_directory: SerializationExclusion[Path] = (
