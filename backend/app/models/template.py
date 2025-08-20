@@ -393,10 +393,6 @@ class Template(Base):
         if self.season_titles:
             st_ranges = list(self.season_titles.keys())
             st_values = list(self.season_titles.values())
-        ex_keys, ex_values = None, None
-        if self.extras:
-            ex_keys = list(self.extras.keys())
-            ex_values = list(self.extras.values())
 
         return (
             self.filters == getattr(other, 'filters', [])
@@ -407,8 +403,7 @@ class Template(Base):
             and st_values == getattr(other, 'season_title_values', None)
             and self.episode_text_format == getattr(other, 'episode_text_format', None)
             and self.translations == getattr(other, 'translations', [])
-            and ex_keys == getattr(other, 'extra_keys', None)
-            and ex_values == getattr(other, 'extra_values', None)
+            and self.extras == other.extras
             and self.skip_localized_images == getattr(other, 'skip_localized_images', None)
         )
 

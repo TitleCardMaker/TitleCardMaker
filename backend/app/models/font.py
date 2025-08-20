@@ -176,20 +176,22 @@ class Font(Base):
             True if the Font is equivalent, False otherwise.
         """
 
+        other_dict = other.model_dump(exclude_unset=True)
+
         return (
-            self.color == getattr(other, 'color', None)
-            and self.file_name == getattr(other, 'file', None)
-            and self.interline_spacing == getattr(other, 'interline_spacing', 0)
-            and self.interword_spacing == getattr(other, 'interword_spacing', 0)
+            self.color == other_dict.get('color', None)
+            and self.file_name == other_dict.get('file', None)
+            and self.interline_spacing == other_dict.get('interline_spacing', 0)
+            and self.interword_spacing == other_dict.get('interword_spacing', 0)
             # Do not evaluate since these frequently change
             # and self.replacements_in == 
             # and self.replacements_out == 
-            and self.kerning == getattr(other, 'kerning', 1.0)
-            and self.size == getattr(other, 'size', 1.0)
-            and self.stroke_width == getattr(other, 'stroke_width', 1.0)
-            and self.title_case == getattr(other, 'title_case', None)
-            and self.vertical_shift == getattr(other, 'vertical_shift', 0)
-            and self.line_split_modifier == getattr(other, 'line_split_modifier', 0)
+            and self.kerning == other_dict.get('kerning', 1.0)
+            and self.size == other_dict.get('size', 1.0)
+            and self.stroke_width == other_dict.get('stroke_width', 1.0)
+            and self.title_case == other_dict.get('title_case', None)
+            and self.vertical_shift == other_dict.get('vertical_shift', 0)
+            and self.line_split_modifier == other_dict.get('line_split_modifier', 0)
         )
 
 
