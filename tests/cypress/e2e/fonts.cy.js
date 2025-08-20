@@ -373,7 +373,7 @@ describe('Fonts Page', () => {
       cy.get('#fonts .ui.accordion').first().find('form[data-label="font-form"]').within(() => {
         // Check file input accepts correct formats
         cy.get('input[name="font_file"]').should('have.attr', 'accept', '.otf,.ttf,.ttc,.font/*');
-      
+
         // File input should be visible and enabled
         cy.get('input[name="font_file"]').should('be.visible');
         cy.get('input[name="font_file"]').should('not.be.disabled');
@@ -384,17 +384,17 @@ describe('Fonts Page', () => {
   describe('Responsive Design', () => {
     it('should display correctly on different screen sizes', () => {
       // Test mobile viewport
-      cy.viewport(375, 667);
+      cy.viewport('iphone-x');
       cy.get('#fonts').should('be.visible');
       cy.get('#create-font').should('be.visible');
-      
+
       // Test tablet viewport
-      cy.viewport(768, 1024);
+      cy.viewport('ipad-2');
       cy.get('#fonts').should('be.visible');
       cy.get('#create-font').should('be.visible');
-      
+
       // Test desktop viewport
-      cy.viewport(1920, 1080);
+      cy.viewport('macbook-15');
       cy.get('#fonts').should('be.visible');
       cy.get('#create-font').should('be.visible');
     });
