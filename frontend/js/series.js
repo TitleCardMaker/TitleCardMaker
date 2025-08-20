@@ -1783,6 +1783,17 @@ function viewBlueprintSets(blueprintId) {
         set.blueprints.forEach(blueprint => {
           const elementId = `blueprint-set-id${blueprint.id}`;
           blueprint.set_ids = [];
+          bpCards.appendChild(populateBlueprintCard({
+            card: blueprintTemplate.content.cloneNode(true),
+            blueprint,
+            blueprintId: elementId,
+            importCallback: () => importBlueprint(elementId, blueprint, true),
+            searchSeriesCallback: () => {
+              $('#search-bar input').val(blueprint.series.name).focus();
+            },
+          }));
+          return;
+
           const card = populateBlueprintCard(
             blueprintTemplate.content.cloneNode(true), blueprint, elementId
           );
@@ -1841,23 +1852,16 @@ function queryBlueprints() {
       } 
       
       // Blueprints available, create elements
-      const blueprints = allBlueprints.map((blueprint, blueprintId) => {
-        // Clone template, fill out card
-        let card = blueprintTemplate.content.cloneNode(true);
-        card = populateBlueprintCard(card, blueprint, `blueprint-id${blueprintId}`);
-
-        // Assign import to button
-        card.querySelector('[data-action="import"]').onclick = () => importBlueprint(`blueprint-id${blueprintId}`, blueprint);
-
-        // Toggle Set viewer on button 
-        if (card.querySelector('[data-action="view-set"]')) {
-          card.querySelector('[data-action="view-set"]').onclick = () => viewBlueprintSets(blueprint.id);
-        }
-
-        return card;
-      });
+      const blueprints = allBlueprints.map((blueprint, blueprintId) => populateBlueprintCard({
+        card: blueprintTemplate.content.cloneNode(true),
+        blueprint,
+        blueprintId: `blueprint-id${blueprintId}`,
+        importCallback: () => importBlueprint(`blueprint-id${blueprintId}`, blueprint),
+        viewSetCallback: () => viewBlueprintSets(blueprint.id),
+      }));
       blueprintCards.replaceChildren(...blueprints);
-      $('[data-value="file-count"]').popup({inline: true});
+      $('.blueprint.card [data-action="actions"]').popup({inline: true, on: 'click'});
+      $('.blueprint.card [data-value="file-count"]').popup({inline: true});
     },
     error: response => showErrorToast({title: 'Error Querying Blueprints', response}),
     complete: () => removeLoadingIcon($icon),

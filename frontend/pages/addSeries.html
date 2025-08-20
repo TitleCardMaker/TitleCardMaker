@@ -94,13 +94,16 @@
               </button>
             </div>
           </div>
+          <a class="ui right floated basic label" data-label="series-count" data-action="filter-series" data-tooltip="Number of Blueprints for this Series" style="margin-top: 0.1em;">{ series_count }</a>
+          <!-- Left-floated content -->
           <a class="no-link" data-action="search-series">
             <span data-value="name">{series_name}</span>
           </a>
           <span class="ui grey uninvertible text" data-value="year">({series_year})</span>
+          
         </div>
         <div class="meta">
-          <span><i>by</span><span data-value="creator">{author}</span></i>
+          <span><i>by</span><span data-value="creator" data-action="creator">{author}</span></i>
           <span data-value="font-count"><b>{x}</b> Named Font</span>
           <span data-value="template-count"><b>{x}</b> Template</span>
           <span data-value="episode-count"><b>{x}</b> Episode Overrides</span>

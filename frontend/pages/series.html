@@ -250,17 +250,37 @@
   <template id="blueprint-template">
     <div class="ui raised blueprint card">
       <div class="image">
-        <img loading="lazy" src="">
+        <img loading="lazy">
       </div>
       <div class="content">
-        <div data-value="creator" class="header">{author}</div>
-        <i data-action="import" class="right floated cloud download alternate icon"></i>
+        <div class="header">
+          <i class="right floated ellipsis vertical icon" data-action="actions"></i>
+          <div class="ui uninvertible popup" style="width: 183px;" data-label="actions-popup">
+            <div class="ui vertical labeled icon uninvertible buttons">
+              <button class="ui uninvertible button" data-action="import">
+                <i class="cloud download alternate icon"></i>
+                Import
+              </button>
+              <button class="ui uninvertible button" data-action="blacklist">
+                <i class="eye slash outline icon"></i>
+                Hide
+              </button>
+              <button class="ui uninvertible button" data-action="filter-series">
+                <i class="filter icon"></i>
+                Filter Series
+              </button>
+            </div>
+          </div>
+          <span data-value="name">{series_name}</span>
+          <span class="ui grey uninvertible text" data-value="year">({series_year})</span>
+        </div>
         <div class="meta">
+          <span><i>by</span><span data-value="creator">{author}</span></i>
           <span data-value="font-count"><b>{x}</b> Named Font</span>
           <span data-value="template-count"><b>{x}</b> Template</span>
           <span data-value="episode-count"><b>{x}</b> Episode Overrides</span>
           <span data-value="file-count"><b>{x}</b> Source Files</span>
-          <div class="ui mini uninvertible popup">
+          <div class="ui mini uninvertible popup" data-label="source-files">
             <div class="header">Imported Source Files</div>
             <div class="content"></div>
           </div>
@@ -270,7 +290,7 @@
       <div class="extra content">
         <a data-action="view-set" class="left floated">
           <i class="object group outline icon"></i>
-          <span data-value="set-count">{count} Associated Sets</span>
+          <span data-label="set-count"><b>{count}</b> Associated Sets</span>
         </a>
       </div>
     </div>

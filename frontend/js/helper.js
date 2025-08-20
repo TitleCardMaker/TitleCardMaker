@@ -523,12 +523,36 @@ async function initializeLibraryDropdowns({
 /**
  * Fill out the given Blueprint card element with the details - i.e. the
  * creator, title, image, description, etc.
- * @param {HTMLTemplateElement} card - Template element being populated.
- * @param {import("./.types").RemoteBlueprint} blueprint - Blueprint used to
+ * @param {HTMLTemplateElement} card Template element being populated.
+ * @param {import("./.types").RemoteBlueprint} blueprint Blueprint used to
  * populate the given card.
- * @param {string} blueprintId - DOM Element ID of the card.
+ * @param {string} blueprintId DOM Element ID of the card.
+ * @param {function} importCallback Callback to call when the import button is
+ * clicked.
+ * @param {function} searchSeriesCallback Callback to call when the search
+ * series button is clicked.
+ * @param {function} creatorCallback Callback to call when the creator button is
+ * clicked.
+ * @param {function} blacklistCallback Callback to call when the blacklist
+ * button is pressed.
+ * @param {function} filterSeriesCallback Callback to call when the filter
+ * series button is pressed.
+ * @param {function} viewSetCallback Callback to call when the view set button
+ * is pressed.
+ * @returns {HTMLTemplateElement} The populated card element.
  */
-function populateBlueprintCard(card, blueprint, blueprintId) {
+function populateBlueprintCard({
+  card,
+  blueprint,
+  blueprintId,
+  importCallback,
+  searchSeriesCallback = undefined,
+  creatorCallback = () => {},
+  blacklistCallback = () => {},
+  filterSeriesCallback = () => {},
+  viewSetCallback = () => {},
+  includeSeriesCount = true,
+}) {
   // Fill out card
   card.querySelector('.card').id = blueprintId;
   let preview = card.querySelector('img');
@@ -558,6 +582,13 @@ function populateBlueprintCard(card, blueprint, blueprintId) {
   }
   if (card.querySelector('[data-value="series_full_name"')) {
     card.querySelector('[data-value="series_full_name"').innerText = `${blueprint.series.name} (${blueprint.series.year})`;
+  }
+
+  // Series count
+  if (includeSeriesCount && blueprint.series.blueprint_count > 1 && card.querySelector('[data-label="series-count"]')) {
+    card.querySelector('[data-label="series-count"]').innerText = blueprint.series.blueprint_count;
+  } else if (card.querySelector('[data-label="series-count"]')) {
+    card.querySelector('[data-label="series-count"]').remove();
   }
 
   // Font count
@@ -606,6 +637,20 @@ function populateBlueprintCard(card, blueprint, blueprintId) {
   } else if (card.querySelector('.extra.content')) {
     card.querySelector('.extra.content').remove();
   }
+
+  // Assign callbacks
+  [
+    ['[data-action="import"]', importCallback],
+    ['[data-action="search-series"]', searchSeriesCallback],
+    ['[data-action="creator"]', creatorCallback],
+    ['[data-action="blacklist"]', blacklistCallback],
+    ['[data-action="filter-series"]', filterSeriesCallback],
+    ['[data-action="view-set"]', viewSetCallback],
+  ].forEach(([selector, callback]) => {
+    if (card.querySelector(selector)) {
+      card.querySelectorAll(selector).forEach(element => element.onclick = callback);
+    }
+  });
 
   return card;
 }

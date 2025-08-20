@@ -266,7 +266,42 @@ function queryAllBlueprints(page=1, refresh=false) {
       const blueprintCards = items.map(blueprint => {
         // Clone template, fill out basic info
         const elementId = `blueprint-id${blueprint.id}`;
-        const card = populateBlueprintCard(blueprintTemplate.content.cloneNode(true), blueprint, elementId);
+
+        return populateBlueprintCard({
+          card: blueprintTemplate.content.cloneNode(true),
+          blueprint,
+          blueprintId: elementId,
+          importCallback: () => importBlueprint(blueprint.id, elementId),
+          searchSeriesCallback: () => {
+            $('#search-bar input').val(blueprint.series.name).focus();
+          },
+          creatorCallback: () => {
+            $('input[name="blueprint_series_name"]').val(`by:${blueprint.creator}`).focus();
+            queryAllBlueprints();
+          },
+          blacklistCallback: () => {
+            $.ajax({
+              type: 'PUT',
+              url: `/api/v2/blueprints/blacklist/${blueprint.id}`,
+              success: () => {
+                // Remove Blueprint card from display
+                $(`#blueprint-id${blueprint.id}`).transition({animation: 'fade', duration: 800});
+                setTimeout(() => {
+                  document.getElementById(elementId).remove();
+                  showInfoToast('Blueprint Hidden');
+                }, 800);
+              },
+              error: response => showErrorToast({title: 'Error Hiding Blueprint', response}),
+            });
+          },
+          filterSeriesCallback: () => {
+            $('input[name="blueprint_series_name"]').val(blueprint.series.name).focus();
+            queryAllBlueprints();
+          },
+          viewSetCallback: () => viewBlueprintSets(blueprint.id),
+        });
+
+        const card = populateBlueprintCard(blueprintTemplate.content.cloneNode(true), blueprint, elementId); 
 
         // When name/button is clicked, populate and focus to series search bar
         card.querySelector('[data-action="search-series"]').onclick = () => {
@@ -333,7 +368,7 @@ function queryAllBlueprints(page=1, refresh=false) {
       document.getElementById('all-blueprint-results').scrollIntoView({behavior: 'smooth', block: 'start'});
       $('#all-blueprint-results .card').transition({animation: 'scale', interval: 40});
       $('[data-value="file-count"]').popup({inline: true});
-      $('[data-action="actions"]').popup({inline: true, on: 'click'})
+      $('[data-action="actions"]').popup({inline: true, on: 'click'});
       refreshTheme();
     },
     error: response => showErrorToast({title: 'Unable to Query Blueprints', response}),
