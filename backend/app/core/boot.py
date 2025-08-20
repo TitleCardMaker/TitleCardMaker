@@ -46,26 +46,29 @@ def initialize_root_directories(*, log: Logger = logger) -> None:
         log: The logger to use for logging.
     """
 
-    # Exit if not on Docker
-    if not settings.config.IS_DOCKER:
-        return None
+    for directory in [
+        settings.asset_directory,
+        settings.backup_directory,
+        settings.card_directory,
+        settings.card_type_directory,
+        settings.log_directory,
+        settings.source_directory,
+        settings.temporary_directory,
+    ]:
+        try:
+            directory.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            log.critical(
+                f'Could not initialize directory "{directory}" - invalid '
+                f'permissions'
+            )
+            sys_exit(1)
+        except Exception:
+            log.critical('Error initializing root directories')
+            log.exception('Raised error')
+            sys_exit(1)
 
-    # Initialize root directories
-    REQUIRED_ROOT_DIRECTORIES = (
-        '/config/assets',
-        '/config/backups',
-        '/config/cards',
-        '/config/logs',
-        '/config/source',
-        '/config/card_types',
-    )
-    try:
-        for directory in REQUIRED_ROOT_DIRECTORIES:
-            Path(directory).mkdir(parents=True, exist_ok=True)
-    except Exception:
-        log.critical('Error initializing root directories')
-        log.exception('Raised error')
-        sys_exit(1)
+    return None
 
 
 def mount_static_app_directories(app: FastAPI, *, log: Logger = logger) -> None:

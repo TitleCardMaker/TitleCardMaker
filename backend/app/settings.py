@@ -224,27 +224,7 @@ class Settings(SerializationMixin):
         """Initialize the settings object."""
 
         super().__init__()
-        self._initialize_directories()
         self._load_preferences()
-
-
-    def _initialize_directories(self) -> None:
-        """
-        Initialize the required card, source, and asset directories.
-        """
-
-        for directory in [
-            self.card_directory,
-            self.source_directory,
-            self.asset_directory,
-        ]:
-            try:
-                directory.mkdir(parents=True, exist_ok=True)
-            except PermissionError:
-                log.critical(
-                    f'Could not initialize directory "{directory}" - invalid '
-                    f'permissions'
-                )
 
 
     def _load_preferences(self) -> None:
