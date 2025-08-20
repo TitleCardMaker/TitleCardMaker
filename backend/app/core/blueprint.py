@@ -239,8 +239,10 @@ def import_blueprint(
         for other_font in db.query(Font).all():
             if other_font.equals(font):
                 font_map[font_id] = other_font
-                log.info(f'Matched Blueprint Font[{font_id}] to existing Font '
-                        f'{other_font}')
+                log.info(
+                    f'Matched Blueprint Font[{font_id}] to existing Font '
+                    f'{other_font}'
+                )
                 break
         if font_map.get(font_id) is not None:
             continue

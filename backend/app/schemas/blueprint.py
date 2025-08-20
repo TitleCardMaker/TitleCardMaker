@@ -5,12 +5,11 @@ from json import loads
 from re import sub as re_sub, IGNORECASE
 from typing import Any, Optional, Self
 
-from pydantic import Field, PositiveInt, field_validator, model_validator, root_validator
+from pydantic import Field, PositiveInt, computed_field, field_validator, model_validator, root_validator
 
 from app.schemas.base import Base
 from app.schemas.font import TitleCase
 from app.schemas.series import Condition, SeasonTitleRange, Translation
-
 from modules.CleanPath import CleanPath
 
 """
@@ -26,30 +25,52 @@ Base classes
 #         return values
 
 class ConfigBase(Base): # Base of Series, Episodes, and Templates
-    font_id: Optional[int] = None
-    card_type: Optional[str] = None
-    hide_season_text: Optional[bool] = None
-    hide_episode_text: Optional[bool] = None
-    episode_text_format: Optional[str] = None
-    translations: Optional[list[Translation]] = None
-    season_title_ranges: Optional[list[SeasonTitleRange]] = None
-    season_title_values: Optional[list[str]] = None
-    extra_keys: Optional[list[str]] = None
-    extra_values: Optional[list[Any]] = None
-    skip_localized_images: Optional[bool] = None
+    font_id: int | None = None
+    card_type: str | None = None
+    hide_season_text: bool | None = None
+    hide_episode_text: bool | None = None
+    episode_text_format: str | None = None
+    translations: list[Translation] | None = None
+    season_title_ranges: list[SeasonTitleRange] | None = Field(exclude=True, default=None)
+    season_title_values: list[str] | None = Field(exclude=True, default=None)
+    extra_keys: list[str] | None = Field(exclude=True, default=None)
+    extra_values: Optional[list[Any]] = Field(exclude=True, default=None)
+    skip_localized_images: bool | None = None
+
+    @computed_field
+    def extras(self) -> dict[str, Any]:
+        if self.extra_keys is None or self.extra_values is None:
+            return {}
+        return {
+            key: value
+            for key, value in zip(self.extra_keys, self.extra_values)
+            if key and value
+        }
+
+    @computed_field
+    def season_titles(self) -> dict[SeasonTitleRange, str]:
+        if self.season_title_ranges is None or self.season_title_values is None:
+            return {}
+        return {
+            range: value
+            for range, value in zip(
+                self.season_title_ranges, self.season_title_values
+            )
+            if range and value
+        }
 
 class BaseSeriesEpisode(ConfigBase): # Base of Series and Episodes
     template_ids: list[int] = []
-    match_titles: Optional[bool] = None
-    auto_split_title: Optional[bool] = None
-    font_color: Optional[str] = None
-    font_title_case: Optional[TitleCase] = None
-    font_size: Optional[float] = None
-    font_kerning: Optional[float] = None
-    font_stroke_width: Optional[float] = None
-    font_interline_spacing: Optional[int] = None
-    font_interword_spacing: Optional[int] = None
-    font_vertical_shift: Optional[int] = None
+    match_titles: bool | None = None
+    auto_split_title: bool | None = None
+    font_color: str | None = None
+    font_title_case: TitleCase | None = None
+    font_size: float | None = None
+    font_kerning: float | None = None
+    font_stroke_width: float | None = None
+    font_interline_spacing: int | None = None
+    font_interword_spacing: int | None = None
+    font_vertical_shift: int | None = None
 
 """
 Creation classes
@@ -58,15 +79,15 @@ class BlueprintSeries(BaseSeriesEpisode):
     source_files: list[str] = []
 
 class BlueprintEpisode(BaseSeriesEpisode):
-    title: Optional[str] = None
-    match_title: Optional[bool] = None
-    season_text: Optional[str] = None
-    episode_text: Optional[str] = None
+    title: str | None = None
+    match_title: bool | None = None
+    season_text: str | None = None
+    episode_text: str | None = None
 
 class BlueprintFont(Base):
     name: str
-    color: Optional[str] = None
-    file: Optional[str] = None
+    color: str | None = None
+    file: str | None = None
     kerning: float = None
     interline_spacing: int = None
     interword_spacing: int = None
@@ -75,7 +96,7 @@ class BlueprintFont(Base):
     replacements_out: list[str] = None
     size: float = None
     stroke_width: float = None
-    title_case: Optional[TitleCase] = None
+    title_case: TitleCase | None = None
     vertical_shift: int = None
 
 class BlueprintTemplate(ConfigBase):
@@ -119,14 +140,14 @@ class ImportBlueprint(Blueprint):
     ...
 
 class RemoteBlueprintFont(BlueprintFont):
-    file_download_url: Optional[str] = None
+    file_download_url: str | None = None
 
 class RemoteBlueprintSeries(Base):
     name: str
     year: int
-    imdb_id: Optional[str]
-    tmdb_id: Optional[int]
-    tvdb_id: Optional[int]
+    imdb_id: str | None
+    tmdb_id: int | None
+    tvdb_id: int | None
     blueprint_count: PositiveInt = 1
 
 class RemoteBlueprint(Base):
