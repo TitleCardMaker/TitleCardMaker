@@ -69,8 +69,12 @@ ConditionExpression = Literal[
     'is false',
     'is empty',
     'is not empty',
+    'has more items than',
+    'has less items than',
     'includes',
     'does not include',
+    'text is longer than',
+    'text is shorter than',
 ]
 
 

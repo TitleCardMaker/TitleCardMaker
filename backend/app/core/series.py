@@ -151,8 +151,12 @@ ConditionExpressionFunctions: dict[str, _FilterFunction] = {
     'is false': lambda attr, _: attr.is_(False),
     'is empty': lambda attr, _: func.json_array_length(attr) == 0,
     'is not empty': lambda attr, _: func.json_array_length(attr) > 0,
+    'has more items than': lambda attr, ref: func.json_array_length(attr) > int(ref),
+    'has less items than': lambda attr, ref: func.json_array_length(attr) < int(ref),
     'includes': lambda attr, ref: attr.contains(ref),
     'does not include': lambda attr, ref: not_(attr.contains(ref)),
+    'text is longer than': lambda attr, ref: func.length(attr) > int(ref),
+    'text is shorter than': lambda attr, ref: func.length(attr) < int(ref),
 }
 
 
