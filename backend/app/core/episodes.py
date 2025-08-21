@@ -254,7 +254,11 @@ def refresh_episode_data(
 
     # Get existing Episodes
     if settings.delete_missing_episodes:
-        new_keys = set(ei.index_str for ei, _ in all_episodes)
+        new_keys = set(
+            ep_info.index_str
+            for ep_info, _ in all_episodes
+            if sync_specials or ep_info.season_number != 0
+        )
         all_existing = {ep.index_str: ep for ep in series.episodes}
         for delete_key in set(all_existing) - new_keys:
             # Delete Title Card(s)
