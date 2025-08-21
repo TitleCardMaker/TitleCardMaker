@@ -108,6 +108,7 @@ class AppConfig(BaseSettings):
         Version,
         'The current version of TitleCardMaker'
     ] = Version((BACKEND_ROOT / '.version').read_text().strip())
+
     # Backup
     BACKUP_DT_FORMAT: Annotated[
         str,
@@ -150,7 +151,11 @@ class AppConfig(BaseSettings):
         str,
         'URL to the card type repository'
     ] = Field(
-        default='https://raw.githubusercontent.com/CollinHeist/TitleCardMaker-CardTypes/web-ui',
+        default=(
+            'https://raw.githubusercontent.com/CollinHeist/'
+            'TitleCardMaker-CardTypes/'
+            + ('web-ui-develop' if CURRENT_VERSION.is_develop else 'web-ui')
+        ),
     )
 
     @property

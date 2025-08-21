@@ -1,6 +1,5 @@
 from hashlib import md5
 from importlib.util import spec_from_file_location, module_from_spec
-from os import getenv
 import sys
 from typing import Literal
 
@@ -8,10 +7,11 @@ from pathlib import Path
 from requests import get
 from tinydb import where
 
+from app.core.config import config
+from app.logging.logger import Logger, log
 from app.schemas.base import Base
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
-from app.logging.logger import Logger, log
 from modules.PersistentDatabase import PersistentDatabase
 from modules.RemoteFile import RemoteFile
 
@@ -25,11 +25,7 @@ class RemoteCardType:
     """
 
     """Base URL for all remote Card Type files to download"""
-    URL_BASE = getenv(
-        'TCM_CARD_TYPE_URL',
-        'https://raw.githubusercontent.com/CollinHeist/'
-        'TitleCardMaker-CardTypes/web-ui'
-    ).removesuffix('/')
+    URL_BASE = config.CARD_TYPE_REPOSITORY.removesuffix('/')
 
     """Temporary directory all card types are written to"""
     TEMP_DIR = Path(__file__).parent / '.objects'
@@ -82,6 +78,7 @@ class RemoteCardType:
             url = f'{self.URL_BASE}/{identifier}.py'
 
             # Make GET request for the contents of the specified value
+            log.trace(f'Querying card from "{url}"')
             if (response := get(url, timeout=30)).status_code >= 400:
                 log.error(f'Cannot identify Card Type "{identifier}"')
                 log.debug(
