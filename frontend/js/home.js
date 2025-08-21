@@ -542,7 +542,7 @@ function getAllStatistics() {
 function initAll() {
   toggleCounts(window.localStorage.getItem('home:include-counts') === 'true', false);
   initializeFilterTemplate();
-  serializeAllFilters(); // This queries all Series
+  serializeAllFilters(false); // This queries all Series
   getAllStatistics();
   $('.ui.dropdown').dropdown();
 }
@@ -962,11 +962,53 @@ function initializeFilterTemplate() {
   });
 
   const filterData = JSON.parse(window.localStorage.getItem('home:filters'));
+  console.log('Filter data:', filterData);
   const existingFilters = filterData?.filters || [];
+  
+  // Initialize the enable filters checkbox state
+  const enableFiltersCheckbox = document.getElementById('enable-filters-checkbox');
+  console.log('Enable filters checkbox found:', enableFiltersCheckbox);
+  
+  if (enableFiltersCheckbox) {
+    const filtersEnabled = filterData?.filtersEnabled !== false; // Default to true if not set
+    console.log('Setting checkbox to:', filtersEnabled);
+    enableFiltersCheckbox.checked = filtersEnabled;
+    
+    // Update save button text based on initial state
+    updateSaveButtonText(filtersEnabled);
+    
+    // Apply change event listener
+    enableFiltersCheckbox.addEventListener('change', function() {
+      const isChecked = this.checked;
+      console.log('Checkbox changed to:', isChecked);
+      
+      // Update local storage
+      const currentFilterData = JSON.parse(window.localStorage.getItem('home:filters')) || { filters: [], activeTab: null };
+      currentFilterData.filtersEnabled = isChecked;
+      window.localStorage.setItem('home:filters', JSON.stringify(currentFilterData));
+      
+      // Update save button text
+      updateSaveButtonText(isChecked);
+      
+      // Apply or unapply filters based on checkbox state
+      if (isChecked && currentFilterData.activeTab !== null && existingFilters.length > 0) {
+        currentFilter = existingFilters[currentFilterData.activeTab];
+        console.log('Applying filter:', currentFilter);
+      } else {
+        currentFilter = null;
+        console.log('No filter applied');
+      }
+      
+      getAllSeries();
+    });
+  } else {
+    console.warn('Enable filters checkbox not found');
+  }
+  
   existingFilters.forEach(filter => {
     // Add blank tab for this filter
     const tab = addTab(filter);
-  
+    console.log(tab);
     // Add each condition
     filter.conditions.forEach((condition, index) => {
       // Add new filter row for this condition
@@ -1007,8 +1049,31 @@ function initializeFilterTemplate() {
   
   // Initialize tabs; set active tab if needed
   $('#filter-modal .tabular.menu .item').tab();
-  if (filterData?.activeTab !== undefined) {
+  if (filterData?.activeTab !== undefined && filterData.activeTab !== null) {
     $('#filter-modal .tabular.menu .item').tab('change tab', `tab${filterData.activeTab}`);
+    
+    // Only apply the active filter if filters are enabled and there is one
+    if (filterData.filtersEnabled !== false && existingFilters.length > 0 && filterData.activeTab !== null) {
+      currentFilter = existingFilters[filterData.activeTab];
+      console.log('Initial filter applied:', currentFilter);
+    } else {
+      console.log('No initial filter applied - filters disabled or no active tab');
+    }
+  }
+}
+
+/**
+ * Update the save button text based on whether filters are enabled
+ * @param {boolean} enabled Whether filters are enabled
+ */
+function updateSaveButtonText(enabled) {
+  const saveButton = document.querySelector('#filter-modal .actions button[onclick="serializeAllFilters();"]');
+  if (saveButton) {
+    if (enabled) {
+      saveButton.innerHTML = '<i class="check icon"></i> Save & Apply Filter';
+    } else {
+      saveButton.innerHTML = '<i class="save icon"></i> Save Filters';
+    }
   }
 }
 
@@ -1032,8 +1097,10 @@ function addFilterCondition(addButton, removeLabels=true) {
 /**
  * Serialize all filters into a list of objects, and then apply the filter
  * and re-query all Series.
+ * @param {boolean} autoApply Whether to automatically apply the active filter
+ * after serializing
  */
-function serializeAllFilters() {
+function serializeAllFilters(autoApply = true) {
   const filters = [];
   let activeTab = null;
 
@@ -1074,18 +1141,50 @@ function serializeAllFilters() {
     filters.push(data);
   });
 
-  // Add new filter data to local storage
-  window.localStorage.setItem('home:filters', JSON.stringify({ filters, activeTab }));
+  // Get the current checkbox state
+  const enableFiltersCheckbox = document.getElementById('enable-filters-checkbox');
+  const filtersEnabled = enableFiltersCheckbox ? enableFiltersCheckbox.checked : true;
 
-  // Set current filter, re-query Series, hide the filter modal
-  currentFilter = filters[activeTab];
+  // Add new filter data to local storage
+  window.localStorage.setItem('home:filters', JSON.stringify({ 
+    filters, 
+    activeTab,
+    filtersEnabled 
+  }));
+
+  // Update save button text
+  updateSaveButtonText(filtersEnabled);
+
+  // Only apply filter and re-query if autoApply is true
+  if (autoApply) {
+    // Set current filter, re-query Series, hide the filter modal
+    if (filtersEnabled && activeTab !== null) {
+      currentFilter = filters[activeTab];
+    } else {
+      currentFilter = null;
+    }
+    $('#filter-modal').modal('hide');
+  }
   getAllSeries();
-  $('#filter-modal').modal('hide');
 }
 
 /** Unapply the current filter and re-query all Series. */
 function unapplyFilter() {
   currentFilter = null;
+  // Uncheck the enable filters checkbox
+  const enableFiltersCheckbox = document.getElementById('enable-filters-checkbox');
+  if (enableFiltersCheckbox) {
+    enableFiltersCheckbox.checked = false;
+  }
+  
+  // Update local storage to reflect that filters are disabled
+  const existingFilterData = JSON.parse(window.localStorage.getItem('home:filters')) || { filters: [], activeTab: null };
+  existingFilterData.filtersEnabled = false;
+  window.localStorage.setItem('home:filters', JSON.stringify(existingFilterData));
+  
+  // Update save button text
+  updateSaveButtonText(false);
+  
   getAllSeries();
   $('#filter-modal').modal('hide');
 }

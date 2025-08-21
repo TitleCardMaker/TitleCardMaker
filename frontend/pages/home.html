@@ -391,6 +391,17 @@
     <div class="ui uninvertible modal" id="filter-modal">
       <div class="header">Filters</div>
       <div class="content">
+        <div class="ui form">
+          <div class="field">
+            <div class="ui checkbox">
+              <input type="checkbox" id="enable-filters-checkbox" checked>
+              <label for="enable-filters-checkbox"><strong>Enable Filters</strong></label>
+            </div>
+            <p class="help">
+              When checked, the active filter will be applied to the series list. When unchecked, no filters will be applied.
+            </p>
+          </div>
+        </div>
         <div class="ui top attached tabular wrapping uninvertible menu">
           <!-- Tab selector added later -->
           <div class="item add-tab" data-tab="add" onclick="addTab(undefined, true);"><i class="plus circle blue icon"></i></div>
