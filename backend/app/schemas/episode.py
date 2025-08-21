@@ -117,14 +117,17 @@ class UpdateEpisode(Base):
 
     @model_validator(mode='after')
     def validate_unique_template_ids(self) -> Self:
-        if len(self.template_ids) != len(set(self.template_ids)):
+        if (self.template_ids is not UNSPECIFIED
+            and len(self.template_ids) != len(set(self.template_ids))):
             raise ValueError('Template IDs must be unique')
         return self
 
     @model_validator(mode='after')
     def convert_null_ids_to_empty_strings(self) -> Self:
-        self.emby_id = self.emby_id or ''
-        self.jellyfin_id = self.jellyfin_id or ''
+        if self.emby_id is not UNSPECIFIED:
+            self.emby_id = self.emby_id or ''
+        if self.jellyfin_id is not UNSPECIFIED:
+            self.jellyfin_id = self.jellyfin_id or ''
         return self
 
 class BatchUpdateEpisode(Base):
