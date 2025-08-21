@@ -468,9 +468,7 @@ def update_series_config(
     # Update each attribute of the object
     for attr, value in update_series.model_dump(
         exclude_unset=True,
-        exclude={
-            'template_ids',
-        },
+        exclude={'template_ids'},
     ).items():
         if getattr(series, attr) != value:
             log.debug(f'Series[{series.id}].{attr} = {value!r}')

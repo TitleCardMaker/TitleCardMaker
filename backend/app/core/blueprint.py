@@ -348,19 +348,23 @@ def import_blueprint(
 
         # Try and find Episode with this index
         indices = indices.groupdict()
-        episode = db.query(Episode)\
-            .filter(Episode.series_id==series.id,
+        episode = (
+            db.query(Episode)
+                .filter(
+                    Episode.series_id==series.id,
                     Episode.season_number==indices['season_number'],
-                    Episode.episode_number==indices['episode_number'])\
-            .first()
+                    Episode.episode_number==indices['episode_number']
+                )
+                .first()
+        )
 
         # Episode not found, skip
         if episode is None:
-            log.warning(f'Cannot find matching Episode for override "{episode_key}"')
+            log.warning(f'Cannot find matching Episode for "{episode_key}"')
             continue
 
         # Episode found, update attributes
-        episode_dict = episode_blueprint.dict()
+        episode_dict = episode_blueprint.model_dump(exclude_unset=True)
 
         # Assign Font and Templates
         if (new_font_id := episode_dict.pop('font_id', None)) is not None:
@@ -375,7 +379,7 @@ def import_blueprint(
 
         # All other attributes
         update_episode = UpdateEpisode(**episode_dict)
-        for attr, value in update_episode.dict().items():
+        for attr, value in update_episode.model_dump(exclude_unset=True).items():
             if getattr(episode, attr) != value:
                 log.debug(f'Episode[{episode.id}].{attr} = {value}')
                 setattr(episode, attr, value)
