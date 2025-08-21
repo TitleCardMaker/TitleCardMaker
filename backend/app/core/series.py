@@ -2,8 +2,8 @@ from pathlib import Path
 from time import sleep
 from typing import Any, Callable
 
+from app.schemas.schedule import Hours
 from fastapi import BackgroundTasks, HTTPException
-from fastapi_pagination.ext.sqlalchemy import paginate
 from PIL import Image, UnidentifiedImageError
 from requests import get
 from sqlalchemy import ColumnElement, String, cast, desc, func, not_
@@ -15,16 +15,11 @@ from sqlalchemy.orm import (
     load_only,
 )
 
+from app.core.cache import cache_result, invalidate_series_cache
 from app.core.cards import (
     create_episode_cards,
     get_watched_statuses,
     refresh_remote_card_types
-)
-from app.core.cache import (
-    cache_series_data,
-    get_cached_series_data,
-    invalidate_series_cache,
-    get_cache_manager
 )
 from app.core.episodes import refresh_episode_data
 from app.core.sources import (
@@ -38,10 +33,8 @@ from app.db.query import (
     get_font,
     get_interface,
     get_media_interface,
-    get_series,
     get_sync,
 )
-from app.db.pagination import Page
 from app.dependencies import (
     get_database,
     get_sonarr_interfaces,
@@ -1077,6 +1070,7 @@ def apply_filter(
     return query.filter(*criterion)
 
 
+@cache_result(cache_type='series', ttl=Hours(6))
 def query_and_filter_series(
         db: Session,
         filter: SeriesFilter | None,
@@ -1084,7 +1078,7 @@ def query_and_filter_series(
         order_by: SeriesOrder,
         extended: bool,
         log: Logger = log,
-    ) -> Page[SeriesOverview] | Page[SeriesOverviewWithCounts]: # type: ignore
+    ) -> list[SeriesOverview] | list[SeriesOverviewWithCounts]:
     """
     Query for Series which match the given filter, ordering the results
     as indicated.
@@ -1119,173 +1113,43 @@ def query_and_filter_series(
     query = apply_filter(db, query, filter, log=log)
 
     # Order associated query
-    series = query
+    sub_query = query
     if order_by == 'alphabetical':
-        series = query.order_by(Series.sort_name, Series.year)
+        sub_query = query.order_by(Series.sort_name, Series.year)
     elif order_by == 'reverse-alphabetical':
-        series = query.order_by(desc(Series.sort_name), Series.year)
+        sub_query = query.order_by(desc(Series.sort_name), Series.year)
     # Order by Cards
     elif order_by == 'cards':
-        series = query\
+        sub_query = query\
             .outerjoin(Card)\
             .group_by(Series.id)\
             .order_by(func.count(Series.id))
     elif order_by == 'reverse-cards':
-        series = query\
+        sub_query = query\
             .outerjoin(Card)\
             .group_by(Series.id)\
             .order_by(func.count(Series.id).desc())
     # Order by Sync
     elif order_by == 'sync':
-        series = query.order_by(
+        sub_query = query.order_by(
             Series.sync_id.desc(),
             Series.sort_name,
             Series.year
         )
     # Order by ID
     elif order_by == 'id':
-        series = query.order_by(Series.id)
+        sub_query = query.order_by(Series.id)
     elif order_by == 'reverse-id':
-        series = query.order_by(Series.id.desc())
+        sub_query = query.order_by(Series.id.desc())
     # Order by Year > Name
     elif order_by == 'year':
-        series = query.order_by(Series.year, func.lower(Series.sort_name))
+        sub_query = query.order_by(Series.year, func.lower(Series.sort_name))
     elif order_by == 'reverse-year':
-        series = query.order_by(Series.year.desc(), func.lower(Series.sort_name))
+        sub_query = query.order_by(Series.year.desc(), func.lower(Series.sort_name))
 
-    return paginate(series)
-
-
-def get_series_with_cache(
-        db: Session,
-        series_id: int,
-        *,
-        raise_exc: bool = True,
-        log: Logger = log,
-    ) -> Series | None:
-    """
-    Get series data with caching support.
-    
-    Args:
-        db: Database session
-        series_id: Series ID to retrieve
-        raise_exc: Whether to raise exception if not found
-        log: Logger instance
-        
-    Returns:
-        Series object or None if not found
-    """
-    # Try to get from cache first
-    cached_series = get_cached_series_data(series_id)
-    if cached_series is not None:
-        log.debug(f'Retrieved series {series_id} from cache')
-        return cached_series
-    
-    # Get from database
-    series = get_series(db, series_id, raise_exc=raise_exc)
-    if series is not None:
-        # Cache the series data
-        cache_series_data(series_id, series, ttl=1800)  # 30 minutes
-        log.debug(f'Cached series {series_id}')
-    
-    return series
-
-def get_series_overview_with_cache(
-        db: Session,
-        series_id: int,
-        *,
-        log: Logger = log,
-    ) -> SeriesOverview | None:
-    """
-    Get series overview data with caching support.
-    
-    Args:
-        db: Database session
-        series_id: Series ID to retrieve
-        log: Logger instance
-        
-    Returns:
-        SeriesOverview object or None if not found
-    """
-    # Try to get from cache first
-    cache_key = f"series_overview:{series_id}"
-    cache_manager = get_cache_manager('series')
-    cached_overview = cache_manager.get(cache_key)
-    
-    if cached_overview is not None:
-        log.debug(f'Retrieved series overview {series_id} from cache')
-        return cached_overview
-    
-    # Get from database
-    series = get_series(db, series_id, raise_exc=False)
-    if series is None:
-        return None
-    
-    # Create overview object
-    overview = SeriesOverview(
-        id=series.id,
-        full_name=series.full_name,
-        sort_name=series.sort_name,
-        year=series.year,
-        poster_url=series.poster_url,
-        libraries=series.libraries,
-        sync_id=series.sync_id,
-        status=series.status,
-    )
-    
-    # Cache the overview
-    cache_manager.set(cache_key, overview, ttl=1800)  # 30 minutes
-    log.debug(f'Cached series overview {series_id}')
-    
-    return overview
-
-def get_series_extended_with_cache(
-        db: Session,
-        series_id: int,
-        *,
-        log: Logger = log,
-    ) -> SeriesOverviewWithCounts | None:
-    """
-    Get series extended data with counts and caching support.
-    
-    Args:
-        db: Database session
-        series_id: Series ID to retrieve
-        log: Logger instance
-        
-    Returns:
-        SeriesOverviewWithCounts object or None if not found
-    """
-    # Try to get from cache first
-    cache_key = f"series_extended:{series_id}"
-    cache_manager = get_cache_manager('series')
-    cached_extended = cache_manager.get(cache_key)
-    
-    if cached_extended is not None:
-        log.debug(f'Retrieved series extended {series_id} from cache')
-        return cached_extended
-    
-    # Get from database
-    series = get_series(db, series_id, raise_exc=False)
-    if series is None:
-        return None
-    
-    # Create extended object with counts
-    extended = SeriesOverviewWithCounts(
-        id=series.id,
-        full_name=series.full_name,
-        sort_name=series.sort_name,
-        year=series.year,
-        poster_url=series.poster_url,
-        libraries=series.libraries,
-        sync_id=series.sync_id,
-        status=series.status,
-        episode_count=series.episode_count,
-        card_count=series.card_count,
-    )
-    
-    # Cache the extended data
-    cache_manager.set(cache_key, extended, ttl=1800)  # 30 minutes
-    log.debug(f'Cached series extended {series_id}')
-    
-    return extended
+    return [
+        SeriesOverviewWithCounts.model_validate(series)
+        if extended
+        else SeriesOverview.model_validate(series)
+        for series in sub_query.all()
+    ]

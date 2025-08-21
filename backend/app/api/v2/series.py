@@ -34,7 +34,6 @@ from app.core.series import (
     process_series,
     query_and_filter_series,
     update_series_config,
-    get_series_with_cache,
 )
 from app.db.users import get_current_user
 from app.interfaces.plex import PlexInterface
@@ -87,8 +86,10 @@ def get_all_series(
             detail='Filter definition is invalid',
         ) from exc
 
-    return query_and_filter_series(
-        db, filter, order_by=order_by, extended=False, log=log
+    return paginate_sequence(
+        query_and_filter_series(
+            db, filter, order_by=order_by, extended=False, log=log
+        )
     )
 
 
@@ -116,8 +117,10 @@ def get_all_series_including_counts(
             detail='Filter definition is invalid',
         ) from exc
 
-    return query_and_filter_series(
-        db, filter, order_by=order_by, extended=True, log=log
+    return paginate_sequence(
+        query_and_filter_series(
+            db, filter, order_by=order_by, extended=True, log=log
+        )
     )
 
 
@@ -135,17 +138,25 @@ def get_previous_series(
     # Get the reference Series
     series = get_series(db, series_id, raise_exc=True)
 
-    # pylint: disable=no-value-for-parameter,no-member
-    return db.query(SeriesModel)\
-        .filter(
-            SeriesModel.id != series_id,
-            or_(SeriesModel.comes_before(series.sort_name),
-                and_(SeriesModel.sort_name == series.sort_name,
-                     SeriesModel.year < series.year)))\
-        .order_by(SeriesModel.sort_name.desc(),
-                  SeriesModel.year.desc(),
-                  SeriesModel.id.desc())\
-        .first()
+    return (
+        db.query(SeriesModel)
+            .filter(
+                SeriesModel.id.is_not(series_id),
+                or_(
+                    SeriesModel.comes_before(series.sort_name),
+                    and_(
+                        SeriesModel.sort_name == series.sort_name,
+                        SeriesModel.year < series.year
+                    )
+                )
+            )
+            .order_by(
+                SeriesModel.sort_name.desc(),
+                SeriesModel.year.desc(),
+                SeriesModel.id.desc()
+            )
+            .first()
+    )
 
 
 @series_router.get('/series/{series_id}/next')
@@ -162,17 +173,25 @@ def get_next_series(
     # Get the reference Series
     series = get_series(db, series_id, raise_exc=True)
 
-    # pylint: disable=no-value-for-parameter,no-member
-    return db.query(SeriesModel)\
-        .filter(
-            SeriesModel.id != series_id,
-            or_(SeriesModel.comes_after(series.sort_name),
-                and_(SeriesModel.sort_name == series.sort_name,
-                     SeriesModel.year > series.year)))\
-        .order_by(SeriesModel.sort_name,
-                  SeriesModel.year,
-                  SeriesModel.id)\
-        .first()
+    return (
+        db.query(SeriesModel)
+            .filter(
+                SeriesModel.id.is_not(series_id),
+                or_(
+                    SeriesModel.comes_after(series.sort_name),
+                    and_(
+                        SeriesModel.sort_name == series.sort_name,
+                        SeriesModel.year > series.year
+                    )
+                )
+            )
+            .order_by(
+                SeriesModel.sort_name,
+                SeriesModel.year,
+                SeriesModel.id
+            )
+            .first()
+    )
 
 
 @series_router.post('/new')
@@ -295,7 +314,6 @@ def lookup_new_series(
 def get_series_config(
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Series:
     """
     Get the config for the given Series.
@@ -303,7 +321,7 @@ def get_series_config(
     - series_id: ID of the series to get the config of.
     """
 
-    return get_series_with_cache(db, series_id, raise_exc=True, log=log)
+    return get_series(db, series_id, raise_exc=True)
 
 
 @series_router.patch('/series/{series_id}')
