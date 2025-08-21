@@ -2585,7 +2585,7 @@ function deleteAllEpisodes() {
      */
     success: episodeIds => {
       showInfoToast(`Deleted ${episodeIds.length} Episodes`);
-      $('#episode-data-table tr').remove();
+      getEpisodeData();
       getSourceFileData();
       getStatistics();
     },
