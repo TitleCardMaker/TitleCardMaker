@@ -10,7 +10,7 @@
     {% include "/js/settings.js" %}
   </script>
 
-  <link rel="stylesheet" type="text/css" href="/css/settings.css?v={{preferences.current_version}}"/>
+  <link rel="stylesheet" type="text/css" href="/css/settings.css?v={{preferences.config.CURRENT_VERSION}}"/>
 
   <template id="extra-input-template">
     <div class="field">
@@ -64,7 +64,7 @@
             Please add a Connection on the <a href="/connections">Connections</a> page before configuring Settings.
           </div>
 
-          {% if preferences.available_version is not none and preferences.available_version > preferences.current_version %}
+          {% if preferences.available_version is not none and preferences.available_version > preferences.config.CURRENT_VERSION %}
           <div class="ui floating compact info message">
             <i class="info circle icon"></i>
             A new version of TitleCardMaker ({{ preferences.available_version }}) is available.

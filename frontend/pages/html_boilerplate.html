@@ -15,11 +15,11 @@
 <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.js"></script>
 
 <!-- JS Files -->
-<script type="text/javascript" src="/js/loadStaticContent.js?v={{ preferences.current_version }}&websocket={{ preferences.display_live_messages }}"></script>
-<script type="text/javascript" src="/js/loadCardTypes.js?v={{ preferences.current_version }}"></script>
-<script type="text/javascript" src="/js/theme.js?v={{ preferences.current_version }}"></script>
-<script type="text/javascript" src="/js/helper.js?v={{ preferences.current_version }}"></script>
-<script type="text/javascript" src="/js/tablesort.js?v={{ preferences.current_version }}"></script>
+<script type="text/javascript" src="/js/loadStaticContent.js?v={{ preferences.config.CURRENT_VERSION }}&websocket={{ preferences.display_live_messages }}"></script>
+<script type="text/javascript" src="/js/loadCardTypes.js?v={{ preferences.config.CURRENT_VERSION }}"></script>
+<script type="text/javascript" src="/js/theme.js?v={{ preferences.config.CURRENT_VERSION }}"></script>
+<script type="text/javascript" src="/js/helper.js?v={{ preferences.config.CURRENT_VERSION }}"></script>
+<script type="text/javascript" src="/js/tablesort.js?v={{ preferences.config.CURRENT_VERSION }}"></script>
 <script type="text/javascript">
   $(document).ready(function() {
     // Error icon if a Connection is invalid

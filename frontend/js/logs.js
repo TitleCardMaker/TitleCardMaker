@@ -292,7 +292,7 @@ function queryLogErrors() {
             window.open(
               'https://github.com/TitleCardMaker/TitleCardMaker-WebUI/issues/new?'
               + 'assignees=CollinHeist&labels=bug&projects=&template=bug_report_log.yml'
-              + '&title=BUG+-+&version={{ preferences.current_version }}',
+              + '&title=BUG+-+&version={{ preferences.config.CURRENT_VERSION }}',
               '_blank'
             );
           },

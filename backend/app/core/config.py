@@ -11,6 +11,8 @@ from pytz import timezone, UnknownTimeZoneError
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from modules.Version import Version
+
 """
 Application root directories
 """
@@ -102,6 +104,10 @@ class AppConfig(BaseSettings):
         'Whether executing in Docker mode'
     ] = False
 
+    CURRENT_VERSION: Annotated[
+        Version,
+        'The current version of TitleCardMaker'
+    ] = Version((BACKEND_ROOT / '.version').read_text().strip())
     # Backup
     BACKUP_DT_FORMAT: Annotated[
         str,

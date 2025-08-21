@@ -6,13 +6,13 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from app.db.query import get_series
-from app.dependencies import get_database
-from app.db.users import get_current_user
 from app.core.card_registry import DEFAULT_BLUR_PROFILES
 from app.core.font import get_available_fonts
 from app.core.settings import get_episode_data_sources
 from app.core.templates import get_available_templates
+from app.db.query import get_series
+from app.db.users import get_current_user
+from app.dependencies import get_database
 from app.logging.logger import log
 from app.models.connection import Connection
 from app.models.user import User
@@ -42,7 +42,7 @@ async def go_to_login_page(request: Request):
         {
             'request': request,
             'require_auth': settings.require_auth,
-            'current_version': str(settings.current_version),
+            'current_version': str(settings.config.CURRENT_VERSION),
         }
     )
 

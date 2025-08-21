@@ -210,9 +210,7 @@ def run_sync(
 
         # Determine this Series' libraries
         if sync.interface == 'Sonarr':
-            libraries = get_sonarr_libraries(
-                db, lib_or_dir, connection, log=log
-            )
+            libraries = get_sonarr_libraries(db, lib_or_dir, connection,log=log)
         else:
             libraries = [{
                 'interface': sync.interface,

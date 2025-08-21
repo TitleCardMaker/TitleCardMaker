@@ -142,7 +142,7 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
             # Backup database if migration is about to be performed
             if context.get_current_revision() != script.get_current_head():
                 log.info('Pending schema migration - performing database backup')
-                backup = backup_data(settings.current_version, log=log)
+                backup = backup_data(settings.config.CURRENT_VERSION, log=log)
 
                 # Perform database migrations
                 try:

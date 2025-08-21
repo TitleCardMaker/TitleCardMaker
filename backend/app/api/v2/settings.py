@@ -39,7 +39,7 @@ def get_global_settings() -> Preferences:
 def get_current_version() -> str:
     """Get the version of TitleCardMaker that is currently running."""
 
-    return str(settings.current_version)
+    return str(settings.config.CURRENT_VERSION)
 
 
 @settings_router.patch('/update')

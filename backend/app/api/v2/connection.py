@@ -785,7 +785,7 @@ def delete_interface_libraries(
 
     # Perform backup if indicated
     if backup:
-        backup_data(settings.current_version, log=log)
+        backup_data(settings.config.CURRENT_VERSION, log=log)
 
     # If deleting unlinked then query any Series with at least one library
     keep_list: list[str] = []

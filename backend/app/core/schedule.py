@@ -318,7 +318,7 @@ RecurringTasks: dict[TaskID, RecurringTask] = {
         internal=True,
     ),
     JOB_BACKUP_DATABASE: RecurringTask(
-        task_func=lambda log: backup_data(settings.current_version, log=log),
+        task_func=lambda l: backup_data(settings.config.CURRENT_VERSION, log=l),
         description='Backup the database and global settings',
         task_id=JOB_BACKUP_DATABASE,
         default_cronstr='0 0 */1 * *',

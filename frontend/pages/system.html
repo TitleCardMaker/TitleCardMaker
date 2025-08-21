@@ -11,7 +11,7 @@
     {% include "/js/system.js" %}
   </script>
   
-  <link rel="stylesheet" type="text/css" href="/css/system.css?v={{preferences.current_version}}"/>
+  <link rel="stylesheet" type="text/css" href="/css/system.css?v={{preferences.config.CURRENT_VERSION}}"/>
 
   <template id="extra-input-template">
     <div class="field">
@@ -51,13 +51,13 @@
       <div class="ui relaxed divided list">
         <div class="item">
           <div class="content">
-            <a class="header" href="/changelog#{{ preferences.current_version }}">
+            <a class="header" href="/changelog#{{ preferences.config.CURRENT_VERSION }}">
               <i class="code branch icon"></i>
               Current Version
             </a>
             <div class="description">
-              <span class="version-value">{{ preferences.current_version }}</span>
-              <i class="copy outline link icon" data-clipboard-text="{{ preferences.current_version }}" title="Copy version"></i>
+              <span class="version-value">{{ preferences.config.CURRENT_VERSION }}</span>
+              <i class="copy outline link icon" data-clipboard-text="{{ preferences.config.CURRENT_VERSION }}" title="Copy version"></i>
             </div>
           </div>
         </div>

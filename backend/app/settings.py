@@ -14,7 +14,6 @@ from modules.FormatString import FormatString
 from modules.RemoteCardType import RemoteCardType
 from modules.serialization import SerializationExclusion, SerializationMixin
 from modules.TitleCard import TitleCard
-from modules.Version import Version
 
 
 MediaSource = Literal['Emby', 'Jellyfin', 'Plex']
@@ -189,8 +188,6 @@ class Settings(SerializationMixin):
     ] = {}
 
     # Version and schema tracking
-    current_version: SerializationExclusion[Version | None] = None
-    available_version: SerializationExclusion[Version | None] = None
     current_db_schema: SerializationExclusion[str | None] = None
     current_logging_db_schema: SerializationExclusion[str | None] = None
     server_boot_time: SerializationExclusion[datetime | None] = None
@@ -288,18 +285,13 @@ class Settings(SerializationMixin):
                             setattr(self, key, Path(value) if value else None)
                         elif key in ['blacklisted_blueprints', 'imported_blueprints']:
                             setattr(self, key, set(value) if value else set())
-                        elif key in ['current_version', 'available_version'] and value:
-                            setattr(self, key, Version(value))
                         else:
                             setattr(self, key, value)
 
             except Exception as e:
                 log.exception(f'Error occurred while loading JSON settings: {e}')
 
-        # Set version and boot time
-        version_file = BACKEND_ROOT / '.version'
-        if version_file.exists():
-            self.current_version = Version(version_file.read_text().strip())
+        # Set boot time
         self.server_boot_time = datetime.now(tz=self.config.TIMEZONE)
 
 
@@ -398,7 +390,7 @@ class Settings(SerializationMixin):
     def log_startup(self, *, log: Logger = log) -> None:
         """Log the startup details of TCM."""
 
-        log.info(f'Starting TitleCardMaker ({self.current_version})')
+        log.info(f'Starting TitleCardMaker ({self.config.CURRENT_VERSION})')
         self.determine_imagemagick_prefix(log=log)
 
 

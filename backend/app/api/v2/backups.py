@@ -1,9 +1,6 @@
 from signal import SIGINT, raise_signal
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.db.database import engine
-from app.db.users import get_current_user
-from app.dependencies import get_logger
 from app.core.backup import (
     backup_data,
     delete_backup,
@@ -11,6 +8,9 @@ from app.core.backup import (
     list_available_backups,
     restore_backup,
 )
+from app.db.database import engine
+from app.db.users import get_current_user
+from app.dependencies import get_logger
 from app.logging.logger import ACTIVE_WEBSOCKETS, Logger
 from app.schemas.preferences import SystemBackup
 from app.settings import settings
@@ -38,7 +38,7 @@ def get_available_system_backups(
 def perform_backup(log: Logger = Depends(get_logger)) -> None:
     """Perform a backup of the SQL database and global settings."""
 
-    backup_data(settings.current_version, log=log)
+    backup_data(settings.config.CURRENT_VERSION, log=log)
 
 
 @backup_router.post('/restore/{folder}')
@@ -60,7 +60,7 @@ async def restore_from_backup(
                 'performing backup to prevent data loss'
             )
             log.trace(f'TaskQueue: {task_queue}\nPool: {engine.pool}')
-            backup_data(settings.current_version, log=log)
+            backup_data(settings.config.CURRENT_VERSION, log=log)
         else:
             raise HTTPException(
                 status_code=400,

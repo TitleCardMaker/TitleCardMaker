@@ -3,8 +3,6 @@ from datetime import datetime
 from pathlib import Path
 from re import compile as re_compile
 
-from app.logging.logger import log
-
 
 class Version:
     """
@@ -78,6 +76,7 @@ class Version:
             int(version_data['sub_sub_version']),
             int(version_data['branch_iteration']),
         )
+        self.is_develop = self.version[3] > 1
 
 
     def __repr__(self) -> str:
@@ -310,7 +309,7 @@ class Changelog:
 
         # Store resulting HTML string
         self.html = '\n'.join(html)
-        log.debug(f'Parsed {file}')
+        print(f'Parsed {file}')
 
 
     def _indent(self, amount: int, /) -> str:
@@ -364,7 +363,7 @@ class Changelog:
         """Write this Changelog (HTML) to the given file."""
 
         Path(file).write_text(self.html)
-        log.info(f'Wrote converted HTML changelog to {file}')
+        print(f'Wrote converted HTML changelog to {file}')
 
 
 if __name__ == '__main__':
