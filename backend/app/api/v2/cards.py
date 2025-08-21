@@ -23,7 +23,7 @@ from app.core.cards import (
     get_watched_statuses,
     resolve_card_settings,
     validate_card_type_model,
-    get_series_cards_with_cache,
+    get_series_cards,
     get_series_cards_reduced_with_cache,
     get_episode_cards_with_cache,
     get_card_with_cache,
@@ -359,7 +359,7 @@ def create_cards_for_series(
 
 
 @card_router.get('/series/{series_id}', tags=['Series'])
-def get_series_cards(
+def get_series_cards_(
         series_id: int,
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
@@ -371,8 +371,7 @@ def get_series_cards(
     - series_id: ID of the Series to get the cards of.
     """
 
-    cards = get_series_cards_with_cache(db, series_id, log=log)
-    return paginate_sequence(cards)
+    return paginate_sequence(get_series_cards(db, series_id))
 
 
 @card_router.get('/series/{series_id}/reduced', tags=['Series'])
@@ -389,8 +388,7 @@ def get_series_cards_reduced_models(
     - series_id: ID of the Series to get the cards of.
     """
 
-    reduced_cards = get_series_cards_reduced_with_cache(db, series_id, log=log)
-    return paginate_sequence(reduced_cards)
+    return paginate_sequence(get_series_cards_reduced_with_cache(db, series_id))
 
 
 @card_router.put('/series/{series_id}/load/all', deprecated=True)

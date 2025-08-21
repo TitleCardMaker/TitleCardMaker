@@ -2,6 +2,7 @@ from pathlib import Path
 from time import sleep
 from typing import Any, cast
 
+from app.schemas.schedule import Hours
 from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy import and_, func, or_
@@ -11,6 +12,7 @@ from sqlalchemy.orm.session import object_session
 
 from app.core.availability import expire_cache, get_remote_card_hash
 from app.core.cache import (
+    cache_result,
     cache_series_cards,
     get_cached_series_cards,
     cache_card_data,
@@ -169,7 +171,6 @@ def clean_database(*, log: Logger = log) -> None:
         ]
         for card in set(unlinked_cards):
             log.debug(f'Deleting unlinked {card}')
-            invalidate_card_cache(card)
             card.file.unlink(missing_ok=True)
             db.delete(card)
         db.commit()
@@ -178,7 +179,6 @@ def clean_database(*, log: Logger = log) -> None:
         for episode in db.query(Episode).all():
             if episode.series_id is None or episode.series is None:
                 log.debug(f'Deleting unlinked Episode {episode.id}')
-                invalidate_episode_cache(episode.id)
                 db.delete(episode)
         db.commit()
 
@@ -204,7 +204,6 @@ def clean_database(*, log: Logger = log) -> None:
         )
         for episode in to_delete.all():
             log.trace(f'Deleting duplicate Episode {episode}')
-            invalidate_episode_cache(episode.id)
             db.delete(episode)
         db.commit()
 
@@ -223,7 +222,6 @@ def clean_database(*, log: Logger = log) -> None:
             )
             for card in to_delete.all():
                 log.debug(f'Deleting duplicate {card}')
-                invalidate_card_cache(card)
                 card.file.unlink(missing_ok=True)
                 db.delete(card)
             db.commit()
@@ -463,12 +461,7 @@ def create_card(
             db, card_model, CardTypeModel, card_file, library, commit=True
         )
         log.info(f'Created {card}')
-        
-        # Invalidate series cache since we created a new card for this series
-        from app.core.cache import invalidate_series_cache
-        invalidate_series_cache(card.series_id)
-        log.debug(f'Invalidated series cache for series {card.series_id} after creating card')
-        
+
         return card
 
     log.warning(f'Card creation failed')
@@ -1081,102 +1074,62 @@ def delete_cards(
     return deleted
 
 
-def get_series_cards_with_cache(
-        db: Session,
-        series_id: int,
-        *,
-        log: Logger = log,
-    ) -> list[Card]:
+@cache_result(cache_type='card', ttl=Hours(12))
+def get_series_cards(db: Session, series_id: int) -> list[Card]:
     """
-    Get all cards for a series with caching support.
-    
-    Args:
-        db: Database session
-        series_id: Series ID
-        log: Logger instance
-        
-    Returns:
-        List of Card objects
+    # TODO: Document function.
     """
 
-    # Try to get from cache first
-    cached_cards = get_cached_series_cards(series_id)
-    if cached_cards is not None:
-        log.debug(f'Retrieved {len(cached_cards)} cards for series {series_id} from cache')
-        return cached_cards
-    
-    # Get from database
-    cards = db.query(Card)\
-        .filter_by(series_id=series_id)\
-        .join(Episode)\
-        .order_by(Episode.season_number)\
-        .order_by(Episode.episode_number)\
-        .order_by(Card.library_name)\
-        .all()
-    
-    # Cache the cards
-    cache_series_cards(series_id, cards, ttl=3600)  # 1 hour
-    log.debug(f'Cached {len(cards)} cards for series {series_id}')
-    
-    return cards
+    return (
+        db.query(Card)
+            .filter_by(series_id=series_id)
+            .join(Episode)
+            .order_by(
+                Episode.season_number,
+                Episode.episode_number,
+                Episode.absolute_number,
+            )
+            .all()
+    )
 
 
+@cache_result(cache_type='card', ttl=Hours(12))
 def get_series_cards_reduced_with_cache(
         db: Session,
         series_id: int,
-        *,
-        log: Logger = log,
     ) -> list[dict]:
     """
-    Get reduced card data for a series with caching support.
-    
-    Args:
-        db: Database session
-        series_id: Series ID
-        log: Logger instance
-        
-    Returns:
-        List of reduced card data dictionaries
+    # TODO: Document function.
     """
 
-    # Try to get from cache first
-    cache_key = f"series_cards_reduced:{series_id}"
-    cache_manager = get_cache_manager('card')
-    if (cached_cards := cache_manager.get(cache_key)) is not None:
-        log.debug(f'Retrieved reduced cards for series {series_id} from cache')
-        return cached_cards
-
     # Get from database with reduced fields
-    cards = db.query(Card)\
-        .options(
-            load_only(
-                Card.id,
-                Card.episode_id,
-                Card.card_file,
-                Card.filesize,
+    cards = (
+        db.query(Card)
+            .options(
+                load_only(
+                    Card.id,
+                    Card.episode_id,
+                    Card.card_file,
+                    Card.filesize,
+                    Card.library_name,
+                )
+            )
+            .filter_by(series_id=series_id)
+            .join(Episode, Episode.id == Card.episode_id)
+            .order_by(
+                Episode.season_number,
+                Episode.episode_number,
+                Episode.absolute_number,
                 Card.library_name,
             )
-        )\
-        .filter_by(series_id=series_id)\
-        .join(Episode, Episode.id == Card.episode_id)\
-        .order_by(
-            Episode.season_number,
-            Episode.episode_number,
-            Card.library_name
-        )\
-        .all()
+            .all()
+    )
 
     # Convert to reduced format
-    reduced_cards = [
+    return [
         TitleCardReduced.model_validate(card).model_dump()
         for card in cards
     ]
-
-    # Cache the reduced cards
-    cache_manager.set(cache_key, reduced_cards, ttl=3600)  # 1 hour
-    log.debug(f'Cached reduced cards for series {series_id}')
-
-    return reduced_cards
 
 
 def get_episode_cards_with_cache(
