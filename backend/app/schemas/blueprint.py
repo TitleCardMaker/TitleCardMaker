@@ -3,9 +3,16 @@
 from datetime import datetime
 from json import loads
 from re import sub as re_sub, IGNORECASE
-from typing import Any, Optional, Self
+from typing import Any, Self
 
-from pydantic import Field, PositiveInt, computed_field, field_validator, model_validator, root_validator
+from pydantic import (
+    Field,
+    PositiveInt,
+    computed_field,
+    field_validator,
+    model_validator,
+    root_validator,
+)
 
 from app.schemas.base import Base
 from app.schemas.font import TitleCase
@@ -15,37 +22,46 @@ from modules.CleanPath import CleanPath
 """
 Base classes
 """
-# class BlueprintBase(Base):
-#     @model_validator(mode='after')
-#     def delete_null_args(self) -> Self:
-#         delete_keys = [key for key, value in values.items() if value is None]
-#         for key in delete_keys:
-#             del values[key]
-
-#         return values
-
 class ConfigBase(Base): # Base of Series, Episodes, and Templates
     font_id: int | None = None
     card_type: str | None = None
     hide_season_text: bool | None = None
     hide_episode_text: bool | None = None
-    episode_text_format: str | None = None
-    translations: list[Translation] | None = None
-    season_title_ranges: list[SeasonTitleRange] | None = Field(exclude=True, default=None)
-    season_title_values: list[str] | None = Field(exclude=True, default=None)
     extra_keys: list[str] | None = Field(exclude=True, default=None)
-    extra_values: Optional[list[Any]] = Field(exclude=True, default=None)
-    skip_localized_images: bool | None = None
+    extra_values: list[Any] | None = Field(exclude=True, default=None)
 
     @computed_field
     def extras(self) -> dict[str, Any]:
         if self.extra_keys is None or self.extra_values is None:
             return {}
+
         return {
             key: value
             for key, value in zip(self.extra_keys, self.extra_values)
             if key and value
         }
+
+"""
+Creation classes
+"""
+class BlueprintSeries(ConfigBase):
+    template_ids: list[int] = []
+    match_titles: bool | None = None
+    auto_split_title: bool | None = None
+    font_color: str | None = None
+    font_title_case: TitleCase | None = None
+    font_size: float | None = None
+    font_kerning: float | None = None
+    font_stroke_width: float | None = None
+    font_interline_spacing: int | None = None
+    font_interword_spacing: int | None = None
+    font_vertical_shift: int | None = None
+    source_files: list[str] = []
+    episode_text_format: str | None = None
+    translations: list[Translation] | None = None
+    season_title_ranges: list[SeasonTitleRange] | None = Field(exclude=True, default=None)
+    season_title_values: list[str] | None = Field(exclude=True, default=None)
+    skip_localized_images: bool | None = None
 
     @computed_field
     def season_titles(self) -> dict[SeasonTitleRange, str]:
@@ -59,7 +75,7 @@ class ConfigBase(Base): # Base of Series, Episodes, and Templates
             if range and value
         }
 
-class BaseSeriesEpisode(ConfigBase): # Base of Series and Episodes
+class BlueprintEpisode(ConfigBase):
     template_ids: list[int] = []
     match_titles: bool | None = None
     auto_split_title: bool | None = None
@@ -71,14 +87,6 @@ class BaseSeriesEpisode(ConfigBase): # Base of Series and Episodes
     font_interline_spacing: int | None = None
     font_interword_spacing: int | None = None
     font_vertical_shift: int | None = None
-
-"""
-Creation classes
-"""
-class BlueprintSeries(BaseSeriesEpisode):
-    source_files: list[str] = []
-
-class BlueprintEpisode(BaseSeriesEpisode):
     title: str | None = None
     match_title: bool | None = None
     season_text: str | None = None
@@ -102,6 +110,23 @@ class BlueprintFont(Base):
 class BlueprintTemplate(ConfigBase):
     name: str
     filters: list[Condition] = []
+    episode_text_format: str | None = None
+    translations: list[Translation] | None = None
+    season_title_ranges: list[SeasonTitleRange] | None = Field(exclude=True, default=None)
+    season_title_values: list[str] | None = Field(exclude=True, default=None)
+    skip_localized_images: bool | None = None
+
+    @computed_field
+    def season_titles(self) -> dict[SeasonTitleRange, str]:
+        if self.season_title_ranges is None or self.season_title_values is None:
+            return {}
+        return {
+            range: value
+            for range, value in zip(
+                self.season_title_ranges, self.season_title_values
+            )
+            if range and value
+        }
 
 class Blueprint(Base):
     series: BlueprintSeries
