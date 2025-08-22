@@ -60,6 +60,15 @@ class TestingEmbyInterface:
         ) -> SourceImage:
         return None
 
+    def get_all_episodes(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
+        # TODO Populate with test data
+        return []
+
 
 class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     """
@@ -659,6 +668,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         return all_series
 
 
+    @testing_override(TestingEmbyInterface.get_all_episodes)
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
