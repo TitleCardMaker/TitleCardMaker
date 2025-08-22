@@ -170,18 +170,23 @@ function viewBlueprintSets(blueprintId) {
         for (let blueprint of set.blueprints.sort((a, b) => a.series.name.localeCompare(b.series.name))) {
           const elementId = `blueprint-set-id${blueprint.id}`;
           blueprint.set_ids = [];
-          const card = populateBlueprintCard(
-            blueprintTemplate.content.cloneNode(true), blueprint, elementId
-          );
-          // Remove blacklist button
-          card.querySelector('[data-action="blacklist"]').remove();
-
-          // Assign function to import button
-          if (card.querySelector('[data-action="import"]')) {
-            card.querySelector('[data-action="import"]').onclick = () => importBlueprint(blueprint.id, elementId);
-          }
-
-          bpCards.appendChild(card);
+          bpCards.appendChild(populateBlueprintCard({
+            card: blueprintTemplate.content.cloneNode(true),
+            blueprint,
+            blueprintId: elementId,
+            importCallback: () => importBlueprint(blueprint.id, elementId),
+            creatorCallback: () => {
+              $('input[name="blueprint_series_name"]').val(`by:${blueprint.creator}`).focus();
+              queryAllBlueprints();
+            },
+            searchSeriesCallback: () => {
+              $('#search-bar input').val(blueprint.series.name).focus();
+            },
+            filterSeriesCallback: () => {
+              $('input[name="blueprint_series_name"]').val(blueprint.series.name).focus();
+              queryAllBlueprints();
+            },
+          }));
         }
       }
 
