@@ -149,9 +149,9 @@ describe('Add Series Page', () => {
     it('should show pagination when there are many results', () => {
       // Click browse blueprints button
       cy.get('[data-action="browse-blueprints"]').click();
+      cy.get('#all-blueprint-results').should('be.visible');
 
-      // Pagination should be visible (even if empty)
-      cy.wait(150);
+      // Pagination should be visible
       cy.get('#blueprint-pagination').scrollIntoView().should('be.visible');
     });
   });
