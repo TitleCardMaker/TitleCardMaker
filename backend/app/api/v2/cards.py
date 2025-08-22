@@ -319,7 +319,6 @@ def get_recently_created_title_cards(
 def get_title_card(
         card_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> TitleCard:
     """
     Get the details of the given TitleCard.
@@ -327,7 +326,7 @@ def get_title_card(
     - card_id: ID of the TitleCard to get the details of.
     """
 
-    return get_card_with_cache(db, card_id, log=log) or get_card(db, card_id, raise_exc=True)
+    return db.get(Card, card_id)
 
 
 @card_router.post('/series/{series_id}', tags=['Series'])
@@ -602,16 +601,18 @@ def reload_card(
 def get_episode_cards(
         episode_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
-    ) -> Page[TitleCard]: # type: ignore
+    ) -> Page[TitleCard]:
     """
     Get all TitleCards for the given Episode.
 
     - episode_id: ID of the Episode to get the cards of.
     """
 
-    cards = get_episode_cards_with_cache(db, episode_id, log=log)
-    return paginate(cards)
+    return paginate(
+        db.query(Card)
+            .filter(Card.episode_id==episode_id)
+            .order_by(Card.library_name)
+    )
 
 
 @card_router.delete('/series/{series_id}', tags=['Series'])
