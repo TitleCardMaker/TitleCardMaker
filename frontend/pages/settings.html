@@ -64,10 +64,10 @@
             Please add a Connection on the <a href="/connections">Connections</a> page before configuring Settings.
           </div>
 
-          {% if preferences.available_version is not none and preferences.available_version > preferences.config.CURRENT_VERSION %}
+          {% if preferences.config.AVAILABLE_VERSION is not none and preferences.config.AVAILABLE_VERSION > preferences.config.CURRENT_VERSION %}
           <div class="ui floating compact info message">
             <i class="info circle icon"></i>
-            A new version of TitleCardMaker ({{ preferences.available_version }}) is available.
+            A new version of TitleCardMaker ({{ preferences.config.AVAILABLE_VERSION }}) is available.
           </div>
           <br>
           {% endif %}

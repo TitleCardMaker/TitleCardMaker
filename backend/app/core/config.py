@@ -104,6 +104,11 @@ class AppConfig(BaseSettings):
         'Whether executing in Docker mode'
     ] = False
 
+    AVAILABLE_VERSION: Annotated[
+        Version | None,
+        'The latest available version of TitleCardMaker'
+    ] = None
+
     CURRENT_VERSION: Annotated[
         Version,
         'The current version of TitleCardMaker'

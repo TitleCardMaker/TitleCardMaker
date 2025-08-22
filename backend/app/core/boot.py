@@ -222,7 +222,7 @@ def initialize_app(app: FastAPI) -> None:
 
     log = contextualize(logger)
 
-    settings.available_version = get_latest_version(raise_exc=False)
+    settings.config.AVAILABLE_VERSION = get_latest_version(raise_exc=False)
     settings.log_startup(log=log)
 
     initialize_root_directories(log=log)
