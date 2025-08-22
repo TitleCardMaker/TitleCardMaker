@@ -41,16 +41,16 @@ describe('Fonts Page', () => {
 
   describe('Font Creation and Management', () => {
     it('should create a new blank font when create button is clicked', () => {
-      cy.get('#create-font').click();
-
-      // Wait for font to be created and page to reload
-      cy.get('#fonts .ui.accordion').should('be.visible');
-
-      // Should have one font accordion
+      // Should have one Font initially
       cy.get('#fonts .ui.accordion').should('have.length', 1);
+
+      cy.get('#create-font').click();
 
       // Should show success message
       cy.get('.toast').should('contain', 'Created Font');
+
+      // Should have two Fonts
+      cy.get('#fonts .ui.accordion').should('have.length', 2);
     });
 
     it('should display font accordion with correct structure', () => {
