@@ -3,10 +3,10 @@ from re import IGNORECASE, match, compile as re_compile, sub as re_sub
 from typing import TYPE_CHECKING, TypedDict
 
 from plexapi.video import Show as PlexShow
-from sqlalchemy import ColumnElement, and_, func, or_
+from sqlalchemy import ColumnElement, and_, false as sql_false, func, or_
 
-from modules.CleanPath import CleanPath
 from app.info.base import DatabaseInfoContainer, InterfaceID
+from modules.CleanPath import CleanPath
 
 if TYPE_CHECKING:
     from app.models.series import Series
@@ -482,11 +482,30 @@ class SeriesInfo(DatabaseInfoContainer):
         if self.tvrage_id and hasattr(SeriesModel, 'tvrage_id'):
             id_conditions.append(SeriesModel.tvrage_id==self.tvrage_id)
 
+        # If >1 ID condition is present, require any two ID match to
+        # prevent failed matches caused by single ID collision
+        expressions: list[ColumnElement[bool]] = []
+        if len(id_conditions) >= 2:
+            for i, condition in enumerate(id_conditions):
+                for j in range(i + 1, len(id_conditions)):
+                    expressions.append(and_(condition, id_conditions[j]))
+
         return or_(
-            # Find by database ID
-            or_(*id_conditions),
-            # Find by title and year
-            and_(SeriesModel.name==self.name, SeriesModel.year==self.year),
+            # At least two ID matches; add false() in case no expressions
+            or_(sql_false(), *expressions),
+            # Any single ID match and name OR year match
+            and_(
+                or_(sql_false(), *id_conditions),
+                or_(
+                    SeriesModel.name==self.name,
+                    SeriesModel.year==self.year,
+                )
+            ),
+            # Name and year both match
+            and_(
+                SeriesModel.name==self.name,
+                SeriesModel.year==self.year,
+            ),
         )
 
 
