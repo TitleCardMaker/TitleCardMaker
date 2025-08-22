@@ -1094,10 +1094,10 @@ def get_series_cards(db: Session, series_id: int) -> list[Card]:
 
 
 @cache_result(cache_type='card', ttl=Hours(12))
-def get_series_cards_reduced_with_cache(
+def get_series_reduced_cards_with_cache(
         db: Session,
         series_id: int,
-    ) -> list[dict]:
+    ) -> list[TitleCardReduced]:
     """
     # TODO: Document function.
     """
@@ -1127,77 +1127,6 @@ def get_series_cards_reduced_with_cache(
 
     # Convert to reduced format
     return [
-        TitleCardReduced.model_validate(card).model_dump()
+        TitleCardReduced.model_validate(card)
         for card in cards
     ]
-
-
-def get_episode_cards_with_cache(
-        db: Session,
-        episode_id: int,
-        *,
-        log: Logger = log,
-    ) -> list[Card]:
-    """
-    Get all cards for an episode with caching support.
-    
-    Args:
-        db: Database session
-        episode_id: Episode ID
-        log: Logger instance
-        
-    Returns:
-        List of Card objects
-    """
-    # Try to get from cache first
-    cache_key = f"episode_cards:{episode_id}"
-    cache_manager = get_cache_manager('card')
-    cached_cards = cache_manager.get(cache_key)
-    
-    if cached_cards is not None:
-        log.debug(f'Retrieved cards for episode {episode_id} from cache')
-        return cached_cards
-    
-    # Get from database
-    cards = db.query(Card)\
-        .filter_by(episode_id=episode_id)\
-        .order_by(Card.library_name)\
-        .all()
-    
-    # Cache the cards
-    cache_manager.set(cache_key, cards, ttl=3600)  # 1 hour
-    log.debug(f'Cached cards for episode {episode_id}')
-    
-    return cards
-
-
-def get_card_with_cache(
-        db: Session,
-        card_id: int,
-        *,
-        log: Logger = log,
-    ) -> Card | None:
-    """
-    Get a specific card with caching support.
-    
-    Args:
-        db: Database session
-        card_id: Card ID
-        log: Logger instance
-        
-    Returns:
-        Card object or None if not found
-    """
-
-    # Try to get from cache first
-    if (cached_card := get_cached_card_data(card_id)) is not None:
-        log.debug(f'Retrieved card {card_id} from cache')
-        return cached_card
-
-    # Get from database
-    if (card := db.query(Card).filter_by(id=card_id).first()) is not None:
-        # Cache the card
-        cache_card_data(card_id, card, ttl=3600)  # 1 hour
-        log.debug(f'Cached card {card_id}')
-
-    return card

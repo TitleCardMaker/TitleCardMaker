@@ -24,9 +24,7 @@ from app.core.cards import (
     resolve_card_settings,
     validate_card_type_model,
     get_series_cards,
-    get_series_cards_reduced_with_cache,
-    get_episode_cards_with_cache,
-    get_card_with_cache,
+    get_series_reduced_cards_with_cache,
 )
 from app.core.config import INTERNAL_ASSET_DIRECTORY
 from app.core.episodes import update_episode_config
@@ -387,7 +385,7 @@ def get_series_cards_reduced_models(
     - series_id: ID of the Series to get the cards of.
     """
 
-    return paginate_sequence(get_series_cards_reduced_with_cache(db, series_id))
+    return paginate_sequence(get_series_reduced_cards_with_cache(db, series_id))
 
 
 @card_router.put('/series/{series_id}/load/all', deprecated=True)
