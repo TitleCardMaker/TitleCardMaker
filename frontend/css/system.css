@@ -188,31 +188,7 @@ body:not(.dark) .ui.relaxed.divided.list .item .header i.icon {
   opacity: 0.7;
 }
 
-/* Enhanced table styling for backups */
-#system-backups {
-  margin-top: 1rem;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-#system-backups thead th {
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-  font-weight: 600;
-  color: #ffffff;
-}
-
-#system-backups tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
 /* Light theme table support */
-body:not(.dark) #system-backups thead th {
-  background: rgba(0, 0, 0, 0.05);
-  border-bottom-color: rgba(0, 0, 0, 0.1);
-  color: #2c3e50;
-}
 
 body:not(.dark) #system-backups tbody tr:hover {
   background: rgba(0, 0, 0, 0.03);
