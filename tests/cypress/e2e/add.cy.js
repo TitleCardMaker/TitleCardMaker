@@ -141,8 +141,6 @@ describe('Add Series Page', () => {
     it('should show blueprint results when browsing', () => {
       // Click browse blueprints button
       cy.get('[data-action="browse-blueprints"]').click();
-
-      // Results section should be visible
       cy.get('#all-blueprint-results').should('be.visible');
     });
 
@@ -286,8 +284,6 @@ describe('Add Series Page', () => {
     it('should show blueprint actions popup when ellipsis is clicked', () => {
       // Click browse blueprints to get results
       cy.get('[data-action="browse-blueprints"]').click();
-      
-      // Look for blueprint cards with actions
       cy.get('#all-blueprint-results').should('be.visible');
       
       // If there are blueprint cards, test the actions popup
@@ -312,8 +308,6 @@ describe('Add Series Page', () => {
 
       // Click browse blueprints
       cy.get('[data-action="browse-blueprints"]').click();
-
-      // Blueprint cards should be visible
       cy.get('#all-blueprint-results').should('be.visible');
 
       // Blueprint cards should contain the creator's name
@@ -324,6 +318,7 @@ describe('Add Series Page', () => {
       cy.get('#blueprint-filter').type('Legend of the Galactic Heroes');
       // Click browse blueprints
       cy.get('[data-action="browse-blueprints"]').click();
+      cy.get('#all-blueprint-results').should('be.visible');
       
       // Find CollinHeist's blueprint, is associated with a Set
       cy.get('#all-blueprint-results .ui.raised.blueprint.card .content .meta').contains('CollinHeist').get('[data-label="set-count"]').first().click();
@@ -495,8 +490,6 @@ describe('Add Series Page', () => {
       // Browse blueprints
       cy.get('#blueprint-filter').type('Mr. Robot');
       cy.get('[data-action="browse-blueprints"]').click();
-
-      // Wait for results
       cy.get('#all-blueprint-results').should('be.visible');
 
       // Intercept API call
@@ -525,8 +518,6 @@ describe('Add Series Page', () => {
       // Browse blueprints for Mr. Robot
       cy.get('#blueprint-filter').clear().type('Mr. Robot');
       cy.get('[data-action="browse-blueprints"]').click();
-
-      // Wait for results
       cy.get('#all-blueprint-results').should('be.visible');
 
       // Get the count of blueprints before hiding
@@ -557,8 +548,6 @@ describe('Add Series Page', () => {
         // Browse blueprints again
         cy.get('#blueprint-filter').clear().type('Mr. Robot');
         cy.get('[data-action="browse-blueprints"]').click();
-
-        // Wait for results
         cy.get('#all-blueprint-results').should('be.visible');
 
         // Verify the hidden blueprint is still not visible after reload
