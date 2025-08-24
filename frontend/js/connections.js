@@ -70,6 +70,41 @@ async function getAvailableLanguages() {
 }
 
 /**
+ * Format the given FastAPI response object into a single string.
+ * @param {Object} errorResponse - AJAX response from to format.
+ * @param {string | Object} errorResponse.detail - Details of the FastAPI error
+ * to add to the return.
+ * @returns {string} Formatted HTML string representation of the given response.
+ * @example
+ * describeErrorsHTML({detail: [{loc: ['body', 'name'], msg: 'Name is required'}]})
+ * // returns '<ul class="list"><li><strong>Name</strong>: Name is required</li></ul>'
+ */
+function describeErrorsHTML(errorObj) {
+  if (!errorObj || !Array.isArray(errorObj.detail)) {
+    return 'No errors found.';
+  }
+
+  const toTitleCase = str =>
+    str.replace(/_/g, " ")
+       .replace(/\w\S*/g, word => word.charAt(0).toUpperCase() + word.slice(1));
+
+  const items = errorObj.detail.map(err => {
+    let loc = [...err.loc];
+
+    // Strip "body" prefix if present
+    if (loc.length > 0 && loc[0] === "body") {
+      loc = loc.slice(1);
+    }
+
+    const field =toTitleCase(loc.join(" "));
+
+    return `<li><strong>${field}</strong>: ${err.msg}</li>`;
+  }).join("");
+
+  return `<ul class="list">${items}</ul>`;
+}   
+
+/**
  * Submit the API request to enable authentication. If successful the page is
  * redirected to the login page with a callback to redirect back here if the
  * subsequent login is successful.
@@ -1058,7 +1093,7 @@ function addConnection(connectionType) {
   template.querySelector('.content').classList.add('active');
 
   // Turn save button into create
-  template.querySelector('button[data-action="save"] > .visible.content').innerText = 'Create';
+  template.querySelector('button[data-action="save"]').innerHTML = '<i class="add icon"></i> Create';
   
   // Assign post API request to form submission
   template.querySelector('form').onsubmit = (event) => {
@@ -1080,9 +1115,15 @@ function addConnection(connectionType) {
        */
       success: newConnection => {
         showInfoToast({title:`Created Connection "${newConnection.name}"`, message: 'Reloading page..'});
+        document.getElementById(formId).classList.remove('error');
         setTimeout(() => window.location.reload(), 2000);
       },
-      error: response => showErrorToast({title: 'Error Creating Connection', response}),
+      error: response => {
+        showErrorToast({title: 'Error Creating Connection', response});
+        // Update error message in the Form
+        document.querySelector(`#${formId} .error.message p`).innerHTML = describeErrorsHTML(response.responseJSON);
+        document.getElementById(formId).classList.add('error');
+      },
     });
   };
 
