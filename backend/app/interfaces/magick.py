@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from os import environ, name as os_name
+from os import name as os_name
 from pathlib import Path
 from random import choices as random_choices
 from re import findall, compile as re_compile
@@ -44,14 +44,20 @@ class ImageMagickInterface:
         -dit -v "/mnt/user/":"/mnt/user/" 'dpokidov/imagemagick'
     """
 
-    """How long to wait before terminating a command as timed out"""
-    COMMAND_TIMEOUT_SECONDS = 60
+    COMMAND_TIMEOUT_SECONDS: Annotated[
+        int,
+        'How long to wait before terminating a command as timed out'
+    ] = 60
 
-    """Default quality for image creation"""
-    DEFAULT_CARD_QUALITY = 95
+    DEFAULT_CARD_QUALITY: Annotated[
+        int,
+        'Default quality for image creation'
+    ] = 95
 
-    """Directory for all temporary images created during image creation"""
-    TEMP_DIR = Path(__file__).parent / '.objects'
+    TEMP_DIR: Annotated[
+        ClassVar[Path],
+        'Directory for all temporary images created during image creation'
+    ] = Path(__file__).parent / '.objects'
 
     TEMPORARY_SVG_FILE: Annotated[
         ClassVar[Path],
@@ -63,11 +69,15 @@ class ImageMagickInterface:
         'Temporary file location for image compression'
     ] = TEMP_DIR / 'temp_compression'
 
-    """Characters that must be escaped in commands"""
-    __REQUIRED_ESCAPE_CHARACTERS = ('\\', '"', '`', '%')
+    __REQUIRED_ESCAPE_CHARACTERS: Annotated[
+        tuple[str, ...],
+        'Characters that must be escaped in commands'
+    ] = ('\\', '"', '`', '%')
 
-    """Substrings that must be present in --version output"""
-    __REQUIRED_VERSION_SUBSTRINGS = ('Version','Copyright','License','Features')
+    __REQUIRED_VERSION_SUBSTRINGS: Annotated[
+        tuple[str, ...],
+        'Substrings that must be present in --version output'
+    ] = ('Version','Copyright','License','Features')
 
     __slots__ = (
         'container',
@@ -98,7 +108,7 @@ class ImageMagickInterface:
         """
 
         # Definitions of this interface
-        self.container = environ.get('TCM_IM_DOCKER', container)
+        self.container = container
         self.use_docker = bool(self.container)
         self.prefix = 'magick ' if use_magick_prefix else ''
         self.executable = str(executable) if executable else None
