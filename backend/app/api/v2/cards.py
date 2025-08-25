@@ -408,45 +408,6 @@ def load_all_series_title_cards_(
     load_all_series_title_cards(series, db, force_reload=reload, log=log)
 
 
-@card_router.put('/series/{series_id}/load/library', deprecated=True)
-def load_series_title_cards_into_library(
-        series_id: int,
-        interface_id: int = Query(...),
-        library_name: str = Query(...),
-        reload: bool = Query(default=False),
-        db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
-    ) -> None:
-    """
-    Load the Title Cards for the given Series into the library with the
-    given index.
-
-    - series_id: ID of the Series whose Cards are being loaded.
-    - interface_id: ID of the interface whose library is being loaded.
-    - library_name: Name of the library in the given interface to load
-    the Title Cards into.
-    - reload: Whether to "force" reload all Cards, even those that have
-    already been loaded. If false, only Cards that have not been loaded
-    previously (or that have changed) are loaded.
-    """
-
-    # Get this Series and Interface, raise 404 if DNE
-    series = get_series(db, series_id, raise_exc=True)
-    interface = get_interface(interface_id, raise_exc=True)
-
-    # Verify the interface ID was a valid type
-    if interface.INTERFACE_TYPE not in ('Emby', 'Jellyfin', 'Plex'):
-        raise HTTPException(
-            status_code=400,
-            detail='Cannot load Cards into a non-media-server Connection'
-        )
-
-    # Load Cards
-    load_series_title_cards(
-        series, library_name, interface_id, db, interface, reload, log=log,
-    )
-
-
 @card_router.put('/series/{series_id}/load', tags=['Series'])
 def load_series_title_cards_(
         series_id: int,
