@@ -2376,7 +2376,7 @@ function executeSelectiveReload() {
     loadCardsForSeason(interfaceId, libraryName, seasonNumber, forceReload, () => {
       completedSeasons++;
       if (completedSeasons === totalSeasons) {
-        showInfoToast(`Reloaded ${totalSeasons} season(s)`);
+        showInfoToast(`Reloaded ${totalSeasons} Season` + (totalSeasons === 1 ? '' : 's'));
         getStatistics();
         removeLoadingIcon($icon);
       }
