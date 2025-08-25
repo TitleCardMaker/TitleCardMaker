@@ -39,6 +39,9 @@ class TestingJellyfinInterface:
     def _map_libraries(self) -> dict[str, str]:
         return { 'TV': 'abc', 'TV 4K': 'def', 'Anime': 'abcdef' }
 
+    def get_usernames(self) -> list[str]:
+        return ['Admin', 'User']
+
 
 class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     """
@@ -416,6 +419,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
         return series_id, self.__get_episode_id(library_name, series_id, episode_info)
 
 
+    @testing_override(TestingJellyfinInterface.get_usernames)
     def get_usernames(self) -> list[str]:
         """
         Get all the usernames for this interface's Jellyfin server.

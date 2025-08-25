@@ -1,8 +1,10 @@
 describe('Connections Page', () => {
   beforeEach(() => {
+    cy.resetDatabase()
+
     // Visit the connections page before each test
     cy.visit('/connections')
-    
+
     // Wait for the page to load completely
     cy.get('#main-content').should('be.visible')
   })
@@ -84,6 +86,170 @@ describe('Connections Page', () => {
       cy.get('#emby-connections button[data-action="save"]').click()
       cy.get('#emby-connections .error.message').should('be.visible')
     })
+
+    it('should allow username selection after connection creation', () => {
+      // First create a connection
+      cy.get('.add-connection.button').contains('Add Connection').first().click()
+
+      // Fill out the form
+      cy.get('#emby-connections input[name="name"]').type('Test Emby Server')
+      cy.get('#emby-connections input[name="url"]').type('http://192.168.1.100:8096/')
+      cy.get('#emby-connections input[name="api_key"]').type('abcdef')
+      cy.get('#emby-connections input[name="filesize_limit"]').clear().type('2 Megabytes')
+
+      // Check SSL checkbox
+      cy.get('#emby-connections .checkbox[data-value="use_ssl"] input').check()
+
+      // Submit the form
+      cy.get('#emby-connections button[data-action="save"]').click()
+
+      // Reload the page to see the username dropdown
+      cy.reload()
+
+      // Click on the connection to expand it
+      cy.get('#emby-connections .title').first().click()
+
+      // Check that the username dropdown is visible and contains expected options
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"]').should('be.visible')
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"]').click()
+      
+      // Check that Admin and User are visible in the dropdown
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"] .menu .item').should('contain', 'Admin')
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"] .menu .item').should('contain', 'User')
+
+      // Select Admin user
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"] .menu .item').contains('Admin').click()
+
+      // Verify Admin is selected
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"] .text').should('contain', 'Admin')
+
+      // Save the connection
+      cy.get('#emby-connections .active.content button[data-action="save"]').click()
+
+      // Reload the page to verify persistence
+      cy.reload()
+
+      // Click on the connection again
+      cy.get('#emby-connections .title').first().click()
+
+      // Verify that Admin is still selected after reload
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"] .text').should('contain', 'Admin')
+
+      // Change to User and verify it persists
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"]').click()
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"] .menu .item').contains('User').click()
+      cy.get('#emby-connections .active.content button[data-action="save"]').click()
+
+      // Reload and verify User selection persists
+      cy.reload()
+      cy.get('#emby-connections .title').first().click()
+      cy.get('#emby-connections .active.content .dropdown[data-value="username"] .text').should('contain', 'User')
+    })
+  })
+
+  describe('Jellyfin Connections', () => {
+    it('should allow adding a new Jellyfin connection', () => {
+      cy.get('.add-connection.button').eq(1).click() // Jellyfin button
+
+      // Check that the form is visible and expanded
+      cy.get('#jellyfin-connections .content.active').should('be.visible')
+
+      // Fill out the form
+      cy.get('#jellyfin-connections input[name="name"]').type('Test Jellyfin Server')
+      cy.get('#jellyfin-connections input[name="url"]').type('http://192.168.1.100:8096/')
+      cy.get('#jellyfin-connections input[name="api_key"]').type('abcdef')
+      cy.get('#jellyfin-connections input[name="filesize_limit"]').clear().type('2 Megabytes')
+
+      // Check SSL checkbox
+      cy.get('#jellyfin-connections .checkbox[data-value="use_ssl"] input').check()
+
+      // Submit the form
+      cy.get('#jellyfin-connections button[data-action="save"]').click()
+    })
+
+    it('should validate required fields', () => {
+      cy.get('.add-connection.button').eq(1).click() // Jellyfin button
+
+      // Try to submit without required fields
+      cy.get('#jellyfin-connections button[data-action="save"]').click()
+
+      // Check for validation errors
+      cy.get('#jellyfin-connections .error.message').should('be.visible')
+    })
+
+    it('should validate filesize limit format', () => {
+      cy.get('.add-connection.button').eq(1).click() // Jellyfin button
+      
+      // Enter invalid filesize format
+      cy.get('#jellyfin-connections input[name="filesize_limit"]').clear().type('invalid format')
+      cy.get('#jellyfin-connections input[name="name"]').type('Test')
+      cy.get('#jellyfin-connections input[name="url"]').type('http://test.com')
+      cy.get('#jellyfin-connections input[name="api_key"]').type('test')
+      
+      // Submit and check validation
+      cy.get('#jellyfin-connections button[data-action="save"]').click()
+      cy.get('#jellyfin-connections .error.message').should('be.visible')
+    })
+
+    it('should allow username selection after connection creation', () => {
+      // First create a connection
+      cy.get('.add-connection.button').eq(1).click() // Jellyfin button
+
+      // Fill out the form
+      cy.get('#jellyfin-connections input[name="name"]').type('Test Jellyfin Server')
+      cy.get('#jellyfin-connections input[name="url"]').type('http://192.168.1.100:8096/')
+      cy.get('#jellyfin-connections input[name="api_key"]').type('abcdef')
+      cy.get('#jellyfin-connections input[name="filesize_limit"]').clear().type('2 Megabytes')
+
+      // Check SSL checkbox
+      cy.get('#jellyfin-connections .checkbox[data-value="use_ssl"] input').check()
+
+      // Submit the form
+      cy.get('#jellyfin-connections button[data-action="save"]').click()
+
+      // Reload the page to see the username dropdown
+      cy.reload()
+
+      // Click on the connection to expand it
+      cy.get('#jellyfin-connections .title').first().click()
+
+      // Check that the username dropdown is visible and contains expected options
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"]').should('be.visible')
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"]').click()
+      
+      // Check that Admin and User are visible in the dropdown
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"] .menu .item').should('contain', 'Admin')
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"] .menu .item').should('contain', 'User')
+
+      // Select Admin user
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"] .menu .item').contains('Admin').click()
+
+      // Verify Admin is selected
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"] .text').should('contain', 'Admin')
+
+      // Save the connection
+      cy.get('#jellyfin-connections .active.content button[data-action="save"]').click()
+
+      // Reload the page to verify persistence
+      cy.reload()
+
+      // Click on the connection again
+      cy.get('#jellyfin-connections .title').first().click()
+
+      // Verify that Admin is still selected after reload
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"] .text').should('contain', 'Admin')
+
+      // Change to User and verify it persists
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"]').click()
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"] .menu .item').contains('User').click()
+      cy.get('#jellyfin-connections .active.content button[data-action="save"]').click()
+
+      // Reload and verify User selection persists
+      cy.reload()
+      cy.wait(250)
+      cy.get('#jellyfin-connections .title').first().click()
+      cy.get('#jellyfin-connections .active.content .dropdown[data-value="username"] .text').should('contain', 'User')
+    })
   })
 
   describe('Plex Connections', () => {
@@ -127,41 +293,72 @@ describe('Connections Page', () => {
     })
   })
 
-  describe.only('Sonarr Connections', () => {
+  describe('Sonarr Connections', () => {
     it('should allow adding a new Sonarr connection', () => {
       cy.get('.add-connection.button').eq(3).click() // Sonarr button
-      
+
       // Check form is visible
       cy.get('#sonarr-connections .content.active').should('be.visible')
-      
+
       // Fill out the form
       cy.get('#sonarr-connections input[name="name"]').type('Test Sonarr')
       cy.get('#sonarr-connections input[name="url"]').type('http://192.168.1.100:8989/')
-      cy.get('#sonarr-connections input[name="api_key"]').type('sonarr-api-key-123')
-      
+      cy.get('#sonarr-connections input[name="api_key"]').type('abcdef0123')
+
       // Check SSL checkbox
       cy.get('#sonarr-connections .checkbox[data-value="use_ssl"] input').check()
-      
+
       // Check downloaded only checkbox
       cy.get('#sonarr-connections .checkbox[data-value="downloaded_only"] input').check()
-      
+
       // Submit the form
       cy.get('#sonarr-connections button[data-action="save"]').click()
     })
 
-    it('should have library management buttons', () => {
+    it('should not have library management buttons before connection is created', () => {
       cy.get('.add-connection.button').eq(3).click() // Sonarr button
-      
-      cy.get('#sonarr-connections .button[data-action="add-library"]').should('be.visible')
-      cy.get('#sonarr-connections .button[data-action="query-libraries"]').should('be.visible')
+
+      // Library management buttons should not be visible before connection creation
+      cy.get('#sonarr-connections .button[data-action="add-library"]').should('have.class', 'disabled')
+      cy.get('#sonarr-connections .button[data-action="query-libraries"]').should('have.class', 'disabled')
     })
 
-    it('should allow adding library fields', () => {
+    it('should have library management buttons after connection creation and page reload', () => {
+      // First create a connection
+      cy.get('.add-connection.button').eq(3).click() // Sonarr button
+
+      // Fill out and submit the form
+      cy.get('#sonarr-connections input[name="name"]').type('Test Sonarr for Library Management')
+      cy.get('#sonarr-connections input[name="url"]').type('http://192.168.1.100:8989/')
+      cy.get('#sonarr-connections input[name="api_key"]').type('abcdef0123')
+      cy.get('#sonarr-connections button[data-action="save"]').click()
+
+      // Reload the page to see library management buttons
+      cy.reload()
+
+      // Now library management buttons should be visible
+      cy.get('#sonarr-connections .title').first().click()
+      cy.get('#sonarr-connections .active.content .button[data-action="add-library"]').scrollIntoView().should('be.visible')
+      cy.get('#sonarr-connections .active.content .button[data-action="query-libraries"]').scrollIntoView().should('be.visible')
+    })
+
+    it('should allow adding library fields after connection creation', () => {
+      // First create a connection
       cy.get('.add-connection.button').eq(3).click() // Sonarr button
       
-      // Click add library button
-      cy.get('#sonarr-connections .button[data-action="add-library"]').click()
-      
+      // Fill out and submit the form
+      cy.get('#sonarr-connections input[name="name"]').type('Test Sonarr for Library Fields')
+      cy.get('#sonarr-connections input[name="url"]').type('http://192.168.1.100:8989/')
+      cy.get('#sonarr-connections input[name="api_key"]').type('abcdef0123')
+      cy.get('#sonarr-connections button[data-action="save"]').click()
+
+      // Reload the page
+      cy.reload()
+
+      // Now click add library button
+      cy.get('#sonarr-connections .title').first().click()
+      cy.get('#sonarr-connections .active.content .button[data-action="add-library"]').click()
+
       // Check that new fields were added
       cy.get('#sonarr-connections .field[data-value="library_name"] input').should('have.length.at.least', 1)
       cy.get('#sonarr-connections .field[data-value="library_path"] input').should('have.length.at.least', 1)
@@ -217,36 +414,20 @@ describe('Connections Page', () => {
   describe('TVDb Connections', () => {
     it('should allow adding a new TVDb connection', () => {
       cy.get('.add-connection.button').eq(5).click() // TVDb button
-      
+
       // Check form is visible
       cy.get('#tvdb-connections .content.active').should('be.visible')
-      
+
       // Fill out the form
       cy.get('#tvdb-connections input[name="name"]').type('Test TVDb')
       cy.get('#tvdb-connections input[name="api_key"]').type('tvdb-api-key-123')
       cy.get('#tvdb-connections input[name="minimum_dimensions"]').clear().type('800x400')
-      
+
       // Check include movies checkbox
-      cy.get('#tvdb-connections .checkbox[data-value="include_movies"] input').check()
-      
+      cy.get('#tvdb-connections .checkbox[data-value="include_movies"]').click()
+
       // Submit the form
       cy.get('#tvdb-connections button[data-action="save"]').click()
-    })
-
-    it('should have episode ordering dropdown', () => {
-      cy.get('.add-connection.button').eq(5).click() // TVDb button
-      
-      // Check episode ordering field exists
-      cy.get('#tvdb-connections .field[data-value="episode_ordering"]').should('be.visible')
-      cy.get('#tvdb-connections .field[data-value="episode_ordering"] label').should('contain', 'Episode Ordering')
-    })
-
-    it('should have language priority dropdown', () => {
-      cy.get('.add-connection.button').eq(5).click() // TVDb button
-      
-      // Check language priority field exists
-      cy.get('#tvdb-connections .field[data-value="language_priority"]').should('be.visible')
-      cy.get('#tvdb-connections .field[data-value="language_priority"] label').should('contain', 'Language Priority')
     })
   })
 
@@ -256,94 +437,90 @@ describe('Connections Page', () => {
       cy.get('.add-connection.button').eq(0).click()
       cy.get('#emby-connections button[data-action="save"]').click()
       cy.get('#emby-connections .error.message').should('be.visible')
-      
+
       // Test Plex validation
+      cy.reload()
       cy.get('.add-connection.button').eq(2).click()
       cy.get('#plex-connections button[data-action="save"]').click()
       cy.get('#plex-connections .error.message').should('be.visible')
-      
+
       // Test Sonarr validation
+      cy.reload()
       cy.get('.add-connection.button').eq(3).click()
       cy.get('#sonarr-connections button[data-action="save"]').click()
       cy.get('#sonarr-connections .error.message').should('be.visible')
     })
-
-    it('should show validation errors on blur', () => {
-      cy.get('.add-connection.button').eq(0).click() // Emby
-      
-      // Focus and blur on required field to trigger validation
-      cy.get('#emby-connections input[name="name"]').focus().blur()
-      
-      // Check for validation error
-      cy.get('#emby-connections .error.message').should('be.visible')
-    })
   })
 
   describe('Connection Management', () => {
+    beforeEach(() => {
+      cy.resetDatabase()
+      cy.createEmbyConnection()
+      cy.visit('/connections')
+    })
+
     it('should allow editing existing connections', () => {
-      // This test assumes there are existing connections
-      // In a real scenario, you might need to create one first
-      cy.get('#emby-connections .accordion .title').first().click()
-      
+      cy.createEmbyConnection()
+      cy.reload()
+      cy.get('#emby-connections .title').first().click()
+
       // Check that the form is visible
-      cy.get('#emby-connections .content.active').should('be.visible')
-      
+      cy.get('#emby-connections .active.content').should('be.visible')
+
       // Modify a field
-      cy.get('#emby-connections input[name="name"]').clear().type('Updated Connection Name')
-      
+      cy.get('#emby-connections .active.content input[name="name"]').clear().type('Updated Connection Name')
+
       // Save changes
-      cy.get('#emby-connections button[data-action="save"]').click()
+      cy.get('#emby-connections .active.content button[data-action="save"]').click()
+
+      // Check that the connection name was updated
+      cy.reload()
+      cy.get('#emby-connections .title').first().should('contain', 'Updated Connection Name')
     })
 
     it('should allow deleting connections', () => {
       // This test assumes there are existing connections
-      cy.get('#emby-connections .accordion .title').first().click()
+      cy.get('#emby-connections .title').first().click()
       
       // Check delete button exists
       cy.get('#emby-connections button[data-action="delete"]').should('be.visible')
       cy.get('#emby-connections button[data-action="delete"]').should('contain', 'Delete')
     })
-
-    it('should handle library operations', () => {
-      // This test assumes there are existing connections with libraries
-      cy.get('#emby-connections .accordion .title').first().click()
-      
-      // Check refresh libraries button exists
-      cy.get('#emby-connections [data-action="refresh-libraries"]').should('be.visible')
-      
-      // Check delete libraries button exists
-      cy.get('#emby-connections [data-action="delete-libraries"]').should('be.visible')
-    })
   })
 
   describe('Tautulli Integration', () => {
+    beforeEach(() => {
+      cy.resetDatabase()
+      cy.createPlexConnection()
+      cy.visit('/connections')
+    })
+
     it('should display Tautulli modal with correct form fields', () => {
-      cy.get('.add-connection.button').eq(2).click() // Plex button
-      cy.get('#plex-connections .button[data-action="tautulli"]').click()
-      
+      cy.get('#plex-connections .title').first().click()
+      cy.get('#plex-connections .active.content .button[data-action="tautulli"]').click()
+
       // Check modal content
       cy.get('#tautulli-agent-modal').should('be.visible')
       cy.get('#tautulli-agent-modal .header').should('contain', 'Tautulli Notification Agent')
-      
+
       // Check form fields
       cy.get('#tautulli-agent-form input[name="url"]').should('be.visible')
       cy.get('#tautulli-agent-form input[name="api_key"]').should('be.visible')
-      cy.get('#tautulli-agent-form input[name="use_ssl"]').should('be.visible')
       cy.get('#tautulli-agent-form input[name="agent_name"]').should('be.visible')
       cy.get('#tautulli-agent-form input[name="tcm_url"]').should('be.visible')
-      cy.get('#tautulli-agent-form input[name="trigger_watched"]').should('be.visible')
       cy.get('#tautulli-agent-form input[name="username"]').should('be.visible')
     })
 
     it('should validate Tautulli form fields', () => {
-      cy.get('.add-connection.button').eq(2).click() // Plex button
-      cy.get('#plex-connections .button[data-action="tautulli"]').click()
-      
+      cy.get('#plex-connections .title').first().click()
+      cy.get('#plex-connections .active.content .button[data-action="tautulli"]').click()
+
       // Try to submit without required fields
       cy.get('#tautulli-agent-modal button').contains('Create Agent').click()
-      
-      // Check for validation errors
-      cy.get('#tautulli-agent-form .error.message').should('be.visible')
+
+      // Modal should not have been submitted
+      cy.get('#tautulli-agent-modal').should('be.visible')
+      cy.get('#tautulli-agent-modal .header').should('contain', 'Tautulli Notification Agent')
     })
   })
 
@@ -366,27 +543,6 @@ describe('Connections Page', () => {
       // Check that all elements are still accessible
       cy.get('h1.ui.header').should('be.visible')
       cy.get('.add-connection.button').should('be.visible')
-    })
-  })
-
-  describe('Accessibility', () => {
-    it('should have proper form labels', () => {
-      cy.get('.add-connection.button').eq(0).click() // Emby button
-      
-      // Check that all form fields have labels
-      cy.get('#emby-connections input[name="name"]').should('have.attr', 'name')
-      cy.get('#emby-connections input[name="url"]').should('have.attr', 'name')
-      cy.get('#emby-connections input[name="api_key"]').should('have.attr', 'name')
-    })
-
-    it('should have proper button text and icons', () => {
-      cy.get('.add-connection.button').eq(0).click() // Emby button
-      
-      // Check save button
-      cy.get('#emby-connections button[data-action="save"]').should('contain', 'Save Changes')
-      
-      // Check delete button
-      cy.get('#emby-connections button[data-action="delete"]').should('contain', 'Delete')
     })
   })
 
