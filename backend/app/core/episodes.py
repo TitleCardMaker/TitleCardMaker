@@ -4,7 +4,15 @@ from pathlib import Path
 from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session, load_only
 
-from app.db.query import get_all_templates, get_font, get_interface
+from app.core.cache import (
+    cache_result,
+    invalidate_series_cache,
+)
+from app.db.query import (
+    get_all_templates,
+    get_font,
+    get_interface,
+)
 from app.dependencies import (
     get_sonarr_interfaces,
     get_tmdb_interfaces,
@@ -26,14 +34,7 @@ from app.schemas.base import UNSPECIFIED
 from app.schemas.episode import UpdateEpisode
 from app.settings import settings
 from modules.TieredSettings import TieredSettings
-from app.core.cache import (
-    cache_series_episodes,
-    get_cached_series_episodes,
-    cache_episode_data,
-    get_cached_episode_data,
-    get_cache_manager,
-    invalidate_series_cache,
-)
+from app.schemas.schedule import Hours
 
 
 def set_episode_ids(
@@ -354,6 +355,7 @@ def update_episode_config(
     return changed
 
 
+@cache_result(ttl=Hours(0.25), key_prefix='series')  # 15 minutes
 def get_series_episodes_with_cache(
         db: Session,
         series_id: int,
@@ -372,25 +374,18 @@ def get_series_episodes_with_cache(
         List of Episode objects
     """
 
-    # Try to get from cache first
-    cached_episodes = get_cached_series_episodes(series_id)
-    if cached_episodes is not None:
-        log.debug(f'Retrieved {len(cached_episodes)} episodes for series {series_id} from cache')
-        return cached_episodes
-
     # Get from database
     episodes = db.query(Episode)\
         .filter_by(series_id=series_id)\
         .order_by(Episode.season_number, Episode.episode_number)\
         .all()
 
-    # Cache the episodes
-    cache_series_episodes(series_id, episodes, ttl=900)  # 15 minutes
-    log.debug(f'Cached {len(episodes)} episodes for series {series_id}')
+    log.debug(f'Retrieved {len(episodes)} episodes for series {series_id} from database')
 
     return episodes
 
 
+@cache_result(ttl=Hours(0.25), key_prefix='series')  # 15 minutes
 def get_series_episodes_simplified_with_cache(
         db: Session,
         series_id: int,
@@ -408,15 +403,6 @@ def get_series_episodes_simplified_with_cache(
     Returns:
         List of simplified episode data dictionaries
     """
-    # Try to get from cache first
-    cache_key = f"series_episodes_simplified:{series_id}"
-    cache_manager = get_cache_manager('episode')
-    cached_episodes = cache_manager.get(cache_key)
-    
-    if cached_episodes is not None:
-        log.debug(f'Retrieved simplified episodes for series {series_id} from cache')
-        return cached_episodes
-    
     # Get from database with simplified fields
     episodes = db.query(Episode)\
         .options(
@@ -460,13 +446,12 @@ def get_series_episodes_simplified_with_cache(
         for episode in episodes
     ]
 
-    # Cache the simplified episodes
-    cache_manager.set(cache_key, simplified_episodes, ttl=900) # 15 minutes
-    log.debug(f'Cached simplified episodes for series {series_id}')
+    log.debug(f'Retrieved {len(simplified_episodes)} simplified episodes for series {series_id} from database')
 
     return simplified_episodes
 
 
+@cache_result(ttl=Hours(0.25), key_prefix='series')  # 15 minutes
 def get_series_episodes_overview_with_cache(
         db: Session,
         series_id: int,
@@ -486,15 +471,6 @@ def get_series_episodes_overview_with_cache(
     Returns:
         List of episode overview data dictionaries
     """
-    # Try to get from cache first
-    cache_key = f"series_episodes_overview:{series_id}:{order_by}"
-    cache_manager = get_cache_manager('episode')
-    cached_overview = cache_manager.get(cache_key)
-    
-    if cached_overview is not None:
-        log.debug(f'Retrieved episode overview for series {series_id} from cache')
-        return cached_overview
-    
     # Get from database with overview fields
     query = db.query(
         Episode.id,
@@ -528,12 +504,12 @@ def get_series_episodes_overview_with_cache(
         for episode in episodes
     ]
     
-    # Cache the overview
-    cache_manager.set(cache_key, overview_episodes, ttl=900)  # 15 minutes
-    log.debug(f'Cached episode overview for series {series_id}')
+    log.debug(f'Retrieved episode overview for series {series_id} from database')
     
     return overview_episodes
 
+
+@cache_result(ttl=Hours(0.25), key_prefix='episode')  # 15 minutes
 def get_episode_with_cache(
         db: Session,
         episode_id: int,
@@ -551,17 +527,12 @@ def get_episode_with_cache(
     Returns:
         Episode object or None if not found
     """
-    # Try to get from cache first
-    cached_episode = get_cached_episode_data(episode_id)
-    if cached_episode is not None:
-        log.debug(f'Retrieved episode {episode_id} from cache')
-        return cached_episode
-    
     # Get from database
     episode = db.query(Episode).filter_by(id=episode_id).first()
-    if episode is not None:
-        # Cache the episode
-        cache_episode_data(episode_id, episode, ttl=900)  # 15 minutes
-        log.debug(f'Cached episode {episode_id}')
+    
+    if episode:
+        log.debug(f'Retrieved episode {episode_id} from database')
+    else:
+        log.debug(f'Episode {episode_id} not found in database')
     
     return episode

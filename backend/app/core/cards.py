@@ -13,13 +13,7 @@ from sqlalchemy.orm.session import object_session
 from app.core.availability import expire_cache, get_remote_card_hash
 from app.core.cache import (
     cache_result,
-    cache_series_cards,
-    get_cached_series_cards,
-    cache_card_data,
-    get_cached_card_data,
     invalidate_card_cache,
-    get_cache_manager,
-    invalidate_episode_cache
 )
 from app.core.episodes import refresh_episode_data
 from app.core.sources import download_episode_source_images
@@ -1074,7 +1068,7 @@ def delete_cards(
     return deleted
 
 
-@cache_result(cache_type='card', ttl=Hours(12))
+@cache_result(ttl=Hours(12), key_prefix='series')
 def get_series_cards(db: Session, series_id: int) -> list[Card]:
     """
     # TODO: Document function.
@@ -1093,7 +1087,7 @@ def get_series_cards(db: Session, series_id: int) -> list[Card]:
     )
 
 
-@cache_result(cache_type='card', ttl=Hours(12))
+@cache_result(ttl=Hours(12), key_prefix='series')
 def get_series_reduced_cards_with_cache(
         db: Session,
         series_id: int,

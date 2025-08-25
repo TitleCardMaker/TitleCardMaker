@@ -25,19 +25,16 @@ cache_router = APIRouter(
 
 @cache_router.get('/stats')
 def get_cache_statistics(
-    cache_type: str = Query(default=None, description="Specific cache type to get stats for"),
     db: Session = Depends(get_database),
     log: Logger = Depends(get_logger),
 ) -> dict:
     """
     Get cache statistics for monitoring performance.
-    
-    - cache_type: Optional specific cache type (series, card, episode, template)
     """
     
     try:
-        stats = get_cache_stats(cache_type)
-        log.debug(f"Retrieved cache statistics for {cache_type or 'all caches'}")
+        stats = get_cache_stats()
+        log.debug(f"Retrieved cache statistics")
         return stats
     except Exception as e:
         log.error(f"Error retrieving cache statistics: {e}")
@@ -48,8 +45,8 @@ def get_cache_statistics(
 
 
 @cache_router.delete('/clear')
-def clear_cache(
-    cache_type: str = Query(default=None, description="Specific cache type to clear"),
+def clear_cache_endpoint(
+    cache_type: str | None = Query(default=None, description="Optional specific cache type to clear"),
     db: Session = Depends(get_database),
     log: Logger = Depends(get_logger),
 ) -> dict:
@@ -61,8 +58,9 @@ def clear_cache(
     
     try:
         if cache_type:
-            cache_manager = get_cache_manager(cache_type)
-            cleared_count = cache_manager.clear()
+            # For backward compatibility, we'll clear cache entries matching the type pattern
+            cache_manager = get_cache_manager()
+            cleared_count = cache_manager.invalidate_pattern(f'*{cache_type}:*')
             log.info(f"Cleared {cleared_count} entries from {cache_type} cache")
             return {
                 "message": f"Cleared {cleared_count} entries from {cache_type} cache",
@@ -70,13 +68,11 @@ def clear_cache(
                 "cache_type": cache_type
             }
         else:
-            cleared_counts = clear_all_caches()
-            total_cleared = sum(cleared_counts.values())
-            log.info(f"Cleared all caches: {cleared_counts}")
+            cleared_count = clear_all_caches()
+            log.info(f"Cleared all caches: {cleared_count} total entries")
             return {
-                "message": f"Cleared {total_cleared} total entries from all caches",
-                "cleared_counts": cleared_counts,
-                "total_cleared": total_cleared
+                "message": f"Cleared {cleared_count} total entries from all caches",
+                "cleared_count": cleared_count
             }
     except Exception as e:
         log.error(f"Error clearing cache: {e}")
@@ -89,7 +85,6 @@ def clear_cache(
 @cache_router.delete('/invalidate')
 def invalidate_cache_pattern_endpoint(
     pattern: str = Query(..., description="Pattern to match for invalidation"),
-    cache_type: str = Query(default='series', description="Cache type to invalidate"),
     db: Session = Depends(get_database),
     log: Logger = Depends(get_logger),
 ) -> dict:
@@ -97,17 +92,15 @@ def invalidate_cache_pattern_endpoint(
     Invalidate cache entries matching a pattern.
     
     - pattern: Pattern to match (supports wildcards)
-    - cache_type: Cache type to invalidate
     """
     
     try:
-        invalidated_count = invalidate_cache_pattern(pattern, cache_type)
-        log.info(f"Invalidated {invalidated_count} entries matching pattern '{pattern}' in {cache_type} cache")
+        invalidated_count = invalidate_cache_pattern(pattern)
+        log.info(f"Invalidated {invalidated_count} entries matching pattern '{pattern}'")
         return {
             "message": f"Invalidated {invalidated_count} entries matching pattern '{pattern}'",
             "invalidated_count": invalidated_count,
-            "pattern": pattern,
-            "cache_type": cache_type
+            "pattern": pattern
         }
     except Exception as e:
         log.error(f"Error invalidating cache pattern: {e}")
@@ -127,22 +120,21 @@ def cache_health_check(
     """
     
     try:
-        all_stats = get_cache_stats()
+        stats = get_cache_stats()
         
         # Calculate overall health metrics
-        total_hits = sum(stats['hits'] for stats in all_stats.values())
-        total_misses = sum(stats['misses'] for stats in all_stats.values())
+        total_hits = stats['hits']
+        total_misses = stats['misses']
         total_requests = total_hits + total_misses
         overall_hit_rate = total_hits / total_requests if total_requests > 0 else 0.0
         
         # Check for potential issues
         issues = []
-        for cache_type, stats in all_stats.items():
-            if stats['size'] >= stats['max_size'] * 0.9:
-                issues.append(f"{cache_type}: Cache nearly full ({stats['size']}/{stats['max_size']})")
-            
-            if stats['errors'] > 0:
-                issues.append(f"{cache_type}: {stats['errors']} errors detected")
+        if stats['size'] >= stats['max_size'] * 0.9:
+            issues.append(f"Cache nearly full ({stats['size']}/{stats['max_size']})")
+        
+        if stats['errors'] > 0:
+            issues.append(f"{stats['errors']} errors detected")
         
         health_status = "healthy" if not issues else "warning"
         
@@ -153,7 +145,7 @@ def cache_health_check(
             "total_hits": total_hits,
             "total_misses": total_misses,
             "issues": issues,
-            "cache_stats": all_stats
+            "cache_stats": stats
         }
     except Exception as e:
         log.error(f"Error checking cache health: {e}")

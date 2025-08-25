@@ -201,13 +201,11 @@ def initialize_cache_system(*, log: Logger = logger) -> None:
     """
 
     try:
-        # Start cleanup tasks for all cache managers
-        cache_types = ['series', 'card', 'episode', 'template']
-        for cache_type in cache_types:
-            cache_manager = get_cache_manager(cache_type)
-            cache_manager.start_cleanup_task()
+        # Start cleanup task for the single cache manager
+        cache_manager = get_cache_manager()
+        cache_manager.start_cleanup_task()
 
-        log.info('Cache system initialized and cleanup tasks started')
+        log.info('Cache system initialized and cleanup task started')
     except Exception as e:
         log.error(f'Error initializing cache system: {e}')
 

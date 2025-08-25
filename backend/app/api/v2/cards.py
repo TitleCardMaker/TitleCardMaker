@@ -374,7 +374,6 @@ def get_series_cards_(
 def get_series_cards_reduced_models(
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Page[TitleCardReduced]: # type: ignore
     """
     Get all Title Cards for the given Series. Cards are returned in the

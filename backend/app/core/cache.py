@@ -451,50 +451,41 @@ class CacheManager:
                 f"  " + "\n  ".join(items_detail)
             )
 
-# Global cache manager instances
-_series_cache = CacheManager(max_size=25, default_ttl=Hours(12))
-_card_cache = CacheManager(max_size=50, default_ttl=Hours(4))
-_episode_cache = CacheManager(max_size=50, default_ttl=Hours(12))
-_template_cache = CacheManager(max_size=50, default_ttl=Hours(24))
+# Global cache manager instance - single cache for all data types
+_cache_manager = CacheManager(max_size=200, default_ttl=Hours(6))
 
-cache_managers = {
-    'series': _series_cache,
-    'card': _card_cache,
-    'episode': _episode_cache,
-    'template': _template_cache,
-}
 
-def get_cache_manager(cache_type: str) -> CacheManager:
-    """Get a specific cache manager instance."""
+def get_cache_manager() -> CacheManager:
+    """Get the single cache manager instance."""
 
-    return cache_managers.get(cache_type, _series_cache)
+    return _cache_manager
 
 
 def cache_result(
         ttl: int = Hours(1),
-        cache_type: str = 'series',
         key_prefix: str = '',
     ) -> Callable[..., T]:
     """
     Decorator to cache function results.
+    
+    Cache keys are organized by object IDs:
+    - Series: series:{series_id}:{function_name}:{args_hash}
+    - Episode: episode:{episode_id}:series:{series_id}:{function_name}:{args_hash}
+    - Card: card:{card_id}:episode:{episode_id}:series:{series_id}:{function_name}:{args_hash}
 
     Args:
         ttl: Time to live in seconds
-        cache_type: Type of cache to use
-        key_prefix: Prefix for cache keys
+        key_prefix: Prefix for cache keys (e.g., 'series', 'episode', 'card')
     """
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
-        cache_manager = get_cache_manager(cache_type)
+        cache_manager = get_cache_manager()
 
         @wraps(func)
         def wrapper(*args, **kwargs) -> T:
-            # Generate cache key
-            cache_key = (
-                f'{key_prefix}:{func.__name__}:'
-                f'{cache_manager._generate_key(*args, **kwargs)}'
-            )
-
+            # Generate cache key with object ID hierarchy
+            cache_key = _generate_hierarchical_key(func.__name__, args, kwargs, key_prefix)
+            
             # Try to get from cache
             if (cached_result := cache_manager.get(cache_key)) is not None:
                 return cached_result
@@ -508,217 +499,96 @@ def cache_result(
     return decorator
 
 
-def invalidate_cache_pattern(pattern: str, cache_type: str = 'series'):
+def _generate_hierarchical_key(func_name: str, args: tuple, kwargs: dict, key_prefix: str) -> str:
+    """
+    Generate a hierarchical cache key based on object IDs.
+    
+    Args:
+        func_name: Name of the function being cached
+        args: Function arguments
+        kwargs: Function keyword arguments
+        key_prefix: Prefix indicating the data type (series, episode, card)
+        
+    Returns:
+        Hierarchical cache key string
+    """
+    
+    # Extract object IDs from arguments
+    series_id = None
+    episode_id = None
+    card_id = None
+    
+    # Look for ID parameters in args and kwargs
+    for arg in args:
+        if isinstance(arg, int) and arg > 0:
+            if series_id is None:
+                series_id = arg
+            elif episode_id is None:
+                episode_id = arg
+            elif card_id is None:
+                card_id = arg
+    
+    # Also check kwargs for explicit ID parameters
+    if 'series_id' in kwargs:
+        series_id = kwargs['series_id']
+    if 'episode_id' in kwargs:
+        episode_id = kwargs['episode_id']
+    if 'card_id' in kwargs:
+        card_id = kwargs['card_id']
+    
+    # Generate hierarchical key
+    if key_prefix == 'card' and card_id and episode_id and series_id:
+        return f'card:{card_id}:episode:{episode_id}:series:{series_id}:{func_name}'
+    elif key_prefix == 'episode' and episode_id and series_id:
+        return f'episode:{episode_id}:series:{series_id}:{func_name}'
+    elif key_prefix == 'series' and series_id:
+        return f'series:{series_id}:{func_name}'
+    else:
+        # Fallback to function-based key if no clear hierarchy
+        args_hash = _cache_manager._generate_key(args, kwargs)
+        return f'{key_prefix}:{func_name}:{args_hash}'
+
+
+def invalidate_cache_pattern(pattern: str) -> int:
     """
     Invalidate cache entries matching a pattern.
 
     Args:
         pattern: Pattern to match
-        cache_type: Type of cache to invalidate
+
+    Returns:
+        Number of entries invalidated
     """
 
-    return get_cache_manager(cache_type).invalidate_pattern(pattern)
+    return get_cache_manager().invalidate_pattern(pattern)
 
 
-def get_cache_stats(cache_type: str | None = None) -> dict[str, Any]:
+def get_cache_stats() -> dict[str, Any]:
     """
     Get cache statistics.
 
-    Args:
-        cache_type: Specific cache type, or None for all
-    """
-
-    if cache_type:
-        return get_cache_manager(cache_type).get_stats()
-
-    return {
-        'series': _series_cache.get_stats(),
-        'card': _card_cache.get_stats(),
-        'episode': _episode_cache.get_stats(),
-        'template': _template_cache.get_stats(),
-    }
-
-
-def clear_all_caches() -> dict[str, int]:
-    """Clear all caches and return counts of cleared entries."""
-
-    return {
-        'series': _series_cache.clear(),
-        'card': _card_cache.clear(),
-        'episode': _episode_cache.clear(),
-        'template': _template_cache.clear(),
-    }
-
-
-# Specialized caching functions for series, card, and episode data
-
-def cache_series_data(series_id: int, data: Any, ttl: int | None = None) -> bool:
-    """
-    Cache series-specific data.
-
-    Args:
-        series_id: Series ID
-        data: Data to cache
-        ttl: Time to live in seconds (uses default if None)
-
     Returns:
-        True if successful, False otherwise
+        Cache statistics dictionary
     """
 
-    return get_cache_manager('series').set(f'series_data:{series_id}', data, ttl)
+    return get_cache_manager().get_stats()
 
 
-def get_cached_series_data(series_id: int, default: Any = None) -> Any:
-    """
-    Get cached series data.
+def clear_all_caches() -> int:
+    """Clear all cache entries and return count of cleared entries."""
 
-    Args:
-        series_id: Series ID
-        default: Default value if not found
-
-    Returns:
-        Cached data or default
-    """
-
-    return get_cache_manager('series').get(f'series_data:{series_id}', default)
-
-
-def cache_series_cards(series_id: int, data: Any, ttl: int | None = None) -> bool:
-    """
-    Cache series cards data.
-
-    Args:
-        series_id: Series ID
-        data: Cards data to cache
-        ttl: Time to live in seconds (uses default if None)
-
-    Returns:
-        True if successful, False otherwise
-    """
-
-    return get_cache_manager('card').set(f'series_cards:{series_id}', data, ttl)
-
-
-def get_cached_series_cards(series_id: int, default: Any = None) -> Any:
-    """
-    Get cached series cards data.
-
-    Args:
-        series_id: Series ID.
-        default: Default value if not found.
-
-    Returns:
-        Cached cards data or default.
-    """
-
-    return get_cache_manager('card').get(f'series_cards:{series_id}', default)
-
-
-def cache_series_episodes(
-        series_id: int,
-        data: Any,
-        ttl: int | None = None,
-    ) -> bool:
-    """
-    Cache series episodes data.
-
-    Args:
-        series_id: Series ID
-        data: Episodes data to cache
-        ttl: Time to live in seconds (uses default if None)
-
-    Returns:
-        True if successful, False otherwise
-    """
-
-    return get_cache_manager('episode').set(f'series_episodes:{series_id}', data, ttl)
-
-
-def get_cached_series_episodes(series_id: int, default: Any = None) -> Any:
-    """
-    Get cached series episodes data.
-
-    Args:
-        series_id: Series ID
-        default: Default value if not found
-
-    Returns:
-        Cached episodes data or default
-    """
-
-    return get_cache_manager('episode').get(f'series_episodes:{series_id}', default)
-
-
-def cache_episode_data(
-        episode_id: int,
-        data: Any,
-        ttl: int | None = None,
-    ) -> bool:
-    """
-    Cache episode-specific data.
-    
-    Args:
-        episode_id: Episode ID
-        data: Data to cache
-        ttl: Time to live in seconds (uses default if None)
-        
-    Returns:
-        True if successful, False otherwise
-    """
-
-    return get_cache_manager('episode').set(f'episode_data:{episode_id}', data, ttl)
-
-
-def get_cached_episode_data(episode_id: int, default: Any = None) -> Any:
-    """
-    Get cached episode data.
-    
-    Args:
-        episode_id: Episode ID
-        default: Default value if not found
-        
-    Returns:
-        Cached data or default
-    """
-
-    return get_cache_manager('episode').get(f'episode_data:{episode_id}', default)
-
-
-def cache_card_data(card_id: int, data: Any, ttl: int | None = None) -> bool:
-    """
-    Cache card-specific data.
-    
-    Args:
-        card_id: Card ID
-        data: Data to cache
-        ttl: Time to live in seconds (uses default if None)
-        
-    Returns:
-        True if successful, False otherwise
-    """
-
-    return get_cache_manager('card').set(f'card_data:{card_id}', data, ttl)
-
-
-def get_cached_card_data(card_id: int, default: Any = None) -> Any:
-    """
-    Get cached card data.
-    
-    Args:
-        card_id: Card ID
-        default: Default value if not found
-        
-    Returns:
-        Cached data or default
-    """
-
-    return get_cache_manager('card').get(f'card_data:{card_id}', default)
+    return get_cache_manager().clear()
 
 
 def invalidate_series_cache(series_id: int) -> int:
     """
     Invalidate all cache entries related to a specific series.
     
+    This invalidates all cache entries containing the series_id, including:
+    - Series-specific data
+    - Episode data for this series
+    - Card data for episodes in this series
+    
     Args:
         series_id: Series ID
         
@@ -726,35 +596,20 @@ def invalidate_series_cache(series_id: int) -> int:
         Number of entries invalidated.
     """
 
-    total_invalidated = 0
-
-    # Invalidate series data
-    series_cache = get_cache_manager('series')
-    if series_cache.delete(f'series_data:{series_id}'):
-        total_invalidated += 1
-
-    # Invalidate series cards
-    card_cache = get_cache_manager('card')
-    if card_cache.delete(f'series_cards:{series_id}'):
-        total_invalidated += 1
-
-    # Invalidate series episodes
-    episode_cache = get_cache_manager('episode')
-    if episode_cache.delete(f'series_episodes:{series_id}'):
-        total_invalidated += 1
-
-    # Invalidate pattern-based entries
-    pattern = f'*series_id={series_id}*'
-    total_invalidated += series_cache.invalidate_pattern(pattern)
-    total_invalidated += card_cache.invalidate_pattern(pattern)
-    total_invalidated += episode_cache.invalidate_pattern(pattern)
-
-    return total_invalidated
+    cache_manager = get_cache_manager()
+    
+    # Invalidate all cache entries containing this series_id
+    pattern = f'*series:{series_id}*'
+    return cache_manager.invalidate_pattern(pattern)
 
 
 def invalidate_episode_cache(episode_id: int) -> int:
     """
     Invalidate all cache entries related to a specific episode.
+    
+    This invalidates all cache entries containing the episode_id, including:
+    - Episode-specific data
+    - Card data for this episode
     
     Args:
         episode_id: Episode ID
@@ -763,73 +618,45 @@ def invalidate_episode_cache(episode_id: int) -> int:
         Number of entries invalidated.
     """
 
-    # Invalidate episode data
-    total_invalidated = 0
-    episode_cache = get_cache_manager('episode')
-    if episode_cache.delete(f'episode_data:{episode_id}'):
-        total_invalidated += 1
-
-    # Invalidate pattern-based entries
-    pattern = f'*episode_id={episode_id}*'
-    total_invalidated += episode_cache.invalidate_pattern(pattern)
-    total_invalidated += get_cache_manager('card').invalidate_pattern(pattern)
-
-    return total_invalidated
+    cache_manager = get_cache_manager()
+    
+    # Invalidate all cache entries containing this episode_id
+    pattern = f'*episode:{episode_id}*'
+    return cache_manager.invalidate_pattern(pattern)
 
 
 def invalidate_card_cache(card: 'Card') -> int:
     """
     Invalidate all cache entries related to a specific card.
-    This function invalidates card, episode, and series caches
-    since cards are related to both episodes and series.
     
+    This invalidates all cache entries containing the card_id, and also
+    invalidates related episode and series caches since cards are related
+    to both episodes and series.
+
     Args:
         card: Card object to invalidate cache for
-        
+
     Returns:
         Number of entries invalidated.
     """
 
+    cache_manager = get_cache_manager()
     total_invalidated = 0
     
-    # Invalidate card data
-    if (card_cache := get_cache_manager('card')).delete(f'card_data:{card.id}'):
-        total_invalidated += 1
-
-    # Invalidate pattern-based entries for the card
-    total_invalidated += card_cache.invalidate_pattern(f'*card_id={card.id}*')
+    # Invalidate card-specific cache entries
+    if hasattr(card, 'id') and card.id:
+        pattern = f'*card:{card.id}*'
+        total_invalidated += cache_manager.invalidate_pattern(pattern)
 
     # Invalidate episode cache since cards are related to episodes
     if hasattr(card, 'episode_id') and card.episode_id:
-        episode_cache = get_cache_manager('episode')
-        if episode_cache.delete(f'episode_data:{card.episode_id}'):
-            total_invalidated += 1
-        
-        # Invalidate pattern-based entries for the episode
-        pattern = f'*episode_id={card.episode_id}*'
-        total_invalidated += episode_cache.invalidate_pattern(pattern)
-        total_invalidated += card_cache.invalidate_pattern(pattern)
+        pattern = f'*episode:{card.episode_id}*'
+        total_invalidated += cache_manager.invalidate_pattern(pattern)
 
     # Invalidate series cache since cards are related to series
     if hasattr(card, 'series_id') and card.series_id:
-        # Invalidate series data
-        series_cache = get_cache_manager('series')
-        if series_cache.delete(f'series_data:{card.series_id}'):
-            total_invalidated += 1
-
-        # Invalidate series cards and episodes
-        total_invalidated += card_cache.invalidate_pattern(
-            f'series_cards*:{card.series_id}'
-        )
-        total_invalidated += card_cache.invalidate_pattern(
-            f'series_episodes*:{card.series_id}'
-        )
-
-        # Invalidate pattern-based entries for the series
-        pattern = f'*series_id={card.series_id}*'
-        total_invalidated += series_cache.invalidate_pattern(pattern)
-        total_invalidated += card_cache.invalidate_pattern(pattern)
-        total_invalidated += episode_cache.invalidate_pattern(pattern)
+        pattern = f'*series:{card.series_id}*'
+        total_invalidated += cache_manager.invalidate_pattern(pattern)
 
     log.debug(f'Invalidated {total_invalidated} card cache entries')
     return total_invalidated
@@ -843,20 +670,20 @@ def invalidate_all_card_cache() -> int:
         Number of entries invalidated.
     """
     
-    card_cache = get_cache_manager('card')
-    return card_cache.clear()
+    cache_manager = get_cache_manager()
+    return cache_manager.invalidate_pattern('*card:*')
 
 
 def invalidate_card_cache_pattern(pattern: str) -> int:
     """
     Invalidate card cache entries matching a pattern.
-    
+
     Args:
         pattern: Pattern to match (supports wildcards)
-        
+
     Returns:
         Number of entries invalidated.
     """
     
-    card_cache = get_cache_manager('card')
-    return card_cache.invalidate_pattern(pattern)
+    cache_manager = get_cache_manager()
+    return cache_manager.invalidate_pattern(f'*card:*{pattern}*')

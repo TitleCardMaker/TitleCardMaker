@@ -28,6 +28,9 @@ from app.schemas.connection import ServerName
 from app.settings import settings
 from modules.CleanPath import CleanPath
 
+# Import cache functions for invalidation
+from app.core.cache import invalidate_series_cache
+
 if TYPE_CHECKING:
     from sqlalchemy.event import Events
     from app.models.card import Card
@@ -920,3 +923,47 @@ def set_series_full_name(
     """
 
     target.full_name = f'{target.name} ({value})'
+
+
+@event.listens_for(Series, 'after_update')
+def invalidate_series_cache_on_update(mapper, connection, target: Series) -> None:
+    """
+    Invalidate cache when a Series is updated.
+    
+    This event handler automatically invalidates all cache entries related to a Series
+    whenever any of its attributes are modified. This ensures that cached data
+    remains consistent with the database state.
+    
+    The invalidation covers:
+    - Series data cache
+    - Series cards cache  
+    - Series episodes cache
+    - Series episodes simplified cache
+    - Series episodes overview cache
+    - Pattern-based cache entries
+    """
+    try:
+        invalidated_count = invalidate_series_cache(target.id)
+        log.debug(f'Invalidated {invalidated_count} cache entries after updating Series {target.id}')
+    except Exception as e:
+        log.error(f'Error invalidating cache for Series {target.id}: {e}')
+
+
+@event.listens_for(Series, 'after_delete')
+def invalidate_series_cache_on_delete(mapper, connection, target: Series) -> None:
+    """
+    Invalidate cache when a Series is deleted.
+    
+    This event handler automatically invalidates all cache entries related to a Series
+    when it is deleted from the database. This ensures that no stale cached data
+    remains after deletion.
+    
+    The invalidation covers the same cache entries as the update handler.
+    """
+    try:
+        # Get the series ID before the object is deleted
+        series_id = target.id
+        invalidated_count = invalidate_series_cache(series_id)
+        log.debug(f'Invalidated {invalidated_count} cache entries after deleting Series {series_id}')
+    except Exception as e:
+        log.error(f'Error invalidating cache for deleted Series: {e}')

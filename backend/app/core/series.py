@@ -1068,7 +1068,7 @@ def apply_filter(
     return query.filter(*criterion)
 
 
-@cache_result(cache_type='series', ttl=Hours(6))
+@cache_result(ttl=Hours(6), key_prefix='series')
 def query_and_filter_series(
         db: Session,
         filter: SeriesFilter | None,
