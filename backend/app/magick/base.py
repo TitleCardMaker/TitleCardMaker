@@ -55,6 +55,7 @@ class ImageMaker(ABC):
         self.card_dimensions = settings.card_dimensions
         self.quality = settings.card_quality
         self.image_magick = ImageMagickInterface(
+            container=settings.config.V1_IMAGEMAGICK_CONTAINER,
             use_magick_prefix=settings.use_magick_prefix,
             executable=settings.imagemagick_executable,
         )
