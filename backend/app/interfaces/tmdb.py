@@ -220,7 +220,7 @@ class TestingTMDBInterface:
                 (
                     ('Mr. Robot_dec0d3d.doc', 0, 1, None),
                     dict(
-                        airdate=datetime.datetime(2016, 6, 20, 0, 0),
+                        airdate=datetime(2016, 6, 20, 0, 0),
                         tmdb_id=1200247,
                         tvdb_id=5647541,
                     )
@@ -228,7 +228,7 @@ class TestingTMDBInterface:
                 (
                     ('eps1.0_hellofriend.mov', 1, 1, None),
                     dict(
-                        airdate=datetime.datetime(2015, 6, 24, 0, 0),
+                        airdate=datetime(2015, 6, 24, 0, 0),
                         imdb_id='tt4652838',
                         tmdb_id=1057663,
                         tvdb_id=5077068,
@@ -237,7 +237,7 @@ class TestingTMDBInterface:
                 (
                     ('eps1.1_ones-and-zer0es.mpeg', 1, 2, None),
                     dict(
-                        airdate=datetime.datetime(2015, 7, 1, 0, 0),
+                        airdate=datetime(2015, 7, 1, 0, 0),
                         imdb_id='tt4686038',
                         tmdb_id=1071733,
                         tvdb_id=5240604,
@@ -246,7 +246,7 @@ class TestingTMDBInterface:
                 (
                     ('eps1.2_d3bug.mkv', 1, 3, None),
                     dict(
-                        airdate=datetime.datetime(2015, 7, 8, 0, 0),
+                        airdate=datetime(2015, 7, 8, 0, 0),
                         imdb_id='tt4730002',
                         tmdb_id=1073094,
                         tvdb_id=5240605,
