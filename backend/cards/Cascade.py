@@ -14,6 +14,7 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Rectangle,
 )
+from modules.FormatString import FormatString
 
 if TYPE_CHECKING:
     from app.yaml.font import Font
@@ -1011,6 +1012,15 @@ def get_validator_model() -> type[Base]:
         glass_color: str = CascadeTitleCard.DEFAULT_GLASS_COLOR
         glass_edge_color: str = CascadeTitleCard.DEFAULT_GLASS_EDGE_COLOR
         italicize_title_text: bool = False
+
+        @model_validator(mode='before')
+        @classmethod
+        def finalize_format_strings(cls, data: Any) -> Any:
+            if isinstance(data, dict):
+                fstring = data.get('alt_text', '{series_name.upper()}')
+                if isinstance(fstring, str):
+                    data['alt_text'] = FormatString(fstring, data=data).result
+            return data
 
         @model_validator(mode='after')
         def assign_unassigned_color(self) -> Self:
