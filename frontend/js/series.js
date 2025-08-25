@@ -2332,6 +2332,91 @@ function loadCards(interfaceId, libraryName, reload=false) {
 }
 
 /**
+ * Show the selective reload modal for a specific library.
+ * @param {number} interfaceId ID of the library's interface.
+ * @param {string} libraryName Name of the library to reload cards into.
+ */
+function showSelectiveReloadModal(interfaceId, libraryName) {
+  // Store the interface and library info for the modal
+  $('#selective-reload-modal').data('interface-id', interfaceId);
+  $('#selective-reload-modal').data('library-name', libraryName);
+  
+  // Update the modal header with library name
+  $('#selective-reload-library-name').text(libraryName);
+  
+  // Reset the form
+  $('#selective-reload-form')[0].reset();
+  $('#selective-reload-seasons').dropdown('clear');
+  
+  // Show the modal
+  $('#selective-reload-modal').modal('show');
+}
+
+/**
+ * Execute the selective reload based on modal selections.
+ */
+function executeSelectiveReload() {
+  const interfaceId = $('#selective-reload-modal').data('interface-id');
+  const libraryName = $('#selective-reload-modal').data('library-name');
+  const selectedSeasons = $('#selective-reload-seasons').dropdown('get value');
+  const forceReload = $('#selective-reload-force').is(':checked');
+  
+  // Close the modal
+  $('#selective-reload-modal').modal('hide');
+  
+  // If no seasons selected, reload all seasons
+  if (!selectedSeasons || selectedSeasons.length === 0) {
+    loadCards(interfaceId, libraryName, forceReload);
+    return;
+  }
+  
+  // Reload each selected season individually
+  let completedSeasons = 0;
+  const totalSeasons = selectedSeasons.length;
+  
+  selectedSeasons.forEach(seasonNumber => {
+    loadCardsForSeason(interfaceId, libraryName, seasonNumber, forceReload, () => {
+      completedSeasons++;
+      if (completedSeasons === totalSeasons) {
+        showInfoToast(`Reloaded ${totalSeasons} season(s)`);
+        getStatistics();
+      }
+    });
+  });
+}
+
+/**
+ * Load cards for a specific season and library.
+ * @param {number} interfaceId ID of the library's interface.
+ * @param {number} libraryName Name of the library to load cards into.
+ * @param {number} seasonNumber Season number to load cards for.
+ * @param {boolean} reload Whether to force reload existing cards.
+ * @param {function} callback Function to call when loading is complete.
+ */
+function loadCardsForSeason(interfaceId, libraryName, seasonNumber, reload, callback) {
+  // Get query params
+  const params = new URLSearchParams({
+    interface_id: interfaceId,
+    library_name: libraryName,
+    reload: reload,
+    season_number: seasonNumber,
+  });
+
+  // Submit API request
+  $.ajax({
+    type: 'PUT',
+    url: `/api/v2/cards/series/{{ series.id }}/load?${params.toString()}`,
+    success: () => {
+      if (callback) callback();
+    },
+    error: response => {
+      showErrorToast({title: `Error Loading Season ${seasonNumber}`, response});
+      if (callback) callback();
+    },
+  });
+}
+
+/**
  * Submit an API request to reload the Title Card with the given ID.
  * @param {number} cardId ID of the Card to load.
  */

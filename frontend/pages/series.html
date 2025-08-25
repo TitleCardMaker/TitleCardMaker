@@ -496,6 +496,10 @@
               <i class="orange hdd outline icon"></i>
               Force Reload Cards
             </a>
+            <a class="item" onclick="showSelectiveReloadModal({{library.interface_id}}, `{{library.name}}`);">
+              <i class="filter icon"></i>
+              Selectively Reload Season
+            </a>
             {% if library.interface == 'Plex' %}
               <a class="item" onclick="removePlexLabels({{library.interface_id}}, `{{library.name}}`);">
                 <i class="red tags icon"></i>
@@ -1996,6 +2000,49 @@
         </div>
       </div>
     </div>
+
+    <!-- Selective Reload Modal -->
+    <div id="selective-reload-modal" class="ui modal">
+      <div class="header">
+        <i class="filter icon"></i>
+        Selective Reload - <span id="selective-reload-library-name"></span>
+      </div>
+      <div class="content">
+        <form id="selective-reload-form" class="ui form">
+          <div class="field">
+            <label>Select Seasons to Reload</label>
+            <div class="ui selection multiple dropdown" id="selective-reload-seasons">
+              <input name="seasons" type="hidden">
+              <i class="dropdown icon"></i>
+              <div class="default text">All Seasons</div>
+              <div class="menu">
+                {% for season_number in series.season_numbers %}
+                <div class="item" data-value="{{ season_number }}">Season {{ season_number }}</div>
+                {% endfor %}
+              </div>
+            </div>
+            <p class="help">Leave unselected to reload all seasons, or select specific seasons to reload.</p>
+          </div>
+          
+          <div class="field">
+            <div class="ui checkbox">
+              <input type="checkbox" name="force_reload" id="selective-reload-force">
+              <label>Force Reload</label>
+            </div>
+            <p class="help">If checked, all selected seasons will be reloaded even if Cards already exist.</p>
+          </div>
+        </form>
+      </div>
+      <div class="actions">
+        <div class="ui cancel button">Cancel</div>
+        <div class="ui primary button" onclick="executeSelectiveReload();">
+          <i class="filter icon"></i>
+          Reload Selected Seasons
+        </div>
+      </div>
+    </div>
+
+
   </div>
 </body>
 
