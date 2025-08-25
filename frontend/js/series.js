@@ -2340,14 +2340,14 @@ function showSelectiveReloadModal(interfaceId, libraryName) {
   // Store the interface and library info for the modal
   $('#selective-reload-modal').data('interface-id', interfaceId);
   $('#selective-reload-modal').data('library-name', libraryName);
-  
+
   // Update the modal header with library name
   $('#selective-reload-library-name').text(libraryName);
-  
+
   // Reset the form
   $('#selective-reload-form')[0].reset();
   $('#selective-reload-seasons').dropdown('clear');
-  
+
   // Show the modal
   $('#selective-reload-modal').modal('show');
 }
@@ -2358,28 +2358,27 @@ function showSelectiveReloadModal(interfaceId, libraryName) {
 function executeSelectiveReload() {
   const interfaceId = $('#selective-reload-modal').data('interface-id');
   const libraryName = $('#selective-reload-modal').data('library-name');
-  const selectedSeasons = $('#selective-reload-seasons').dropdown('get value');
+  const selectedSeasons = $('#selective-reload-seasons').dropdown('get value').split(',');
   const forceReload = $('#selective-reload-force').is(':checked');
-  
-  // Close the modal
-  $('#selective-reload-modal').modal('hide');
-  
+
   // If no seasons selected, reload all seasons
   if (!selectedSeasons || selectedSeasons.length === 0) {
     loadCards(interfaceId, libraryName, forceReload);
     return;
   }
-  
+
   // Reload each selected season individually
   let completedSeasons = 0;
   const totalSeasons = selectedSeasons.length;
-  
+  const $icon = setLoadingIcon($('#selective-reload-modal .actions .button .icon'));
+
   selectedSeasons.forEach(seasonNumber => {
     loadCardsForSeason(interfaceId, libraryName, seasonNumber, forceReload, () => {
       completedSeasons++;
       if (completedSeasons === totalSeasons) {
         showInfoToast(`Reloaded ${totalSeasons} season(s)`);
         getStatistics();
+        removeLoadingIcon($icon);
       }
     });
   });
