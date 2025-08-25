@@ -44,6 +44,9 @@ class TestingEmbyInterface:
     def _map_libraries(self) -> dict[str, tuple[int, ...]]:
         return { 'TV': (1, 2), 'TV 4K': (3, 4), 'Anime': (5, ) }
 
+    def get_usernames(self) -> list[str]:
+        return ['Admin', 'User']
+
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
@@ -407,6 +410,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         return None
 
 
+    @testing_override(TestingEmbyInterface.get_usernames)
     def get_usernames(self) -> list[str]:
         """
         Get all the usernames for this interface's Emby server.
