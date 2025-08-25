@@ -374,7 +374,11 @@ class Settings(SerializationMixin):
             return
 
         for prefix, use_magick in (('magick', True), ('', False)):
-            interface = ImageMagickInterface(use_magick_prefix=use_magick)
+            interface = ImageMagickInterface(
+                container=self.config.V1_IMAGEMAGICK_CONTAINER,
+                use_magick_prefix=use_magick,
+                executable=self.imagemagick_executable,
+            )
             if interface.validate_interface():
                 self.use_magick_prefix = use_magick
                 log.debug(
