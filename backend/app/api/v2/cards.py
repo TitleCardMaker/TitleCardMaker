@@ -414,6 +414,7 @@ def load_series_title_cards_(
         interface_id: int | None = Query(default=None),
         library_name: str | None = Query(default=None),
         reload: bool = Query(default=False),
+        season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
     ) -> None:
@@ -428,6 +429,8 @@ def load_series_title_cards_(
     - reload: Whether to "force" reload all Cards, even those that have
     already been loaded. If false, only Cards that have not been loaded
     previously (or that have changed) are loaded.
+    - season_number: Optional season number to load the Title Cards for.
+    If omitted, all seasons are loaded.
     """
 
     # Interface ID and library name must be provided together or not at all
@@ -440,6 +443,14 @@ def load_series_title_cards_(
     # Get this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
+    # Filter by season number if indicated
+    episodes = None
+    if season_number is not None:
+        episodes = [
+            episode for episode in series.episodes
+            if episode.season_number == season_number
+        ]
+
     # Load Title Cards into only the specified library
     if library_name and interface_id:
         interface = get_interface(interface_id, raise_exc=True)
@@ -448,13 +459,26 @@ def load_series_title_cards_(
                 status_code=400,
                 detail='Cannot load Cards into a non-media-server Connection'
             )
-        # Load Cards
+
         load_series_title_cards(
-            series, library_name, interface_id, db, interface, reload, log=log,
+            series,
+            library_name,
+            interface_id,
+            db,
+            interface,
+            reload,
+            episodes=episodes,
+            log=log,
         )
     # Load Title Cards into all libraries
     else:
-        load_all_series_title_cards(series, db, force_reload=reload, log=log)
+        load_all_series_title_cards(
+            series,
+            db,
+            force_reload=reload,
+            episodes=episodes,
+            log=log,
+        )
 
 
 @card_router.put('/episode/{episode_id}/load', tags=['Episodes'])
