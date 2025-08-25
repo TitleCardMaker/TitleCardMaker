@@ -199,8 +199,6 @@ function queryForLogs(page=1) {
 
       // Add rows to page
       document.getElementById('log-data').replaceChildren(...rows);
-      // Scroll to top of the table
-      document.getElementById('log-table').scrollIntoView({behavior: 'smooth', block: 'start'});
 
       // Update pagination
       updatePagination({
