@@ -359,8 +359,7 @@ def create_cards_for_series(
 def get_series_cards_(
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
-    ) -> Page[TitleCard]: # type: ignore
+    ) -> Page[TitleCard]:
     """
     Get all Title Cards for the given Series. Cards are returned in the
     order of their release (e.g. season number, episode number).
