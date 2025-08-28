@@ -236,7 +236,7 @@ async def export_series_blueprint_as_zip(
 
     # Write Blueprint as JSON into zip directory
     with (tzip.dir / 'blueprint.json').open('w') as file_handle:
-        dump(blueprint.dict(), file_handle, indent=2)
+        dump(blueprint.model_dump(exclude_unset=True), file_handle, indent=2)
     log.debug('Wrote "blueprint.json" into zip directory')
 
     # Create zip of Font zip + preview file + Blueprint JSON
