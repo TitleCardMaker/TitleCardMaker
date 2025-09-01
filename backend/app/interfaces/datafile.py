@@ -129,8 +129,10 @@ class DataFileInterface:
             try:
                 season_number = int(season.rsplit(' ', 1)[-1])
             except (IndexError, ValueError):
-                log.error(f'Season {season} of the {self.series_info} datafile '
-                          f'is invalid - must be like "Season 1"')
+                log.error((
+                    f'Season {season} of the {self.series_info} datafile is '
+                    f'invalid - must be like "Season 1"'
+                ))
                 continue
 
             # Iterate through each episode of this season
@@ -142,17 +144,20 @@ class DataFileInterface:
                     if abs_number is not None:
                         abs_number = int(abs_number)
                 except ValueError:
-                    log.exception(f'Episode data for S{season_number:02} is '
-                                  f'invalid - episode and absolute number must '
-                                  f'be integers')
+                    log.exception((
+                        f'Episode data for S{season_number:02} is invalid - '
+                        f'episode and absolute number must be integers'
+                    ))
                     continue
 
                 # If title is missing (or no subkeys at all..) error
                 if (not isinstance(episode_data, dict)
                     or ('title' not in episode_data and
                         'preferred_title' not in episode_data)):
-                    log.error(f'S{season_number:02}E{episode_number:02} of the '
-                              f'{self.series_info} datafile is missing a title')
+                    log.error((
+                        f'S{season_number:02}E{episode_number:02} of the '
+                        f'{self.series_info} datafile is missing a title'
+                    ))
                     continue
 
                 # Get existing keys for this episode
@@ -169,10 +174,10 @@ class DataFileInterface:
                 try:
                     title_obj = Title(title, original_title=original_title)
                 except TypeError:
-                    log.exception(
+                    log.exception((
                         f'Title for S{season_number:02}E{episode_number:02} of '
                         'the {self.series_info} datafile is invalid'
-                    )
+                    ))
                     continue
 
                 # Construct EpisodeInfo object for this entry
@@ -235,8 +240,10 @@ class DataFileInterface:
         season_key = f'Season {episode_info.season_number}'
         if (season_key not in yaml
             or episode_info.episode_number not in yaml[season_key]):
-            log.error(f'Cannot add data to entry for {episode_info} in '
-                      f'"{self.file.resolve()}" - entry does not exist')
+            log.error((
+                f'Cannot add data to entry for {episode_info} in '
+                f'"{self.file.resolve()}" - entry does not exist'
+            ))
             return None
 
         # Add new data

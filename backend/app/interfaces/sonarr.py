@@ -15,8 +15,7 @@ from app.interfaces.base import (
     SearchResult,
     WatchedStatus,
 )
-from app.interfaces.base import Interface
-from app.interfaces.base import SyncInterface
+from app.interfaces.base import Interface, SyncInterface
 from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
 from app.logging.logger import Logger, log
@@ -954,10 +953,10 @@ class SonarrInterfaceV1(EpisodeDataSourceV1, WebInterface, SyncInterface):
                 # Skip temporary placeholder names if aired in the last 48 hours
                 if (self.__TEMP_IGNORE_REGEX.match(episode['title'])
                     and air_datetime + timedelta(days=2) > datetime.now()):
-                    log.debug(
+                    log.debug((
                         f'Temporarily ignoring "{episode["title"]}" of '
                         f'{series_info} - placeholder title'
-                    )
+                    ))
                     continue
 
             # Skip permanent placeholder names
@@ -997,10 +996,10 @@ class SonarrInterfaceV1(EpisodeDataSourceV1, WebInterface, SyncInterface):
 
         # If any episodes had TVDb ID's of 0, then warn user to refresh series
         if has_bad_ids:
-            log.warning(
+            log.warning((
                 f'Series "{series_info}" has no TVDb episode ID data - Refresh '
                 f'& Scan in Sonarr'
-            )
+            ))
 
         return all_episode_info
 

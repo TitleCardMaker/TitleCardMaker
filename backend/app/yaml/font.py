@@ -42,7 +42,6 @@ class Font(YamlReader):
         '__card_class',
         '__series_info',
         '__validator',
-        '__validate',
         'color',
         'size',
         'file',
@@ -120,17 +119,15 @@ class Font(YamlReader):
         """
 
         description_tag = f' - {description}' if description else ''
-        log.error(f'Font {attribute} "{value}" of series {self.__series_info} '
-                  f'is invalid{description_tag}')
+        log.error((
+            f'Font {attribute} "{value}" of series {self.__series_info} is '
+            f'invalid{description_tag}'
+        ))
         self.valid = False
 
 
     def __parse_attributes(self) -> None:
         """Parse this object's YAML and update the validity and attributes."""
-
-        # Whether to validate for this font
-        if (value := self.get('validate', type_=bool)) is not None:
-            self.__validate = value
 
         # Case
         if (value := self.get('case', type_=self.TYPE_LOWER_STR)) is not None:
@@ -215,10 +212,6 @@ class Font(YamlReader):
     def reset(self) -> None:
         """Reset this object's attributes to its default values."""
 
-        # Whether to validate for this font
-        self.__validate = global_objects.pp.validate_fonts
-
-        # Default itle card characteristics and font values
         self.case_name = self.__card_class.DEFAULT_FONT_CASE
         self.case = self.__card_class.CASE_FUNCTIONS[self.case_name]
         self.color = self.__card_class.TITLE_COLOR
@@ -263,8 +256,7 @@ class Font(YamlReader):
             valid. The title is only modified if missing deletion is
             enabled (and applied); validity is True if all the
             characters of the given title are contained within this
-            font, or if validation is not enabled and is False
-            otherwise.
+            font, False otherwise.
         """
 
         # Validate title against this font
@@ -279,8 +271,7 @@ class Font(YamlReader):
             # Return modified title, and title is now guaranteed to be valid
             return title, True
 
-        # If validation isn't enabled, ignore result and return True
-        return title, (valid if self.__validate else True)
+        return title, valid
 
 
     @staticmethod

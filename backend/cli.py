@@ -134,7 +134,7 @@ def read_update_list(preferences_file: Path, tautulli_list: Path):
     default=config.V1_PREFERENCE_FILE,
     help='File to read global preferences from.')
 @click.pass_context
-def cli(ctx, preferences) -> None:
+def cli(ctx, preferences: PreferenceParser) -> None:
     """Start TitleCardMaker"""
 
     # Check if preference file exists
@@ -157,7 +157,8 @@ def cli(ctx, preferences) -> None:
 @click.pass_context
 def run_once(ctx, missing):
     """Run the TitleCardMaker once"""
-    log.info(f'Starting TitleCardMaker ({pp.version})')
+
+    log.info(f'Starting TitleCardMaker ({config.CURRENT_VERSION})')
     run(ctx.obj['preferences_file'], missing)
 
 @cli.command()

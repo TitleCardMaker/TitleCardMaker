@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 import click
 
+from app.logging.logger import log
 from app.magick.AspectRatioFixer import AspectRatioFixer
 from app.magick.collection_posters import CollectionPosterMaker
 from app.magick.genre_posters import GenreMaker
@@ -14,36 +15,27 @@ from app.magick.summary import StandardSummary, StylizedSummary
 from app.settings import settings
 from app.yaml.reader import YamlReader
 from modules.CleanPath import CleanPath
-from app.logging.logger import log
 from modules.RemoteFile import RemoteFile
 
 
 @click.group()
 @click.option(
     '--quality',
-    default=settings.V1_CARD_QUALITY,
+    default=settings.config.V1_CARD_QUALITY,
     type=click.IntRange(min=0, max=100, clamp=True),
     help='Image compression quality to utilize')
 @click.option(
-    '--use-magick-prefix', is_flag=True,
-    help='Whether to use the "magick" ImageMagick command prefix')
-@click.option(
     '--imagemagick-container',
-    default=settings.V1_IMAGEMAGICK_CONTAINER,
+    default=settings.config.V1_IMAGEMAGICK_CONTAINER,
     type=str,
     help='Docker container to execute ImageMagick commands within')
 def mini_maker(
         quality: int,
-        use_magick_prefix: bool,
         imagemagick_container: str,
     ) -> None:
 
-    import modules.global_objects as global_objects
-
-    global_objects.pp.card_quality = quality
-    global_objects.pp.use_magick_prefix = use_magick_prefix
-    global_objects.pp.imagemagick_container = imagemagick_container
-    global_objects.pp.summary_minimum_episode_count = 0
+    settings.config.V1_CARD_QUALITY = quality
+    settings.config.V1_IMAGEMAGICK_CONTAINER = imagemagick_container
 
 
 @mini_maker.command(help='Apply aspect-ratio correction to an image')

@@ -1161,7 +1161,7 @@ class JellyfinInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
         # Store attributes of this Interface
         self.session = WebInterface('Jellyfin', verify_ssl)
         self.info_set = global_objects.info_set
-        self.url = url[:-1] if url.endswith('/') else url
+        self.url = url.removesuffix('/')
         self.__params = {'api_key': api_key}
         self.username = username
 
@@ -1276,8 +1276,10 @@ class JellyfinInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
                 return id_
 
             # No item found, ID must be invalid - reset and re-query
-            log.trace(f'Jellyfin ID ({id_}) has been dynamically re-assigned.'
-                      f' Querying for new one..')
+            log.trace((
+                f'Jellyfin ID ({id_}) has been dynamically re-assigned. '
+                f'Querying for new one.'
+            ))
             series_info.jellyfin_id = None
 
         # Get ID of this library
@@ -1352,8 +1354,10 @@ class JellyfinInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
         # Find series
         result = self.__get_series_id(library_name, series_info, raw_obj=True)
         if result is None:
-            log.warning(f'Series "{series_info}" was not found under library '
-                        f'"{library_name}" in Jellyfin')
+            log.warning((
+                f'Series "{series_info}" was not found under library '
+                f'"{library_name}" in Jellyfin'
+            ))
             return None
 
         series_info.jellyfin_id = None
@@ -1707,8 +1711,9 @@ class JellyfinInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
         for episode in filtered_episodes.values():
             # Skip episodes without ID's (e.g. not in Jellyfin)
             if (jellyfin_id := episode.episode_info.jellyfin_id) is None:
-                log.debug(f'Skipping {episode.episode_info!r} - not found in '
-                          f'Jellyfin')
+                log.debug(
+                    f'Skipping {episode.episode_info!r} - not found in Jellyfin'
+                )
                 continue
 
             # Shrink image if necessary, skip if cannot be compressed
@@ -1727,11 +1732,14 @@ class JellyfinInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
                     data=card_base64,
                 )
                 loaded_count += 1
-                log.debug(f'Loaded "{series_info}" Episode '
-                          f'{episode.episode_info} into Jellyfin')
+                log.debug((
+                    f'Loaded "{series_info}" Episode {episode.episode_info} '
+                    f'into Jellyfin'
+                ))
             except Exception:
-                log.exception(f'Unable to upload {card.resolve()} to '
-                              f'"{series_info}"')
+                log.exception(
+                    f'Unable to upload {card.resolve()} to "{series_info}"'
+                )
                 continue
 
             # Update loaded database for this episode

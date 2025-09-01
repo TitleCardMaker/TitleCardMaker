@@ -1657,10 +1657,10 @@ class PlexInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
             if (airdate is not None
                 and self.__TEMP_IGNORE_REGEX.match(plex_episode.title)
                 and airdate + timedelta(days=2) > datetime.now()):
-                log.debug(
+                log.debug((
                     f'Temporarily ignoring {plex_episode.seasonEpisode.upper()}'
                     f' of {series_info} - placeholder title'
-                )
+                ))
                 continue
 
             # Get all ID's for this episode
@@ -1926,8 +1926,10 @@ class PlexInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
                 episode=episode_info.episode_number
             )
 
-            return (f'{self.__server._baseurl}{plex_episode.thumb}' # pylint: disable=protected-access
-                    f'?X-Plex-Token={self.__token}')
+            return (
+                f'{self.__server._baseurl}{plex_episode.thumb}' # pylint: disable=protected-access
+                f'?X-Plex-Token={self.__token}'
+            )
         except NotFound:
             # Episode DNE in Plex, return
             return None
@@ -2029,10 +2031,10 @@ class PlexInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
             pl_episode: PlexEpisode = pl_episode
             # If error count is too high, skip this series
             if error_count >= self.SKIP_SERIES_THRESHOLD:
-                log.error(
+                log.error((
                     f'Failed to upload {error_count} episodes, skipping '
                     f'"{series_info}"'
-                )
+                ))
                 break
 
             # Skip episodes that aren't in list of cards to update
@@ -2201,9 +2203,11 @@ class PlexInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
                 )
 
                 return [
-                    (series_info,
-                     EpisodeInfoV1(ep.title, ep.parentIndex, ep.index),
-                     entry.librarySectionTitle)
+                    (
+                        series_info,
+                        EpisodeInfoV1(ep.title, ep.parentIndex, ep.index),
+                        entry.librarySectionTitle
+                    )
                     for ep in entry.episodes()
                 ]
             # New season, return all episodes in season
@@ -2218,9 +2222,11 @@ class PlexInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
                 )
 
                 return [
-                    (series_info,
-                     EpisodeInfoV1(ep.title, entry.index, ep.index),
-                     series.librarySectionTitle)
+                    (
+                        series_info,
+                        EpisodeInfoV1(ep.title, entry.index, ep.index),
+                        series.librarySectionTitle
+                    )
                     for ep in entry.episodes()
                 ]
             # New episode, return just that
