@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from app.info.episode import EpisodeInfoV1
 from app.info.series import SeriesInfoV1
 from app.logging.logger import log
-from modules import global_objects
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
 from modules.FormatString import FormatString

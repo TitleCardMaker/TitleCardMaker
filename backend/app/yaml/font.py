@@ -5,7 +5,6 @@ from typing import Any, TypedDict
 from app.info.series import SeriesInfoV1
 from app.logging.logger import log
 from app.yaml.reader import YamlReader
-from modules import global_objects
 from modules.BaseCardType import BaseCardType
 
 

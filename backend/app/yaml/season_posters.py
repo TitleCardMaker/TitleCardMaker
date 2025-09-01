@@ -4,10 +4,9 @@ from typing import TYPE_CHECKING
 
 from num2words import num2words
 
+from app.logging.logger import log
 from app.magick.season_posters import SeasonPoster
 from app.yaml.reader import YamlReader
-from app.logging.logger import log
-from modules import global_objects
 
 if TYPE_CHECKING:
     from modules.EpisodeMap import EpisodeMap

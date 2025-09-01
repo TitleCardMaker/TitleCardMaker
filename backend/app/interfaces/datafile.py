@@ -5,7 +5,6 @@ from yaml import safe_load, dump
 
 from app.info.episode import EpisodeInfoV1
 from app.info.series import SeriesInfoV1
-from modules import global_objects
 from app.logging.logger import log
 from modules.Title import Title
 

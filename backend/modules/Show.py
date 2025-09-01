@@ -24,7 +24,6 @@ from app.yaml.season_posters import SeasonPosterSet
 from modules.CleanPath import CleanPath
 from modules.Episode import Episode, MultiEpisode
 from modules.EpisodeMap import EpisodeMap
-from modules import global_objects
 from modules.Profile import Profile
 from modules.StyleSet import StyleSet
 from modules.TitleCard import TitleCard

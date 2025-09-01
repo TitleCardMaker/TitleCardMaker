@@ -107,9 +107,8 @@ exclude = [
     "venv",
     "config",
     "archives",
-    "modules/.objects",
-    "app/alembic/",
-    "modules/global_objects.py",
+    "backend/modules/.objects",
+    "backend/app/alembic/",
 ]
 
 line-length = 88

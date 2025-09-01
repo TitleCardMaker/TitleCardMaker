@@ -18,7 +18,6 @@ from app.magick.base import ImageMaker
 from app.settings import settings
 from app.logging.logger import log
 from modules.PreferenceParser import PreferenceParser
-from modules.global_objects import set_preference_parser
 
 # Environment Variables
 ENV_PREFERENCE_FILE = 'TCM_PREFERENCES'

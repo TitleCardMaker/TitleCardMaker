@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Annotated, ClassVar
 from app.core.config import config
 from app.interfaces.magick import Dimensions, ImageMagickInterface
 from app.logging.logger import log
-from modules import global_objects
 
 if TYPE_CHECKING:
     from modules.Show import Show

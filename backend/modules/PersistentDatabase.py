@@ -6,7 +6,6 @@ from json.decoder import JSONDecodeError
 from tinydb import TinyDB
 
 from app.logging.logger import log
-from modules import global_objects
 
 
 class PersistentDatabase:
