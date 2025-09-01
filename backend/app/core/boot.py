@@ -58,10 +58,10 @@ def initialize_root_directories(*, log: Logger = logger) -> None:
         try:
             directory.mkdir(parents=True, exist_ok=True)
         except PermissionError:
-            log.critical(
+            log.critical((
                 f'Could not initialize directory "{directory}" - invalid '
                 f'permissions'
-            )
+            ))
             sys_exit(1)
         except Exception:
             log.critical('Error initializing root directories')
@@ -92,10 +92,10 @@ def mount_static_app_directories(app: FastAPI, *, log: Logger = logger) -> None:
         try:
             app.mount(mount, StaticFiles(directory=directory))
         except RuntimeError:
-            log.critical(
+            log.critical((
                 f'Unable to mount StaticFiles("{directory}") - assets may not '
                 f'load'
-            )
+            ))
 
 
 def perform_database_migrations(*, log: Logger = logger) -> None:
