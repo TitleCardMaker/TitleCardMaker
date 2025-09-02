@@ -239,15 +239,15 @@ def download_series_logo(
                 break
 
             logo = interface.get_series_logo(
-                library, series.as_series_info, log=log # type: ignore
+                library, series.as_series_info, log=log
             )
 
         # If no logo was returned, move on to next image source
         if logo is None:
-            log.trace(
+            log.trace((
                 f'{interface.INTERFACE_TYPE}[{interface_id}] did not return a '
                 f'logo'
-            )
+            ))
             continue
 
         # If logo is an svg, convert
@@ -256,10 +256,10 @@ def download_series_logo(
 
         # Logo is png and valid, download
         if WebInterface.download_image(logo, logo_file, log=log):
-            log.info(
+            log.info((
                 f'{series} Downloaded logo from {interface.INTERFACE_TYPE}'
                 f'[{interface_id}]'
-            )
+            ))
             return f'/source/{series.path_safe_name}/{logo_file.name}'
 
         # Download failed, raise 400
@@ -359,10 +359,10 @@ def download_episode_source_image(
 
         # Art can only be sourced from TMDb and TVDb; skip servers
         if ('art' in style and interface.INTERFACE_TYPE not in ('TMDb', 'TVDb')):
-            log.trace(
+            log.trace((
                 f'Cannot source Art images from {interface.INTERFACE_TYPE} - '
                 f'skipping'
-            )
+            ))
             continue
 
         # Try each library of each media servers
@@ -422,18 +422,18 @@ def download_episode_source_image(
 
         # No source image was returned
         if source_image is None:
-            log.trace(
+            log.trace((
                 f'{episode} cannot download Source Image from '
                 f'Connection[{interface_id}] {interface.INTERFACE_TYPE}'
-            )
+            ))
             continue
 
         # Source image is valid, download - error if download fails
         if WebInterface.download_image(source_image, source_file, log=log):
-            log.debug(
+            log.debug((
                 f'{episode} Downloaded "{source_file.name}" from '
                 f'{interface.INTERFACE_TYPE}'
-            )
+            ))
             return f'/source/{series.path_safe_name}/{source_file.name}'
 
         if raise_exc:

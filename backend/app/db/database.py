@@ -1,10 +1,10 @@
 from re import IGNORECASE, sub as re_sub, match as _regex_match
 from typing import Any, Generator
 
-from thefuzz.fuzz import partial_token_sort_ratio as partial_ratio
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.event import listens_for
+from thefuzz.fuzz import partial_token_sort_ratio as partial_ratio
 from unidecode import unidecode
 
 from app.core.config import config

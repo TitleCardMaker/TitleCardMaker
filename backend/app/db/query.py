@@ -19,6 +19,7 @@ from app.dependencies import (
     TVDbInterfaces,
     get_database
 )
+from app.logging.logger import log
 from app.models.blueprint import Blueprint, BlueprintSet
 from app.models.card import Card
 from app.models.connection import Connection
@@ -27,8 +28,6 @@ from app.models.font import Font
 from app.models.series import Series
 from app.models.sync import Sync
 from app.models.template import Template
-
-from app.logging.logger import log
 
 
 _ObjectType = TypeVar('_ObjectType', bound=Base)

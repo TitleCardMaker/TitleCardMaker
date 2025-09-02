@@ -140,10 +140,10 @@ def get_sonarr_libraries(
     for interface_id, library in connection.determine_libraries(directory):
         # Get Connection of this library
         if (interface := db.get(Connection, interface_id)) is None:
-            log.error(
+            log.error((
                 f'No Connection of ID {interface_id} - cannot assign '
                 f'library'
-            )
+            ))
             continue
 
         libraries.append({

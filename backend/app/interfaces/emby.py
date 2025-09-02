@@ -1317,7 +1317,7 @@ class EmbyInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfoV1,
-        ) ->None:
+        ) -> None:
         """
         Set the series ID's for the given SeriesInfo object.
 

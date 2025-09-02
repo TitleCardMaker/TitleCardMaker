@@ -404,7 +404,7 @@ class Manager:
         is run and Show/ShowArchive objects are created.
 
         Args:
-            serial: (Keyword only) Whether execution is serial.
+            serial: Whether execution is serial.
         """
 
         # If serial, don't update series files or create shows

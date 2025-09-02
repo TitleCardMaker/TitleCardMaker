@@ -8,10 +8,10 @@ from app.core.episodes import refresh_episode_data
 from app.core.series import load_all_series_title_cards
 from app.core.snapshot import take_snapshot
 from app.core.sources import download_episode_source_images
+from app.core.translate import translate_episode
 from app.db.query import get_connection
 from app.dependencies import PlexInterface
 from app.exceptions import InvalidCardSettings
-from app.core.translate import translate_episode
 from app.logging.logger import Logger, log
 from app.models.episode import Episode
 from app.models.series import Series
@@ -72,10 +72,10 @@ def process_rating_key(
         # Episode does not exist, refresh episode data and try again
         if not episodes:
             # Try and find associated Series, skip if DNE
-            log.trace(
+            log.trace((
                 f'No Episode found for ({episode_info!r}) - refreshing Episode '
                 f'data'
-            )
+            ))
             series = db.query(Series)\
                 .filter(series_info.filter_conditions(Series))\
                 .first()
@@ -121,7 +121,9 @@ def process_rating_key(
         try:
             new_cards = create_episode_cards(db, episode, log=log)
         except (HTTPException, InvalidCardSettings):
-            log.exception(f'Unable to create Title Card for {episode} - skipping')
+            log.exception(
+                f'Unable to create Title Card for {episode} - skipping'
+            )
             continue
 
         # Determine whether the Episode has any Kometa integration
