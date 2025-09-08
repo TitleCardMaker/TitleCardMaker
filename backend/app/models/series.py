@@ -74,15 +74,15 @@ class Series(Base):
 
     # Referencial arguments
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    data_source_id: Mapped[Optional[int]] = mapped_column(
+    data_source_id: Mapped[int | None] = mapped_column(
         ForeignKey('connection.id'),
         default=None,
     )
-    font_id: Mapped[Optional[int]] = mapped_column(
+    font_id: Mapped[int | None] = mapped_column(
         ForeignKey('font.id'),
         default=None,
     )
-    sync_id: Mapped[Optional[int]] = mapped_column(
+    sync_id: Mapped[int | None] = mapped_column(
         ForeignKey('sync.id'),
         default=None,
     )
@@ -132,14 +132,14 @@ class Series(Base):
     )
 
     # Series config arguments
-    directory: Mapped[Optional[str]]
+    directory: Mapped[str | None]
     libraries: Mapped[list[Library]] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=[]
     )
-    card_filename_format: Mapped[Optional[str]]
-    sync_specials: Mapped[Optional[bool]]
-    skip_localized_images: Mapped[Optional[bool]]
+    card_filename_format: Mapped[str | None]
+    sync_specials: Mapped[bool | None]
+    skip_localized_images: Mapped[bool | None]
     translations: Mapped[Optional[list[dict[str, str]]]] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=None
@@ -153,36 +153,36 @@ class Series(Base):
     )
 
     # Database arguments
-    emby_id: Mapped[Optional[str]]
-    imdb_id: Mapped[Optional[str]]
-    jellyfin_id: Mapped[Optional[str]]
-    sonarr_id: Mapped[Optional[str]]
-    tmdb_id: Mapped[Optional[int]]
-    tvdb_id: Mapped[Optional[int]]
-    tvrage_id: Mapped[Optional[int]]
-    set_url: Mapped[Optional[str]]
+    emby_id: Mapped[str | None]
+    imdb_id: Mapped[str | None]
+    jellyfin_id: Mapped[str | None]
+    sonarr_id: Mapped[str | None]
+    tmdb_id: Mapped[int | None]
+    tvdb_id: Mapped[int | None]
+    tvrage_id: Mapped[int | None]
+    set_url: Mapped[str | None]
 
     # Font arguments
-    font_color: Mapped[Optional[str]]
-    font_title_case: Mapped[Optional[str]]
-    font_size: Mapped[Optional[float]]
-    font_kerning: Mapped[Optional[float]]
-    font_stroke_width: Mapped[Optional[float]]
-    font_interline_spacing: Mapped[Optional[int]]
-    font_interword_spacing: Mapped[Optional[int]]
-    font_vertical_shift: Mapped[Optional[int]]
+    font_color: Mapped[str | None]
+    font_title_case: Mapped[str | None]
+    font_size: Mapped[float | None]
+    font_kerning: Mapped[float | None]
+    font_stroke_width: Mapped[float | None]
+    font_interline_spacing: Mapped[int | None]
+    font_interword_spacing: Mapped[int | None]
+    font_vertical_shift: Mapped[int | None]
 
     # Card arguments
-    card_type: Mapped[Optional[str]]
-    hide_season_text: Mapped[Optional[bool]]
+    card_type: Mapped[str | None]
+    hide_season_text: Mapped[bool | None]
     season_titles: Mapped[Optional[dict[str, str]]] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
         default=None,
     )
-    hide_episode_text: Mapped[Optional[bool]]
-    episode_text_format: Mapped[Optional[str]]
-    unwatched_style: Mapped[Optional[str]]
-    watched_style: Mapped[Optional[str]]
+    hide_episode_text: Mapped[bool | None]
+    episode_text_format: Mapped[str | None]
+    unwatched_style: Mapped[str | None]
+    watched_style: Mapped[str | None]
     extras: Mapped[Optional[dict[str, str]]] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
         default=None,
