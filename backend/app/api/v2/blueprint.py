@@ -388,6 +388,7 @@ def query_blueprints_by_info(
         imdb_id: str | None = Query(default=None),
         tmdb_id: int | None = Query(default=None),
         tvdb_id: int | None = Query(default=None),
+        order_by: Literal['date', 'name'] = Query(default='date'),
         blueprint_db: Session = Depends(get_blueprint_database),
     ) -> list[RemoteBlueprint]:
     """
@@ -396,6 +397,7 @@ def query_blueprints_by_info(
     - name: Name of the Series to look up Blueprints for.
     - year: Year of the Series to look up Blueprints for.
     - *_id: Database ID's filter by.
+    - order_by: How to order the returned Blueprints.
     """
 
     # Generate filter conditions for Blueprint / BlueprintSeries objects
@@ -414,10 +416,16 @@ def query_blueprints_by_info(
         .filter(*filters)\
         .all()
 
+    if order_by == 'date':
+        order = Blueprint.created.desc()
+    else:
+        order = BlueprintSeries.sort_name
+
     return (
         blueprint_db.query(Blueprint)
             .filter(Blueprint.series_id.in_([bp.id for bp in blueprint_series]))
             .filter(Blueprint.id.not_in(settings.blacklisted_blueprints))
+            .order_by(order)
             .all()
     ) # type: ignore
 
