@@ -778,7 +778,8 @@ class MusicTitleCard(BaseCardType):
         # Base commands to add and resize the image
         base_commands = [
             f'-gravity south',
-            fr'\( "{self.album_cover.resolve()}"',
+            fr'\(',
+            f'"{self.album_cover.resolve()}"',
             f'-resize {dimensions.width}x',
             fr'-resize x{dimensions.height}\>',
             fr'\)',
@@ -1258,22 +1259,24 @@ def get_validator_model() -> type[Base]:
             return self
 
         @model_validator(mode='before')
-        def finalize_format_strings(self) -> Self:
+        @classmethod
+        def finalize_format_strings(cls, data: Any) -> Any:
             """Finalize the percentage and subtitle format strings."""
 
-            if ((percentage := self.percentage) is not None
+            if (isinstance(data, dict)
+                and (percentage := data.get('percentage')) is not None
                 and isinstance(percentage, str)
-                and percentage != 'random'):
+                and percentage != 'random'
+            ):
                 # Resolve the format string in case it was some logic
                 # which resolved to "random"
-                result = FormatString(percentage, data=self).result
-                if result == 'random':
-                    self.percentage = 'random'
-                else:
+                result = FormatString(percentage, data=data).result
+                if result != 'random':
                     p = float(result)
-                    self.percentage = max(0.0, min(1.0, p)) # Limit [0.0, 1.0]
+                    result = max(0.0, min(1.0, p)) # Limit [0.0, 1.0]
+                data['percentage'] = result
 
-            return self
+            return data
 
         @model_validator(mode='after')
         def truncate_long_titles_(self) -> Self:
@@ -1290,32 +1293,37 @@ def get_validator_model() -> type[Base]:
             return self
 
         @model_validator(mode='before')
-        def validate_album_cover(self) -> Self:
+        @classmethod
+        def validate_album_cover(cls, data: Any) -> Any:
             """
             Apply and find the album cover indicated by the player
             style.
             """
+
             # Set album cover based on indicated player style
-            if self.album_cover is None:
-                style = self.player_style or MusicTitleCard.DEFAULT_PLAYER_STYLE
+            if isinstance(data, dict) and data.get('album_cover') is None:
+                style = data.get(
+                    'player_style', MusicTitleCard.DEFAULT_PLAYER_STYLE
+                )
                 if style == 'artwork':
-                    self.album_cover = self.backdrop_file
+                    data['album_cover'] = data.get('backdrop_file')
                 elif style == 'logo':
-                    self.album_cover = self.logo_file
+                    data['album_cover'] = data.get('logo_file')
                 elif style == 'poster':
-                    self.album_cover = self.poster_file
+                    data['album_cover'] = data.get('poster_file')
 
             # Parse format strings in album cover
-            if (cover := self.album_cover):
-                cover = Path(FormatString(str(cover), data=self.dict()).result)
+            if (cover := data.get('album_cover')) and data.get('source_file'):
+                cover = Path(FormatString(str(cover), data=data).result)
                 if not cover.exists():
-                    cover = self.source_file.parent / cover.name
-                self.album_cover = cover
+                    cover = Path(data.get('source_file')).parent / cover.name
+                data['album_cover'] = cover
 
             # If no album cover is indicated and not in basic mode, error
-            if self.album_cover is None and self.player_style != 'basic':
+            if (data.get('album_cover') is None
+                and data.get('player_style') != 'basic'):
                 raise ValueError('Cover must exist')
 
-            return self
+            return data
 
     return CardModel
