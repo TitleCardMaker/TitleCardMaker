@@ -117,6 +117,7 @@ class WhiteBorderTitleCard(BaseCardType):
         'font_file',
         'font_interline_spacing',
         'font_kerning',
+        'font_size',
         'stroke_color',
         'episode_text_color',
         'episode_text_font_size',
