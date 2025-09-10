@@ -57,7 +57,7 @@ def _sqlalchemy_sink(message: 'Message') -> None:
     exc_type = None
     exc_value = None
     exc_traceback = None
-    if record['exception'] is not None:
+    if record['exception'] is not None and len(base_logger._core.handlers) > 2:
         exc_type = str(record['exception'].type)
         exc_value = str(record['exception'].value)
         tb = base_logger._core.handlers[2]._exception_formatter.format_exception(
