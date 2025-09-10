@@ -1,7 +1,14 @@
 {% if False %}
 import {
-  AnyConnection, EmbyConnection, InterfaceType, JellyfinConnection,
-  PlexConnection, SonarrConnection, TMDbConnection, TVDbConnection
+  AnyConnection,
+  EmbyConnection,
+  InterfaceType,
+  JellyfinConnection,
+  PlexConnection,
+  ReturnUserSchema,
+  SonarrConnection,
+  TMDbConnection,
+  TVDbConnection,
 } from './.types.js';
 {% endif %}
 
@@ -113,7 +120,11 @@ function enableAuthentication() {
   $.ajax({
     type: 'POST',
     url: '/api/v2/auth/enable',
-    success: () => {
+    /**
+     * Authentication enabled.
+     * @param {ReturnUserSchema} returnUser 
+     */
+    success: (returnUser) => {
       // Show toast, redirect to login page
       $.toast({
         class: 'blue info',
@@ -121,9 +132,15 @@ function enableAuthentication() {
         message: 'You will be redirected to the login page..'
       });
 
+      // If the user is temporary, add parameter to redirect URL
+      let redirectURL = '/login?redirect=/connections';
+      if (returnUser.temporary) {
+        redirectURL += '&temporary=true';
+      }
+
       // After 2.5s, redirect to login with redirect back here
       setTimeout(() => {
-        window.location.href = '/login?redirect=/connections';
+        window.location.href = redirectURL;
       }, 2500);
     },
     error: response => showErrorToast({title: 'Error Enabling Authentication', response}),

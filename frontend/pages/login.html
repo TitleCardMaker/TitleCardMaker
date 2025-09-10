@@ -31,6 +31,16 @@
 
       <h2>Log In</h2>
       <div class="ui elastic inverted segment">
+
+        {% if temporary_credentials %}
+          <div class="ui center aligned info message">
+            <div class="header">Temporary Credentials</div>
+            <p>A temporary username and password have been<br>created for you.</p>
+            <p>Please change these after logging in.</p>
+            <p>Username: <strong>admin</strong><br>Password: <strong>password</strong></p>
+          </div>
+        {% endif %}
+
         <form id="login-form">
           <div class="text field">
             <input id="username" type="text" required="" autofocus tabindex="0" name="username">

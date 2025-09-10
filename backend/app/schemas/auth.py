@@ -25,3 +25,4 @@ class CreateUserSchema(Base):
 class ReturnUserSchema(Base):
     username: str
     hashed_password: str
+    temporary: bool = False

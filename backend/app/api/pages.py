@@ -37,12 +37,16 @@ async def go_to_home_page(request: Request):
 @router.get('/login')
 async def go_to_login_page(request: Request):
     """Navigate to the login page."""
+
+    temporary = request.query_params.get('temporary', 'false') == 'true'
+
     return TEMPLATES.TemplateResponse(
         '/pages/login.html',
         {
             'request': request,
             'require_auth': settings.require_auth,
             'current_version': str(settings.config.CURRENT_VERSION),
+            'temporary_credentials': temporary,
         }
     )
 

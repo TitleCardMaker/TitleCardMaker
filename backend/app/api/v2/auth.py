@@ -56,7 +56,11 @@ def enable_authentication(
     db.commit()
     log.warning(f'Created temporary User("admin", "password")')
 
-    return new_user
+    return ReturnUserSchema(
+        username=new_user.username,
+        hashed_password=new_user.hashed_password,
+        temporary=True, # Temporary credentials need to be flagged
+    )
 
 
 @auth_router.post('/disable', dependencies=[Depends(get_current_user)])
