@@ -12,6 +12,14 @@
  * @typedef {"blank" | "lower" | "source" | "title" | "upper"} TitleCase
  */
 
+
+/**
+ * @typedef {Object} ReturnUserSchema
+ * @property {string} username
+ * @property {string} hashed_password
+ * @property {boolean} temporary
+ */
+
 // Availability ----------------------------------------------------------------
 
 /**
