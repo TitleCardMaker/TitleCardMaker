@@ -15,7 +15,7 @@ from app.db.interfaces import (
     TMDbInterfaces,
     TVDbInterfaces,
 )
-from app.db.database import BlueprintSessionMaker, SessionLocal
+from app.db.database import BlueprintSessionMaker, SessionLocal, YamlSessionLocal
 from app.interfaces.base import Interface, InterfaceGroup
 from app.interfaces.v2 import (
     AnyInterface,
@@ -40,12 +40,7 @@ BLUEPRINT_DATABASE_FILE = settings.temporary_directory / 'blueprints.db'
 
 
 def get_database() -> Iterator[Session]:
-    """
-    Dependency to get a Session to the SQLite database.
-
-    Yields:
-        A Session connection to the database.
-    """
+    """Yield a Session to the standard database."""
 
     db = SessionLocal()
     try:
@@ -55,11 +50,19 @@ def get_database() -> Iterator[Session]:
 
 
 def get_log_database() -> Iterator[Session]:
-    """
-    Dependency to get a Session to the SQLite database.
-    """
+    """Yield a Session to the logging database."""
 
     db = LogsSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+def get_yaml_database() -> Iterator[Session]:
+    """Yield a Session to the YAML database."""
+
+    db = YamlSessionLocal()
     try:
         yield db
     finally:

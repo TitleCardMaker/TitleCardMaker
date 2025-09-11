@@ -13,11 +13,26 @@ from app.core.config import config
 # URL of the SQL Database - based on whether in Docker or not
 if config.IS_DOCKER:
     SQLALCHEMY_DATABASE_URL = 'sqlite:////config/db.sqlite'
+    YAML_DATABASE_URL = 'sqlite:////config/db_v1.sqlite'
 else:
     SQLALCHEMY_DATABASE_URL = 'sqlite:///../config/db.sqlite'
+    YAML_DATABASE_URL = 'sqlite:///../config/db_v1.sqlite'
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
+    # https://docs.sqlalchemy.org/en/20/core/pooling.html#disconnect-handling-pessimistic
+    pool_pre_ping=True,
+    # https://docs.sqlalchemy.org/en/20/core/pooling.html#pool-disconnects
+    connect_args={'check_same_thread': False, 'timeout': 30},
+    # echo=True,
+    # Do not limit pool overflow since "new" connections are made inside queued
+    # BackgroundTasks - see https://docs.sqlalchemy.org/en/20/errors.html for
+    # reference
+    pool_size=5, max_overflow=-1,
+)
+
+yaml_engine = create_engine(
+    YAML_DATABASE_URL,
     # https://docs.sqlalchemy.org/en/20/core/pooling.html#disconnect-handling-pessimistic
     pool_pre_ping=True,
     # https://docs.sqlalchemy.org/en/20/core/pooling.html#pool-disconnects
@@ -44,6 +59,11 @@ SessionLocal = sessionmaker(
     bind=engine, expire_on_commit=False, autocommit=False, autoflush=False,
 )
 Base = declarative_base()
+
+YamlSessionLocal = sessionmaker(
+    bind=yaml_engine, expire_on_commit=False, autocommit=False, autoflush=False,
+)
+YamlBase = declarative_base()
 
 BlueprintSessionMaker = sessionmaker(bind=blueprint_engine)
 BlueprintBase = declarative_base() 
