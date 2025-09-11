@@ -1,13 +1,14 @@
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, ClassVar
 
 from requests import Response, get
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
-from tinydb import where
 
 from app.core.config import config
 from app.logging.logger import log
-from modules.PersistentDatabase import PersistentDatabase
+
+# Global object to store already loaded files
+_loaded_files: set[str] = set()
 
 
 class RemoteFile:
@@ -21,17 +22,14 @@ class RemoteFile:
     """
 
     BASE_URL: Annotated[
-        str,
+        ClassVar[str],
         'Base URL to look for remote content at'
     ] = config.CARD_TYPE_REPOSITORY.removesuffix('/')
 
     """Temporary directory all files will be downloaded into"""
     TEMP_DIR = Path(__file__).parent / '.objects'
 
-    """Database of assets that have been loaded already"""
-    LOADED_FILE = 'remote_assets.json'
-
-    __slots__ = ('loaded', 'remote_source', 'local_file', 'valid')
+    __slots__ = ('remote_source', 'local_file', 'valid')
 
 
     def __init__(self, username: str, filename: str) -> None:
@@ -49,20 +47,17 @@ class RemoteFile:
         # Object validity to be updated
         self.valid = True
 
-        # Get database of loaded assets
-        self.loaded = PersistentDatabase(self.LOADED_FILE)
-
         # Remote font will be stored at github/username/filename
         self.remote_source = f'{self.BASE_URL}/{username}/{filename}'
 
-        # The font fill will be downloaded and exist in the temporary directory
+        # The file will be downloaded and exist in the temporary directory
         self.local_file = self.TEMP_DIR / username / filename.rsplit('/')[-1]
 
         # Create parent folder structure if necessary
         self.local_file.parent.mkdir(parents=True, exist_ok=True)
 
         # If file has already been loaded this run, skip
-        if self.loaded.get(where('remote') == self.remote_source) is not None:
+        if self.remote_source in _loaded_files:
             return None
 
         # Download the remote file for local use
@@ -76,10 +71,8 @@ class RemoteFile:
             )
             return None
 
-        try:
-            self.loaded.insert({'remote': self.remote_source})
-        except Exception:
-            pass
+        # Add to global loaded files set
+        _loaded_files.add(self.remote_source)
 
         return None
 
@@ -156,7 +149,8 @@ class RemoteFile:
 
     @staticmethod
     def reset_loaded_database() -> None:
-        """Reset (clear) this class's database of loaded remote files."""
+        """Reset (clear) this class's global set of loaded remote files."""
 
-        PersistentDatabase(RemoteFile.LOADED_FILE).reset()
-        log.debug(f'Reset PersistentDatabase[{RemoteFile.LOADED_FILE}]')
+        global _loaded_files
+        _loaded_files.clear()
+        log.debug('Reset global loaded files set')

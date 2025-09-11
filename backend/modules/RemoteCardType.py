@@ -1,19 +1,23 @@
 from hashlib import md5
 from importlib.util import spec_from_file_location, module_from_spec
 import sys
-from typing import Literal
+from typing import Annotated, Literal
 
 from pathlib import Path
 from requests import get
-from tinydb import where
 
 from app.core.config import config
 from app.logging.logger import Logger, log
 from app.schemas.base import Base
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
-from modules.PersistentDatabase import PersistentDatabase
 from modules.RemoteFile import RemoteFile
+
+
+_loaded_urls: Annotated[
+    set[str],
+    'Database ofremote URLs that have already been loaded'
+] = set()
 
 
 class RemoteCardType:
@@ -231,7 +235,6 @@ class RemoteCardTypeV1:
 
         # Get database of loaded assets/cards
         self.card_class: BaseCardType | None = None
-        self.loaded = PersistentDatabase(self.LOADED)
         self.valid = True
 
         # If local file has been specified..
@@ -249,8 +252,7 @@ class RemoteCardTypeV1:
             url = f'{self.URL_BASE}/{remote}.py'
 
             # Only request and write file if not loaded this run
-            if (not self.loaded.get(where('remote') == url)
-                or not file_name.exists()):
+            if url not in _loaded_urls or not file_name.exists():
                 # Make GET request for the contents of the specified value
                 if (response := get(url, timeout=30)).status_code >= 400:
                     log.error(f'Cannot identify remote Card Type "{remote}"')
@@ -281,13 +283,13 @@ class RemoteCardTypeV1:
 
             # Add this url to the loaded database
             try:
-                self.loaded.insert({'remote': url})
+                _loaded_urls.add(url)
                 log.debug(f'Loaded RemoteCardType "{remote}"')
             except Exception:
                 pass
         except Exception as e:
             # Some error in loading, set object as invalid
-            log.error(f'Cannot load CardType "{remote}", returned "{e}"')
+            log.exception(f'Cannot load CardType "{remote}", returned "{e}"')
             self.card_class = None
             self.valid = False
         return None

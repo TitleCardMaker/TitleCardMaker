@@ -69,9 +69,6 @@ def run(preferences_file: Path, missing_file: Path):
     `Manager.run()`. This also checks for a new version of TCM.
     """
 
-    # Reset previously loaded assets
-    RemoteFile.reset_loaded_database()
-
     # Create Manager, run, and write missing report
     try:
         tcm = Manager(read_preferences(preferences_file))

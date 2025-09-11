@@ -454,7 +454,6 @@ def title_card(
     if not (CardClass := YamlReader.parse_card_type(card_type)):
         log.error('Invalid --card-type')
         return None
-    RemoteFile.reset_loaded_database()
 
     # Override unspecified defaults with their class specific defaults
     if not font_file:
