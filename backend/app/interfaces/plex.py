@@ -28,7 +28,6 @@ from requests.exceptions import (
     ReadTimeout,
 )
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
-from tinydb import where
 from tqdm import tqdm
 
 from app.info.episode import EpisodeInfo, EpisodeInfoV1
@@ -50,7 +49,6 @@ from app.settings import TQDM_KWARGS
 from app.yaml.season_posters import SeasonPosterSet
 from app.logging.logger import Logger, log
 from modules.Episode import Episode
-from modules.PersistentDatabase import PersistentDatabase
 from modules.StyleSet import StyleSet
 
 if TYPE_CHECKING:
@@ -1405,9 +1403,6 @@ class PlexInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
         # Store integration
         self.integrate_with_kometa = integrate_with_kometa
 
-        # Create/read loaded card database
-        self.__posters = PersistentDatabase(self.LOADED_POSTERS_DB)
-
         # List of "not found" warned series
         self.__warned = set()
 
@@ -2122,17 +2117,10 @@ class PlexInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
             if (poster := season_poster_set.get_poster(season.index)) is None:
                 continue
 
-            # Get the loaded details for this season
-            condition = (
-                (where('library') == library_name)
-                & (where('series') == series_info.full_name)
-                & (where('season') == season.index)
-            )
-            details = self.__posters.get(condition)
-
             # Skip if this exact poster has been loaded
-            if (details is not None
-                and details['filesize'] == poster.stat().st_size):
+            if self._has_matching_season_poster(
+                library_name, series_info, season.index, poster.stat().st_size
+            ):
                 continue
 
             # Shrink image if necessary
@@ -2156,13 +2144,10 @@ class PlexInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
             else:
                 loaded_count += 1
 
-            # Update loaded database
-            self.__posters.upsert({
-                'library': library_name,
-                'series': series_info.full_name,
-                'season': season.index,
-                'filesize': poster.stat().st_size,
-            }, condition)
+            # Update poster database
+            self._update_season_poster_details(
+                library_name, series_info, season.index, poster.stat().st_size
+            )
 
         # Log load operations to user
         if loaded_count > 0:

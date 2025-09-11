@@ -10,6 +10,7 @@ from modules.CleanPath import CleanPath
 
 if TYPE_CHECKING:
     from app.models.series import Series
+    from app.schemas.yaml import SeriesYaml
 
 
 # pylint: disable=missing-class-docstring
@@ -618,6 +619,28 @@ class SeriesInfoV1(DatabaseInfoContainer):
         """Returns a string representation of the object."""
 
         return self.full_name
+
+
+    @classmethod
+    def from_series_yaml(cls,
+            name: str,
+            series_yaml: 'SeriesYaml',
+        ) -> 'SeriesInfoV1':
+        """
+        Create a SeriesInfo object from the given Series YAML.
+        """
+        
+        return cls(
+            series_yaml.name or name,
+            series_yaml.year,
+            emby_id=series_yaml.emby_id,
+            imdb_id=series_yaml.imdb_id,
+            jellyfin_id=series_yaml.jellyfin_id,
+            sonarr_id=series_yaml.sonarr_id,
+            tmdb_id=series_yaml.tmdb_id,
+            tvdb_id=series_yaml.tvdb_id,
+            tvrage_id=series_yaml.tvrage_id,
+        )
 
 
     @classmethod

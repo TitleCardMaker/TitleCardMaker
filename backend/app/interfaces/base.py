@@ -7,13 +7,13 @@ from PIL import Image
 from tinydb import where
 from tinydb.queries import QueryInstance
 
+from app.models.yaml import SeasonPoster
 from app.info.base import InterfaceID
 from app.info.episode import EpisodeInfo, EpisodeInfoV1
 from app.info.series import SeriesInfo, SeriesInfoV1
 from app.logging.logger import Logger, log
 from app.yaml.season_posters import SeasonPosterSet
 from modules.Episode import Episode
-from modules.PersistentDatabase import PersistentDatabase
 from modules.StyleSet import StyleSet
 
 
@@ -511,27 +511,100 @@ class MediaServerV1(ABC):
         'Filesize limit for all uploading assets'
     ] = '10 MB'
 
-    LOADED_DB: Annotated[
-        ClassVar[str],
-        'File name of the PersistentDatabase of loaded assets within '
-        'this media server'
-    ]
-
 
     @abstractmethod
     def __init__(self, filesize_limit: int) -> None:
         """
-        Initialize an instance of this object. This stores creates an
-        attribute loaded_db that is a PersistentDatabase of the
-        LOADED_DB file.
+        Initialize an instance of this object.
         """
 
-        self.loaded_db = PersistentDatabase(self.LOADED_DB)
         self.filesize_limit = filesize_limit
 
 
     def __bool__(self) -> bool:
         return True
+
+
+    def _has_matching_season_poster(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            season_number: int,
+            filesize: int
+        ) -> bool:
+        """
+        Determine whether a season poster with the exact details exists.
+
+        Args:
+            library_name: Name of the library containing the series.
+            series_info: SeriesInfo object for the series.
+            season_number: Number of the season to get the poster for.
+            filesize: Filesize of the season poster.
+
+        Returns:
+            Whether a season poster with the given details exists.
+        """
+
+        from app.dependencies import get_yaml_database
+
+        with get_yaml_database() as db:
+            return (
+                db.query(SeasonPoster.id)
+                    .filter(
+                        SeasonPoster.library_name == library_name,
+                        SeasonPoster.series_name == series_info.full_name,
+                        SeasonPoster.season_number == season_number,
+                        SeasonPoster.filesize == filesize
+                    )
+                    .first()
+            ) is not None
+
+
+    def _update_season_poster_details(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            season_number: int,
+            filesize: int
+        ) -> None:
+        """
+        Update the details of a season poster in the YAML database.
+
+        Args:
+            library_name: Name of the library containing the series.
+            series_info: SeriesInfo object for the series.
+            season_number: Number of the season to update the poster for.
+            filesize: Filesize of the season poster.
+        """
+
+        from app.dependencies import get_yaml_database
+
+        with get_yaml_database() as db:
+            poster = (
+                db.query(SeasonPoster)
+                    .filter(
+                        SeasonPoster.library_name == library_name,
+                        SeasonPoster.series_name == series_info.full_name,
+                        SeasonPoster.season_number == season_number
+                    )
+                    .first()
+            )
+
+            # Update if there is an existing poster for this season
+            if poster:
+                poster.filesize = filesize
+            # Add new poster record to the database
+            else:
+                db.add(
+                    SeasonPoster(
+                        library_name=library_name,
+                        series_name=series_info.full_name,
+                        season_number=season_number,
+                        filesize=filesize
+                    )
+                )
+
+            db.commit()
+
+        return None
 
 
     def compress_image(self, image: Path) -> Path | None:
@@ -688,25 +761,6 @@ class MediaServerV1(ABC):
                 filtered[key] = episode
 
         return filtered
-
-
-    def remove_records(self, library_name: str, series_info: SeriesInfoV1) ->None:
-        """
-        Remove all records for the given library and series from the
-        loaded database.
-
-        Args:
-            library_name: The name of the library containing the series
-                whose records are being removed.
-            series_info: SeriesInfo whose records are being removed.
-        """
-
-        # Get condition to find records matching this library + series
-        condition = self._get_condition(library_name, series_info)
-
-        # Delete records matching this condition
-        records = self.loaded_db.remove(condition)
-        log.info(f'Deleted {len(records)} records')
 
 
     @abstractmethod
