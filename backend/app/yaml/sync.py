@@ -7,13 +7,13 @@ from ruamel.yaml import YAML, round_trip_dump, comments
 from ruamel.yaml.constructor import DuplicateKeyError
 from yaml import add_representer, dump
 
-from modules.CleanPath import CleanPath
 from app.logging.logger import log
 from app.interfaces.emby import EmbyInterfaceV1
 from app.interfaces.jellyfin import JellyfinInterfaceV1
 from app.interfaces.plex import PlexInterfaceV1
 from app.interfaces.sonarr import SonarrInterfaceV1
 from app.interfaces.base import SyncInterface
+from modules.CleanPath import CleanPath
 
 type SeriesYaml = dict[str, dict[str, str]]
 type SyncMode = Literal['append', 'match']
@@ -65,18 +65,16 @@ class SeriesYamlWriter:
         try:
             def standardize(p: str) -> str:
                 return str(CleanPath(p).sanitize())
-            self.volume_map = {standardize(source): standardize(tcm)
-                               for source, tcm in volume_map.items()}
+            self.volume_map = {
+                standardize(source): standardize(tcm)
+                for source, tcm in volume_map.items()
+            }
         except Exception:
             log.exception(f'Invalid "volumes" - must all be valid paths')
             self.valid = False
 
         # Validate/store sync mode
-        if (sync_mode := sync_mode.lower()) in ('append', 'match'):
-            self.sync_mode = sync_mode
-        else:
-            log.error(f'Invalid sync mode - must be "append" or "match"')
-            self.valid = False
+        self.sync_mode = sync_mode
 
         # Store optional template to add
         self.template = template
@@ -106,8 +104,10 @@ class SeriesYamlWriter:
     def __repr__(self) -> str:
         """Return an unambiguous string representation of this object."""
 
-        return (f'<SeriesYamlWriter {self.file=}, {self.sync_mode=}, '
-                f'{self.compact_mode=}, {self.volume_map=}>')
+        return (
+            f'<SeriesYamlWriter {self.file=}, {self.sync_mode=}, '
+            f'{self.compact_mode=}, {self.volume_map=}>'
+        )
 
 
     def __convert_path(self, path: str, *, media: bool) -> str:
@@ -656,10 +656,6 @@ class SeriesYamlWriter:
             required_tags: List of tags to filter the sync with.
             exclusions: List of labeled exclusions to apply to sync.
         """
-
-        if not isinstance(filter_libraries, (list, tuple)):
-            log.critical(f'Invalid Emby library filter list')
-            sys_exit(1)
 
         yaml = self.__get_yaml_from_interface(
             emby_interface, 'emby', 'emby_id', filter_libraries,
