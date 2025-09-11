@@ -324,7 +324,13 @@ def get_title_card(
     - card_id: ID of the TitleCard to get the details of.
     """
 
-    return db.get(Card, card_id)
+    if not (card := db.get(Card, card_id)):
+        raise HTTPException(
+            status_code=404,
+            detail='Title Card not found',
+        )
+
+    return card
 
 
 @card_router.post('/series/{series_id}', tags=['Series'])
