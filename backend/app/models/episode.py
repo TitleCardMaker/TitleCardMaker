@@ -9,7 +9,6 @@ from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
 
 from app.db.database import Base
 from app.info.episode import EpisodeInfo
-from app.interfaces.base import WatchedStatus
 from app.logging.logger import Logger, log
 from app.models.template import EpisodeTemplates, Template
 from app.schemas.connection import ServerName
@@ -18,6 +17,7 @@ from app.settings import settings
 from modules.TieredSettings import TieredSettings
 
 if TYPE_CHECKING:
+    from app.interfaces.base import WatchedStatus
     from app.models.card import Card
     from app.models.font import Font
     from app.models.loaded import Loaded
@@ -525,7 +525,7 @@ class Episode(Base):
 
 
     def add_watched_status(self,
-            status: WatchedStatus,
+            status: 'WatchedStatus',
             /,
             *,
             log: Logger = log,
