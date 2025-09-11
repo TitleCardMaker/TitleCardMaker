@@ -24,6 +24,24 @@
       </div>
     </a>
   </template>
+
+  <template id="series-template">
+    <a class="ui card" href="">
+      <div class="image">
+        <img src="">
+      </div>
+      <div class="content">
+        <div class="header" data-label="series_name"></div>
+        <div class="meta">
+          <span data-label="year">...</span>
+          <span class="right floated" data-label="creation">...</span>
+        </div>
+        <div class="description" data-label="episode_count">
+          <span data-label="card_count">0</span> Title Cards
+        </div>
+      </div>
+    </a>
+  </template>
 </head>
 
 <body onload="initAll();">
@@ -40,41 +58,97 @@
     <div id="main-content" class="article" style="overflow-x: scroll;">
       <h1 class="ui header">Recently Added</h1>
 
-      <div class="ui form">
-        <div class="three fields">
-          <div class="field">
-            <label>Since</label>
-            <div class="ui calendar" id="after">
-              <div class="ui fluid input left icon">
-                <input type="text" placeholder="Date/Time">
-                <i class="calendar icon"></i>
+      <!-- Time period filters -->
+      <div class="ui segment">
+        <div class="ui header">
+          <i class="filter icon"></i>
+          <div class="content">
+            Filter Options
+            <div class="sub header" style="cursor: pointer;">
+              <div class="ui horizontal basic labels">
+                <div class="ui small blue label" onclick="queryLatestCards(); queryLatestSeries();" data-action="refresh">
+                  <i class="redo icon"></i>
+                  Refresh Cards
+                </div>
+                <div class="ui small red label" onclick="resetFilters(); queryLatestCards(); queryLatestSeries();" data-action="refresh">
+                  <i class="eraser icon"></i>
+                  Reset Filters
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <form id="recent-filters" class="ui form">
+          <div class="ui fields">
+            <!-- Time period selection -->
+            <div class="three wide field">
+              <label>Time Period</label>
+              <div class="ui selection dropdown" id="time-period-dropdown">
+                <input name="time_period" type="hidden" value="24h">
+                <i class="dropdown icon"></i>
+                <div class="default text">Last 24 hours</div>
+                <div class="menu">
+                  <div data-value="6h" class="item">Last 6 Hours</div>
+                  <div data-value="24h" class="item">Last 24 Hours</div>
+                  <div data-value="1w" class="item">Last 7 Days</div>
+                  <div data-value="custom" class="item">Custom Date</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom date input (hidden by default) -->
+            <div class="four wide field" id="custom-date-field" style="display: none;">
+              <label>Since</label>
+              <div class="ui calendar" id="after">
+                <div class="ui input left icon">
+                  <i class="calendar icon"></i>
+                  <input name="after" type="text" placeholder="Date/Time">
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
 
-      <h2 class="ui header">Title Cards</h2>
-      <div class="ui active centered inline blue elastic loader" id="loader"></div>
-      <div class="ui link cards" data-label="cards"></div>
-      
-      <!-- Empty state message using Fomantic UI -->
-      <div id="empty-state" class="ui icon message" style="display: none;">
-        <!-- <i class="icons">
-          <i class="red dont icon"></i>
-          <i class="inbox icon"></i>
-        </i> -->
-        <i class="orange images outline icon"></i>
-        <div class="content">
-          <div class="header">
-            No recently created Title Cards
+      <div class="ui segment">
+        <h2 class="ui header">Title Cards</h2>
+        <div class="ui active centered inline blue elastic loader" id="loader"></div>
+        <div class="ui link cards" data-label="cards"></div>
+        
+        <!-- Empty state message using Fomantic UI -->
+        <div id="empty-state" class="ui icon message" style="display: none;">
+          <i class="orange images outline icon"></i>
+          <div class="content">
+            <div class="header">
+              No recently created Title Cards
+            </div>
+            <p>Try adjusting your date range or creating Title Cards with the <a href="/scheduler">Scheduler</a>.</p>
           </div>
-          <p>Try adjusting your date range or creating Title Cards with the <a href="/scheduler">Scheduler</a>.</p>
+        </div>
+  
+        <br>
+        <div class="ui pagination menu" id="card-pagination"><!-- Added asynchronously --></div>
+      </div>
+
+      <div class="ui segment">
+        <h2 class="ui header">Recently Added Series</h2>
+        <div class="ui active centered inline blue elastic loader" id="series-loader"></div>
+        <div class="ui link cards" data-label="series"></div>
+        <br>
+        <div class="ui pagination menu" id="series-pagination"><!-- Added asynchronously --></div>
+
+        <!-- Empty state message for series -->
+        <div id="series-empty-state" class="ui icon message" style="display: none;">
+          <i class="orange tv icon"></i>
+          <div class="content">
+            <div class="header">
+              No recently added Series
+            </div>
+            <p>Try adjusting your date range or add new Series on the <a href="/add">Add Series page</a>.</p>
+          </div>
         </div>
       </div>
-
-      <br>
-      <div class="ui pagination menu" id="card-pagination"><!-- Added asynchronously --></div>
     </div>
   </div>
 </body>

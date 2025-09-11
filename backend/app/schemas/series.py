@@ -1,5 +1,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false, reportIncompatibleVariableOverride=false
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import (
@@ -262,6 +263,7 @@ class Series(BaseSeries):
     small_poster_url: str | None
     episode_count: int
     card_count: int
+    created: datetime
     font_color: str | None
     font_title_case: TitleCase | None
     font_size: float | None

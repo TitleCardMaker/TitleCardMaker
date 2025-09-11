@@ -5,7 +5,6 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import paginate as paginate_sequence
 from sqlalchemy import not_
 from sqlalchemy.orm import Session
-import pytz
 
 from app.db.query import (
     get_card,
@@ -298,17 +297,18 @@ def get_recently_created_title_cards(
         db: Session = Depends(get_database),
         after: datetime = Query(...),
     ) -> Page[TitleCardExtended]: # type: ignore
-    """Get all recently created Title Cards after the given date."""
+    """
+    Get all recently created Title Cards after the given date.
 
-    # Convert to UTC timezone for DB comparison - assume after is in TZ
-    # timezone if none was provided
-    if after.tzinfo is None:
-        after = settings.config.TIMEZONE.localize(after)
-    after = after.astimezone(pytz.timezone('UTC'))
+    - after: Date which to exclude Title Cards create before. 
+    """
 
     return paginate(
         db.query(Card)
-            .filter(Card.created > after, not_(Card.episode_id.is_(None)))
+            .filter(
+                Card.created > settings.config.localize(after),
+                not_(Card.episode_id.is_(None))
+            )
             .order_by(Card.created.desc())
     )
 

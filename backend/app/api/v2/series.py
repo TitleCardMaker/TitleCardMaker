@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -121,6 +122,23 @@ def get_all_series_including_counts(
         query_and_filter_series(
             db, filter, order_by=order_by, extended=True, log=log
         )
+    )
+
+
+@series_router.get('/recent')
+def get_recently_added_series(
+        db: Session = Depends(get_database),
+        after: datetime = Query(...),
+    ) -> Page[Series]: # type: ignore
+    """
+    Get all recently created Series after the given date.
+
+    - after: Date which to exclude Series created before. 
+    """
+
+    return paginate(
+        db.query(SeriesModel)
+            .filter(SeriesModel.created > settings.config.localize(after))
     )
 
 

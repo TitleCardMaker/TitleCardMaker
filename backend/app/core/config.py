@@ -2,14 +2,15 @@
 Core non-runtime configuration settings. This file cannot have any
 project dependencies to avoid circular imports.
 """
-from datetime import datetime, timedelta, tzinfo
+from datetime import datetime, timedelta
 from os import getenv
 from pathlib import Path
 from typing import Annotated, Literal
+from zoneinfo import ZoneInfo
 
-from pytz import timezone, UnknownTimeZoneError
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from tzlocal import get_localzone
 
 from modules.Version import Version
 
@@ -73,23 +74,18 @@ class AppConfig(BaseSettings):
         'How many days to keep logs'
     ] = Field(default=7, ge=1)
 
-    _TIMEZONE: tzinfo | None = None
+    _TIMEZONE: ZoneInfo | None = None
 
     @property
-    def TIMEZONE(self) -> tzinfo:
+    def TIMEZONE(self) -> ZoneInfo:
         if self._TIMEZONE is not None:
             return self._TIMEZONE
 
-        if (tz_code := getenv('TZ', None)) is not None:
-            try:
-                self._TIMEZONE = timezone(tz_code)
-            except UnknownTimeZoneError:
-                pass
-
         try:
-            self._TIMEZONE = datetime.now().astimezone().tzinfo
+            self._TIMEZONE = get_localzone()
         except Exception:
-            self._TIMEZONE = timezone('UTC')
+            self._TIMEZONE = ZoneInfo('UTC')
+
         return self._TIMEZONE
 
     # Valid image extensions
@@ -212,6 +208,15 @@ class AppConfig(BaseSettings):
         str,
         'How often to check the Tautulli update list'
     ] = Field(default='4m')
+
+
+    def localize(self, date: datetime, /) -> datetime:
+        """Localize the given date to the configured timezone."""
+
+        if date.tzinfo is None:
+            date = date.astimezone(self.TIMEZONE)
+
+        return date.astimezone(ZoneInfo('UTC'))
 
 
 # Create global settings instance
