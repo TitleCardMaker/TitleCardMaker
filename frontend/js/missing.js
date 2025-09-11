@@ -1,6 +1,9 @@
 {% if False %}
 import {
-  Episode, ReducedEpisodeDataPage, Series
+  Episode,
+  Page,
+  ReducedEpisodeData,
+  Series
 } from './.types.js';
 {% endif %}
 
@@ -14,7 +17,7 @@ function queryMissingCards(page=1) {
     url: `/api/v2/missing/cards?page=${page}`,
     /**
      * Missing Episodes queried, populate table.
-     * @param {ReducedEpisodeDataPage} episodeData Episodes missing Cards.
+     * @param {Page<ReducedEpisodeData>} episodeData Episodes missing Cards.
      */
     success: episodeData => {
       /** @type {Object.<number, Episode>} Group Episodes by Series*/

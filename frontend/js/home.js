@@ -1,7 +1,7 @@
 {% if False %}
 import {
+  Page,
   Series,
-  SeriesPage,
   Statistic
 } from './.types.js';
 {% endif %}
@@ -398,7 +398,7 @@ async function getAllSeries(page=undefined, keepSelection=false) {
   }
 
   // Get this page of Series data
-  /** @type {SeriesPage} */
+  /** @type {Page<Series>} */
   let allSeriesData = await fetch(`${apiUrl}?${params.toString()}`).then(resp => resp.json());
   // await queryLibraries();
   let allSeries = allSeriesData.items;

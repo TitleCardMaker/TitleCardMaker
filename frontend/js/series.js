@@ -9,19 +9,19 @@ import {
   AvailableTemplate,
   Blueprint,
   Episode,
-  EpisodeOverviewPage,
-  EpisodePage,
+  EpisodeOverview,
   ExternalSourceImage,
-  LogEntryPage,
+  LogEntry,
   MediaServerLibrary,
+  Page,
   RemoteBlueprint,
   RemoteBlueprintSet,
   RemoteEpisodeData,
   Series,
   Statistic,
   StyleOption,
-  SourceImagePage,
-  TitleCardPage,
+  SourceImage,
+  TitleCard,
   UpdateEpisode,
 } from './.types.js';
 {% endif %}
@@ -833,7 +833,7 @@ async function getSourceFileData(page=currentFilePage) {
     url: `/api/v2/sources/series/{{ series.id }}?page=${page}&size=${sourceImagePreviewPageSize}`,
     /**
      * Sources queried, create elements to display on the page.
-     * @param {SourceImagePage} allFiles - Page of Source Images for this Series.
+     * @param {Page<SourceImage>} allFiles - Page of Source Images for this Series.
      */
     success: allFiles => {
       // Get sequential list of element IDs
@@ -998,7 +998,7 @@ async function getEpisodeData(page=1) {
 
   // Get page of episodes via API
   const url = simplified_data_table ? '/api/v2/episodes/series/{{ series.id }}/simplified' : '/api/v2/episodes/series/{{ series.id }}';
-  /** @type {EpisodePage} */
+  /** @type {Page<Episode>} */
   const episodeData = await fetch(`${url}?size={{ preferences.episode_data_page_size }}&page=${page}`).then(resp => resp.json());
   if (episodeData === null || episodeData.items.length === 0) { return; }
 
@@ -1161,7 +1161,7 @@ function querySeriesLogs() {
     url: `/api/v2/logs/query?${params.toString()}`,
     /**
      * Logs queried, add elements to the timeline in the DOM.
-     * @param {LogEntryPage} logs - Logs associated with this Series.
+     * @param {Page<LogEntry>} logs - Logs associated with this Series.
      */
     success: logs => {
       // Template for all log elements
@@ -1249,7 +1249,7 @@ function getCardData(
     url: `/api/v2/cards/series/{{ series.id }}/reduced?page=${page}&size=${titleCardPreviewPageSize}`,
     /**
      * Cards queried, populate page / table of Card data.
-     * @param {TitleCardPage} cards - Current page of Title Card data.
+     * @param {Page<TitleCard>} cards - Current page of Title Card data.
      */
     success: cards => {
       const previewTemplate = document.getElementById('card-image-template');
@@ -2942,7 +2942,7 @@ function uploadCards(setTextless=false) {
   });
 }
 
-/** @type {EpisodeOverviewPage} */
+/** @type {Page<EpisodeOverview>} */
 const overviewItems = [];
 
 /**
@@ -2985,7 +2985,7 @@ function getEpisodeOverviews(pageNumber=1) {
     url: `/api/v2/episodes/series/{{ series.id }}/overview?size=200&page=${pageNumber}`,
     /**
      * Overviews queried, populate dropdown.
-     * @param {EpisodeOverviewPage} overviews Page of episode overviews.
+     * @param {Page<EpisodeOverview>} overviews Page of episode overviews.
      */
     success: overviews => {
       if (overviews.items.length === 0) {

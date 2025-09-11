@@ -20,6 +20,59 @@
  * @property {boolean} temporary
  */
 
+// Pagination ------------------------------------------------------------------
+
+/**
+ * A page of items from a paginated API response.
+ * @template T - The type of items in the response.
+ */
+class Page {
+  /**
+   * The list of items in the page.
+   * @type {T[]}
+   */
+  items;
+
+  /**
+   * The total number of items available across all pages.
+   * @type {number}
+   */
+  total;
+
+  /**
+   * The number of items in the page.
+   * @type {number}
+   */
+  size;
+
+  /**
+   * The number of the currnent page.
+   * @type {number}
+   */
+  page;
+
+  /**
+   * The total number of pages available.
+   * @type {number}
+   */
+  pages;
+
+  /**
+   * @param {T[]} items - The list of items for the current page.
+   * @param {number} total - The total number of items available across all pages.
+   * @param {number} pageSize - The number of items per page.
+   * @param {number} page - The current page number.
+   * @param {number} pages - The total number of pages.
+   */
+  constructor(items, total, pageSize, page, pages) {
+    this.items = items;
+    this.total = total;
+    this.pageSize = pageSize;
+    this.page = page;
+    this.pages = pages;
+  }
+}
+
 // Availability ----------------------------------------------------------------
 
 /**
@@ -145,15 +198,6 @@
  */
 
 /**
- * @typedef {Object} SourceImagePage
- * @property {SourceImage[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
- */
-
-/**
  * @typedef {Object} _SeriesData
  * @property {string} name
  * @property {number} year
@@ -174,30 +218,12 @@
  */
 
 /**
- * @typedef {Object} TitleCardPage
- * @property {TitleCard[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
- */
-
-/**
  * @typedef {Object} TitleCardExtended
  * @property {number} id
  * @property {number} series_id
  * @property {_SeriesData} series
  * @property {EpisodeData} episode
  * @property {string} file_url
- */
-
-/**
- * @typedef {Object} TitleCardExtendedPage
- * @property {TitleCardExtended[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
  */
 
 // Connections -----------------------------------------------------------------
@@ -352,25 +378,7 @@
  */
 
 /**
- * @typedef {Object} ReducedEpisodeDataPage
- * @property {ReducedEpisodeData[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
- */
-
-/**
  * @typedef {Episode} UpdateEpisode
- */
-
-/**
- * @typedef {Object} EpisodePage
- * @property {Episode[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
  */
 
 /**
@@ -378,15 +386,6 @@
  * @property {number} id
  * @property {number} season_number
  * @property {number} episode_number
- */
-
-/**
- * @typedef {Object} EpisodeOverviewPage
- * @property {EpisodeOverview[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
  */
 
 /**
@@ -543,15 +542,6 @@
  */
 
 /**
- * @typedef {Object} SearchResultsPage
- * @property {SearchResult[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
-*/
-
-/**
  * @typedef {Object} Series
  * @property {string} name
  * @property {number} year
@@ -600,15 +590,6 @@
  * @property {?string} small_poster_url
  * @property {number} episode_count
  * @property {number} card_count
- */
-
-/**
- * @typedef {Object} SeriesPage
- * @property {Series[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
  */
 
 /**
@@ -710,15 +691,6 @@
  */
 
 /**
- * @typedef {Object} RemoteBlueprintPage
- * @property {RemoteBlueprint[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
- */
-
-/**
  * @typedef {Object} RemoteBlueprintSet
  * @property {number} id
  * @property {string} name
@@ -740,15 +712,6 @@
  * @property {string | null} exception_type
  * @property {string | null} exception_value
  * @property {string | null} exception_traceback
- */
-
-/**
- * @typedef {Object} LogEntryPage
- * @property {LogEntry[]} items
- * @property {number} total
- * @property {number} size
- * @property {number} page
- * @property {number} pages
  */
 
 /**
@@ -793,4 +756,4 @@
  * @property {string} description - A description of the statistic.
  */
 
-export const Types = {};
+export { Page };

@@ -3,10 +3,11 @@ import {
   AnyConnection,
   EpisodeDataSourceToggle,
   MediaServerLibrary,
-  RemoteBlueprintPage,
+  Page,
+  RemoteBlueprint,
   RemoteBlueprintSet,
   SearchResult,
-  SearchResultsPage,
+  SearchResults,
   Series, 
 } from './.types.js';
 {% endif %}
@@ -262,7 +263,7 @@ function queryAllBlueprints(page=1, refresh=false) {
     url: `${endpointUrl}?${query.toString()}`,
     /**
      * Query successful, populate page with Blueprint cards.
-     * @param {RemoteBlueprintPage} allBlueprints - Page of Blueprints to display.
+     * @param {Page<RemoteBlueprint>} allBlueprints - Page of Blueprints to display.
      */
     success: allBlueprints => {
       const blueprintTemplate = document.getElementById('all-blueprint-template');
@@ -426,7 +427,7 @@ function querySeries(missing=false) {
     url: `${url}?${params.toString()}`,
     /**
      * Lookup successful, populate page.
-     * @param {SearchResultsPage} allResults - Search results for this query.
+     * @param {Page<SearchResults>} allResults - Search results for this query.
     */
     success: allResults => {
       const results = allResults.items.map((result, index) => {

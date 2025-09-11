@@ -1,5 +1,10 @@
 {% if False %}
-import {LogEntryPage, LogInternalServerError, LogLevel} from './.types.js';
+import {
+  LogEntry,
+  LogInternalServerError,
+  LogLevel,
+  Page,
+} from './.types.js';
 {% endif %}
 
 /**
@@ -144,7 +149,7 @@ function queryForLogs(page=1) {
     url: `/api/v2/logs/query?page=${page}&${queryString}`,
     /**
      * Logs queries successfully, add rows for each log message to the DOM.
-     * @param {LogEntryPage} messages Log messages to update the table with.
+     * @param {Page<LogEntry>} messages Log messages to update the table with.
      */
     success: messages => {
       const rows = messages.items.map(message => {

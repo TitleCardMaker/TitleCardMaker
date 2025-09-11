@@ -3,8 +3,9 @@ import {
   AvailableFont,
   EpisodeDataSourceToggle,
   ImageSourceToggle,
+  Page,
   PreviewTitleCard,
-  SeriesPage,
+  Series,
   Style,
   Template,
   TemplateFilter,
@@ -122,7 +123,7 @@ function showDeleteModal(templateId) {
     url: `/api/v2/series/search?template_id=${templateId}&size=25`,
     /**
      * Series queried successfully, populate list to display in modal.
-     * @param {SeriesPage} allSeries - Page of Series associated with the
+     * @param {Page<Series>} allSeries - Page of Series associated with the
      * Template being deleted.
      */
     success: allSeries => {
