@@ -3,6 +3,7 @@ from pathlib import Path
 from re import IGNORECASE, compile as re_compile
 from typing import TYPE_CHECKING, Callable, Iterable
 
+from app.yaml.sync import SeriesYamlWriter
 from tqdm import tqdm
 from yaml import dump
 
@@ -38,8 +39,8 @@ def notify(message: str) -> Callable:
 
     def decorator(function: Callable) -> Callable:
         def inner(*args, **kwargs):
-            if global_objects.pp.execution_mode == 'batch':
-                log.info(message)
+            # if settings.options.execution_mode == 'batch':
+            log.info(message)
 
             return function(*args, **kwargs)
         return inner
@@ -77,45 +78,58 @@ class Manager:
         self.preferences = preferences
 
         # Optionally integrate with Tautulli
-        if check_tautulli and self.preferences.use_tautulli:
+        if check_tautulli and self.preferences.settings.tautulli:
             TautulliInterfaceV1(
-                **self.preferences.tautulli_interface_args
+                **self.preferences.settings.tautulli.model_dump()
             ).integrate()
 
         # Optionally assign EmbyInterface
         self.emby_interface = None
-        if self.preferences.use_emby:
+        if self.preferences.settings.emby:
             self.emby_interface = EmbyInterfaceV1(
-                **self.preferences.emby_interface_kwargs
+                **self.preferences.settings.emby.model_dump(
+                    exclude={'watched_style', 'unwatched_style', 'sync'}
+                )
             )
 
-         # Optionally assign JellyfinInterface
+        # Optionally assign JellyfinInterface
         self.jellyfin_interface = None
-        if self.preferences.use_jellyfin:
+        if self.preferences.settings.jellyfin:
             self.jellyfin_interface = JellyfinInterfaceV1(
-                **self.preferences.jellyfin_interface_kwargs
+                **self.preferences.settings.jellyfin.model_dump(
+                    exclude={'watched_style', 'unwatched_style', 'sync'}
+                )
             )
 
         # Optionally assign PlexInterface
         self.plex_interface = None
-        if self.preferences.use_plex:
+        if self.preferences.settings.plex:
             self.plex_interface = PlexInterfaceV1(
-                **self.preferences.plex_interface_kwargs
+                **self.preferences.settings.plex.model_dump(
+                    exclude={'watched_style', 'unwatched_style', 'sync'}
+                )
             )
 
         # Optionally assign SonarrInterface
         self.sonarr_interfaces = []
-        if self.preferences.use_sonarr:
+        if self.preferences.settings.sonarr:
             self.sonarr_interfaces = [
-                SonarrInterfaceV1(server_id=server_id, **kw)
-                for server_id, kw in enumerate(self.preferences.sonarr_kwargs)
+                SonarrInterfaceV1(
+                    **settings.model_dump(
+                        exclude={'watched_style', 'unwatched_style', 'sync'}
+                    ),
+                    server_id=server_id,
+                )
+                for server_id, settings in enumerate(
+                    self.preferences.settings.sonarr
+                )
             ]
 
         # Optionally assign TMDbInterface
         self.tmdb_interface = None
-        if self.preferences.use_tmdb:
+        if self.preferences.settings.tmdb:
             self.tmdb_interface = TMDbInterfaceV1(
-                **self.preferences.tmdb_interface_kwargs,
+                **self.preferences.settings.tmdb.model_dump(),
             )
 
         # Setup blank show and archive lists
@@ -127,47 +141,61 @@ class Manager:
         """Sync series YAML files from Emby/Jellyfin/Sonarr/Plex."""
 
         # If no sync-able interfaces are enabled, skip
-        if (not self.preferences.use_emby
-            and not self.preferences.use_jellyfin
-            and not self.preferences.use_sonarr
-            and not self.preferences.use_plex):
+        if (not self.preferences.settings.emby
+            and not self.preferences.settings.jellyfin
+            and not self.preferences.settings.sonarr
+            and not self.preferences.settings.plex):
             return None
 
         # Always notify the user
         log.info('Starting to sync to series YAML files..')
 
-        if (self.preferences.use_emby
-            and len(self.preferences.emby_yaml_writers) > 0):
-            for writer, update_args in zip(
-                self.preferences.emby_yaml_writers,
-                self.preferences.emby_yaml_update_args
-            ):
-                writer.update_from_emby(self.emby_interface, **update_args)
-
-        if (self.preferences.use_jellyfin
-            and len(self.preferences.jellyfin_yaml_writers) > 0):
-            for writer, update_args in zip(
-                self.preferences.jellyfin_yaml_writers,
-                self.preferences.jellyfin_yaml_update_args
-            ):
-                writer.update_from_jellyfin(
-                    self.jellyfin_interface, **update_args
+        if (self.preferences.settings.emby
+            and self.preferences.settings.emby.sync):
+            for sync in self.preferences.settings.emby.sync:
+                sync.sync_writer.update_from_emby(
+                    self.emby_interface,
+                    filter_libraries=sync.filter_libraries,
+                    required_tags=sync.required_tags,
+                    exclusions=sync.exclusions
                 )
 
-        if (self.preferences.use_plex
-            and len(self.preferences.plex_yaml_writers) > 0):
-            for writer, update_args in zip(
-                self.preferences.plex_yaml_writers,
-                self.preferences.plex_yaml_update_args
-            ):
-                writer.update_from_plex(self.plex_interface, **update_args)
-
-        if (self.preferences.use_sonarr
-            and len(self.preferences.sonarr_yaml_writers) > 0):
-            for interface_id, writer, args in self.preferences.sonarr_yaml_writers:
-                writer.update_from_sonarr(
-                    self.sonarr_interfaces[interface_id], **args
+        if (self.preferences.settings.jellyfin
+            and self.preferences.settings.jellyfin.sync):
+            for sync in self.preferences.settings.jellyfin.sync:
+                sync.sync_writer.update_from_jellyfin(
+                    self.jellyfin_interface,
+                    filter_libraries=sync.filter_libraries,
+                    required_tags=sync.required_tags,
+                    exclusions=sync.exclusions
                 )
+
+        if (self.preferences.settings.plex
+            and self.preferences.settings.plex.sync):
+            for sync in self.preferences.settings.plex.sync:
+                sync.sync_writer.update_from_plex(
+                    self.plex_interface,
+                    filter_libraries=sync.filter_libraries,
+                    required_tags=sync.required_tags,
+                    exclusions=sync.exclusions
+                )
+    
+        if (self.preferences.settings.sonarr
+            and self.preferences.settings.sonarr.sync):
+            for interface, sonarr in zip(
+                self.sonarr_interfaces,
+                self.preferences.settings.sonarr
+            ):
+                for sync in sonarr.sync:
+                    sync.sync_writer.update_from_sonarr(
+                        interface,
+                        libraries=sync.filter_libraries,
+                        required_tags=sync.required_tags,
+                        monitored_only=sync.monitored_only,
+                        downloaded_only=sync.downloaded_only,
+                        series_type=sync.series_type,
+                        exclusions=sync.exclusions
+                    )
 
         return None
 
@@ -467,9 +495,9 @@ class Manager:
     def run(self) -> None:
         """Run the Manager either in either serial or batch mode"""
 
-        if self.preferences.execution_mode == 'serial':
+        if self.preferences.settings.options.execution_mode == 'serial':
             self.__run_serially()
-        elif self.preferences.execution_mode == 'batch':
+        elif self.preferences.settings.options.execution_mode == 'batch':
             self.__run()
 
 
@@ -535,7 +563,7 @@ class Manager:
         """Report all missing assets for all shows."""
 
         # Serial mode won't have an accurate show list
-        if self.preferences.execution_mode == 'serial':
+        if self.preferences.settings.options.execution_mode == 'serial':
             self.create_shows()
             self.read_show_source()
 

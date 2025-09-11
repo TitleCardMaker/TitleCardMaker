@@ -22,7 +22,7 @@ class Template:
     MAX_TEMPLATE_DEPTH = 10
 
 
-    def __init__(self, name: str, template: dict[str, str]) -> None:
+    def __init__(self, name: str, template: dict[str, Any]) -> None:
         """
         Construct a new Template object with the given name, and with
         the given template dictionary. Keys of the form <<{key}>> are
@@ -36,13 +36,8 @@ class Template:
         self.name = name
         self.valid = True
 
-        # Validate template is dictionary
-        if isinstance(template, dict):
-            self.template = template
-            self.keys = self.__identify_template_keys(self.template, set())
-        else:
-            log.error(f'Invalid template "{self.name}"')
-            self.valid = False
+        self.template = template
+        self.keys = self.__identify_template_keys(self.template, set())
 
         # Get validate/defaults
         if isinstance((defaults := template.get('defaults', {})), dict):
@@ -59,12 +54,12 @@ class Template:
 
 
     def __identify_template_keys(self,
-            template: dict,
+            template: dict[str, Any],
             keys: set[str]
         ) -> set[str]:
         """
         Identify the required template keys to use this template. This
-        looks for all unique values like "<<{key}>>". This is a
+        looks for all unique values like `<<{key}>>`. This is a
         recursive function, and searches through all sub-dictionaries of
         template.
 
@@ -93,7 +88,7 @@ class Template:
 
 
     def __apply_value_to_key(self,
-            template: dict,
+            template: dict[str, Any],
             key: str,
             value: Any,
         ) -> None:
@@ -104,15 +99,15 @@ class Template:
         dictionaries, those are applied as well. For example:
 
         >>> temp = {'year': <<year>>,
-                    'b': {'b1': False,
-                          'b2': 'Hey <<year>>'}}
+        ...         'b': {'b1': False,
+        ...               'b2': 'Hey <<year>>'}}
         >>> __apply_value_to_key(temp, 'year', 1234)
         >>> temp
         {'year': 1234, 'b': {'b1': False, 'b2': 'Hey 1234'}}
 
         Args:
             template: The dictionary to modify any instances of
-                <<{key}>> within. Modified in-place.
+                `<<{key}>>` within. Modified in-place.
             key: The key to search/replace for.
             value: The value to replace the key with.
         """
@@ -179,9 +174,7 @@ class Template:
     def apply_to_series(self,
             series_info: SeriesInfoV1,
             series_yaml: dict,
-            *,
-            raise_exc: bool = False
-        ) -> bool:
+        ) -> dict | None:
         """
         Apply this Template object to the given series YAML, modifying
         it to include the templated values. This function assumes that
@@ -210,21 +203,16 @@ class Template:
             }
 
         # Add builtin-data to series YAML template
-        series_yaml['template'] = builtin_data | series_yaml['template']
+        series_yaml['template'] = builtin_data | series_yaml.get('template', {})
 
         # If not all required template keys are specified, warn and exit
         given_keys = set(series_yaml['template'].keys())
         default_keys = set(self.defaults.keys())
         if not (given_keys | default_keys).issuperset(self.keys):
-            if raise_exc:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f'Missing template data for {series_info}',
-                )
             log.warning(
                 f'Missing "{self.name}" template data for "{series_info}"'
             )
-            return False
+            return None
 
         # Copy base template before modification
         modified_template = deepcopy(self.template)
@@ -246,13 +234,8 @@ class Template:
 
         # Log and exit if failed to apply
         if count >= self.MAX_TEMPLATE_DEPTH:
-            if raise_exc:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f'Unable to apply Template to {series_info}',
-                )
             log.warning(f'Unable to apply template "{self.name}" to {series_info}')
-            return False
+            return None
 
         # Delete the template section from the series YAML
         del series_yaml['template']
@@ -260,4 +243,4 @@ class Template:
         # Construct union of series and filled-in template YAML
         self.recurse_priority_union(series_yaml, modified_template)
 
-        return True
+        return series_yaml

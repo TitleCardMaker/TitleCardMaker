@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Annotated, Any, Callable, ClassVar, Iterable, cast
+from typing import Annotated, Any, Callable, ClassVar, Iterable, Literal, cast
 
 from fastapi import HTTPException
 from tinydb import Query, where
@@ -432,9 +432,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
     """
 
     INTERFACE_TYPE = 'TMDb'
-
-    """Default for how many failed requests lead to a blacklisted entry"""
-    BLACKLIST_THRESHOLD = 5
 
     """Series ID's that can be set by TMDb"""
     SERIES_IDS = ('imdb_id', 'tmdb_id', 'tvdb_id', 'tvrage_id')
@@ -1557,9 +1554,6 @@ class TMDbInterfaceV1(EpisodeDataSourceV1, WebInterface):
     translations for titles.
     """
 
-    """Default for how many failed requests lead to a blacklisted entry"""
-    BLACKLIST_THRESHOLD = 5
-
     """Series ID's that can be set by TMDb"""
     SERIES_IDS = ('imdb_id', 'tmdb_id', 'tvdb_id', 'tvrage_id')
 
@@ -1659,7 +1653,13 @@ class TMDbInterfaceV1(EpisodeDataSourceV1, WebInterface):
     ] = 'tmdb_blacklist.json'
 
 
-    def __init__(self, api_key: str) -> None:
+    def __init__(self,
+            api_key: str,
+            retry_count: int = 3,
+            minimum_resolution: str = '800x400',
+            skip_localized_images: bool = False,
+            logo_language_priority: list[Literal[*LANGUAGE_CODES]] = ['en'],
+        ) -> None:
         """
         Construct a new instance of an interface to TMDb.
 
@@ -1672,14 +1672,11 @@ class TMDbInterfaceV1(EpisodeDataSourceV1, WebInterface):
 
         super().__init__('TMDb')
 
-        # Store global objects
-        self.preferences = global_objects.pp
-        self.info_set = global_objects.info_set
+        self.retry_count = retry_count
+        self.minimum_resolution = minimum_resolution
+        self.skip_localized_images = skip_localized_images
+        self.logo_language_priority = logo_language_priority
 
-        # Create/read blacklist database
-        self.__blacklist = PersistentDatabase(self.__BLACKLIST_DB)
-
-        # Create API object, validate key
         try:
             self.api = TMDbAPIs(api_key, self.session)
         except Unauthorized:

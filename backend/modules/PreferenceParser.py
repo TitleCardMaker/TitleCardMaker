@@ -3,26 +3,24 @@ from pathlib import Path
 from sys import exit as sys_exit
 from typing import Any, Iterator, Literal, overload
 
+from app.core.v1 import finalize_yaml
+from app.schemas.yaml import PreferencesYaml, SeriesYaml, YamlFile
 from fastapi import HTTPException
-from num2words import CONVERTER_CLASSES as SUPPORTED_LANGUAGE_CODES
 from tqdm import tqdm
+from yaml import safe_load
 
 from app.interfaces.v1 import (
     EmbyInterfaceV1,
-    ImageMagickInterface,
     JellyfinInterfaceV1,
     PlexInterfaceV1,
-    SonarrInterfaceV1,
     TMDbInterfaceV1,
     TautulliInterfaceV1,
 )
 from app.info.series import SeriesInfoV1
 from app.logging.logger import log
-from app.magick.base import ImageMaker
-from app.magick.summary import StandardSummary, StylizedSummary
-from app.settings import TQDM_KWARGS
+from app.magick.summary import StylizedSummary
+from app.settings import TQDM_KWARGS, settings
 from app.yaml.font import Font
-from app.yaml.sync import SeriesYamlWriter
 from app.yaml.reader import YamlReader
 from app.yaml.template import Template
 from modules.CleanPath import CleanPath
@@ -31,7 +29,6 @@ from modules.Manager import Manager
 from modules.Show import Show
 from modules.StyleSet import StyleSet
 from modules.TitleCard import TitleCard
-from modules.Version import Version
 
 
 YamlWriterSet = namedtuple(
@@ -39,7 +36,7 @@ YamlWriterSet = namedtuple(
 )
 
 
-class PreferenceParser(YamlReader):
+class PreferenceParser:
     """
     This class describes a preference parser that reads a given
     preference YAML file and parses it into individual attributes.
@@ -58,9 +55,6 @@ class PreferenceParser(YamlReader):
     """Default directory for temporary database objects"""
     DEFAULT_TEMP_DIR = Path(__file__).parent / '.objects'
 
-    """File containing the executing version of TitleCardMaker"""
-    VERSION_FILE = Path(__file__).parent / 'ref' / 'version'
-
 
     def __init__(self, file: Path, is_docker: bool = False) -> None:
         """
@@ -77,147 +71,35 @@ class PreferenceParser(YamlReader):
                 `file`.
         """
 
-        # Initialize parent YamlReader object - errors are critical
-        super().__init__(log_function=log.critical)
         self.valid = True
-        self.version = Version(self.VERSION_FILE.read_text().strip())
+        self.version = settings.config.CURRENT_VERSION
         self.is_docker = is_docker
 
-        # Store and read file
+        # Initialize parent YamlReader object - errors are critical
+        self.version = settings.config.CURRENT_VERSION
+        self.is_docker = settings.config.IS_DOCKER
+
+        # Store, read, and parse file
         self.file = file
-        self.read_file()
-
-        # Database object directory, create if DNE
-        self.DEFAULT_TEMP_DIR.mkdir(parents=True, exist_ok=True)
-        if is_docker:
-            self.database_directory = self.file.parent / '.objects'
-        else:
-            self.database_directory = self.DEFAULT_TEMP_DIR
-        self.database_directory.mkdir(parents=True, exist_ok=True)
-
-        # Check for required source directory
-        if (value := self.get('options', 'source', type_=str)) is None:
+        if not self.file.exists():
             log.critical(
-                'Preference file missing required options/source attribute'
+                f'Preference file "{self.file.resolve()}" does not exist'
             )
             sys_exit(1)
-        self.source_directory = CleanPath(value).sanitize()
-
-        # Setup default values that can be overwritten by YAML
-        self.series_files = []
-        self.execution_mode = Manager.DEFAULT_EXECUTION_MODE
-        self.card_class = self._parse_card_type(TitleCard.DEFAULT_CARD_TYPE)
-        self.card_filename_format = TitleCard.DEFAULT_FILENAME_FORMAT
-        self.card_extension = TitleCard.DEFAULT_CARD_EXTENSION
-        self.card_dimensions = TitleCard.DEFAULT_CARD_DIMENSIONS
-        self.card_quality = ImageMagickInterface.DEFAULT_CARD_QUALITY
-        self.image_source_priority = ('tmdb', 'plex', 'emby', 'jellyfin')
-        self.episode_data_source = self.DEFAULT_EPISODE_DATA_SOURCE
-        self.validate_fonts = True
-        self.season_folder_format = self.DEFAULT_SEASON_FOLDER_FORMAT
-        self.sync_specials = True
-        self.supported_language_codes = ['en']
-
-        self.archive_directory = None
-        self.create_archive = False
-        self.archive_all_variations = True
-        self.create_summaries = True
-        self.summary_class = StylizedSummary
-        self.summary_background = self.summary_class.BACKGROUND_COLOR
-        self.summary_minimum_episode_count = 3
-        self.summary_created_by = None
-        self.summary_ignore_specials = False
-
-        self.use_emby = False
-        self.emby_url = None
-        self.emby_api_key = None
-        self.emby_username = None
-        self.emby_verify_ssl = True
-        self.emby_filesize_limit = self.filesize_as_bytes(
-            EmbyInterfaceV1.DEFAULT_FILESIZE_LIMIT
-        )
-        self.emby_style_set = StyleSet()
-        self.emby_yaml_writers = []
-        self.emby_yaml_update_args = []
-
-        self.use_jellyfin = False
-        self.jellyfin_url = None
-        self.jellyfin_api_key = None
-        self.jellyfin_username = None
-        self.jellyfin_verify_ssl = True
-        self.jellyfin_filesize_limit = self.filesize_as_bytes(
-            JellyfinInterfaceV1.DEFAULT_FILESIZE_LIMIT
-        )
-        self.jellyfin_style_set = StyleSet()
-        self.jellyfin_yaml_writers = []
-        self.jellyfin_yaml_update_args = []
-
-        self.use_plex = False
-        self.plex_url = None
-        self.plex_token = 'NA'
-        self.plex_verify_ssl = True
-        self.integrate_with_kometa = False
-        self.plex_filesize_limit = self.filesize_as_bytes(
-            PlexInterfaceV1.DEFAULT_FILESIZE_LIMIT
-        )
-        self.plex_timeout = PlexInterfaceV1.DEFAULT_TIMEOUT
-        self.plex_style_set = StyleSet()
-        self.plex_yaml_writers = []
-        self.plex_yaml_update_args = []
-
-        self.sonarr_kwargs = []
-        self.sonarr_yaml_writers = []
-
-        self.use_tmdb = False
-        self.tmdb_api_key = None
-        self.tmdb_retry_count = TMDbInterfaceV1.BLACKLIST_THRESHOLD
-        self.tmdb_minimum_resolution = {'width': 0, 'height': 0}
-        self.tmdb_skip_localized_images = False
-        self.tmdb_logo_language_priority = ['en']
-
-        self.use_tautulli = False
-        self.tautulli_url = None
-        self.tautulli_api_key = None
-        self.tautulli_verify_ssl = True
-        self.tautulli_username = None
-        self.tautulli_update_script = None
-        self.tautulli_agent_name = TautulliInterfaceV1.DEFAULT_AGENT_NAME
-        self.tautulli_script_timeout = TautulliInterfaceV1.DEFAULT_SCRIPT_TIMEOUT
-
-        self.imagemagick_container = None
-        self.imagemagick_timeout = ImageMagickInterface.COMMAND_TIMEOUT_SECONDS
-
-        # Determine default media server
-        if (not self._is_specified('emby')
-            and not self._is_specified('plex')
-            and not self._is_specified('jellyfin')):
-            log.warning(
-                'No Media Servers indicated - TitleCardMaker will not '
-                'automatically load any cards'
+        try:
+            self.settings = PreferencesYaml.model_validate(
+                safe_load(file.read_text())
             )
-            self.default_media_server = 'plex'
-        if (self._is_specified('emby')
-            and not self._is_specified('plex')
-            and not self._is_specified('jellyfin')):
-            self.default_media_server = 'emby'
-        elif (self._is_specified('jellyfin')
-            and not self._is_specified('emby')
-            and not self._is_specified('plex')):
-            self.default_media_server = 'jellyfin'
-        elif (self._is_specified('plex')
-            and not self._is_specified('emby')
-            and not self._is_specified('jellyfin')):
-            self.default_media_server = 'plex'
-        else:
-            self.default_media_server = None
+        except Exception:
+            log.exception(f'Preference file is invalid "{self.file.resolve()}"')
+            sys_exit(1)
 
-        # Modify object attributes based off YAML, updating validiry
-        self.__parse_yaml()
-        self.__parse_sync()
-
-        # Whether to use magick prefix
-        self.use_magick_prefix = False
-        self.__determine_imagemagick_prefix()
+        # Update global config settings
+        settings.config.V1_IMAGEMAGICK_CONTAINER = (
+            self.settings.imagemagick.container
+            if self.settings.imagemagick
+            else settings.config.V1_IMAGEMAGICK_CONTAINER
+        )
 
 
     def __repr__(self) -> str:
@@ -231,751 +113,10 @@ class PreferenceParser(YamlReader):
         return f'<PreferenceParser {attributes}>'
 
 
-    def __determine_imagemagick_prefix(self) -> None:
-        """
-        Determine whether to use the "magick " prefix for ImageMagick
-        commands. If a prefix cannot be determined, a critical message
-        is logged and this object's validity is set to False.
-        """
-
-        if self.is_docker:
-            self.use_magick_prefix = False
-            return None
-
-        # Try variations of the font list command with/out the "magick " prefix
-        for prefix, use_magick in zip(('', 'magick '), (False, True)):
-            # Create ImageMagickInterface and verify validity
-            interface = ImageMagickInterface(
-                self.imagemagick_container, use_magick, self.imagemagick_timeout
-            )
-            if interface.validate_interface():
-                self.use_magick_prefix = use_magick
-                log.debug(f'Using "{prefix}" ImageMagick command prefix')
-                return None
-
-        # If none of the font commands worked, IM might not be installed
-        log.critical(f"ImageMagick doesn't appear to be installed")
-        interface.print_command_history()
-        self.valid = False
-        return None
-
-
-    def __parse_sync(self) -> None:
-        """
-        Parse the YAML sync sections of this preference file. This
-        updates the lists of SeriesYamlWriter objects for each
-        applicable interface.
-        """
-
-        # Inner function to create and add SeriesYamlWriter objects (and)
-        # their update args dictionaries to this object's lists
-        def append_writer_and_args(sync_type, interface_id, sync, static):
-            # Combine static and given sync YAML
-            sync_yaml = YamlReader(static | sync, log_function=log.warning)
-
-            # Skip if file wasn't specified
-            if (file := sync_yaml.get('file', type_=CleanPath)) is None:
-                return None
-
-            # Create SeriesYamlWriter with this config
-            file = file.sanitize()
-            writer = SeriesYamlWriter(
-                file,
-                sync_yaml.get('mode', type_=str, default='append'),
-                sync_yaml.get('compact_mode', type_=bool, default=True),
-                sync_yaml.get('volumes', type_=dict, default={}),
-                sync_yaml.get('add_template', type_=str, default=None),
-                sync_yaml.get('card_directory', type_=CleanPath, default=None),
-            )
-
-            # If invalid after initialization, error and exit
-            if not writer.valid:
-                log.error(f'Cannot sync to "{file.resolve()}" - invalid sync')
-                return None
-
-            # Parse args applicable to all interfaces
-            update_args = {}
-            if (value := sync_yaml.get('exclusions', type_=list)) is not None:
-                update_args['exclusions'] = value
-            if (value := sync_yaml.get('required_tags', type_=list)) is not None:
-                update_args['required_tags'] = value
-
-            # Parse args applicable only to specific interfaces
-            if sync_type in ('emby', 'jellyfin', 'plex'):
-                if (value := sync_yaml.get('libraries', type_=list)) is not None:
-                    update_args['filter_libraries'] = value
-            elif sync_type == 'sonarr':
-                value = sync_yaml.get(
-                    'libraries',
-                    type_=dict,
-                    default=sync_yaml.get('plex_libraries', type_=dict),
-                )
-                if value is not None:
-                    update_args['libraries'] = value
-                if (value := sync_yaml.get('monitored_only', type_=bool)) is not None:
-                    update_args['monitored_only'] = value
-                if (value := sync_yaml.get('downloaded_only', type_=bool)) is not None:
-                    update_args['downloaded_only'] = value
-                if (value := sync_yaml.get('series_type', type_=str)) is not None:
-                    if value in SonarrInterfaceV1.VALID_SERIES_TYPES:
-                        update_args['series_type'] = value
-                    else:
-                        vals = ", ".join(SonarrInterfaceV1.VALID_SERIES_TYPES)
-                        log.error(f'Cannot filter by series_type "{value}" - '
-                                  f'must be one of {vals}')
-                        sync_yaml.valid = False
-
-            # Skip if YAML was invalidated at any point
-            if not sync_yaml.valid:
-                log.error(f'Cannot sync to "{file.resolve()}" - invalid sync')
-                return None
-
-            # Add to either Plex or Sonarr lists
-            if sync_type == 'emby':
-                self.emby_yaml_writers.append(writer)
-                self.emby_yaml_update_args.append(update_args)
-            elif sync_type == 'jellyfin':
-                self.jellyfin_yaml_writers.append(writer)
-                self.jellyfin_yaml_update_args.append(update_args)
-            elif sync_type == 'plex':
-                self.plex_yaml_writers.append(writer)
-                self.plex_yaml_update_args.append(update_args)
-            else:
-                self.sonarr_yaml_writers.append(
-                    YamlWriterSet(interface_id, writer, update_args)
-                )
-
-            return None
-
-        # Create Emby SeriesYamlWriter objects
-        if (emby_sync := self.get('emby', 'sync')) is not None:
-            # Singular sync specification
-            if isinstance(emby_sync, dict):
-                append_writer_and_args('emby', 0, emby_sync, {})
-            # List of syncs
-            elif isinstance(emby_sync, list) and len(emby_sync) > 0:
-                base_sync = emby_sync[0]
-                for sync in emby_sync:
-                    append_writer_and_args('emby', 0, sync, base_sync)
-            else:
-                log.error(f'Invalid Emby sync: {emby_sync}')
-
-        # Create Jellyfin SeriesYamlWriter objects
-        if (jellyfin_sync := self.get('jellyfin', 'sync')) is not None:
-            # Singular sync specification
-            if isinstance(jellyfin_sync, dict):
-                append_writer_and_args('jellyfin', 0, jellyfin_sync, {})
-            # List of syncs
-            elif isinstance(jellyfin_sync, list) and len(jellyfin_sync) > 0:
-                base_sync = jellyfin_sync[0]
-                for sync in jellyfin_sync:
-                    append_writer_and_args('jellyfin', 0, sync, base_sync)
-            else:
-                log.error(f'Invalid Jellyfin sync: {jellyfin_sync}')
-
-        # Create Plex SeriesYamlWriter objects
-        if (plex_sync := self.get('plex', 'sync')) is not None:
-            # Singular sync specification
-            if isinstance(plex_sync, dict):
-                append_writer_and_args('plex', 0, plex_sync, {})
-            # List of syncs
-            elif isinstance(plex_sync, list) and len(plex_sync) > 0:
-                base_sync = plex_sync[0]
-                for sync in plex_sync:
-                    append_writer_and_args('plex', 0, sync, base_sync)
-            else:
-                log.error(f'Invalid Plex sync: {plex_sync}')
-
-        # Create Sonarr SeriesYamlWriter objects
-        if self._is_specified('sonarr'):
-            # Singular server
-            if (isinstance(self.get('sonarr'), dict)
-                and (sonarr_sync := self.get('sonarr', 'sync')) is not None):
-                # Singular sync specification
-                if isinstance(sonarr_sync, dict):
-                    append_writer_and_args('sonarr', 0, sonarr_sync, {})
-                # List of syncs
-                elif isinstance(sonarr_sync, list) and len(sonarr_sync) > 0:
-                    base_sync = sonarr_sync[0]
-                    for sync in sonarr_sync:
-                        append_writer_and_args('sonarr', 0, sync, base_sync)
-                else:
-                    log.error(f'Invalid Sonarr sync: {sonarr_sync}')
-            # Multiple sonarr interfaces, check for sync on each
-            elif isinstance(self.get('sonarr'), list):
-                for interface_id, server in enumerate(self.get('sonarr')):
-                    reader = YamlReader(server)
-                    # Singular sync for this server
-                    if isinstance((sync := reader.get('sync')), dict):
-                        append_writer_and_args('sonarr', interface_id, sync, {})
-                    # List of syncs for this server
-                    elif isinstance(sync, list) and len(sync) > 0:
-                        base_sync = sync[0]
-                        for sub_sync in sync:
-                            append_writer_and_args(
-                                'sonarr', interface_id, sub_sync, base_sync
-                            )
-
-
-    def __parse_yaml_options(self) -> None:
-        """
-        Parse the 'options' section of the raw YAML dictionary into
-        attributes.
-        """
-
-        # Skip if sections omitted
-        if not self._is_specified('options'):
-            return None
-
-        if (value := self.get('options', 'execution_mode',
-                               type_=self.TYPE_LOWER_STR)) is not None:
-            if value in Manager.VALID_EXECUTION_MODES:
-                self.execution_mode = value
-            else:
-                log.critical(f'Execution mode "{value}" is invalid')
-                self.valid = False
-
-        if (value := self.get('options', 'series')) is not None:
-            if isinstance(value, list):
-                self.series_files = value
-            else:
-                self.series_files = [value]
-        else:
-            log.warning(f'No series YAML files indicated, no cards will be '
-                        f'created')
-
-        if (value := self.get('options', 'card_type', type_=str)) is not None:
-            self.card_class = self._parse_card_type(value)
-
-        if (value := self.get('options', 'card_extension', type_=str)) is not None:
-            extension = ('' if value[0] == '.' else '.') + value
-            if extension in ImageMaker.VALID_IMAGE_EXTENSIONS:
-                self.card_extension = extension
-            else:
-                log.critical(f'Card extension "{extension}" is invalid')
-                self.valid = False
-
-        if (value := self.get('options', 'card_dimensions', type_=str)) is not None:
-            try:
-                width, height = map(int, value.lower().split('x'))
-                assert width > 0 and height > 0
-                if not (16 / 9 - 0.1) <= width / height <= (16 / 9 + 0.1):
-                    log.warning(f'Card dimensions aspect ratio is not 16:9')
-                if width < 200 or height < 200:
-                    log.warning(f'Card dimensions are very small')
-                self.card_dimensions = value
-            except ValueError:
-                log.critical(f'Invalid card dimensions - specify as WIDTHxHEIGHT')
-                self.valid = False
-            except AssertionError:
-                log.critical(f'Invalid card dimensions - both dimensions must '
-                             f'be larger than 0px')
-                self.valid = False
-
-        if (value := self.get('options', 'filename_format', type_=str)) is not None:
-            if TitleCard.validate_card_format_string(value):
-                self.card_filename_format = value
-            else:
-                self.valid = False
-
-        if (value := self.get('options', 'image_source_priority',
-                               type_=self.TYPE_LOWER_STR)) is not None:
-            if (sources := self.parse_image_source_priority(value)) is None:
-                log.critical(f'Image source priority "{value}" is invalid')
-                self.valid = False
-            else:
-                self.image_source_priority = sources
-
-        if (value := self.get('options', 'episode_data_source',
-                               type_=self.TYPE_LOWER_STR)) is not None:
-            if value in self.VALID_EPISODE_DATA_SOURCES:
-                self.episode_data_source = value
-            else:
-                log.critical(f'Episode data source "{value}" is invalid')
-                self.valid = False
-
-        if (value := self.get('options', 'validate_fonts', type_=bool)) is not None:
-            self.validate_fonts = value
-
-        if (value := self.get('options', 'season_folder_format',
-                               type_=str)) is not None:
-            self.season_folder_format = value
-            self.get_season_folder(1)
-
-        if (value := self.get('options', 'sync_specials', type_=bool)) is not None:
-            self.sync_specials = value
-
-        if (value := self.get('options', 'language_codes', type_=list)) is not None:
-            value = set(value) | set(('en', ))
-            if all(code in SUPPORTED_LANGUAGE_CODES for code in value):
-                self.supported_language_codes = value
-            else:
-                codes = ', '.join(SUPPORTED_LANGUAGE_CODES)
-                log.critical(f'Not all language codes are recognized')
-                log.info(f'Must be one of {codes}')
-                self.valid = False
-
-        return None
-
-
-    def __parse_yaml_archive(self) -> None:
-        """
-        Parse the 'archive' section of the raw YAML dictionary into
-        attributes.
-        """
-
-        # Skip if section omitted
-        if not self._is_specified('archive'):
-            return None
-
-        if (value := self.get('archive', 'path', type_=Path)) is not None:
-            self.archive_directory = value
-            self.create_archive = True
-
-        if (value := self.get('archive', 'all_variations', type_=bool)) is not None:
-            self.archive_all_variations = value
-
-        if (value := self.get('archive', 'summary', 'create',
-                               type_=bool)) is not None:
-            self.create_summaries = value
-
-        if (value := self.get('archive', 'summary', 'type',
-                               type_=self.TYPE_LOWER_STR)) is not None:
-            if value == 'standard':
-                self.summary_class = StandardSummary
-                self.summary_background = self.summary_class.BACKGROUND_COLOR
-            elif value == 'stylized':
-                self.summary_class = StylizedSummary
-                self.summary_background = self.summary_class.BACKGROUND_COLOR
-            else:
-                log.critical(f'Summary type "{value}" is invalid - must be '
-                             f'"standard" or "stylized"')
-                self.valid = False
-
-        if (value := self.get('archive', 'summary', 'created_by',
-                               type_=str)) is not None:
-            self.summary_created_by = value
-
-        if (value := self.get('archive', 'summary', 'background',
-                               type_=str)) is not None:
-            self.summary_background = value
-
-        if (value := self.get('archive', 'summary', 'minimum_episodes',
-                               type_=int)) is not None:
-            self.summary_minimum_episode_count = value
-
-        if (value := self.get('archive', 'summary', 'ignore_specials',
-                               type_=bool)) is not None:
-            self.summary_ignore_specials = value
-
-        return None
-
-
-    def __parse_yaml_emby(self) -> None:
-        """
-        Parse the 'emby' section of the raw YAML dictionary into
-        attributes.
-        """
-
-        # Skip if section omitted
-        if not self._is_specified('emby'):
-            return None
-
-        if (not self._is_specified('emby', 'url')
-            or not  self._is_specified('emby', 'api_key')
-            or not  self._is_specified('emby', 'username')):
-            log.critical(f'Must specify Emby "url", "api_key", and "username"')
-            self.valid = False
-
-        if (value := self.get('emby', 'url', type_=str)) is not None:
-            self.emby_url = value
-            self.use_emby = True
-
-        if (value := self.get('emby', 'api_key', type_=str)) is not None:
-            self.emby_api_key = value
-
-        if (value := self.get('emby', 'username', type_=str)) is not None:
-            self.emby_username = value
-
-        if (value := self.get('emby', 'verify_ssl', type_=bool)) is not None:
-            self.emby_verify_ssl = value
-
-        if (value := self.get('emby', 'filesize_limit',
-                               type_=self.filesize_as_bytes)) is not None:
-            self.emby_filesize_limit = value
-
-        self.emby_style_set = StyleSet(
-            self.get('emby', 'watched_style', type_=str, default='unique'),
-            self.get('emby', 'unwatched_style', type_=str, default='unique'),
-        )
-        self.valid &= self.emby_style_set.valid
-
-        return None
-
-
-    def __parse_yaml_jellyfin(self) -> None:
-        """
-        Parse the 'jellyfin' section of the raw YAML dictionary into
-        attributes.
-        """
-
-        # Skip if section omitted
-        if not self._is_specified('jellyfin'):
-            return None
-
-        if (not self._is_specified('jellyfin', 'url')
-            or not  self._is_specified('jellyfin', 'api_key')
-            or not  self._is_specified('jellyfin', 'username')):
-            log.critical(f'Must specify Jellyfin "url", "api_key", and '
-                         f'"username"')
-            self.valid = False
-
-        if (value := self.get('jellyfin', 'url', type_=str)) is not None:
-            self.jellyfin_url = value
-            self.use_jellyfin = True
-
-        if (value := self.get('jellyfin', 'api_key', type_=str)) is not None:
-            self.jellyfin_api_key = value
-
-        if (value := self.get('jellyfin', 'username', type_=str)) is not None:
-            self.jellyfin_username = value
-
-        if (value := self.get('jellyfin', 'verify_ssl', type_=bool)) is not None:
-            self.jellyfin_verify_ssl = value
-
-        if (value := self.get('jellyfin', 'filesize_limit',
-                               type_=self.filesize_as_bytes)) is not None:
-            self.jellyfin_filesize_limit = value
-
-        self.jellyfin_style_set = StyleSet(
-            self.get('jellyfin', 'watched_style', type_=str, default='unique'),
-            self.get('jellyfin', 'unwatched_style', type_=str, default='unique'),
-        )
-        self.valid &= self.jellyfin_style_set.valid
-
-        return None
-
-
-    def __parse_yaml_plex(self) -> None:
-        """
-        Parse the 'plex' section of the raw YAML dictionary into
-        attributes.
-        """
-
-        # Skip if section omitted
-        if not self._is_specified('plex'):
-            return None
-
-        if (value := self.get('plex', 'url', type_=str)) is not None:
-            self.plex_url = value
-            self.use_plex = True
-
-        if (value := self.get('plex', 'token', type_=str)) is not None:
-            self.plex_token = value
-
-        if (value := self.get('plex', 'verify_ssl', type_=bool)) is not None:
-            self.plex_verify_ssl = value
-
-        integrate = self.get(
-            'plex', 'integrate_with_kometa',
-            type_=bool,
-            default=self.get('plex', 'integrate_with_pmm_overlays', type_=bool)
-        )
-        if integrate is not None:
-            self.integrate_with_kometa = value
-
-        if (value := self.get('plex', 'filesize_limit',
-                               type_=self.filesize_as_bytes)) is not None:
-            self.plex_filesize_limit = value
-
-            if value > self.filesize_as_bytes('10 MB'):
-                log.warning(f'Plex will reject all images larger than 10 MB')
-
-        if (value := self.get('plex', 'timeout', type_=int)) is not None:
-            if value < 1:
-                log.critical(f'Plex timeout must be at least 1')
-                self.valid = False
-            self.plex_timeout = value
-
-        self.plex_style_set = StyleSet(
-            self.get('plex', 'watched_style', type_=str, default='unique'),
-            self.get('plex', 'unwatched_style', type_=str, default='unique'),
-        )
-        self.valid &= self.plex_style_set.valid
-
-        return None
-
-
-    def __parse_yaml_sonarr(self) -> None:
-        """
-        Parse the 'sonarr' section of the raw YAML dictionary into
-        attributes.
-        """
-
-        # Skip if section omitted
-        if not self._is_specified('sonarr'):
-            return None
-
-        # Inner function to parse a single instance of server YAML
-        def parse_server(yaml: dict[str, Any]):
-            reader = YamlReader(yaml)
-
-            # Server must provide URL and API key
-            if ((url := reader.get('url', type_=str)) is None or
-                (api_key := reader.get('api_key', type_=str)) is None):
-                log.critical(f'Sonarr server must contain "url" and "api_key"')
-                self.valid = False
-            else:
-                self.sonarr_kwargs.append({
-                    'url': url,
-                    'api_key': api_key,
-                    'verify_ssl': reader.get(
-                        'verify_ssl', type_=bool, default=True
-                    ),
-                    'downloaded_only': reader.get(
-                        'downloaded_only', type_=bool, default=True
-                    ),
-                })
-
-        # If multiple servers were specified, parse all specifications
-        if isinstance(self.get('sonarr'), list):
-            for server in self.get('sonarr'):
-                parse_server(server)
-        # Single server specification
-        elif isinstance(self.get('sonarr'), dict):
-            parse_server(self.get('sonarr'))
-        else:
-            log.critical(f'Invalid Sonarr preferences')
-            self.valid = False
-
-        return None
-
-
-    def __parse_yaml_tmdb(self) -> None:
-        """
-        Parse the 'tmdb' section of the raw YAML dictionary into
-        attributes.
-        """
-
-        # Skip if section omitted
-        if not self._is_specified('tmdb'):
-            return None
-
-        if (value := self.get('tmdb', 'api_key', type_=str)) is not None:
-            self.tmdb_api_key = value
-            self.use_tmdb = True
-
-        if (value := self.get('tmdb', 'retry_count', type_=int)) is not None:
-            if value < 0:
-                log.critical('Cannot have a negative TMDb retry count')
-                self.valid = False
-            else:
-                self.tmdb_retry_count = value
-
-        if (value := self.get('tmdb', 'minimum_resolution', type_=str)) is not None:
-            try:
-                width, height = map(int, value.lower().split('x'))
-                self.tmdb_minimum_resolution = {'width': width, 'height':height}
-            except Exception:
-                log.critical(
-                    'Invalid minimum resolution - specify as WIDTHxHEIGHT'
-                )
-                self.valid = False
-
-        if (value := self.get('tmdb', 'skip_localized_images',
-                               type_=bool)) is not None:
-            self.tmdb_skip_localized_images = value
-
-        if (value := self.get('tmdb', 'logo_language_priority', type_=str)):
-            codes = list(map(str.strip, value.split(',')))
-            if all(code in TMDbInterfaceV1.LANGUAGE_CODES for code in codes):
-                self.tmdb_logo_language_priority = codes
-            else:
-                opts = '"' + '", "'.join(TMDbInterfaceV1.LANGUAGE_CODES) + '"'
-                log.critical(
-                    f'Invalid TMDb logo language codes - must be comma'
-                    f'-separated list of any of the following: {opts}'
-                )
-                self.valid = False
-
-        return None
-
-
-    def __parse_yaml_tautulli(self) -> None:
-        """
-        Parse the 'tautulli' section of the raw YAML dictionary into
-        attributes.
-        """
-
-        # Skip if section omitted
-        if not self._is_specified('tautulli'):
-            return None
-
-        # Parse required attributes
-        if ((url := self.get('tautulli', 'url', type_=str)) is not None
-            and (api_key := self.get('tautulli', 'api_key', type_=str)) is not None
-            and (script := self.get('tautulli', 'update_script',
-                                     type_=Path)) is not None):
-            self.tautulli_url = url
-            self.tautulli_api_key = api_key
-            self.tautulli_update_script = script
-            self.use_tautulli = True
-        else:
-            log.critical(f'tautulli preferences must contain "url", "api_key", '
-                         f'and "update_script"')
-            self.valid = False
-
-        if (value := self.get('tautulli', 'verify_ssl', type_=bool)) is not None:
-            self.tautulli_verify_ssl = value
-
-        if (value := self.get('tautulli', 'username', type_=str)) is not None:
-            self.tautulli_username = value
-
-        if (value := self.get('tautulli', 'agent_name', type_=str)) is not None:
-            self.tautulli_agent_name = value
-
-        if (value := self.get('tautulli', 'script_timeout',type_=int)) is not None:
-            self.tautulli_script_timeout = value
-
-        return None
-
-
-    def __parse_yaml_imagemagick(self) -> None:
-        """
-        Parse the 'imagemagick' section of the raw YAML dictionary into
-        attributes.
-        """
-
-        # Skip if section omitted
-        if not self._is_specified('imagemagick'):
-            return None
-
-        # Warn if ImageMagick provided in a Docker environment
-        if self.is_docker:
-            log.warning(
-                'Specifying the "imagemagick" section is not recommended when '
-                'using TitleCardMaker in Docker'
-            )
-
-        if (value := self.get('imagemagick', 'container', type_=str)):
-            self.imagemagick_container = value
-
-        if (value := self.get('imagemagick', 'timeout', type_=int)):
-            self.imagemagick_timeout = value
-
-        return None
-
-
-    def __parse_yaml(self) -> None:
-        """
-        Parse the raw YAML dictionary into object attributes. This also
-        errors to the user if any provided values are overtly invalid
-        (i.e. missing where necessary, fails type conversion).
-        """
-
-        # Parse each section
-        self.__parse_yaml_options()
-        self.__parse_yaml_archive()
-        self.__parse_yaml_emby()
-        self.__parse_yaml_jellyfin()
-        self.__parse_yaml_plex()
-        self.__parse_yaml_sonarr()
-        self.__parse_yaml_tmdb()
-        self.__parse_yaml_tautulli()
-        self.__parse_yaml_imagemagick()
-
-        # Warn for renamed settings
-
-
-    def __validate_libraries(self,
-            library_yaml: dict[str, str],
-            file: Path,
-        ) -> bool:
-        """
-        Validate the given libraries YAML.
-
-        Args:
-            library_yaml: YAML from the 'libraries' key to validate.
-            file: File whose YAML is being evaluated - for logging only.
-
-        Returns:
-            True if the given YAML is valid, False otherwise.
-        """
-
-        err = f'in series YAML file "{file.resolve()}"'
-
-        # Libraries must be a dictionary
-        if not isinstance(library_yaml, dict):
-            log.error(f'Invalid library specification {err}')
-            return False
-
-        # Validate all given libraries
-        for name, spec in library_yaml.items():
-            # All libraries must be dictionaries
-            if not isinstance(spec, dict):
-                log.error(f'Library "{name}" is invalid {err}')
-                return False
-
-            # All libraries must provide paths
-            if spec.get('path') is None:
-                log.error(f'Library "{name}" is missing required "path" {err}')
-                return False
-
-            # Libraries must specify a media server if there is no default
-            if (self.default_media_server is None
-                and spec.get('media_server') is None):
-                log.error(
-                    f'Library "{name}" is missing required "media_server" {err}'
-                )
-                return False
-
-            # Media server must be Plex or Emby
-            if (spec.get('media_server', self.default_media_server)
-                not in ('emby', 'jellyfin', 'plex')):
-                log.error(f'Library "{name}" specifies an invalid media_server')
-                return False
-
-        return True
-
-
-    def __validate_fonts(self,
-            font_yaml: dict[str, dict[str, str | float]] | Any,
-            file: Path
-        ) -> bool:
-        """
-        Validate the given font YAML.
-
-        Args:
-            font_yaml: Font map YAML to validate.
-            file: File whose YAML is being evaluated - for logging only.
-
-        Returns:
-            True if the given YAML is valid, False otherwise.
-        """
-
-        # Font map must be a dictionary
-        if not isinstance(font_yaml, dict):
-            log.error(
-                f'Invalid font specification for series file "{file.resolve()}"'
-            )
-            return False
-
-        # Validate all given fonts
-        for name, spec in font_yaml.items():
-            # All fonts must be dictionaries
-            if not Font.validate_yaml(spec):
-                log.error(
-                    f'Font "{name}" is invalid for series file "{file.resolve()}"'
-                )
-                return False
-
-        return True
-
-
     @staticmethod
     def apply_template(
             templates: dict[str, Template],
-            series_yaml: dict[str, Any],
+            series_yaml: SeriesYaml,
             series_name: str,
             *,
             raise_exc: bool = False
@@ -999,40 +140,26 @@ class PreferenceParser(YamlReader):
         """
 
         # No templates defined for this series, skip
-        if 'template' not in series_yaml:
+        if not series_yaml.template:
             return True
 
         # Get the specified template for this series
-        if isinstance((series_template := series_yaml['template']), str):
+        if isinstance(series_yaml.template, str):
             # Assume if only a string, then its the template name
-            template_name = series_template
-            series_template = {'template_name': series_template}
-            series_yaml['template'] = series_template
-        # Warn and return if no template name given
-        elif not (template_name := series_template.get('name', None)):
-            if raise_exc:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f'Missing Template name for "{series_name}"',
-                )
-            log.error(f'Missing template name for "{series_name}"')
-            return False
+            template_name = series_yaml.template
+            series_yaml.template = {'template_name': series_yaml.template}
 
         # Warn and return if template name not mapped
+        template_name = series_yaml.template.get('name', None)
         if not (template := templates.get(template_name, None)):
-            if raise_exc:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f'Template "{template_name}" not defined'
-                )
             template_names = '"' + '", "'.join(templates.keys()) + '"'
-            log.error(f'Template "{template_name}" not defined')
-            log.info(f'Defined templates are {template_names}')
+            log.error(f'Template "{template_name}" not defined for {series_name}')
+            log.info(f'The only defined templates are: {template_names}')
             return False
 
         # Parse title/year from the series to add as "built-in" template data
         try:
-            series_info = SeriesInfoV1(series_name, series_yaml.get('year'))
+            series_info = SeriesInfoV1(series_name, series_yaml.year)
         except Exception as e:
             if raise_exc:
                 raise HTTPException(
@@ -1050,16 +177,13 @@ class PreferenceParser(YamlReader):
 
 
     @staticmethod
-    def finalize_show_yaml(
-            show_name: str,
-            show_yaml: dict[str, Any],
+    def finalize_series_yaml(
+            yaml: SeriesYaml,
             templates: dict[str, Template],
-            library_map: dict[str, Any],
-            font_map: dict[str, Any],
             *,
             default_media_server: str = 'plex',
             raise_exc: bool = False
-        ) -> dict | None:
+        ) -> SeriesYaml | None:
         """
         Apply the indicated template, and merge the specified
         library/font to the given show YAML.
@@ -1123,24 +247,6 @@ class PreferenceParser(YamlReader):
         return show_yaml
 
 
-    def read_file(self) -> None:
-        """
-        Read this associated preference file and store in `_base_yaml`
-        attribute and critically error if reading fails.
-        """
-
-        # If the file doesn't exist, error and exit
-        if not self.file.exists():
-            log.critical(
-                f'Preference file "{self.file.resolve()}" does not exist'
-            )
-            sys_exit(1)
-
-        # Read file
-        self._base_yaml = self._read_file(self.file, critical=True)
-        log.info(f'Read preference file "{self.file.resolve()}"')
-
-
     def iterate_series_files(self) -> Iterator[Show]:
         """
         Iterate through all series file listed in the preferences. For
@@ -1153,7 +259,7 @@ class PreferenceParser(YamlReader):
         """
 
         # Reach each file in the list of series YAML files
-        for file_ in (pbar := tqdm(self.series_files, **TQDM_KWARGS)):
+        for file_ in (pbar := tqdm(self.settings.options.series, **TQDM_KWARGS)):
             # Create Path object for this file
             try:
                 file = CleanPath(file_).sanitize()
@@ -1168,62 +274,41 @@ class PreferenceParser(YamlReader):
             # If the file doesn't exist, error and skip
             if not file.exists():
                 log.error(f'Series file "{file.resolve()}" does not exist')
-
-                # If on Docker and missing file was relative, warn first
-                if (self.is_docker
-                    and len(file.parts) > 1 and file.parts[1] == 'maker'):
-                    log.warning(f'Did you mean "/config/{file.name}"?')
                 continue
 
             # Read file, parse yaml
-            if ((file_yaml := self._read_file(file, critical=False)) == {}
-                or file_yaml is None or file_yaml.get('series', None) is None):
+            try:
+                file_yaml = finalize_yaml(
+                    YamlFile.model_validate(safe_load(file.read_text()))
+                )
+            except Exception:
+                log.exception(f'Error reading series file "{file.resolve()}"')
+                continue
+
+            if not file_yaml.series:
                 log.warning(f'Series file "{file.resolve()}" has no entries')
                 continue
 
-            # Validate the libraries provided in this file
-            library_map = file_yaml.get('libraries', {})
-            if not self.__validate_libraries(library_map, file):
-                continue
-
-            # Get font map for this file
-            font_map = file_yaml.get('fonts', {})
-            if not self.__validate_fonts(font_map, file):
-                continue
-
+            library_map = file_yaml.libraries
+            font_map = file_yaml.fonts
+            breakpoint()
             # Construct Template objects for this file
-            templates = {}
-            value = file_yaml.get('templates', {})
-            if isinstance(value, dict):
-                for name, template in value.items():
-                    # If not specified as dictionary, error and skip
-                    if not isinstance(template, dict):
-                        log.error(f'Invalid template specification for "{name}"'
-                                  f' in series file "{file.resolve()}"')
-                        continue
-                    templates[name] = Template(name, template)
+            templates: dict[str, Template] = {
+                name: Template(name, template)
+                for name, template in file_yaml.templates.items()
+            }
 
             # Go through each series in this file
             for show_name in tqdm(
-                file_yaml['series'], desc='Reading entries', **TQDM_KWARGS
+                file_yaml.series, desc='Reading entries', **TQDM_KWARGS
             ):
-                # Skip if not a dictionary
-                if not isinstance(file_yaml['series'][show_name], dict):
-                    log.error(f'Skipping "{show_name}" from "{file_}"')
-                    continue
-
                 # Apply template and merge libraries+font maps
-                show_yaml = self.finalize_show_yaml(
-                    file_yaml['series'][show_name].get('name', show_name),
-                    file_yaml['series'][show_name],
-                    templates,
-                    library_map,
-                    font_map,
-                    default_media_server=self.default_media_server,
+                show_yaml = finalize_yaml(
+                    file_yaml,
                 )
 
                 # If returned YAML is None (invalid) skip series
-                if show_yaml is None:
+                if not show_yaml:
                     log.error(f'Skipping "{show_name}" from "{file_}"')
                     continue
 
@@ -1247,8 +332,10 @@ class PreferenceParser(YamlReader):
 
                     # Skip if finalization failed
                     if variation is None:
-                        log.error(f'Skipping archive variation of "{show_name}"'
-                                  f' from "{file_}"')
+                        log.error(
+                            f'Skipping archive variation of "{show_name}"'
+                            f' from "{file_}"'
+                        )
                         continue
 
                     # Get priority union of variation and base series
@@ -1259,98 +346,6 @@ class PreferenceParser(YamlReader):
                     variation.pop('library', None)
 
                     yield Show(show_name, variation, self.source_directory,self)
-
-
-    @property
-    def use_sonarr(self) -> bool:
-        """Whether Sonarr is in use."""
-
-        return len(self.sonarr_kwargs) > 0
-
-
-    @property
-    def tautulli_interface_args(self) -> dict[str, str | int]:
-        """Arguments for initializing a TautulliInterface"""
-
-        return {# type: ignore
-            'url': self.tautulli_url,
-            'api_key': self.tautulli_api_key,
-            'verify_ssl': self.tautulli_verify_ssl,
-            'update_script': self.tautulli_update_script,
-            'agent_name': self.tautulli_agent_name,
-            'script_timeout': self.tautulli_script_timeout,
-            'username': self.tautulli_username,
-        }
-
-    @property
-    def emby_interface_kwargs(self) -> dict[str, str | bool | int]:
-        """Arguments for initializing a EmbyInterface"""
-
-        return {# type: ignore
-            'url': self.emby_url,
-            'api_key': self.emby_api_key,
-            'username': self.emby_username,
-            'verify_ssl': self.emby_verify_ssl,
-            'filesize_limit': self.emby_filesize_limit,
-        }
-
-    @property
-    def jellyfin_interface_kwargs(self) -> dict[str, str | bool | int]:
-        """Arguments for initializing a JellyfinInterface"""
-
-        return {# type: ignore
-            'url': self.jellyfin_url,
-            'api_key': self.jellyfin_api_key,
-            'username': self.jellyfin_username,
-            'verify_ssl': self.jellyfin_verify_ssl,
-            'filesize_limit': self.jellyfin_filesize_limit,
-        }
-
-    @property
-    def plex_interface_kwargs(self) -> dict[str, str | bool | int]:
-        """Arguments for initializing a PlexInterface"""
-
-        return { # type: ignore
-            'url': self.plex_url,
-            'x_plex_token': self.plex_token,
-            'verify_ssl': self.plex_verify_ssl,
-            'integrate_with_kometa': self.integrate_with_kometa,
-            'filesize_limit': self.plex_filesize_limit,
-            'plex_timeout': self.plex_timeout
-        }
-
-    @property
-    def tmdb_interface_kwargs(self) -> dict[str, str]:
-        """Arguments for initializing a TMDbInterface"""
-
-        return {
-            'api_key': self.tmdb_api_key,
-        }
-
-
-    def parse_image_source_priority(self, value: str) -> list[str] | None:
-        """
-        Parse the given image source priority value into a list of
-        sources.
-
-        Args:
-            value: Value of "image_source_priority" YAML attribute being
-                parsed.
-
-        Returns:
-            Sorted list of image sources. None if the given value is
-            invalid.
-        """
-
-        if isinstance(value, str):
-            sources = tuple(value.replace(' ', '').split(','))
-            if all(_ in self.VALID_IMAGE_SOURCES for _ in sources):
-                return sources
-        elif isinstance(value, list):
-            if all(_ in self.VALID_IMAGE_SOURCES for _ in value):
-                return value
-
-        return None
 
 
     def meets_minimum_resolution(self, width: int, height: int) -> bool:
