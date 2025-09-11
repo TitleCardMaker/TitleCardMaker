@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 type MediaServer = Literal['emby', 'jellyfin', 'plex']
 
 
-class Show(YamlReader):
+class Show:
     """
     This class describes a show. A Show encapsulates the names and
     preferences with a complete series of episodes. Each object inherits
@@ -95,7 +95,7 @@ class Show(YamlReader):
 
     def __init__(self,
             name: str,
-            yaml_dict: dict,
+            yaml: ...,
             source_directory: Path,
             preferences: 'PreferenceParser',
         ) -> None:
@@ -1154,14 +1154,6 @@ class Show(YamlReader):
                 **self.extras,
                 **episode.extra_characteristics,
             )
-
-            # Skip if title is invalid for font
-            title_card.converted_title, valid = self.font.validate_title(
-                title_card.converted_title
-            )
-            if not valid:
-                log.warning(f'Invalid font for {episode} of {self}')
-                continue
 
             # Source exists, create the title card
             title_card.create()
