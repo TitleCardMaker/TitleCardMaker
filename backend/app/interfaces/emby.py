@@ -893,7 +893,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         if series_id is None:
             return None
 
-        # Load each episode and card
+        # Load each season's poster
         for season_number, image in posters.items():
             if (sid := self.__get_season_id(series_id, season_number)) is None:
                 log.warning(f'Season {season_number} not found')
@@ -1179,9 +1179,6 @@ class EmbyInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
         'Filesize limit for all uploading assets - no limit by default'
     ] = None
 
-    """Filepath to the database of each episode's loaded card characteristics"""
-    LOADED_DB = 'loaded_emby.json'
-
     """Series ID's that can be set by Emby"""
     SERIES_IDS = ('emby_id', 'imdb_id', 'tmdb_id', 'tvdb_id')
 
@@ -1220,7 +1217,6 @@ class EmbyInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
 
         # Store attributes of this Interface
         self.session = WebInterface('Emby', verify_ssl)
-        self.info_set = global_objects.info_set
         self.url = url[:-1] if url.endswith('/') else url
         self.__params = {'api_key': api_key}
         self.username = username
@@ -1296,6 +1292,141 @@ class EmbyInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
             lib['Name']:tuple(int(folder['Id']) for folder in lib['SubFolders'])
             for lib in libraries
         }
+
+
+    @overload
+    def __get_series_id(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            *,
+            raw_obj: Literal[False] = False,
+        ) -> str | None: ...
+    @overload
+    def __get_series_id(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            *,
+            raw_obj: Literal[True] = True,
+        ) -> SeriesInfo | None: ...
+    def __get_series_id(self,
+            library_name: str,
+            series_info: SeriesInfo,
+            *,
+            raw_obj: bool = False,
+        ) -> str | SeriesInfo | None:
+        """
+        Get the Jellyfin ID for the given series.
+
+        Args:
+            library_name: Name of the library containing the series.
+            series_info: The series being evaluated.
+            raw_obj: Whether to return the raw object from the `/Items`
+                endpoint (rather than just the series ID).
+
+        Returns:
+            None if the series is not found. The Jellyfin ID of the
+            series if raw_obj is False, otherwise the SeriesInfo of the
+            found series.
+        """
+
+        if (not raw_obj
+            and series_info.has_id('emby_id', self._interface_id, library_name)):
+            # Query for this item within Jellyfin
+            id_ = series_info.emby_id[self._interface_id, library_name]
+            resp = self.session.get(
+                f'{self.url}/Users/{self.user_id}/Items/{id_}',
+                params=self.__params,
+            )
+
+            # If one item was returned, ID is still valid
+            if isinstance(resp, dict) and resp.get('Id') == id_:
+                return id_
+
+            # No item found, ID must be invalid - reset and re-query
+            log.trace(
+                f'Emby ID ({id_}) has been dynamically re-assigned. Querying '
+                f'for new one..'
+            )
+            del series_info.emby_id[self._interface_id, library_name]
+
+        # Get ID of this library
+        if (library_ids := self.libraries.get(library_name, None)) is None:
+            log.error(f'Library "{library_name}" not found in Emby')
+            return None
+
+        # Base params for all requests
+        pid_str = series_info.emby_provider_id_string
+        params = {
+            'Recursive': True,
+            'Years': series_info.year,
+            'IncludeItemTypes': 'series',
+            'SearchTerm': series_info.name,
+            'Fields': 'ProviderIds,PremiereDate',
+        } | self.__params \
+          | ({'AnyProviderIdEquals': pid_str} if pid_str else {})
+
+        # Look for this series in each library subfolder
+        for parent_id in library_ids:
+            response: dict = self.session.get(
+                f'{self.url}/Items',
+                params=params | {'ParentId': parent_id}
+            )
+
+            # If no responses, skip
+            if response['TotalRecordCount'] == 0:
+                continue
+
+            # Go through all items and match name and type, setting database IDs
+            for result in response['Items']:
+                if result['Type'] == 'Series':
+                    # Skip results w/o premiere dates
+                    if result.get('PremiereDate') is None:
+                        log.debug(f'Series {result["Name"]} has no premiere date')
+                        continue
+
+                    this_series = SeriesInfo.from_emby_info(
+                        result, self._interface_id, library_name,
+                    )
+                    if series_info == this_series:
+                        return this_series if raw_obj else result['Id']
+
+        log.warning(f'Series "{series_info}" was not found in Emby')
+        return None
+
+
+    def __get_season_id(self,
+            series_id: str,
+            season_number: int,
+        ) -> str | None:
+        """
+        Get the Emby ID of the given season.
+
+        Args:
+            series_id: Emby ID of the associated series.
+            season_number: Season number whose ID is being queried.
+
+        Returns:
+            The Emby ID of the season, if found. None otherwise.
+        """
+
+        response = self.session.get(
+            f'{self.url}/Items',
+            params={
+                'recursive': True,
+                'includeItemTypes': 'Season',
+                'parentId': series_id,
+            } | self.__params,
+        )
+
+        if not isinstance(response, dict) or not response.get('Items'):
+            return None
+
+        for season in response['Items']:
+            if (season.get('SeriesId') == series_id
+                and season.get('IndexNumber') == season_number):
+                return season['Id']
+
+        return None
 
 
     def get_usernames(self) -> list[str]:
@@ -1778,6 +1909,48 @@ class EmbyInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
             season_poster_set: SeasonPosterSet with season posters to
                 set.
         """
+
+        # Find this series
+        series_id = self.__get_series_id(library_name, series_info)
+        if series_id is None:
+            return None
+
+        # Load each episode and card
+        for season_number, season_poster in season_poster_set.posters.items():
+            if (sid := self.__get_season_id(series_id, season_number)) is None:
+                log.warning(f'Season {season_number} not found')
+                continue
+
+            # Skip if this exact poster has been loaded
+            image = season_poster.destination
+            if self._has_matching_season_poster(
+                library_name, series_info, season_number, image.stat().st_size
+            ):
+                continue
+
+            # Shrink image if necessary, skip if cannot be compressed
+            if (image := self.compress_image(image)) is None:
+                continue
+
+            # Submit POST request for image upload on Base64 encoded image
+            image_base64 = b64encode(image.read_bytes())
+            try:
+                self.session.session.post(
+                    url=f'{self.url}/Items/{sid}/Images/Primary',
+                    headers={'Content-Type': 'image/jpeg'},
+                    params=self.__params,
+                    data=image_base64,
+                )
+                log.debug(
+                    f'{series_info} loaded poster into season {season_number}'
+                )
+            except Exception:
+                log.exception(f'Unable to upload {image} to {series_info}')
+                continue
+
+            self._update_season_poster_details(
+                library_name, series_info, season_number, image.stat().st_size
+            )
 
         return None
 
