@@ -73,9 +73,6 @@ class Font(YamlReader):
         self.__card_class = card_class
         self.__series_info = series_info
 
-        # Use the global FontValidator object
-        self.__validator = global_objects.fv
-
         # Set generic font attributes
         self.reset()
 
@@ -241,37 +238,6 @@ class Font(YamlReader):
             'font_stroke_width': self.stroke_width,
             'font_vertical_shift': self.vertical_shift,
         }
-
-
-    def validate_title(self, title: str) -> tuple[str, bool]:
-        """
-        Return whether all the characters of the given title are valid
-        for this font. This uses this object's FontValidator object.
-
-        Args:
-            title: The title (string) being validated.
-
-        Returns:
-            Tuple of the modified title, and whether the title is now
-            valid. The title is only modified if missing deletion is
-            enabled (and applied); validity is True if all the
-            characters of the given title are contained within this
-            font, False otherwise.
-        """
-
-        # Validate title against this font
-        valid = self.__validator.validate_title(self.file, title)
-
-        # If invalid, and missing characters are set to be deleted, modify title
-        if not valid and self.delete_missing:
-            # Delete each missing character from title
-            for missing in self.__validator.get_missing_characters(self.file):
-                title = title.replace(missing, '')
-
-            # Return modified title, and title is now guaranteed to be valid
-            return title, True
-
-        return title, valid
 
 
     @staticmethod
