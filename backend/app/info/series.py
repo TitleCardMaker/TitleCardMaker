@@ -567,7 +567,7 @@ class SeriesInfoV1(DatabaseInfoContainer):
 
         # Parse arguments into attributes
         self.name = name
-        self.year = year
+        self.year: int = year
         self.emby_id = None
         self.imdb_id = None
         self.jellyfin_id = None
@@ -588,12 +588,12 @@ class SeriesInfoV1(DatabaseInfoContainer):
         # If no year was specified, parse from name as "name (year)"
         if (self.year is None
             and (group := match(self.__FULL_NAME_REGEX,self.name)) is not None):
-            self.name = group.group(1)
+            self.name = str(group.group(1))
             self.year = int(group.group(2))
 
         # If year still isn't specified, error
         if self.year is None:
-            raise ValueError(f'Year not provided')
+            raise ValueError('Year not provided')
 
         self.year = int(self.year)
         self.update_name(self.name)
@@ -708,9 +708,9 @@ class SeriesInfoV1(DatabaseInfoContainer):
         # If the given name already has the year, remove it
         name = str(name)
         if (group := match(rf'^(.*?)\s+\({self.year}\)$', name)) is not None:
-            self.name = group.group(1)
+            self.name = str(group.group(1))
         else:
-            self.name = name
+            self.name = str(name)
 
         # Set full name
         self.full_name = f'{self.name} ({self.year})'
