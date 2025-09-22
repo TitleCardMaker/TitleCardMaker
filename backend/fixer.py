@@ -233,7 +233,7 @@ if ((hasattr(args, 'import_cards') or hasattr(args, 'revert_series'))
     media_interface.set_series_ids(library, series_info)
 
     # Forget cards associated with this series
-    media_interface.remove_records(library, series_info)
+    ...
 
     # Get all images from import archive
     ext = args.import_extension
@@ -269,17 +269,11 @@ if (hasattr(args, 'forget_cards')
     and any((pp.use_emby, pp.use_jellyfin, pp.use_plex))):
     series_info = SeriesInfoV1(args.forget_cards[1], args.forget_cards[2])
     if args.media_server == 'emby':
-        EmbyInterfaceV1(**pp.emby_interface_kwargs).remove_records(
-            args.forget_cards[0], series_info,
-        )
+        ...
     elif args.media_server == 'jellyfin':
-        JellyfinInterfaceV1(**pp.jellyfin_interface_kwargs).remove_records(
-            args.forget_cards[0], series_info,
-        )
+        ...
     else:
-        PlexInterfaceV1(**pp.plex_interface_kwargs).remove_records(
-            args.forget_cards[0], series_info,
-        )
+        ...
 
 
 # Execute Sonarr related options
