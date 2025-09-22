@@ -1,8 +1,8 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false, reportIncompatibleVariableOverride=false
-from typing import Literal, Union
+from typing import Annotated, Literal, Union
 
-from pydantic import AnyUrl, SecretStr, constr, validator
+from pydantic import AnyUrl, SecretStr, StringConstraints, validator
 
 from app.schemas.base import Base, InterfaceType, UNSPECIFIED
 
@@ -10,13 +10,21 @@ from app.schemas.base import Base, InterfaceType, UNSPECIFIED
 # Names of acceptable server types
 ServerName = Literal['Emby', 'Jellyfin', 'Plex', 'Sonarr']
 
+# Match hexstrings of A-F and 0-9
+Hexstring = Annotated[str, StringConstraints(pattern=r'^[a-fA-F0-9]+$')]
 
-# Match hexstrings of A-F and 0-9.s
-Hexstring = constr(pattern=r'^[a-fA-F0-9]+$')
+# Match dimensions of the form {width}x{height}
+Dimensions = Annotated[
+    str,
+    StringConstraints(pattern=r'^\d+x\d+$')
+]
 
 # Acceptable units for filesize limits
 FilesizeUnit = Literal['Bytes', 'Kilobytes', 'Megabytes']
-FilesizeLimit = constr(pattern=r'\d+\s+(Bytes|Kilobytes|Megabytes)')
+FilesizeLimit = Annotated[
+    str,
+    StringConstraints(pattern=r'\d+\s+(Bytes|Kilobytes|Megabytes)')
+]
 
 # Accepted TMDb 2-letter language codes
 TMDbLanguageCode = Literal[
@@ -110,12 +118,12 @@ class NewSonarrConnection(BaseNewServer):
                 if (other_library.path.startswith(library.path)
                     and other_library.name != library.name):
                     separator = '/' if '/' in library.path else '\\'
-                    raise ValueError(
+                    raise ValueError((
                         f'Library path ({other_library.path}) contains '
                         f'other path ({library.path}) - this will cause '
                         f'Library assignment to fail. Add a trailing separator '
                         f'({separator}) to distinguish the two.'
-                    )
+                    ))
 
         return v
 
@@ -131,16 +139,9 @@ class NewTMDbConnection(Base):
     interface_type: Literal['TMDb'] = 'TMDb'
     enabled: bool = True
     api_key: Hexstring
-    minimum_dimensions: constr(pattern=r'^\d+x\d+$') = '0x0'
+    minimum_dimensions: Dimensions = '0x0'
     skip_localized: bool = True
     language_priority: list[TMDbLanguageCode] = ['en']
-
-    @validator('minimum_dimensions')
-    def validate_dimensions(cls, v):
-        width, height = str(v).split('x')
-        if int(width) < 0 or int(height) < 0:
-            raise ValueError(f'Minimum dimensions must be positive')
-        return v
 
     @validator('language_priority', pre=True)
     def comma_separate_language_codes(cls, v):
@@ -157,7 +158,7 @@ class NewTVDbConnection(Base):
     api_key: str
     episode_ordering: TVDbOrderType = 'default'
     include_movies: bool = False
-    minimum_dimensions: constr(pattern=r'^\d+x\d+$') = '0x0'
+    minimum_dimensions: Dimensions = '0x0'
     language_priority: list[str] = ['eng']
 
 """
@@ -198,28 +199,21 @@ class UpdateSonarr(BaseUpdateServer):
             for other_library in v[index+1:]:
                 if other_library.path.startswith(library.path):
                     separator = '/' if '/' in library.path else '\\'
-                    raise ValueError(
+                    raise ValueError((
                         f'Library path ({other_library.path}) contains '
                         f'other path ({library.path}) - this will cause '
                         f'Library assignment to fail. Add a trailing separator '
                         f'({separator}) to distinguish the two.'
-                    )
+                    ))
 
         return v
 
 class UpdateTMDb(Base):
     enabled: bool = UNSPECIFIED
     api_key: Hexstring = UNSPECIFIED
-    minimum_dimensions: constr(pattern=r'^\d+x\d+$') = UNSPECIFIED
+    minimum_dimensions: Dimensions = UNSPECIFIED
     skip_localized: bool = UNSPECIFIED
     language_priority: list[TMDbLanguageCode] = UNSPECIFIED
-
-    @validator('minimum_dimensions')
-    def validate_dimensions(cls, v):
-        width, height = str(v).split('x')
-        if int(width) < 0 or int(height) < 0:
-            raise ValueError('Dimensions must be positive')
-        return v
 
     @validator('language_priority', pre=True)
     def comma_separate_language_codes(cls, v):
@@ -230,15 +224,8 @@ class UpdateTVDb(Base):
     api_key: str = UNSPECIFIED
     episode_ordering: TVDbOrderType = UNSPECIFIED
     include_movies: bool = UNSPECIFIED
-    minimum_dimensions: constr(pattern=r'^\d+x\d+$') = UNSPECIFIED
+    minimum_dimensions: Dimensions = UNSPECIFIED
     language_priority: list[str] = UNSPECIFIED
-
-    @validator('minimum_dimensions')
-    def validate_dimensions(cls, v):
-        width, height = str(v).split('x')
-        if int(width) < 0 or int(height) < 0:
-            raise ValueError('Dimensions must be positive')
-        return v
 
     @validator('language_priority', pre=True)
     def comma_separate_language_codes(cls, v):

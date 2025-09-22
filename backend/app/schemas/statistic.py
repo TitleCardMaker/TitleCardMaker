@@ -15,7 +15,7 @@ class NewSnapshot(Base):
     loaded: int
     series: int
     syncs: int
-    templates:int
+    templates: int
     users: int
     filesize: int
     cards_created: int
@@ -28,7 +28,7 @@ class Snapshot(Base):
     loaded: int
     series: int
     syncs: int
-    templates:int
+    templates: int
     users: int
     filesize: int
     cards_created: int

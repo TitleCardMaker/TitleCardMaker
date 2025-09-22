@@ -4,9 +4,8 @@ from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import (
-    conint,
-    constr,
     Field,
+    NonNegativeInt,
     validator
 )
 
@@ -15,6 +14,7 @@ from app.schemas.base import (
     Base,
     DictKey,
     MediaServer,
+    MinimumLengthString,
     SeasonTitleRange,
     UNSPECIFIED,
 )
@@ -84,13 +84,13 @@ class BaseConfig(Base):
         return val
 
 class BaseTemplate(BaseConfig):
-    name: constr(min_length=1)
+    name: MinimumLengthString
     filters: list[Condition] = []
     translations: list[Translation] | None = None
 
 class BaseSeries(BaseConfig):
-    name: constr(min_length=1)
-    year: conint(ge=1900)
+    name: MinimumLengthString
+    year: NonNegativeInt
     status: Status = 'monitored'
     template_ids: list[int] | None = None
     match_titles: bool = True
@@ -119,7 +119,7 @@ class BaseSeries(BaseConfig):
     directory: str | None = None
 
 class BaseUpdate(Base):
-    name: constr(min_length=1) | None = UNSPECIFIED
+    name: MinimumLengthString | None = UNSPECIFIED
     status: Status = UNSPECIFIED
     font_id: int | None = UNSPECIFIED
     sync_specials: bool | None = UNSPECIFIED
@@ -176,11 +176,11 @@ class NewSeries(BaseSeries):
 Update classes
 """
 class UpdateTemplate(BaseUpdate):
-    name: constr(min_length=1) = UNSPECIFIED
+    name: MinimumLengthString = UNSPECIFIED
     filters: list[Condition] = UNSPECIFIED
 
 class UpdateSeries(BaseUpdate):
-    year: conint(ge=1900) = UNSPECIFIED
+    year: NonNegativeInt = UNSPECIFIED
     directory: str | None = UNSPECIFIED
     template_ids: list[int] | None = UNSPECIFIED
     font_id: int | None = UNSPECIFIED

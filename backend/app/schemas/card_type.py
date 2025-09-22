@@ -13,7 +13,7 @@ from cards import *
 
 class Extra(Base):
     name: str
-    identifier: DictKey # type: ignore
+    identifier: DictKey
     description: str
     tooltip: str | None = None
     card_type: str | None = None

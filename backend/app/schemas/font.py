@@ -5,12 +5,11 @@ from typing import Literal, Self
 from pydantic import ( # pylint: disable=no-name-in-module
     NonNegativeFloat,
     PositiveFloat,
-    constr,
     model_validator,
     validator,
 )
 
-from app.schemas.base import Base, UNSPECIFIED
+from app.schemas.base import Base, MinimumLengthString, UNSPECIFIED
 
 
 TitleCase = Literal['blank', 'lower', 'source', 'title', 'upper']
@@ -40,13 +39,13 @@ class BaseFont(Base):
     vertical_shift: int = 0
 
 class BaseNamedFont(BaseFont):
-    name: constr(min_length=1)
+    name: MinimumLengthString
 
 """
 Creation classes
 """
 class NewNamedFont(BaseNamedFont):
-    replacements_in: list[constr(min_length=1)] = []
+    replacements_in: list[MinimumLengthString] = []
     replacements_out: list[str] = []
 
     @validator('*', pre=True)
@@ -76,7 +75,7 @@ class PreviewFont(Base):
 Update classes
 """
 class UpdateNamedFont(Base):
-    name: constr(min_length=1) = UNSPECIFIED
+    name: MinimumLengthString = UNSPECIFIED
     color: str | None = UNSPECIFIED
     interline_spacing: int = UNSPECIFIED
     interword_spacing: int = UNSPECIFIED

@@ -2,9 +2,9 @@
 # pyright: reportInvalidTypeForm=false
 from typing import Literal
 
-from pydantic import constr, field_validator
+from pydantic import field_validator
 
-from app.schemas.base import Base, UNSPECIFIED
+from app.schemas.base import Base, MinimumLengthString, UNSPECIFIED
 
 
 SonarrSeriesType = Literal['anime', 'daily', 'standard']
@@ -17,7 +17,7 @@ class Tag(Base):
     interface_id: int
 
 class NewBaseSync(Base):
-    name: constr(min_length=1)
+    name: MinimumLengthString
     interface_id: int
     add_as_unmonitored: bool = False
     template_ids: list[int] = []
@@ -73,7 +73,7 @@ class Sync(ExistingBaseSync, NewSonarrSync):
     ...
 
 class UpdateSync(Base):
-    name: constr(min_length=1) = UNSPECIFIED
+    name: MinimumLengthString = UNSPECIFIED
     add_as_unmonitored: bool = UNSPECIFIED
     interface_id: int = UNSPECIFIED
     template_ids: list[int] = UNSPECIFIED

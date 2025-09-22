@@ -1,20 +1,39 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false
 from pathlib import Path
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
-from pydantic import FilePath, PositiveFloat, constr, model_validator
+from pydantic import (
+    Field,
+    FilePath,
+    PositiveFloat,
+    StringConstraints,
+    model_validator,
+)
+from pydantic.functional_validators import BeforeValidator
 from pydantic.main import BaseModel
 
 
 # Default value to use for arguments in Update objects that accept None
 UNSPECIFIED = '_UnspecifiedValue'
 
+# Convert string to uppercase
+UppercaseString = Annotated[str, BeforeValidator(lambda s: s.upper())]
+
+# Strings which must be at least 1 character long
+MinimumLengthString = Annotated[str, Field(min_length=1)]
+
 # String that can be used as key in a dictionary
-DictKey = constr(pattern=r'^[a-zA-Z]+[^ -]*$', min_length=1)
+DictKey = Annotated[
+    str,
+    StringConstraints(pattern=r'^[a-zA-Z]+[^ -]*$')
+]
 
 # Match absolute ranges (1-10), season numbers (1), episode ranges (s1e1-s1e10)
-SeasonTitleRange: str = constr(pattern=r'^(\d+-\d+)|^(\d+)|^(s\d+e\d+-s\d+e\d+)$')
+SeasonTitleRange = Annotated[
+    str,
+    StringConstraints(pattern=r'^(\d+-\d+)|^(\d+)|^(s\d+e\d+-s\d+e\d+)$')
+]
 
 InterfaceType = Literal['Emby', 'Jellyfin', 'Plex', 'Sonarr', 'TMDb', 'TVDb']
 ImageSource = Literal['Emby', 'Jellyfin', 'Plex', 'TMDb', 'TVDb']
@@ -42,8 +61,8 @@ class BaseCardTypeAllText(BaseCardModel):
     and episode text.
     """
     title_text: str
-    season_text: constr(to_upper=True)
-    episode_text: constr(to_upper=True)
+    season_text: UppercaseString
+    episode_text: UppercaseString
     hide_season_text: bool = False
     hide_episode_text: bool = False
 
@@ -80,44 +99,3 @@ class BaseCardTypeCustomFontNoText(BaseCardModel):
     font_size: PositiveFloat = 1.0
     font_stroke_width: float = 1.0
     font_vertical_shift: int = 0
-
-# Function to validate two equal length lists are provided
-def validate_argument_lists_to_dict(
-        field0: list[str] | None,
-        field1: list[str] | None,
-        allow_empty_strings: bool = False,
-    ) -> dict[str, str] | None:
-    """
-    Validation function to join two paired lists into a dictionary.
-
-    Args:
-        field0: The first list of keys to use as the output dictionary
-            keys.
-        field1: The second list of values to use as the output
-            dictionary values.
-        allow_empty_strings: Whether `''` are permitted in the values.
-
-    Returns:
-        A dictionary of the two lists, or `None` if both are `None`.
-
-    Raises:
-        ValueError: Only one set of the provided values is a list, or if
-            the two lists are not the equal length.
-    """
-
-    # Both fields are None, return None
-    if field0 is None and field1 is None:
-        return None
-
-    if isinstance(field0, list) != isinstance(field1, list):
-        raise ValueError('Both fields must be lists or omitted')
-
-    # Both provided as lists - filter out unspecified values
-    BAD_VALS = [UNSPECIFIED] + ([] if allow_empty_strings else [''])
-    list0 = [in_ for in_ in field0 if in_ not in BAD_VALS]
-    list1 = [out_ for out_ in field1 if out_ not in BAD_VALS]
-
-    if len(list0) != len(list1):
-        raise ValueError('Both fields must be the same length')
-
-    return dict(zip(list0, list1))

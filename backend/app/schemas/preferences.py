@@ -2,11 +2,12 @@
 # pyright: reportInvalidTypeForm=false
 from datetime import datetime
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import (
     FilePath,
     PositiveInt,
+    StringConstraints,
     conint,
     constr,
     validator,
@@ -25,9 +26,10 @@ from modules.FormatString import FormatString
 Match local identifiers (A-Z and any character), remote card types
 (a-z/.*, no space), and local card types (any character(s).py).
 """
-CardTypeIdentifier = constr(
-    pattern=r'^([a-zA-Z].*|[a-zA-Z].*\/[a-zA-Z].*|.+\.py)$'
-)
+CardTypeIdentifier = Annotated[
+    str,
+    StringConstraints(pattern=r'^([a-zA-Z].*|[a-zA-Z].*\/[a-zA-Z].*|.+\.py)$')
+]
 
 """
 Blur profiles must be formatted as {radius}x{sigma}
