@@ -88,7 +88,14 @@ def query_logs(
                 LogModel.context_id.in_(context_id.split(',')),
             ))
     if contains_ is not None:
-        filters.append(LogModel.message.contains(contains_))
+        # Pipe-separated list of contains strings
+        if '|' in contains_:
+            filters.append(or_(*[
+                LogModel.message.contains(substring)
+                for substring in contains_.split('|')
+            ]))
+        else:
+            filters.append(LogModel.message.contains(contains_))
 
     return paginate(
         log_db.query(LogModel)
