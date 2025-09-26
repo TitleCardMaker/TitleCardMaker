@@ -26,6 +26,15 @@ module.exports = defineConfig({
         'cypress/e2e/sync.cy.js',
         'cypress/e2e/templates.cy.js',
       ]
+
+      // Force Chrome to open exactly at the viewport size
+      on('before:browser:launch', (browser = {}, launchOptions) => {
+        if (browser.name === 'chrome' && browser.isHeadless) {
+          launchOptions.args.push('--window-size=1920,1080')
+          return launchOptions
+        }
+      })
+
       return config
     },
   },
