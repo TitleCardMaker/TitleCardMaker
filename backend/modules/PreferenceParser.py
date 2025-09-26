@@ -1,7 +1,7 @@
-from collections import namedtuple
+from collections.abc import Iterator
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Any, Iterator, Literal, overload
+from typing import Literal, overload
 
 from app.core.v1 import finalize_yaml
 from app.schemas.yaml import PreferencesYaml, SeriesYaml, YamlFile
@@ -9,31 +9,13 @@ from fastapi import HTTPException
 from tqdm import tqdm
 from yaml import safe_load
 
-from app.interfaces.v1 import (
-    EmbyInterfaceV1,
-    JellyfinInterfaceV1,
-    PlexInterfaceV1,
-    TMDbInterfaceV1,
-    TautulliInterfaceV1,
-)
 from app.info.series import SeriesInfoV1
 from app.logging.logger import log
-from app.magick.summary import StylizedSummary
 from app.settings import TQDM_KWARGS, settings
-from app.yaml.font import Font
-from app.yaml.reader import YamlReader
 from app.yaml.template import Template
 from modules.CleanPath import CleanPath
 from modules.FormatString import FormatString
-from modules.Manager import Manager
 from modules.Show import Show
-from modules.StyleSet import StyleSet
-from modules.TitleCard import TitleCard
-
-
-YamlWriterSet = namedtuple(
-    'YamlWriterSet', ('interface_id', 'writer', 'update_args')
-)
 
 
 class PreferenceParser:
@@ -41,13 +23,6 @@ class PreferenceParser:
     This class describes a preference parser that reads a given
     preference YAML file and parses it into individual attributes.
     """
-
-    """Valid image source identifiers"""
-    VALID_IMAGE_SOURCES = ('emby', 'jellyfin', 'plex', 'tmdb')
-
-    """Valid episode data source identifiers"""
-    VALID_EPISODE_DATA_SOURCES = ('emby', 'jellyfin', 'sonarr', 'plex', 'tmdb')
-    DEFAULT_EPISODE_DATA_SOURCE = 'sonarr'
 
     """Default season folder format string"""
     DEFAULT_SEASON_FOLDER_FORMAT = 'Season {season}'
@@ -182,9 +157,9 @@ class PreferenceParser:
         each series encountered in each file, yield a Show object. Files
         that do not exist or have invalid YAML are skipped.
 
-        Returns:
-            An iterable of Show objects created by the entry listed in
-            all the known (valid) series files.
+        Yields:
+            Show objects created by the entry listed in all the known
+            (valid) series files.
         """
 
         # Reach each file in the list of series YAML files
