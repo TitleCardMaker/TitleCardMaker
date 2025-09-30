@@ -636,7 +636,8 @@ def load_series_title_cards(
                 db.delete(loaded)
         # Episode does not need to be reloaded
         else:
-            continue
+            # previously_loaded[0].card = card
+            log.trace(f'loaded.card = {previously_loaded[0].card} -> {card}')
 
     # Load into indicated interface
     loaded_assets = interface.load_title_cards(
