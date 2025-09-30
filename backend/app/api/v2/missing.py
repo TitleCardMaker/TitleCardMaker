@@ -5,6 +5,7 @@ from sqlalchemy import not_
 from sqlalchemy.orm import Session, load_only
 
 from app.db.pagination import Page
+from app.db.users import get_current_user
 from app.dependencies import (
     AnyInterface,
     EmbyInterface,
@@ -15,7 +16,6 @@ from app.dependencies import (
     get_logger,
     require_interface,
 )
-from app.db.users import get_current_user
 from app.logging.logger import Logger
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
@@ -74,7 +74,6 @@ def get_cards_without_loaded(
         db.query(CardModel)
             .options(
                 load_only(
-                    CardModel.id,
                     CardModel.episode_id,
                     CardModel.card_file,
                     CardModel.filesize,
@@ -84,7 +83,7 @@ def get_cards_without_loaded(
             .outerjoin(CardModel.loaded)
             .outerjoin(CardModel.episode)
             .filter(LoadedModel.id.is_(None))
-            .order_by(CardModel.id)
+            .order_by(CardModel.card_file)
     )
 
 
