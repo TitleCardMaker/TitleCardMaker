@@ -2231,7 +2231,8 @@ function uploadLogo(seasonNumber=null) {
  */
 function uploadBackdrop(seasonNumber) {
   // Get uploaded file
-  const file = $('#backdrop-upload')[0].files[0];
+  const inputId = seasonNumber === null ? 'backdrop-upload' : `backdrop-upload-season${seasonNumber}`;
+  const file = document.getElementById(inputId).files[0];
   if (!file) { return; }
 
   // Verify file is an image
