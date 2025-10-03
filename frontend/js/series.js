@@ -1201,8 +1201,8 @@ function querySeriesLogs() {
 
         // Populate template
         event.querySelector('.label .icon').classList.add(color);
-        event.querySelector('.summary span').innerText = `${toTitleCase(log.level)} Message`;
-        event.querySelector('[data-value="date"]').innerText = timeDiffString(log.time);
+        event.querySelector('.summary span').innerText = `${toTitleCase(log.level_name)} Message`;
+        event.querySelector('[data-value="date"]').innerText = timeDiffString(log.timestamp);
         if (log.context_id === null) {
           event.querySelector('[data-value="context_id"]').remove();
         } else {
