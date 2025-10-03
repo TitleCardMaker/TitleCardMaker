@@ -2211,11 +2211,13 @@ function uploadLogo(seasonNumber=null) {
     contentType: false,
     processData: false,
     success: () => {
-      showInfoToast('Updated Logo');
       if (seasonNumber === null) {
+        showInfoToast('Updated Logo');
         const logo = document.getElementById('#logo');
         logo.src = `/source/{{series.path_safe_name}}/logo.png?${new Date().getTime()}`;
         logo.style.display = 'block';
+      } else {
+        showInfoToast('Updated logo, refresh page to see changes');
       }
     },
     error: response => showErrorToast({title: 'Error Updating Logo', response}),
@@ -2241,6 +2243,11 @@ function uploadBackdrop(seasonNumber) {
     return;
   }
 
+  const params = new URLSearchParams();
+  if (seasonNumber !== null) {
+    params.append('season_number', seasonNumber);
+  }
+
   // Create Form with this file
   const form = new FormData();
   form.append('file', file);
@@ -2248,16 +2255,20 @@ function uploadBackdrop(seasonNumber) {
   // Submit API request
   $.ajax({
     type: 'PUT',
-    url: `/api/v2/sources/series/{{ series.id }}/backdrop/upload`,
+    url: `/api/v2/sources/series/{{ series.id }}/backdrop/upload?${params.toString()}`,
     data: form,
     cache: false,
     contentType: false,
     processData: false,
     success: () => {
-      showInfoToast('Updated Backdrop');
-      const backdrop = document.getElementById('backdrop');
-      backdrop.src = `/source/{{series.path_safe_name}}/backdrop.jpg?${new Date().getTime()}`;
-      backdrop.style.display = 'block';
+      if (seasonNumber === null) {
+        showInfoToast('Updated backdrop');
+        const backdrop = document.getElementById('backdrop');
+        backdrop.src = `/source/{{series.path_safe_name}}/backdrop.jpg?${new Date().getTime()}`;
+        backdrop.style.display = 'block';
+      } else {
+        showInfoToast('Updated backdrop, refresh page to see changes');
+      }
     },
     error: response => showErrorToast({title: 'Error Updating Backdrop', response}),
   });
