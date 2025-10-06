@@ -74,6 +74,7 @@ def get_cards_without_loaded(
         db.query(CardModel)
             .options(
                 load_only(
+                    CardModel.series_id,
                     CardModel.episode_id,
                     CardModel.card_file,
                     CardModel.filesize,
