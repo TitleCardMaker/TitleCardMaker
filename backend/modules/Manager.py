@@ -264,7 +264,6 @@ class Manager:
             desc='Setting series IDs',
             **TQDM_KWARGS
         ):
-            # Select interfaces based on what's enabled
             show.set_series_ids()
 
 

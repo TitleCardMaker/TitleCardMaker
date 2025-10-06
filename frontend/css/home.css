@@ -4,7 +4,7 @@
 }
 
 /* Format menu bar */
-#main-content .menu:not(.pagination) {
+#main-content #toolbar {
   box-shadow: 1px 1px 10px -3px rgba(252, 252, 252, 0.8)
 }
 
