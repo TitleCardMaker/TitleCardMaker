@@ -1,8 +1,11 @@
+from asyncio import gather as async_gather
 from pathlib import Path
 from re import match, IGNORECASE
-from shutil import move as move_file
-from typing import Any, Callable, TypeVar, Union
+from shutil import copyfile, move as move_file
+from typing import Any, Callable, Literal, TypeVar, Union
 
+from app.core.series import load_series_title_cards
+from curl_cffi import CurlHttpVersion
 from curl_cffi.requests import AsyncSession
 from fastapi import HTTPException
 from ruamel.yaml import YAML
@@ -14,6 +17,7 @@ from app.core.cards import (
     validate_card_type_model
 )
 from app.core.connection import add_connection, update_connection
+from app.db.query import get_media_interface, get_series
 from app.dependencies import (
     get_emby_interfaces,
     get_jellyfin_interfaces,
@@ -47,6 +51,7 @@ from app.schemas.connection import (
     UpdateTMDb,
 )
 from app.schemas.font import NewNamedFont
+from app.schemas.imports import KometaYaml
 from app.schemas.preferences import (
     CardExtension,
     EpisodeDataSource,
@@ -1706,3 +1711,180 @@ async def download_image(
         return filename, episode
 
     return None
+
+
+async def import_mediux_yaml(
+        db: Session,
+        full_yaml: KometaYaml,
+        series: Series,
+        *,
+        library_names: list[str] | Literal['all'] = [],
+        import_poster: bool = False,
+        import_backdrop: bool = False,
+        import_season_posters: bool = False,
+        force_reload: bool = True,
+        textless: bool = True,
+        log: Logger = log,
+    ) -> None:
+    """
+    Import Cards, posters, and backgrounds from the given Kometa YAML
+    for the given Series.
+
+    Args:
+        db: Database to query for existing Cards.
+        full_yaml: The full Kometa YAML to import.
+        series_id: ID of the Series to import into.
+        library_names: Names of the libraries to import the Cards into. If
+            provided, then these assets are loaded into the associated
+            server(s).
+        import_poster: Whether to parse and import posters.
+        import_backdrop: Whether to parse and import backdrops.
+        import_season_posters: Whether to parse and import season posters.
+        force_reload: Whether to replace any existing Cards.
+        textless: Whether to change any affected Episode's card type to
+            Textless.
+        log: Logger for all log messages.
+    """
+
+    # Get just the YAML after the TVDb ID
+    if not full_yaml.yaml:
+        return None
+    yaml = list(full_yaml.yaml.values())[0]
+
+    # Parse all indicated files
+    background, poster = None, None
+    if import_backdrop and yaml.url_background:
+        background = str(yaml.url_background)
+    if import_poster and yaml.url_poster:
+        poster = str(yaml.url_poster)
+    cards: list[tuple[Episode, Path]] = []
+    season_posters: dict[int, str] = {}
+
+    # Parse each season
+    tasks = []
+    temp_images: list[Path] = []
+    async with AsyncSession(
+        max_clients=5, timeout=10, http_version=CurlHttpVersion.V1_1
+    ) as session:
+        for season_number, season_yaml in yaml.seasons.items():
+            # Parse season posters if a library was provided and specified
+            if library_names and import_season_posters:
+                season_posters[season_number] = str(season_yaml.url_poster)
+
+            # Parse all episodes of this season
+            for episode_number, episode_yaml in season_yaml.episodes.items():
+                # Skip download if there is no matching Episode
+                episode = (
+                    db.query(Episode)
+                        .filter_by(
+                            series_id=series.id,
+                            season_number=season_number,
+                            episode_number=episode_number
+                        )
+                        .first()
+                )
+                if not episode:
+                    log.debug((
+                        f'No associated Episode for S{season_number:02}'
+                        f'E{episode_number:02}'
+                    ))
+                    continue
+
+                # Skip if not forcing and has Cards
+                if not force_reload and episode.cards:
+                    log.debug(f'Skipping {episode.index_str} - has Cards')
+                    continue
+
+                # Episode exists, download image
+                tasks.append(
+                    download_image(
+                        session,
+                        str(episode_yaml.url_poster),
+                        episode,
+                        temp_images,
+                        log=log,
+                    )
+                )
+
+        # Wait for all downloads to finish
+        contents: list[tuple[Path, Episode]] = [
+            _return for _return in await async_gather(*tasks)
+            if _return is not None
+        ]
+
+        # Add Episode and files to list, copy to source image if textless
+        for card_file, episode in contents:
+            cards.append((episode, card_file))
+            if textless:
+                episode.card_type = 'textless'
+                log.debug(f'{episode}.card_type = textless')
+                if (source := episode.get_source_file('unique')).exists():
+                    log.debug((
+                        f'{episode} Source Image ({source.name}) exists - '
+                        f'replacing'
+                    ))
+                try:
+                    copyfile(card_file, source)
+                except OSError:
+                    log.exception('Error occurred while copying Card file')
+                    continue
+
+    # Commit any changes to the Episode card types
+    if cards and textless:
+        db.commit()
+
+    # Import content into all specified libraries
+    if library_names == 'all':
+        library_names = [library['name'] for library in series.libraries]
+
+    log.debug(f'Identified {len(cards)} Cards to import')
+    for library_name in library_names:
+        # If the library cannot be found, skip
+        if (not (library := series.get_library(library_name)) or not
+            (iface := get_media_interface(library['interface_id'], raise_exc=False))):
+            log.warning(f'Cannot import to library "{library_name}"')
+            continue
+
+        if cards:
+            import_card_files(
+                db, series, cards, library, force_reload=force_reload, log=log,
+            )
+
+            # Load Cards into library
+            load_series_title_cards(
+                series,
+                library['name'],
+                library['interface_id'],
+                db,
+                iface,
+                episodes=[episode for episode, _ in cards],
+                log=log,
+            )
+
+        # Load series backgrounds/poster, or season posters
+        if background:
+            iface.load_series_background(
+                library_name, series.as_series_info, background, log=log,                         
+            )
+        if poster:
+            iface.load_series_poster(
+                library_name, series.as_series_info, poster, log=log,
+            )
+        if season_posters:
+            iface.load_season_posters(
+                library_name, series.as_series_info, season_posters, # type: ignore
+                log=log,
+            )
+
+    # No libraries specified import Cards without a library
+    if not library_names:
+        import_card_files(
+            db, series, cards, library=None, force_reload=force_reload, log=log,
+        )
+        if season_posters or poster or background:
+            log.warning('Cannot import non-Card images without a library')
+
+    # Delete any downloaded images after they've been uploaded
+    for image in temp_images:
+        image.unlink(missing_ok=True)
+        log.trace(f'Deleted temporary image ({image})')

@@ -1,10 +1,6 @@
-from asyncio import gather as async_gather
-from pathlib import Path
 from shutil import copyfile
 from typing import Literal
 
-from curl_cffi import CurlHttpVersion
-from curl_cffi.requests import AsyncSession
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -20,10 +16,9 @@ from yaml import safe_load
 from yaml.parser import ParserError
 
 from app.core.imports import (
-    download_image,
     import_card_content,
-    import_card_files,
     import_cards,
+    import_mediux_yaml,
     parse_emby,
     parse_fonts,
     parse_jellyfin,
@@ -36,20 +31,12 @@ from app.core.imports import (
     parse_templates,
     parse_tmdb,
 )
-from app.core.series import (
-    download_series_poster,
-    load_series_title_cards,
-    set_series_database_ids,
-)
+from app.core.series import download_series_poster, set_series_database_ids
 from app.core.sources import download_series_logo
-from app.db.query import (
-    get_all_templates,
-    get_media_interface,
-    get_series
-)
+from app.db.query import get_all_templates, get_series
 from app.dependencies import get_database, get_logger
 from app.db.users import get_current_user
-from app.models.episode import Episode
+from app.logging.logger import Logger
 from app.models.font import Font as FontModel
 from app.models.series import Series as SeriesModel
 from app.models.sync import Sync as SyncModel
@@ -65,7 +52,6 @@ from app.schemas.preferences import Preferences
 from app.schemas.series import Series, Template
 from app.schemas.sync import Sync
 from app.settings import settings
-from app.logging.logger import Logger
 
 
 import_router = APIRouter(
@@ -75,7 +61,7 @@ import_router = APIRouter(
 )
 
 
-@import_router.post('/preferences/options')
+@import_router.post('/yaml/preferences/options')
 def import_global_options_yaml(
         import_yaml: ImportYaml = Body(...),
         log: Logger = Depends(get_logger),
@@ -102,7 +88,7 @@ def import_global_options_yaml(
         ) from exc
 
 
-@import_router.post('/preferences/connection/{connection}')
+@import_router.post('/yaml/preferences/connection/{connection}')
 def import_connection_yaml(
         connection: Literal['all', 'emby', 'jellyfin', 'plex', 'sonarr', 'tmdb'],
         import_yaml: ImportYaml = Body(...),
@@ -140,7 +126,7 @@ def import_connection_yaml(
         ) from exc
 
 
-@import_router.post('/preferences/sync')
+@import_router.post('/yaml/preferences/sync')
 def import_sync_yaml(
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
@@ -184,7 +170,7 @@ def import_sync_yaml(
     return all_syncs
 
 
-@import_router.post('/fonts')
+@import_router.post('/yaml/fonts')
 def import_fonts_yaml(
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
@@ -237,7 +223,7 @@ def import_fonts_yaml(
     return all_fonts
 
 
-@import_router.post('/templates')
+@import_router.post('/yaml/templates')
 def import_template_yaml(
         import_yaml: ImportYaml = Body(...),
         db: Session = Depends(get_database),
@@ -275,7 +261,7 @@ def import_template_yaml(
     return all_templates
 
 
-@import_router.post('/series')
+@import_router.post('/yaml/series')
 def import_series_yaml(
         background_tasks: BackgroundTasks,
         import_yaml: ImportYaml = Body(...),
@@ -419,144 +405,18 @@ async def import_mediux_yaml_for_series(
             detail='YAML is invalid',
         ) from exc
 
-    # Get just the YAML after the TVDb ID
-    if not full_yaml.yaml:
-        return None
-    yaml = list(full_yaml.yaml.values())[0]
-
-    # Get this Series, raise 404 if DNE
-    series = get_series(db, series_id, raise_exc=True)
-
-    # Parse all indicated files
-    background, poster = None, None
-    if import_backdrop and yaml.url_background:
-        background = str(yaml.url_background)
-    if import_poster and yaml.url_poster:
-        poster = str(yaml.url_poster)
-    cards: list[tuple[Episode, Path]] = []
-    season_posters: dict[int, str] = {}
-
-    # Parse each season
-    tasks = []
-    temp_images: list[Path] = []
-    async with AsyncSession(
-            max_clients=5, timeout=10, http_version=CurlHttpVersion.V1_1
-        ) as session:
-        for season_number, season_yaml in yaml.seasons.items():
-            # Parse season posters if a library was provided and specified
-            if library_names and import_season_posters:
-                season_posters[season_number] = str(season_yaml.url_poster)
-
-            # Parse all episodes of this season
-            for episode_number, episode_yaml in season_yaml.episodes.items():
-                # Skip download if there is no matching Episode
-                episode = db.query(Episode)\
-                    .filter_by(series_id=series_id,
-                                season_number=season_number,
-                                episode_number=episode_number)\
-                    .first()
-                if not episode:
-                    log.debug(
-                        f'No associated Episode for S{season_number:02}'
-                        f'E{episode_number:02}'
-                    )
-                    continue
-
-                # Skip if not forcing and has Cards
-                if not force_reload and episode.cards:
-                    log.debug(f'Skipping {episode.index_str} - has Cards')
-                    continue
-
-                # Episode exists, download image
-                tasks.append(
-                    download_image(
-                        session,
-                        str(episode_yaml.url_poster),
-                        episode,
-                        temp_images,
-                        log=log,
-                    )
-                )
-
-        # Wait for all downloads to finish
-        contents: list[tuple[Path, Episode]] = [
-            _return for _return in await async_gather(*tasks)
-            if _return is not None
-        ]
-
-        # Add Episode and files to list, copy to source image if textless
-        for card_file, episode in contents:
-            cards.append((episode, card_file))
-            if textless:
-                episode.card_type = 'textless'
-                log.debug(f'{episode}.card_type = textless')
-                if (source := episode.get_source_file('unique')).exists():
-                    log.debug(
-                        f'{episode} Source Image ({source.name}) exists - '
-                        f'replacing'
-                    )
-                try:
-                    copyfile(card_file, source)
-                except OSError:
-                    log.exception('Error occurred while copying Card file')
-                    continue
-
-    # Commit any changes to the Episode card types
-    if cards and textless:
-        db.commit()
-
-    # Import content into all specified libraries
-    log.debug(f'Identified {len(cards)} Cards to import')
-    for library_name in library_names:
-        # If the library cannot be found, skip
-        if (not (library := series.get_library(library_name)) or not
-            (iface := get_media_interface(library['interface_id'], raise_exc=False))):
-            log.warning(f'Cannot import to library "{library_name}"')
-            continue
-
-        if cards:
-            import_card_files(
-                db, series, cards, library, force_reload=force_reload, log=log,
-            )
-
-            # Load Cards into library
-            load_series_title_cards(
-                series,
-                library['name'],
-                library['interface_id'],
-                db,
-                iface,
-                episodes=[episode for episode, _ in cards],
-                log=log,
-            )
-
-        # Load series backgrounds/poster, or season posters
-        if background:
-            iface.load_series_background(
-                library_name, series.as_series_info, background, log=log,                         
-            )
-        if poster:
-            iface.load_series_poster(
-                library_name, series.as_series_info, poster, log=log,
-            )
-        if season_posters:
-            iface.load_season_posters(
-                library_name, series.as_series_info, season_posters, # type: ignore
-                log=log,
-            )
-
-    # No libraries specified import Cards without a library
-    if not library_names:
-        import_card_files(
-            db, series, cards, library=None, force_reload=force_reload, log=log,
-        )
-        if season_posters or poster or background:
-            log.warning('Cannot import non-Card images without a library')
-
-    # Delete any downloaded images after they've been uploaded
-    for image in temp_images:
-        image.unlink(missing_ok=True)
-        log.trace(f'Deleted temporary image ({image})')
+    await import_mediux_yaml(
+        db,
+        full_yaml,
+        get_series(db, series_id, raise_exc=True),
+        library_names=library_names,
+        import_poster=import_poster,
+        import_backdrop=import_backdrop,
+        import_season_posters=import_season_posters,
+        force_reload=force_reload,
+        textless=textless,
+        log=log,
+    )
 
 
 @import_router.post(
@@ -612,3 +472,59 @@ def import_cards_for_multiple_series(
             card_import.force_reload,
             log=log,
         )
+
+
+@import_router.post('/mediux')
+async def import_mediux_yaml_(
+        yaml_str: str = Body(..., alias='yaml'),
+        import_poster: bool = Query(default=False),
+        import_backdrop: bool = Query(default=False),
+        import_season_posters: bool = Query(default=True),
+        force_reload: bool = Query(default=True),
+        textless: bool = Query(default=True),
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+    ) -> None:
+    """
+    Import Cards, posters, and backgrounds from the given Kometa YAML.
+    Note that this will import into all libraries.
+
+    - yaml_str: Raw YAML to import.
+    - import_poster: Whether to parse and import posters.
+    - import_backdrop: Whether to parse and import backdrops.
+    - import_season_posters: Whether to parse and import season posters.
+    - force_reload: Whether to replace any existing Cards.
+    - textless: Whether to change any affected Episode's card type to
+    Textless.
+    """
+
+    # Validate provided string as YAML
+    try:
+        full_yaml = KometaYaml(yaml=safe_load(yaml_str))
+    except (ParserError, ValidationError) as exc:
+        log.exception('Kometa YAML is invalid')
+        raise HTTPException(
+            status_code=422,
+            detail='YAML is invalid',
+        ) from exc
+
+    # Find associated Series, raise 404 if DNE
+    tvdb_id = list(full_yaml.yaml.keys())[0]
+    if (series := db.query(SeriesModel).filter_by(tvdb_id=tvdb_id).first()) is None:
+        raise HTTPException(
+            status_code=404,
+            detail='Associated Series not found',
+        )
+
+    await import_mediux_yaml(
+        db,
+        full_yaml,
+        series,
+        library_names='all',
+        import_poster=import_poster,
+        import_backdrop=import_backdrop,
+        import_season_posters=import_season_posters,
+        force_reload=force_reload,
+        textless=textless,
+        log=log,
+    )
