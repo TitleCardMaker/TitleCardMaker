@@ -985,9 +985,11 @@ def lookup_series(
     # Update added attribute(s)
     for result in results:
         # Query database for this result
-        existing = db.query(Series)\
-            .filter(result.series_info.filter_conditions(Series))\
-            .first()
+        existing = (
+            db.query(Series)
+                .filter(result.series_info.filter_conditions(Series))
+                .first()
+        )
 
         # Result has been added if there is an existing Series
         result.added = existing is not None
