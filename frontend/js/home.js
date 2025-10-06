@@ -1188,3 +1188,65 @@ function unapplyFilter() {
   getAllSeries();
   $('#filter-modal').modal('hide');
 }
+
+/**
+ * Submit an API request to start the card creation process.
+ */
+function startCardCreation() {
+  const $icon = setLoadingIcon($('#actions a[data-action="create-cards"] .icon'));
+  $.ajax({
+    type: 'PUT',
+    url: '/api/v2/scheduler/task/CreateTitleCards',
+    success: () => showInfoToast('Finished Card Creation'),
+    error: response => showErrorToast({title: 'Error starting card creation process', response}),
+    complete: () => removeLoadingIcon($icon),
+  });
+}
+
+/**
+ * Submit an API request to load the Title Cards for all the currently selected Series.
+ */
+function loadTitleCards() {
+  const $icon = setLoadingIcon($('#actions a[data-action="load-cards"] .icon'));
+  $.ajax({
+    type: 'PUT',
+    url: '/api/v2/scheduler/task/LoadMediaServers',
+    success: () => showInfoToast('Finished Loading Title Cards'),
+    error: response => showErrorToast({title: 'Error loading Title Cards', response}),
+    complete: () => removeLoadingIcon($icon),
+  });
+}
+
+/**
+ * Submit an API request to parse, download, and import the cards from the
+ * indicated Kometa YAML.
+ * @param {Event} event 
+ */
+function importMediuxYaml(event) {
+  event.preventDefault();
+
+  // Generate data and query params
+  const data = JSON.stringify($('#import-mediux-modal textarea[name="yaml"]').val() || '');
+  const params = new URLSearchParams([
+    ['force_reload', $('#import-mediux-modal input[name="force_reload"]').is(':checked')],
+    ['import_poster', $('#import-mediux-modal input[name="import_poster"]').is(':checked')],
+    ['import_backdrop', $('#import-mediux-modal input[name="import_backdrop"]').is(':checked')],
+    ['import_season_posters', $('#import-mediux-modal input[name="import_season_posters"]').is(':checked')],
+  ]);
+
+  // Mark button and form as loading
+  $('#import-mediux-modal .button[type="submit"], #import-mediux-form').toggleClass('loading', true);
+
+  // Submit API request
+  $.ajax({
+    type: 'POST',
+    url: `/api/v2/import/mediux?${params.toString()}`,
+    data: data,
+    contentType: 'application/json',
+    success: () => {
+      showInfoToast('YAML Imported');
+    },
+    error: response => showErrorToast({title: 'Error Importing YAML', response}),
+    complete: () => $('#import-mediux-modal .button[type="submit"], #import-mediux-form').toggleClass('loading', false),
+  });
+}

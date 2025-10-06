@@ -173,7 +173,135 @@
     <!-- Actual page content -->
     <div id="main-content" class="article">
       <!-- Toolbar -->
+      <div id="actions" class="ui secondary equal width menu">
+        <a class="item" data-action="create-cards" onclick="startCardCreation();">
+          <i class="image outline icon"></i>
+          Start Card Creation
+        </a>
+
+        <a class="item" data-action="load-cards" onclick="loadTitleCards();">
+          <i class="server icon"></i>
+          Load Title Cards
+        </a>
+
+        <a class="item" data-action="import" onclick="$('#import-mediux-modal').modal({blurring: true}).modal('show');">
+          <i class="code icon"></i>
+          Import YAML
+        </a>
+      </div>
+
+      <div class="ui divider"></div>
+
       <div id="toolbar" class="ui menu">
+        <a class="item" data-action="filter" onclick="$('#filter-modal').modal({blurring: true}).modal('show');">
+          <i class="filter icon"></i>
+          Filter
+        </a>
+        {% if preferences.home_page_table_view %}
+        <a class="item" data-action="select" onclick="toggleAllSelection();">
+          <i class="exchange alternate icon"></i>
+          Toggle Selection
+        </a>
+        <a class="disabled item" data-action="unselect" onclick="clearSelection();">
+          <i class="times icon"></i>
+          Clear Selection
+        </a>
+        <div class="ui dropdown disabled item" data-action="edit">
+          <i class="caret down icon"></i>
+          More
+          <div class="menu">
+            <div class="divider"></div>
+            <a class="item" onclick="batchChangeStatus('monitored');">
+              <i class="ui eye outline green icon"></i>
+              Monitor
+            </a>
+            <a class="item" onclick="batchChangeStatus('unmonitored');">
+              <i class="ui eye slash outline yellow icon"></i>
+              Unmonitor
+            </a>
+            <a class="item" onclick="batchChangeStatus('disabled');">
+              <i class="ui times circle outline red icon"></i>
+              Disable
+            </a>
+            <a class="item" onclick="batchProcess();">
+              <i class="ui images outline blue icon"></i>
+              Create Title Cards
+            </a>
+            <a class="item" onclick="batchLoad(false);">
+              <i class="hdd outline icon"></i>
+              Load Title Cards
+            </a>
+            <a class="item" onclick="batchLoad(true);">
+              <i class="hdd outline orange icon"></i>
+              Force-Reload Title Cards
+            </a>
+            <div class="divider"></div>
+            <a class="item" onclick="batchDeleteEpisodes();">
+              <i class="red play circle outline icon"></i>
+              Delete Episodes
+            </a>
+            <a class="item" onclick="batchDeleteCards();">
+              <i class="red images outline icon"></i>
+              Delete Title Cards
+            </a>
+            <a class="item" onclick="batchDeleteSeries();">
+              <i class="red trash alternate outline icon"></i>
+              Delete Series
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="right menu">
+          <div class="ui dropdown item">
+            <i class="ui sort icon"></i>
+            Sort
+            <div class="menu">
+              <a class="item" onclick="sortSeries('name');">
+                <i class="ui sort alphabet down icon"></i>
+                Name
+              </a>
+              <a class="item" onclick="sortSeries('id');">
+                <i class="ui sort icon"></i>
+                Recently Added
+              </a>
+              <a class="item" onclick="sortSeries('sync');">
+                <i class="sync icon"></i>
+                Sync
+              </a>
+              <a class="item" onclick="sortSeries('cards');">
+                <i class="ui sort amount down icon"></i>
+                Title Cards
+              </a>
+              <a class="item" onclick="sortSeries('year')">
+                <i class="ui sort numeric down icon"></i>
+                Year
+              </a>
+            </div>
+          </div>
+          
+          <a class="item" data-action="enable-counts" onclick="toggleCounts(true);">
+            <i class="green check circle outline icon"></i>
+            Display Counts
+          </a>
+          <a class="item" data-action="disable-counts" onclick="toggleCounts(false);">
+            <i class="red times circle outline icon"></i>
+            Hide Counts
+          </a>
+          {% if preferences.home_page_table_view %}
+            <a class="item" data-action="change-display" onclick="toggleGlobalDisplayStyle('poster');">
+              <i class="file image outline icon"></i>
+              Poster View
+            </a>
+          {% else %}
+            <a class="item" data-action="change-display" onclick="toggleGlobalDisplayStyle('table');">
+              <i class="table icon"></i>
+              Table View
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      <!-- <div id="toolbar" class="ui menu">
         <a class="item" data-action="filter" onclick="$('#filter-modal').modal({blurring: true}).modal('show');">
           <i class="filter icon"></i>
           Filter
@@ -204,10 +332,6 @@
             </a>
           </div>
         </div>
-        <!-- <a class="item" onclick="$('#filter-modal').modal('show');">
-          <i class="ui solid filter icon"></i>
-          Filter
-        </a> -->
         {% if preferences.home_page_table_view %}
         <a class="item" data-action="select" onclick="toggleAllSelection();">
           <i class="exchange alternate icon"></i>
@@ -283,8 +407,7 @@
             </a>
           {% endif %}
         </div>
-      </div>
-
+      </div> -->
       
       <!-- Loader -->
       <div class="ui active centered inline blue elastic loader" id="loader"></div>
@@ -311,6 +434,7 @@
       <div id="pagination" class="ui centered pagination menu"><!-- Pagination added later --></div>
       
       <!-- Statistics -->
+      <div class="ui divider"></div>
       <div class="ui equal width stackable grid">
         <div class="column">
           <div class="ui mini horizontal statistics">
@@ -418,6 +542,46 @@
           <i class="check icon"></i>
           Save & Apply Filter
         </button>
+      </div>
+    </div>
+
+    <div id="import-mediux-modal" class="ui modal"> <!-- uninvertible -->
+      <i class="close icon"></i>
+      <div class="header">Import from MediUX</div>
+      <div class="content">
+        <form id="import-mediux-form" class="ui form">
+          <div class="fields">
+            <div class="ui left aligned checkbox field">
+              <label>Replace existing Cards</label>
+              <input name="force_reload" type="checkbox" checked="">
+            </div>
+
+            <div class="ui left aligned checkbox field">
+              <label>Import the Series Poster</label>
+              <input name="import_poster" type="checkbox" checked="">
+            </div>
+
+            <div class="ui left aligned checkbox field">
+              <label>Import Backdrops</label>
+              <input name="import_backdrop" type="checkbox" checked="">
+            </div>
+
+            <div class="ui left aligned checkbox field">
+              <label>Import Season Posters</label>
+              <input name="import_season_posters" type="checkbox" checked="">
+            </div>
+          </div>
+
+          <div class="ui field">
+            <label>Kometa YAML</label>
+            <div class="ui code text input">
+              <textarea name="yaml" minlength="1" wrap="soft" spellcheck="false" style="font-family: monospace;"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="actions">
+        <button class="ui primary button" type="submit" form="import-mediux-form" onclick="importMediuxYaml(event);">Import</button>
       </div>
     </div>
   </div>
