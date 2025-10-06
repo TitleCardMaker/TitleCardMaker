@@ -9,12 +9,13 @@ function refreshTheme() {
   $('#main-content .ui:not(.uninvertible)').toggleClass('inverted', inverted);
   $('.modal:not(.basic):not(.uninvertible), .modal:not(.basic):not(.uninvertible) >* .ui:not(.uninvertible), .accordion:not(.uninvertible), .accordion:not(.uninvertible) >* .ui:not(.uninvertible)').toggleClass('inverted', inverted);
   if (inverted) {
-    // $('body')[0].style.setProperty('background-image', 'linear-gradient(to bottom right, var(--background-color-dark), #313131)');
     $('body')[0].style.setProperty('background-image', 'linear-gradient(to bottom right, rgb(29,29,29), rgb(40,40,40))');
     document.querySelector('body').classList.add('dark');
+    document.querySelector('#theme-toggle i').className = 'moon outline icon';
   } else {
     $('body')[0].style.setProperty('background-image', 'linear-gradient(to bottom right, var(--background-color-light), #d9d9d9)');
     document.querySelector('body').classList.remove('dark');
+    document.querySelector('#theme-toggle i').className = 'sun outline icon';
   }
 }
 
@@ -25,16 +26,14 @@ function refreshTheme() {
  */
 function toggleTheme() {
   const currentTheme = window.localStorage.getItem('site-theme') || 'dark';
-  const currentIcons = $('#theme-toggle i');
+  const themeIcon = document.querySelector('#theme-toggle i');
   // Light -> Dark
   if (currentTheme === 'light') {
-    currentIcons[0].className = 'moon outline icon';
-    currentIcons[1].className = 'sun outline icon';
+    themeIcon.className = 'moon outline icon';
     window.localStorage.setItem('site-theme', 'dark');
   // Dark -> light
   } else {
-    currentIcons[1].className = 'moon outline icon';
-    currentIcons[0].className = 'sun outline icon';
+    themeIcon.className = 'sun outline icon';
     window.localStorage.setItem('site-theme', 'light');
   }
   refreshTheme();
