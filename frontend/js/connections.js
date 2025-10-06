@@ -411,7 +411,7 @@ function _deleteConnectionRequest(connectionId, deleteCards=false) {
       showInfoToast('Deleted Connection');
       if (deleteCards) { showInfoToast('Deleted Title Cards'); }
       showInfoToast('Reloading page..');
-      setTimeout(window.reload, 2500);
+      setTimeout(window.location.reload, 2500);
     },
     error: response => showErrorToast({title: 'Error Deleting Connection', response}),
   });
