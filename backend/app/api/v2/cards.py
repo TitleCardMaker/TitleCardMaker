@@ -463,7 +463,7 @@ def load_series_title_cards_(
         if interface.INTERFACE_TYPE not in ('Emby', 'Jellyfin', 'Plex'):
             raise HTTPException(
                 status_code=400,
-                detail='Cannot load Cards into a non-media-server Connection'
+                detail='Can only load Cards into Emby, Jellyfin, or Plex'
             )
 
         load_series_title_cards(

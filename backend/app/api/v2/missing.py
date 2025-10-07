@@ -81,10 +81,15 @@ def get_cards_without_loaded(
                     CardModel.library_name,
                 ),
             )
+            .filter(LoadedModel.id.is_(None))
             .outerjoin(CardModel.loaded)
             .outerjoin(CardModel.episode)
-            .filter(LoadedModel.id.is_(None))
-            .order_by(CardModel.card_file)
+            .outerjoin(CardModel.series)
+            .order_by(
+                CardModel.series_id,
+                CardModel.episode_id,
+                CardModel.card_file
+            )
     )
 
 

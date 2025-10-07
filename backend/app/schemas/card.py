@@ -195,8 +195,10 @@ class TitleCardExtended(Base):
 class ReturnUnloadedCardSchema(Base):
     id: int
     series_id: int
+    series: _SeriesData
     episode_id: int
     episode: EpisodeData
-    card_file: str
-    filesize: int
-    library_name: str | None = None
+    file_url: str
+    # card_file: str
+    # filesize: int
+    # library_name: str | None = None

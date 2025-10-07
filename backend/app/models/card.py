@@ -6,8 +6,8 @@ from sqlalchemy import ForeignKey, JSON, func
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.settings import settings
 from app.db.database import Base
+from app.settings import settings
 
 if TYPE_CHECKING:
     from app.models.connection import Connection
