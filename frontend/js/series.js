@@ -2432,8 +2432,7 @@ function loadCardsForSeason(interfaceId, libraryName, seasonNumber, reload, call
  * @param {number} cardId ID of the Card to load.
  */
 function loadCard(cardId) {
-  const $icon = $(`#card${cardId}-popup .header .icon`);
-  setLoadingIcon($icon);
+  const $icon = setLoadingIcon($(`#card${cardId}-popup .header .icon`));
 
   $.ajax({
     type: 'PUT',
@@ -2454,6 +2453,8 @@ function loadCard(cardId) {
       removeLoadingIcon($icon);
       showErrorToast({title: 'Error Loading Title Card', response});
     },
+    // Cannot do since the icon is modified in the success callback
+    // complete: () => removeLoadingIcon($icon),
   });
 }
 
