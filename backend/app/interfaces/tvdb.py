@@ -12,7 +12,6 @@ from app.interfaces.base import (
     SearchResult,
     WatchedStatus,
 )
-from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
@@ -804,7 +803,8 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
                 f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/extended'
             )
             if (not isinstance(extended_data, dict)
-                or 'data' not in extended_data):
+                or 'data' not in extended_data
+                or not isinstance(extended_data['data'], dict)):
                 log.debug(f'{series_info} {episode_info} returned no TVDb data')
                 continue
             ids: list[_RemoteID] = extended_data['data'].get('remoteIds', [])
