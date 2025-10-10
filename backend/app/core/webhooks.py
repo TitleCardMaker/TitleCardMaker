@@ -76,9 +76,11 @@ def process_rating_key(
                 f'No Episode found for ({episode_info!r}) - refreshing Episode '
                 f'data'
             ))
-            series = db.query(Series)\
-                .filter(series_info.filter_conditions(Series))\
-                .first()
+            series = (
+                db.query(Series)
+                    .filter(series_info.filter_conditions(Series))
+                    .first()
+            )
             if series is None:
                 log.debug(f'Cannot find Series for {series_info}')
                 continue
@@ -89,8 +91,8 @@ def process_rating_key(
             episodes = [
                 episode
                 for episode in
-                db.query(Episode)\
-                    .filter(episode_info.filter_conditions(Episode))\
+                db.query(Episode)
+                    .filter(episode_info.filter_conditions(Episode))
                     .all()
                 if episode.series.as_series_info == series_info
             ]
