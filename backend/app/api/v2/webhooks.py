@@ -17,16 +17,6 @@ from fastapi.responses import StreamingResponse
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session
 
-from app.db.query import get_episode, get_media_interface
-from app.dependencies import (
-    get_database,
-    get_logger,
-    get_sonarr_interfaces,
-    require_plex_interface,
-    InterfaceGroup,
-    SonarrInterface,
-    PlexInterface
-) 
 from app.core.cards import create_episode_cards, delete_cards
 from app.core.episodes import refresh_episode_data
 from app.core.series import (
@@ -38,6 +28,16 @@ from app.core.sources import download_episode_source_images
 from app.core.sync import get_sonarr_libraries
 from app.core.translate import translate_episode
 from app.core.webhooks import process_rating_key
+from app.db.query import get_episode, get_media_interface
+from app.dependencies import (
+    get_database,
+    get_logger,
+    get_sonarr_interfaces,
+    require_plex_interface,
+    InterfaceGroup,
+    SonarrInterface,
+    PlexInterface
+)
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
 from app.interfaces.base import WatchedStatus
@@ -120,7 +120,7 @@ async def process_plex_webhook(
             dict[str, bytes],
             await wait_for(request.form(), timeout=timeout)
         )
-        webhook = PlexWebhook.parse_raw(form.get('payload', b''))
+        webhook = PlexWebhook.model_validate(form.get('payload', b''))
     except ValidationError as exc:
         raise HTTPException(
             status_code=422,
