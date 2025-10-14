@@ -5,7 +5,6 @@ from urllib.parse import quote as url_quote, urlencode
 from fastapi import HTTPException
 from pydantic import BaseModel, ValidationError
 
-from app.core.config import config
 from app.interfaces.base import (
     EpisodeDataSource,
     Interface,
@@ -15,6 +14,20 @@ from app.interfaces.base import (
 from app.interfaces.web import WebInterface
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
+from app.interfaces.schemas.tvdb import (
+    ArtworkExtendedRecord,
+    Authentication,
+    EpisodeBaseRecord,
+    EpisodeExtendedResponse,
+    EpisodeTranslationResponse,
+    RemoteID,
+    RemoteIDSearchResult,
+    SearchResultResponse,
+    SeriesArtworkResponse,
+    SeriesEpisodeResponse,
+    SeriesExtendedRecord,
+)
+from app.interfaces.testing import testing_override
 from app.logging.logger import Logger, log
 
 
@@ -65,22 +78,6 @@ class TVDbSearchResult(TypedDict):
     network: str
     remote_ids: list[_RemoteID]
     thumbnail: str
-
-class TVDbArtwork(TypedDict):
-    id: int
-    image: str
-    thumbnail: str
-    language: str
-    type: int # 1: Banner, 2: Poster, 5: Square Icon, 23: Clear Logo
-    score: int
-    width: int
-    height: int
-    includesText: bool
-    thumbnailWidth: int
-    thumbnailHeight: int
-    updatedAt: int
-    status: dict
-    tagOptions: None
 
 # class TVDbSeriesArtwork(TypedDict):
 #     id: int
@@ -318,8 +315,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         # Authenticate with TVDb, generate session token
         self.__api_key = api_key
         self.__token_expiration: datetime | None = None
-        if not config.TESTING_MODE:
-            self.__initialize_token(log=log) # This will initialize the interface
+        self.__initialize_token(log=log) # This will initialize the interface
 
 
     def __generate_login_token(self, api_key: str, *, log: Logger = log) -> str:
@@ -341,7 +337,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         """
 
         # Submit login request
-        resp = self.session.post(
+        response = self.session.post(
             url=f'{self.__ROOT_API_URL}/login',
             json={'apikey': api_key},
             headers={
@@ -350,20 +346,25 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             },
             timeout=30,
         )
-        json: dict = resp.json()
 
-        if resp.status_code == 401:
-            raise ValueError('API key is invalid')
-
-        if (resp.status_code > 400
-            or json.get('status') != 'success'
-            or not json.get('data', {}).get('token')):
-            log.debug(f'Authentication failed [{resp.status_code}] - {json}')
+        try:
+            auth = Authentication.model_validate_json(response.json())
+        except ValidationError:
+            log.debug(
+                f'API login failed [{response.status_code}] - {response.text}'
+            )
             raise ValueError('Unable to generate TVDb API token')
 
-        return json['data']['token']
+        if auth.status == 'failure' or auth.data is None or not auth.data.token:
+            log.debug((
+                f'Authentication failed [{response.status_code}] - '
+                f'{auth.message or response.text}'
+            ))
+            raise ValueError('API key is invalid')
 
+        return auth.data.token
 
+    @testing_override(lambda log: None)
     def __initialize_token(self, *, log: Logger = log) -> None:
         """
         Initialize the session token for communicating with TVDb. This
@@ -404,6 +405,57 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         }
 
 
+    def __find_by_remote_id(self,
+            info: SeriesInfo | EpisodeInfo,
+            /,
+        ) -> int | None:
+        """
+        Find the TVDb ID of the given Series or Episode by searching
+        for any associated IMDb or TMDb ID.
+
+        Args:
+            info: Series or Episode to search for.
+
+        Returns:
+            TVDb ID of the given Series or Episode. None if it cannot be
+            found.
+        """
+
+        # Can only search by IMDb or TMDb ID
+        ids: list[str] = []
+        if info.imdb_id:
+            ids.append(str(info.imdb_id))
+        if info.tmdb_id:
+            ids.append(str(info.tmdb_id))
+
+        for id_ in ids:
+            # Query API for each ID, and then validate the response
+            try:
+                response = RemoteIDSearchResult.model_validate_json(
+                    self.get(f'{self.__ROOT_API_URL}/search/remoteid/{id_}')
+                )
+            # Validation error, skip
+            except ValidationError:
+                continue
+
+            # No data, skip
+            if not response.data:
+                continue
+
+            # If provided a Series, return first series
+            if isinstance(info, SeriesInfo):
+                for result in response.data:
+                    if result.series:
+                        return result.series.id
+            # If provided an Episode, return first episode
+            elif isinstance(info, EpisodeInfo):
+                for result in response.data:
+                    if result.episode:
+                        return result.episode.id
+
+        return None
+
+
     def __get_series_id(self, series_info: SeriesInfo) -> int | None:
         """
         Get the TVDb ID of the given series. This looks up by database
@@ -420,33 +472,9 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         if series_info.tvdb_id:
             return series_info.tvdb_id
 
-        def _find(results: list[dict] | Any) -> int | None:
-            """
-            Search through the given results and return the TVDb ID of
-            the first series.
-            """
-
-            if not isinstance(results, list):
-                return None
-
-            for result in results:
-                if not isinstance(result, dict):
-                    continue
-                # Ignore movies
-                if (id_ := result.get('series', {}).get('id')):
-                    return id_
-
-            return None
-
-        # Search by IMDb or TMDb ID if present
-        if series_info.has_id('imdb_id'):
-            url = f'{self.__ROOT_API_URL}/search/remoteid/{series_info.imdb_id}'
-            if (id_ := _find(self.get(url))):
-                return id_
-        if series_info.has_id('tmdb_id'):
-            url = f'{self.__ROOT_API_URL}/search/remoteid/{series_info.tmdb_id}'
-            if (id_ := _find(self.get(url))):
-                return id_
+        # Attempt to match by remote ID
+        if (id_ := self.__find_by_remote_id(series_info)):
+            return id_
 
         # Search by name and year
         params = urlencode({
@@ -454,11 +482,17 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             'year': series_info.year,
             'type': 'series'
         })
-        results: dict[str, list] = self.get(
-            f'{self.__ROOT_API_URL}/search?{params}'
-        )
-        if results.get('data'):
-            return int(results.get('data')[0]['tvdb_id'])
+
+        try:
+            response = SearchResultResponse.model_validate_json(
+                self.get(f'{self.__ROOT_API_URL}/search?{params}')
+            )
+        except ValidationError:
+            log.exception(f'Failed to query series {series_info} on TVDb')
+            return None
+
+        if response.data and response.data[0].tvdb_id:
+            return response.data[0].tvdb_id
 
         return None
 
@@ -485,15 +519,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         if episode_info.tvdb_id:
             return episode_info.tvdb_id
 
-        # Search by IMDb ID if present
-        if episode_info.has_id('imdb_id'):
-            url =f'{self.__ROOT_API_URL}/search/remoteid/{episode_info.imdb_id}'
-            if isinstance((resp := self.get(url)), dict) and resp.get('data'):
-                for result in resp.get('data', []):
-                    if (id_ := result.get('series', {}).get('id')):
-                        return int(id_)
-        # Cannot search episodes by TMDb ID for some reason; raises error
-        # Cannot search by episode title; not supported via /search endpoint
+        # Attempt to match by remote ID
+        if (id_ := self.__find_by_remote_id(episode_info)):
+            return id_
+
+        # Cannot search by episode title; not supported via /search
+        # endpoint
 
         # If series has no TVDb ID, cannot identify episode
         if not (tvdb_id := self.__get_series_id(series_info)):
@@ -504,24 +535,27 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             'season': episode_info.season_number,
             'episodeNumber': episode_info.episode_number,
         })
-        url = (
-            f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes/'
-            f'{self._order_type}?{params}'
-        )
 
-        # Submit API request
+        # Make request
         try:
-            if not (results := self.get(url).get('data', {}).get('episodes')):
-                log.debug(f'No associated episode {episode_info} on TVDb')
-                return None
-        except Exception:
+            response = SeriesEpisodeResponse.model_validate_json(
+                self.get((
+                    f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes/'
+                    f'{self._order_type}?{params}'
+                ))
+            )
+        except (ValidationError, Exception):
             log.exception(f'Failed to query episode {episode_info} on TVDb')
             return None
 
-        return int(results[0]['id'])
+        if not response.data.episodes:
+            log.debug(f'No associated episode {episode_info} on TVDb')
+            return None
+
+        return response.data.episodes[0].id
 
 
-    def __get_all_episodes(self, tvdb_id: int) -> list[TVDbEpisode]:
+    def __get_all_episodes(self, tvdb_id: int) -> list[EpisodeBaseRecord]:
         """
         Get all the episodes (across all pages) for the series with the
         given TVDb ID.
@@ -534,15 +568,16 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             List of all Episodes for the given series.
         """
 
-        def _query_page(page: int, /) -> list[TVDbEpisode]:
+        def _query_page(page: int, /) -> list[EpisodeBaseRecord]:
             """Query the episodes on the given page number"""
 
-            url = (
-                f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes'
-                f'/{self._order_type}?page={page}'
-            )
             try:
-                return self.get(url).get('data', {}).get('episodes', [])
+                return SeriesEpisodeResponse.model_validate_json(
+                    self.get((
+                        f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes'
+                        f'/{self._order_type}?page={page}'
+                    ))
+                ).data.episodes or []
             except Exception:
                 log.exception(
                     f'Failed to query episodes for {tvdb_id} on page {page}'
@@ -567,7 +602,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             tvdb_id: int,
             language: str,
             art_type: ArtType,
-        ) -> list[TVDbArtwork]:
+        ) -> list[ArtworkExtendedRecord]:
         """
         Get all the artwork of the given type for the series with the
         given TVDb ID.
@@ -583,6 +618,17 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         """
 
         url = f'{self.__ROOT_API_URL}/series/{tvdb_id}/artworks?lang={language}'
+
+        try:
+            return [
+                art
+                for art in SeriesArtworkResponse.model_validate_json(
+                    self.get(url)
+                ).data.artworks
+                if art.type == self.ARTWORK_TYPES[art_type]
+            ]
+        except ValidationError:
+            return []
 
         return [
             art
@@ -607,7 +653,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             None if there is no artwork.
         """
 
-        artwork: list[TVDbArtwork] = []
+        artwork: list[ArtworkExtendedRecord] = []
         for language in self.language_priority:
             artwork += self.__get_series_artwork(tvdb_id, language, art_type)
 
@@ -618,12 +664,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         # Find best (valid) poster by pixel count, starting with the first one
         best = artwork[0]
         for art in artwork:
-            if (art['width'] >= self.minimum_source_width
-                and art['height'] >= self.minimum_source_height
-                and art['width']*art['height'] > best['width']*best['height']):
+            if (art.width >= self.minimum_source_width
+                and art.height >= self.minimum_source_height
+                and art.width * art.height > best.width * best.height):
                 best = art
 
-        return best['image']
+        return best.image
 
 
     def set_series_ids(self,
@@ -651,17 +697,21 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
         series_info.set_tvdb_id(tvdb_id)
 
-        # Use short mode so that characters and artwork are not returned
-        remote_ids: list[_RemoteID] = self.get(
-            f'{self.__ROOT_API_URL}/series/{tvdb_id}/extended?short=true'
-        ).get('data', {}).get('remoteIds', [])
+        try:
+            response = SeriesExtendedRecord.model_validate_json(
+                self.get(
+                    f'{self.__ROOT_API_URL}/series/{tvdb_id}/extended?short=true'
+                )
+            )
+        except ValidationError:
+            return None
 
-        # Update any returned IDs
-        for id_ in remote_ids:
-            if id_['sourceName'] == 'IMDB':
-                series_info.set_imdb_id(id_['id'])
-            elif id_['sourceName'] == 'TheMovieDB.com':
-                series_info.set_tmdb_id(id_['id'])
+        if response.remoteIds:
+            for id_ in response.remoteIds:
+                if id_.sourceName == 'IMDB':
+                    series_info.set_imdb_id(id_.id)
+                elif id_.sourceName == 'TheMovieDB.com':
+                    series_info.set_tmdb_id(id_.id)
 
         return None
 
@@ -682,28 +732,33 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             List of SearchResults for the given query.
         """
 
-        results: list[TVDbSearchResult] = self.get(
-            f'{self.__ROOT_API_URL}/search?query={url_quote(query)}'
-        ).get('data', [])
+        try:
+            results = SearchResultResponse.model_validate_json(
+                self.get(
+                    f'{self.__ROOT_API_URL}/search?query={url_quote(query)}'
+                )
+            ).data
+        except ValidationError:
+            return []
 
-        def _get_id(ids: list[_RemoteID], source_name: str) -> str | None:
+        def _get_id(ids: list[RemoteID], source_name: str) -> str | None:
             for id_ in ids:
-                if id_['sourceName'] == source_name:
-                    return id_['id']
+                if id_.sourceName == source_name:
+                    return id_.id
             return None
 
         return [
             SearchResult(
-                name=result['translations'].get('eng', result['name']),
-                year=result['year'],
-                poster=result['image_url'],
-                overview=result.get('overview', 'No Overview'),
-                ongoing=result.get('status') == 'Continuing',
-                imdb_id=_get_id(result.get('remote_ids', []), 'IMDB'),
-                tvdb_id=result['tvdb_id'],
+                name=result.translations.get('eng', result.name),
+                year=result.year,
+                poster=result.image_url,
+                overview=result.overview or 'No Overview',
+                ongoing=(result.status or '') == 'Continuing',
+                imdb_id=_get_id(result.remote_ids, 'IMDB'),
+                tvdb_id=result.tvdb_id,
             )
             for result in results
-            if 'year' in result
+            if result.year
         ]
 
 
@@ -732,38 +787,26 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             log.error(f'Cannot source episodes from TVDb for {series_info}')
             return []
 
-        def _get_airdate(episode: TVDbEpisode) -> datetime | None:
-            """
-            Get the airdate from the given episode data (if available).
-            """
-
-            if (aired := episode.get('aired')):
-                try:
-                    return datetime.strptime(aired, self.EPISODE_AIRDATE_FORMAT)
-                except ValueError:
-                    pass
-            return None
-
         return [
             (
                 EpisodeInfo(
-                    title=episode['name'],
-                    season_number=episode['seasonNumber'],
-                    episode_number=episode['number'],
+                    title=episode.name,
+                    season_number=episode.seasonNumber,
+                    episode_number=episode.number,
                     absolute_number=(
-                        episode['number']
+                        episode.number
                         if self._order_type == 'absolute'
                         else None
                     ),
-                    tvdb_id=episode['id'],
-                    airdate=_get_airdate(episode),
+                    tvdb_id=episode.id,
+                    airdate=episode.aired or None,
                 ),
                 WatchedStatus(self._interface_id)
             )
             for episode in self.__get_all_episodes(tvdb_id)
             if (
-                (self._include_movies or not episode['isMovie'])
-                and episode['name']
+                (self._include_movies or not episode.isMovie)
+                and episode.name
             )
         ]
 
@@ -799,22 +842,23 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             episode_info.set_tvdb_id(tvdb_id)
 
             # Query extended info for this episode
-            extended_data = self.get(
-                f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/extended'
-            )
-            if (not isinstance(extended_data, dict)
-                or 'data' not in extended_data
-                or not isinstance(extended_data['data'], dict)):
+            try:
+                response = EpisodeExtendedResponse.model_validate_json(
+                    self.get(
+                        f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/extended'
+                    )
+                )
+            except ValidationError:
                 log.debug(f'{series_info} {episode_info} returned no TVDb data')
                 continue
-            ids: list[_RemoteID] = extended_data['data'].get('remoteIds', [])
 
             # Update all ID data for this episode
-            for id_ in ids:
-                if id_['sourceName'] == 'IMDB':
-                    episode_info.set_imdb_id(id_['id'])
-                elif id_['sourceName'] == 'TheMovieDB.com':
-                    episode_info.set_tmdb_id(id_['id'])
+            if response.data.remoteIds:
+                for id_ in response.data.remoteIds:
+                    if id_.sourceName == 'IMDB':
+                        episode_info.set_imdb_id(id_.id)
+                    elif id_.sourceName == 'TheMovieDB.com':
+                        episode_info.set_tmdb_id(id_.id)
 
         return None
 
@@ -841,7 +885,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
         return [
-            art['image']
+            art.image
             for language in self.language_priority
             for art in self.__get_series_artwork(tvdb_id, language, 'logo')
         ]
@@ -851,7 +895,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             *,
             log: Logger = log,
-        ) -> list | None:
+        ) -> list[str] | None:
         """
         Get all backdrops for the requested series.
 
@@ -869,9 +913,11 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
         return [
-            art['image']
+            art.image
             for language in self.language_priority
-            for art in self.__get_series_artwork(tvdb_id, language, 'background')
+            for art in self.__get_series_artwork(
+                tvdb_id, language, 'background'
+            )
         ]
 
 
@@ -904,12 +950,15 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
         # Get associated image for this Episode
-        url = f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/extended'
-        if (not isinstance(episode_data := self.get(url), dict)
-            or not isinstance(image_data := episode_data.get('data', {}), dict)):
+        try:
+            response = EpisodeExtendedResponse.model_validate_json(
+                self.get(f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/extended')
+            )
+        except ValidationError:
             log.warning(f'Cannot find {series_info} {episode_info} on TVDb')
             return None
-        if not (image_url := image_data.get('image')):
+
+        if not (image_url := response.data.image):
             log.debug(f'TVDb has no images for "{series_info}" {episode_info}')
             return None
 
@@ -920,22 +969,22 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         # Skip dimension check if requirements are >640p since TVDb
         # never has images of that quality
         if self.minimum_source_width > 640 or self.minimum_source_height > 360:
-            log.debug(
+            log.debug((
                 f'TVDb images for "{series_info}" {episode_info} do not meet '
                 f'dimensional requirements'
-            )
+            ))
             return None
 
         # Verify image meets dimensional requirements
         width, height = self.get_image_size(image_url, log=log)
         if (width >= self.minimum_source_width
-            and height > self.minimum_source_height):
+            and height >= self.minimum_source_height):
             return image_url
 
-        log.debug(
+        log.debug((
             f'TMDb images for "{series_info}" {episode_info} do not meet '
             f'dimensional requirements'
-        )
+        ))
         return None
 
 
@@ -965,12 +1014,15 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             log.warning(f'Cannot find {series_info} {episode_info} on TVDb')
             return None
 
-        url = (
-            f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/translations/'
-            f'{language_code}'
-        )
-
-        return self.get(url).get('data', {}).get('name')
+        try:
+            return EpisodeTranslationResponse.model_validate_json(
+                self.get((
+                    f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/translations/'
+                    f'{language_code}'
+                ))
+            ).data.name
+        except ValidationError:
+            return None
 
 
     def get_series_logo(self, series_info: SeriesInfo) -> str | None:
