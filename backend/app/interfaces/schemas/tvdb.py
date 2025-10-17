@@ -1,11 +1,17 @@
 from datetime import date, datetime
-from tkinter import NO
 from typing import Annotated, Literal
+
 from pydantic import BaseModel, Field, PositiveInt
 
 
 type ArtType = Literal[
-    'banner', 'poster', 'background', 'icon', 'season', 'clearart', 'logo'
+    'banner',
+    'poster',
+    'background',
+    'icon',
+    'season',
+    'clearart',
+    'logo',
 ]
 type SourceName = Literal[
     'EIDR',
