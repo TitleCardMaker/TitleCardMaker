@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
-from typing import Any, Literal, TypedDict
+from typing import Annotated, Any, ClassVar, Literal
 from urllib.parse import quote as url_quote, urlencode
 
 from fastapi import HTTPException
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from app.interfaces.base import (
     EpisodeDataSource,
@@ -15,6 +15,7 @@ from app.interfaces.web import WebInterface
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
 from app.interfaces.schemas.tvdb import (
+    ArtType,
     ArtworkExtendedRecord,
     Authentication,
     EpisodeBaseRecord,
@@ -23,6 +24,7 @@ from app.interfaces.schemas.tvdb import (
     RemoteID,
     RemoteIDSearchResult,
     SearchResultResponse,
+    SeasonTranslationResponse,
     SeriesArtworkResponse,
     SeriesEpisodeResponse,
     SeriesExtendedRecord,
@@ -31,9 +33,7 @@ from app.interfaces.testing import testing_override
 from app.logging.logger import Logger, log
 
 
-ArtType = Literal[
-    'banner', 'poster', 'background', 'icon', 'season', 'clearart', 'logo'
-]
+
 LanguageCode = Literal[
     'ara', 'ces', 'dan', 'deu', 'ell', 'eng', 'fra', 'ita', 'kor', 'nld', 'pol',
     'por', 'pt', 'rus', 'spa', 'swe', 'tur', 'zho', 'zhtw',
@@ -41,198 +41,6 @@ LanguageCode = Literal[
 OrderType = Literal[ # Called season-type in TVDb API docs
     'absolute', 'alternate', 'default', 'dvd', 'official', 'regional'
 ]
-SourceName = Literal[
-    'EIDR',
-    'Facebook',
-    'IMDB',
-    'Instagram',
-    'Official Website',
-    'TheMovieDB.com',
-    'Twitter',
-    'X (Twitter)'
-]
-
-class _RemoteID(BaseModel):
-    id: str
-    type: int
-    sourceName: SourceName | str
-
-class TVDbSearchResult(TypedDict):
-    objectID: str
-    aliases: list[str]
-    country: str
-    id: str
-    image_url: str
-    name: str
-    first_air_time: str
-    overview: str
-    primary_language: str
-    primary_type: Literal['movie', 'series']
-    status: Literal['Continuing', 'Ended', 'Released', 'Upcoming']
-    type: Literal['series']
-    tvdb_id: str
-    year: int
-    slug: str
-    overviews: dict[str, str]
-    translations: dict[str, str]
-    network: str
-    remote_ids: list[_RemoteID]
-    thumbnail: str
-
-# class TVDbSeriesArtwork(TypedDict):
-#     id: int
-#     name: str
-#     slug: str
-#     image: str
-#     nameTranslations: list[str]
-#     overviewTranslations: list[str]
-#     aliases: list[dict[str, str]]
-#     firstAired: str # yyyy-mm-dd
-#     lastAired: str # yyyy-mm-dd
-#     nextAired: str # yyyy-mm-dd
-#     score: int
-#     status: dict
-#     originalCountry: str
-#     originalLanguage: str
-#     isOrderRandomized: bool
-#     lastUpdated: str # yyyy-mm-dd hh:mm:ss
-#     averageRuntime: int
-#     episodes: None
-#     overview: str
-#     year: str
-#     artworks: list[TVDbArtwork]
-
-class TVDbEpisode(TypedDict):
-    id: int
-    seriesId: int
-    name: str
-    aired: str
-    runtime: int
-    nameTranslations: list[str]
-    overview: str
-    overviewTranslations: list[str]
-    image: str
-    imageType: int
-    isMovie: Literal[0, 1]
-    number: int
-    seasonNumber: int
-    lastUpdated: str
-    finaleType: Literal['series'] | None
-    year: str
-
-class TVDbEpisodes(TypedDict):
-    series: Any # TVDbSeries
-    episodes: list[TVDbEpisode]
-
-# class _Alias(BaseModel):
-#     language: str
-#     name: str
-
-# class _SeriesStatus(BaseModel):
-#     id: int
-#     name: Literal['Continuing']
-#     recordType: Literal['series']
-#     keepUpdated: bool
-
-# class _Airdays(BaseModel):
-#     sunday: bool
-#     monday: bool
-#     tuesday: bool
-#     wednesday: bool
-#     thursday: bool
-#     friday: bool
-#     saturday: bool
-
-# class _Company(BaseModel):
-#     activeDate: datetime
-#     aliases: list[_Alias]
-#     country: str
-#     id: int
-#     inactiveDate: datetime
-#     name: str
-#     nameTranslations: list[str]
-#     overviewTranslations: list[str]
-#     primaryCompanyType: int
-#     slug: str
-#     parentCompany: _ParentCompany
-#     tagOptions: _TagOption
-
-# class _Companies(BaseModel):
-#     studio: _Company | None
-#     network: _Company | None
-#     production: _Company | None
-#     distributor: _Company | None
-#     special_effects: _Company | None
-
-# class _Genre(BaseModel):
-#     id: int
-#     name: str
-#     slug: str
-
-class _SeasonType(BaseModel):
-    id: int
-    name: Literal['Absolute Order', 'Aired Order', 'DVD Order'] | str
-    type: OrderType
-    alternateName: str | None
-
-class _SeasonBaseRecord(BaseModel):
-    id: int
-    # seriesId: int
-    type: '_SeasonType'
-    number: int
-    nameTranslations: list[str]
-    # overviewTranslations: list[str]
-    # companies: _Companies
-    # image: str
-    # imageType: Literal[7]
-    # lastUpdated: datetime
-
-class _SeriesExtendedRecord(BaseModel):
-    # id: int
-    # name: str
-    # slug: str
-    # image: AnyUrl
-    # nameTranslations: list[str]
-    # overviewTranslations: list[str]
-    # aliases: list[_SeriesAlias]
-    # firstAired: datetime
-    # lastAired: datetime
-    # nextAired: datetime
-    # score: int
-    # status: _SeriesStatus
-    # originalCountry: str
-    # originalLanguage: str
-    defaultSeasonType: Literal[1, 2, 3]
-    # isOrderRandomized: bool
-    # lastUpdated: datetime
-    # averageRuntime: int
-    # episodes: None
-    # overview: str
-    # year: int
-    # artworks: list[...]
-    # companies: list[...]
-    # originalNetwork: ...
-    # latestNetwork: ...
-    # genres: list[_Genre]
-    # trailers: list[...]
-    # lists: list[...]
-    # remoteIds: list[_RemoteID]
-    # characters: list[...]
-    # airsDays: _Airdays
-    # airsTime: str
-    seasons: list[_SeasonBaseRecord]
-    # tags: None | list[_TagOptions]
-    # contentRatings: list[_ContentRating]
-    # seasonTypes: list[_SeasonType]
-
-class _Translation(BaseModel):
-    # aliases: list[str] = []
-    # isAlias: bool = False
-    # isPrimary: bool = False
-    name: str
-    # overview: str
-    # language: str
-    # tagline: str | None = None
 
 
 class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
@@ -242,10 +50,15 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
     is to communicate with TVDb.
     """
 
-    INTERFACE_TYPE: str = 'TVDb'
+    INTERFACE_TYPE: Annotated[
+        ClassVar[str],
+        'Name of this type of Interface'
+    ] = 'TVDb'
 
-    """TVDb ID mappings for each type of artwork"""
-    ARTWORK_TYPES: dict[ArtType, int] = {
+    ARTWORK_TYPES: Annotated[
+        ClassVar[dict[ArtType, int]],
+        'TVDb ID mappings for each type of artwork'
+    ] = {
         'banner': 1,
         'poster': 2,
         'background': 3,
@@ -255,20 +68,21 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         'logo': 23
     }
 
-    """How episode airdates are written as strings"""
-    EPISODE_AIRDATE_FORMAT = '%Y-%m-%d'
+    SERIES_IDS: Annotated[
+        ClassVar[tuple[str, ...]],
+        "Series ID's that can be set by TVDb"
+    ] = ('imdb_id', 'tmdb_id', 'tvdb_id')
 
-    """Series ID's that can be set by TMDb"""
-    SERIES_IDS = ('imdb_id', 'tmdb_id', 'tvdb_id')
+    __ROOT_API_URL: Annotated[
+        ClassVar[str],
+        'Root URL of all API requests'
+    ] = 'https://api4.thetvdb.com/v4'
 
-    """Root URL of all API requests"""
-    __ROOT_API_URL = 'https://api4.thetvdb.com/v4'
-
-    """
-    Auth tokens are valid for 1 month - per https://thetvdb.github.io/v4-api/).
-    Refresh every 25 days to be sure
-    """
-    __TOKEN_DURATION = timedelta(days=25)
+    __TOKEN_DURATION: Annotated[
+        ClassVar[timedelta],
+        'Auth tokens are valid for 1 month per the API docs: '
+        '(https://thetvdb.github.io/v4-api/). Refresh every 25 days to be sure'
+    ] = timedelta(days=25)
 
 
     def __init__(self,
@@ -629,12 +443,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             ]
         except ValidationError:
             return []
-
-        return [
-            art
-            for art in self.get(url).get('data', {}).get('artworks')
-            if art['type'] == self.ARTWORK_TYPES[art_type]
-        ]
 
 
     def __get_best_artwork(self,
@@ -1123,13 +931,14 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return {}
 
         # Read all season data
-        _raw = None
         try:
-            _raw = self.get(f'{self.__ROOT_API_URL}/series/{tvdb_id}/extended')
-            series_data = _SeriesExtendedRecord.parse_obj(_raw['data'])
-        except (ValidationError, KeyError):
+            series_data = SeriesExtendedRecord.model_validate_json(
+                self.get(
+                    f'{self.__ROOT_API_URL}/series/{tvdb_id}/extended?short=true'
+                )
+            )
+        except ValidationError:
             log.exception(f'{series_info} returned invalid series data')
-            log.trace(_raw)
             return {}
 
         # Determine effective season type
@@ -1155,14 +964,14 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             for language in season.nameTranslations[0].split(','):
                 # Query translated season data
                 try:
-                    _raw = self.get(
-                        f'{self.__ROOT_API_URL}/seasons/{season.id}'
-                        f'/translations/{language}'
-                    )
-                    season_data = _Translation.parse_obj(_raw['data'])
-                except (ValidationError, KeyError):
-                    log.exception(f'Invalid season translation subdata')
-                    log.trace(_raw)
+                    season_data = SeasonTranslationResponse.model_validate_json(
+                        self.get((
+                            f'{self.__ROOT_API_URL}/seasons/{season.id}'
+                            f'/translations/{language}'
+                        ))
+                    ).data
+                except ValidationError:
+                    log.exception('Invalid season translation subdata')
                     continue
 
                 # Add translation

@@ -4,9 +4,21 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field, PositiveInt
 
 
+type ArtType = Literal[
+    'banner', 'poster', 'background', 'icon', 'season', 'clearart', 'logo'
+]
+type SourceName = Literal[
+    'EIDR',
+    'Facebook',
+    'IMDB',
+    'Instagram',
+    'Official Website',
+    'TheMovieDB.com',
+    'Twitter',
+    'X (Twitter)'
+]
 type StatusType = Literal['Continuing', 'Ended', 'Released']
 type ResultType = Literal['company', 'list', 'movie', 'series', 'person']
-
 
 """
 This is generated with the following code
@@ -76,7 +88,16 @@ class PaginatedLinks(BaseModel):
 class RemoteID(BaseModel):
     id: str
     # type: int
-    sourceName: str
+    sourceName: SourceName | str
+
+class Translation(BaseModel):
+    # aliases: list[str] | None = None
+    # isAlias: bool = False
+    # isPrimary: bool = False
+    language: str
+    name: str
+    # overview: str | None = None
+    # tagline: str | None = None
 
 class SearchResult(BaseModel):
     # aliases: list[str] | None = None
@@ -269,6 +290,29 @@ class ArtworkExtendedRecord(BaseModel):
     # updatedAt: int
     width: Annotated[int, PositiveInt]
 
+class SeasonType(BaseModel):
+    # alternateName: str | None = None
+    id: int
+    name: str
+    # type: Literal['alternate', 'dvd', 'official'] | str
+
+class SeasonBaseRecord(BaseModel):
+    id: int
+    # image: str | None = None
+    # imageType: int | None = None
+    # lastUpdated: datetime
+    name: str
+    nameTranslations: Annotated[
+        list[str] | None,
+        'If list, a comma-separated list of language codes - i.e. jpn,eng'
+    ] = None
+    number: int
+    # overviewTranslations: list[str] | None = None
+    # companies: Companies | None = None
+    # seriesId: int
+    type: SeasonType
+    # year: str
+
 class SeriesExtendedRecord(BaseModel):
     # abbreviation: str | None = None
     # airsDays: SeriesAirsDays
@@ -279,7 +323,7 @@ class SeriesExtendedRecord(BaseModel):
     # characters: list[Character] | None = None
     # contentRatings: list[ContentRating] | None = None
     # country: str | None = None
-    # defaultSeasonType: int
+    defaultSeasonType: int
     # episodes: list[EpisodeBaseRecord] | None = None
     # firstAired: date | Literal[''] = ''
     # lists: ...
@@ -301,7 +345,7 @@ class SeriesExtendedRecord(BaseModel):
     # overviewTranslations: list[str] | None = None
     remoteIds: list[RemoteID] | None = None
     # score: int
-    # seasons: list[SeasonBaseRecord] | None = None
+    seasons: list[SeasonBaseRecord] | None = None
     # seasonTypes: list[SeasonType] | None = None
     # slug: str
     # status: Status | None = None
@@ -355,13 +399,12 @@ class EpisodeExtendedResponse(BaseModel):
     data: EpisodeExtendedRecord
     message: str | None = None
 
-class Translation(BaseModel):
-    name: str
-    overview: str | None = None
-    language: str
-    isPrimary: bool = False
-
 class EpisodeTranslationResponse(BaseModel):
+    status: Literal['success', 'failure']
+    data: Translation
+    message: str | None = None
+
+class SeasonTranslationResponse(BaseModel):
     status: Literal['success', 'failure']
     data: Translation
     message: str | None = None
