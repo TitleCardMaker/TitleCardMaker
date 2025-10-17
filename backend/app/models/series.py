@@ -232,11 +232,15 @@ class Series(Base):
             if (db := object_session(template)) is None:
                 raise ValueError('No available Session to query')
 
-            existing = db.query(SeriesTemplates)\
-                .filter_by(series_id=self.id,
-                           template_id=template.id,
-                           order=index)\
-                .first()
+            existing = (
+                db.query(SeriesTemplates)
+                    .filter_by(
+                        series_id=self.id,
+                        template_id=template.id,
+                        order=index
+                    )
+                    .first()
+            )
             if existing:
                 self.templates.append(existing)
             else:
@@ -380,6 +384,9 @@ class Series(Base):
     def episode_count(self) -> int:
         """Number of Episodes linked to this Series."""
 
+        # Use computed count if available (from optimized queries)
+        if hasattr(self, '_computed_episode_count'):
+            return self._computed_episode_count
         return len(self.episodes)
 
 
@@ -387,6 +394,9 @@ class Series(Base):
     def card_count(self) -> int:
         """Number of Title Cards linked to this Series."""
 
+        # Use computed count if available (from optimized queries)
+        if hasattr(self, '_computed_card_count'):
+            return self._computed_card_count
         return len(self.cards)
 
 

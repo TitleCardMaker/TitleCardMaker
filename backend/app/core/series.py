@@ -1100,19 +1100,64 @@ def query_and_filter_series(
         Paginated overview of all matching Series.
     """
 
-    # Perform query
-    query = db.query(Series).options(
-        load_only(
-            Series.id,
-            Series.full_name,
-            Series.sort_name,
-            Series.year,
-            Series.poster_url,
-            Series.libraries,
-            Series.sync_id,
-            Series.status,
+    # If extended data is requested, compute counts efficiently at DB level
+    if extended:
+        # Subquery to count cards per series
+        card_count_subquery = (
+            db.query(
+                Card.series_id,
+                func.count(Card.id).label('card_count')
+            )
+            .group_by(Card.series_id)
+            .subquery()
         )
-    )
+
+        # Subquery to count episodes per series
+        episode_count_subquery = (
+            db.query(
+                Episode.series_id,
+                func.count(Episode.id).label('episode_count')
+            )
+            .group_by(Episode.series_id)
+            .subquery()
+        )
+
+        # Main query with computed counts
+        query = (
+            db.query(
+                Series,
+                func.coalesce(card_count_subquery.c.card_count, 0).label('card_count'),
+                func.coalesce(episode_count_subquery.c.episode_count, 0).label('episode_count')
+            )
+            .outerjoin(card_count_subquery, Series.id == card_count_subquery.c.series_id)
+            .outerjoin(episode_count_subquery, Series.id == episode_count_subquery.c.series_id)
+            .options(
+                load_only(
+                    Series.id,
+                    Series.full_name,
+                    Series.sort_name,
+                    Series.year,
+                    Series.poster_url,
+                    Series.libraries,
+                    Series.sync_id,
+                    Series.status,
+                )
+            )
+        )
+    else:
+        # Simple query without counts
+        query = db.query(Series).options(
+            load_only(
+                Series.id,
+                Series.full_name,
+                Series.sort_name,
+                Series.year,
+                Series.poster_url,
+                Series.libraries,
+                Series.sync_id,
+                Series.status,
+            )
+        )
 
     query = apply_filter(db, query, filter, log=log)
 
@@ -1124,15 +1169,23 @@ def query_and_filter_series(
         sub_query = query.order_by(desc(Series.sort_name), Series.year)
     # Order by Cards
     elif order_by == 'cards':
-        sub_query = query\
-            .outerjoin(Card)\
-            .group_by(Series.id)\
-            .order_by(func.count(Series.id))
+        if extended:
+            # Use the computed card_count for ordering
+            sub_query = query.order_by(func.coalesce(card_count_subquery.c.card_count, 0))
+        else:
+            sub_query = query\
+                .outerjoin(Card)\
+                .group_by(Series.id)\
+                .order_by(func.count(Card.id))
     elif order_by == 'reverse-cards':
-        sub_query = query\
-            .outerjoin(Card)\
-            .group_by(Series.id)\
-            .order_by(func.count(Series.id).desc())
+        if extended:
+            # Use the computed card_count for ordering
+            sub_query = query.order_by(func.coalesce(card_count_subquery.c.card_count, 0).desc())
+        else:
+            sub_query = query\
+                .outerjoin(Card)\
+                .group_by(Series.id)\
+                .order_by(func.count(Card.id).desc())
     # Order by Sync
     elif order_by == 'sync':
         sub_query = query.order_by(
@@ -1149,11 +1202,23 @@ def query_and_filter_series(
     elif order_by == 'year':
         sub_query = query.order_by(Series.year, func.lower(Series.sort_name))
     elif order_by == 'reverse-year':
-        sub_query = query.order_by(Series.year.desc(), func.lower(Series.sort_name))
+        sub_query = query.order_by(
+            Series.year.desc(),
+            func.lower(Series.sort_name)
+        )
 
-    return [
-        SeriesOverviewWithCounts.model_validate(series)
-        if extended
-        else SeriesOverview.model_validate(series)
-        for series in sub_query.all()
-    ]
+    # Process results
+    if extended:
+        results = []
+        for row in sub_query.all():
+            series = row[0]
+            # Inject the computed counts into the series object
+            series._computed_card_count = row[1]
+            series._computed_episode_count = row[2]
+            results.append(SeriesOverviewWithCounts.model_validate(series))
+        return results
+    else:
+        return [
+            SeriesOverview.model_validate(series)
+            for series in sub_query.all()
+        ]
