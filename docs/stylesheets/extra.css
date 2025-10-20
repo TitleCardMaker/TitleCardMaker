@@ -173,3 +173,25 @@ h2 > img {
   /* Reduce font size */
   font-size: 0.65rem;
 }
+
+/* Animated tab gradient */
+.md-header[data-md-component="header"],
+.md-header[data-md-component="header"] > .md-tabs[data-md-component="tabs"] {
+  background: linear-gradient(
+    90deg,
+    hsla(var(--md-hue), 15%, 9%, 1) 0%,
+    hsla(var(--md-hue), 15%, 9%, 1) 50%,
+    rgb(99, 145, 210) 100%
+  );
+  background-size: 200% 100%; /* make it wider so it can "move" */
+  animation: slide-gradient 16s ease-in-out infinite alternate;
+}
+
+@keyframes slide-gradient {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}

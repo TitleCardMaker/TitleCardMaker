@@ -15,11 +15,14 @@ options, Title Card customizations, files, and actions can be viewed.
 ![Series Page](../assets/series_light.webp#only-light){.no-lightbox}
 ![Series Page](../assets/series_dark.webp#only-dark){.no-lightbox}
 
-This page is organized into several main sections: the action bar at the top, the poster and preview area, and multiple tabs containing different configuration options.
+This page is organized into several main sections: the action bar at the top,
+the poster and preview area, and multiple tabs containing different
+configuration options.
 
 ## Action Bar
 
-The action bar at the top of the page contains all the primary actions you can perform on a Series.
+The action bar at the top of the page contains all the primary actions you can
+perform on a Series.
 
 ### Navigation Arrows
 
@@ -41,15 +44,18 @@ in the action bar. The status is indicated by different colored icons:
 - :material-eye-off: Yellow - Unmonitored  
 - :material-close-circle: Red - Disabled
 
-Unmonitored Series do __not__ do the following actions _automatically_ (all actions can still be done manually):
+Unmonitored Series do __not__ do the following actions _automatically_ (all
+actions can still be done manually):
 
 - Refresh Episode data - i.e. check for new Episodes, look for modified Episode
 titles, etc.
 - Add Episode translations
 - Download missing Source Images
 
+And disabled Series do not do __anything__ automatically.
+
 The Tasks in [the scheduler](./scheduler.md) that are responsible for the
-above actions will skip all unmonitored Series.
+above actions will skip all unmonitored or disabled Series.
 
 ### Create Title Cards
 
@@ -80,6 +86,9 @@ encompasses the following:
 For every library which the currently selected Series is assigned to, a dropdown
 menu will appear showing the library and Connection name (e.g. `TV Shows | Plex`).
 This dropdown contains several actions specific to that library:
+
+![Library Actions Dropdown](../assets/library_actions-light.webp#only-light){ .no-lightbox  }
+![Library Actions Dropdown](../assets/library_actions-dark.webp#only-dark){ .no-lightbox }
 
 #### Title Card Loading
 
