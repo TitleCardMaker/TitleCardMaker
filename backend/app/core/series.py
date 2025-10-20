@@ -15,7 +15,7 @@ from sqlalchemy.orm import (
     load_only,
 )
 
-from app.core.cache import cache_result, invalidate_series_cache
+from app.core.cache import invalidate_series_cache
 from app.core.cards import (
     create_episode_cards,
     get_watched_statuses,
@@ -1074,7 +1074,6 @@ def apply_filter(
     return query.filter(*criterion)
 
 
-@cache_result(ttl=Hours(6), key_prefix='series')
 def query_and_filter_series(
         db: Session,
         filter: SeriesFilter | None,
@@ -1129,8 +1128,14 @@ def query_and_filter_series(
                 func.coalesce(card_count_subquery.c.card_count, 0).label('card_count'),
                 func.coalesce(episode_count_subquery.c.episode_count, 0).label('episode_count')
             )
-            .outerjoin(card_count_subquery, Series.id == card_count_subquery.c.series_id)
-            .outerjoin(episode_count_subquery, Series.id == episode_count_subquery.c.series_id)
+            .outerjoin(
+                card_count_subquery,
+                Series.id == card_count_subquery.c.series_id
+            )
+            .outerjoin(
+                episode_count_subquery,
+                Series.id == episode_count_subquery.c.series_id
+            )
             .options(
                 load_only(
                     Series.id,
@@ -1171,21 +1176,32 @@ def query_and_filter_series(
     elif order_by == 'cards':
         if extended:
             # Use the computed card_count for ordering
-            sub_query = query.order_by(func.coalesce(card_count_subquery.c.card_count, 0))
+            sub_query = (
+                query
+                    .order_by(
+                        func.coalesce(card_count_subquery.c.card_count, 0)
+                    )
+            )
         else:
-            sub_query = query\
-                .outerjoin(Card)\
-                .group_by(Series.id)\
-                .order_by(func.count(Card.id))
+            sub_query = (
+                query
+                    .outerjoin(Card)
+                    .group_by(Series.id)
+                    .order_by(func.count(Card.id))
+                )
     elif order_by == 'reverse-cards':
         if extended:
             # Use the computed card_count for ordering
-            sub_query = query.order_by(func.coalesce(card_count_subquery.c.card_count, 0).desc())
+            sub_query = query.order_by(
+                func.coalesce(card_count_subquery.c.card_count, 0).desc()
+            )
         else:
-            sub_query = query\
-                .outerjoin(Card)\
-                .group_by(Series.id)\
-                .order_by(func.count(Card.id).desc())
+            sub_query = (
+                query
+                    .outerjoin(Card)
+                    .group_by(Series.id)
+                    .order_by(func.count(Card.id).desc())
+            )
     # Order by Sync
     elif order_by == 'sync':
         sub_query = query.order_by(
