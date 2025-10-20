@@ -30,7 +30,6 @@ from app.core.episodes import (
     get_series_episodes_with_cache,
     get_series_episodes_simplified_with_cache,
     get_series_episodes_overview_with_cache,
-    get_episode_with_cache,
 )
 from app.models.card import Card
 from app.models.episode import Episode as EpisodeModel
@@ -106,7 +105,7 @@ def get_episode_by_id(
     - episode_id: ID of the Episode to retrieve.
     """
 
-    return get_episode_with_cache(db, episode_id, log=log) or get_episode(db, episode_id, raise_exc=True)
+    return get_episode(db, episode_id, raise_exc=True)
 
 
 @episodes_router.delete('/episode/{episode_id}')

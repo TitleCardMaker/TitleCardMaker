@@ -32,9 +32,9 @@ from app.models.episode import Episode
 from app.models.series import Series
 from app.schemas.base import UNSPECIFIED
 from app.schemas.episode import UpdateEpisode
+from app.schemas.schedule import Hours
 from app.settings import settings
 from modules.TieredSettings import TieredSettings
-from app.schemas.schedule import Hours
 
 
 def set_episode_ids(
@@ -507,32 +507,3 @@ def get_series_episodes_overview_with_cache(
     log.debug(f'Retrieved episode overview for series {series_id} from database')
     
     return overview_episodes
-
-
-@cache_result(ttl=Hours(0.25), key_prefix='episode')  # 15 minutes
-def get_episode_with_cache(
-        db: Session,
-        episode_id: int,
-        *,
-        log: Logger = log,
-    ) -> Episode | None:
-    """
-    Get a specific episode with caching support.
-    
-    Args:
-        db: Database session
-        episode_id: Episode ID
-        log: Logger instance
-        
-    Returns:
-        Episode object or None if not found
-    """
-    # Get from database
-    episode = db.query(Episode).filter_by(id=episode_id).first()
-    
-    if episode:
-        log.debug(f'Retrieved episode {episode_id} from database')
-    else:
-        log.debug(f'Episode {episode_id} not found in database')
-    
-    return episode
