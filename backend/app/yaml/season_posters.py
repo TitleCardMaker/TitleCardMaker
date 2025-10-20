@@ -27,8 +27,15 @@ class SeasonPosterSet(YamlReader):
     __SEASON_NUMBER_REGEX = re_compile(r'^season(\d+).jpg$')
 
     __slots__ = (
-        'font_file', 'font_color', 'font_kerning', 'posters', 'font_size',
-        '__source_directory', '__logo', 'has_posters', '__media_directory',
+        'font_file',
+        'font_color',
+        'font_kerning',
+        'posters',
+        'font_size',
+        '__source_directory',
+        '__logo',
+        'has_posters',
+        '__media_directory',
         'logo_is_optional',
     )
 

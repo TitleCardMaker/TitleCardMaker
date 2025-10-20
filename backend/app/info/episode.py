@@ -601,7 +601,7 @@ class WordSet(dict):
 
     def add_numeral(self,
             label: str,
-            number: int,
+            number: int | None,
             lang: str | None = None
         ) -> None:
         """
@@ -769,11 +769,13 @@ class EpisodeInfoV1(DatabaseInfoContainer):
     def __repr__(self) -> str:
         """Returns an unambiguous string representation of the object."""
 
-        attributes = ', '.join(f'{attr}={getattr(self, attr)}'
+        attributes = ', '.join(
+            f'{attr}={getattr(self, attr)}'
             for attr in self.__slots__
             if not attr.startswith('__')
                 and getattr(self, attr) is not None
-                and getattr(self, attr) is not False)
+                and getattr(self, attr) is not False
+        )
 
         return f'<EpisodeInfo {attributes}>'
 
@@ -870,9 +872,10 @@ class EpisodeInfoV1(DatabaseInfoContainer):
     def has_all_ids(self) -> bool:
         """Whether this object has all ID's defined"""
 
-        return ((self.tvdb_id is not None)
-            and (self.imdb_id is not None)
-            and (self.tmdb_id is not None)
+        return (
+            self.tvdb_id is not None
+            and self.imdb_id is not None
+            and self.tmdb_id is not None
         )
 
 

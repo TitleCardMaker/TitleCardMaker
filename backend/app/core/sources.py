@@ -222,10 +222,10 @@ def download_series_logo(
 
         # Skip interfaces which cannot provide logos
         if isinstance(interface, (PlexInterface, SonarrInterface)):
-            log.trace(
+            log.trace((
                 f'{interface.INTERFACE_TYPE}[{interface_id}] cannot provide '
                 f'logos'
-            )
+            ))
             continue
 
         # Handle TMDb and TVDb separately

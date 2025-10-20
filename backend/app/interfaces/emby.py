@@ -1683,8 +1683,9 @@ class EmbyInterfaceV1(EpisodeDataSourceV1, MediaServerV1, SyncInterface):
             # Parse airdate for this episode
             airdate = None
             try:
-                airdate = datetime.strptime(episode['PremiereDate'],
-                                            self.AIRDATE_FORMAT)
+                airdate = datetime.strptime(
+                    episode['PremiereDate'], self.AIRDATE_FORMAT
+                )
             except ValueError:
                 log.exception(f'Cannot parse airdate')
                 log.debug(f'Episode data: {episode}')
