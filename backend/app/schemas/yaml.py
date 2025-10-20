@@ -2,6 +2,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Annotated, Any, Literal, Union
 
+from app.info.episode import EpisodeInfoV1
 from num2words import CONVERTER_CLASSES as SUPPORTED_LANGUAGE_CODES
 from pydantic import (
     computed_field,
@@ -23,6 +24,7 @@ from modules.BaseCardType import BaseCardType
 from modules.FormatString import FormatString
 from modules.RemoteCardType import RemoteCardTypeV1
 from modules.TitleCard import TitleCard
+from modules.Title import Title
 
 
 ArchiveSummaryTypeOption = Literal['standard', 'stylized']
@@ -33,6 +35,7 @@ FilesizeLimit = StringConstraints(
 )
 ImageSourceOption = Literal['tmdb', 'plex', 'emby', 'jellyfin']
 LanguageCodeOption = Literal[*SUPPORTED_LANGUAGE_CODES.keys()]
+MediaServerOption = Literal['emby', 'jellyfin', 'plex']
 Percentage = StringConstraints(pattern=r'^\d+\.?\d*%$')
 Style = Literal[
     'art',
@@ -53,7 +56,7 @@ SyncExclusion = dict[
 ]
 
 class OptionsYaml(Base):
-    source: Path
+    source_directory: Path = Field(alias='source')
     execution_mode: Literal['serial', 'batch'] = 'serial'
     series: list[Path]
 
@@ -293,7 +296,7 @@ Series YAML file definitions
 class LibraryYaml(Base):
     path: Path
     name: str | None = None
-    media_server: Literal['emby', 'jellyfin', 'plex'] | None = None
+    media_server: MediaServerOption | None = None
     config: dict[str, Any] = {}
 
 class FontYaml(Base):
@@ -308,6 +311,13 @@ class FontYaml(Base):
     replacements: dict[str, str] = {}
     size: Annotated[str, Percentage] = '100%'
     vertical_shift: int = 0
+
+    @field_validator('file', mode='before')
+    @classmethod
+    def coerce_to_file(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return Path(v)
+        return v
 
 class SeasonPosterFontYaml(Base):
     file: FilePath | None = None
@@ -346,6 +356,8 @@ class SeriesYaml(Base):
 
     refresh_titles: bool = True
     library: str | None = None
+    media_server: MediaServerOption | None = None
+    load_title_cards: bool = True
     filename_format: str | None = None
     card_type: str | None = None
 
@@ -363,11 +375,12 @@ class SeriesYaml(Base):
     episode_text_format: str | None = None
     disable_sonarr: bool = False
     disable_tmdb: bool = False
-    enable_specials: bool | None = None
+    enable_specials: bool | None = Field(default=None, alias='sync_specials')
     skip_localized_images: bool = False
     watched_style: Style | None = None
     unwatched_style: Style | None = None
-    directory: Path | None = None
+    archive_style: Style | None = None
+    card_directory: Path | None = Field(default=None, alias='media_directory')
     font: FontYaml | str | None = None
     season_posters: SeasonPosterYaml | None = None
     hide_season_text: bool | None = None
@@ -392,6 +405,7 @@ class SeriesYaml(Base):
     imdb_id: Annotated[str, StringConstraints(pattern=r'^tt\d+$')] | None = None
     jellyfin_id: str | None = None
     sonarr_id: Annotated[int, NonNegativeInt] | None = None
+    sonarr_server_id: Annotated[int, NonNegativeInt] | None = None
     tmdb_id: Annotated[int, NonNegativeInt] | None = None
     tvrage_id: Annotated[int, NonNegativeInt] | None = None
     tvdb_id: Annotated[int, NonNegativeInt] | None = None
@@ -413,3 +427,55 @@ class YamlFile(Base):
     fonts: dict[str, FontYaml] = {}
     templates: dict[str, dict[str, Any]] = {}
     series: dict[str, SeriesYaml] = {}
+
+"""
+Episode Data YAML file definitions
+"""
+
+class EpisodeDataYaml(Base):
+    title: str | list[str]
+    preferred_title: str | list[str] | None = None
+    absolute_number: int = Field(alias='abs_number')
+    imdb_id: str | None = None
+    tmdb_id: int | None = None
+    tvdb_id: int | None = None
+    tvrage_id: int | None = None
+    extras: dict[str, Any] = {}
+
+class EpisodeDataFile(Base):
+    data: dict[
+        Annotated[str, StringConstraints(pattern=r'^Season \d+$')],
+        dict[
+            Annotated[int, NonNegativeInt],
+            EpisodeDataYaml,
+        ]
+    ] = {}
+
+    @computed_field
+    @cached_property
+    def entries(self) -> list[tuple[EpisodeInfoV1, dict[str, Any]]]:
+
+        infos: list[tuple[EpisodeInfoV1, dict[str, Any]]] = []
+        for season_text, season in self.data.items():
+            season_number = int(season_text.split(' ')[-1])
+            for episode_number, episode in season.items():
+                infos.append(
+                    (
+                        EpisodeInfoV1(
+                            title=Title(
+                                episode.preferred_title or episode.title,
+                                original_title=episode.title
+                            ),
+                            season_number=season_number,
+                            episode_number=episode_number,
+                            abs_number=episode.absolute_number,
+                            imdb_id=episode.imdb_id,
+                            tmdb_id=episode.tmdb_id,
+                            tvdb_id=episode.tvdb_id,
+                            tvrage_id=episode.tvrage_id,
+                        ),
+                        episode.extras
+                    )
+                )
+
+        return infos
