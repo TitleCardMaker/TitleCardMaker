@@ -1,12 +1,11 @@
 from pathlib import Path
 from re import match as re_match
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
+    Field,
     FilePath,
-    PositiveFloat,
-    conint,
-    constr,
+    StringConstraints,
     field_validator,
     model_validator,
 )
@@ -22,8 +21,6 @@ from modules.BaseCardType import (
     Rectangle,
 )
 
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 Position = Literal['left', 'right']
 
@@ -148,12 +145,6 @@ class NotificationTitleCard(BaseCardType):
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = 'Episode {episode_number}'
     EPISODE_TEXT_COLOR = TITLE_COLOR
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Notification Style'
 
     """Implementation details"""
     EDGE_COLOR = TITLE_COLOR
@@ -417,85 +408,6 @@ class NotificationTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        if not custom_font:
-            for extra in (
-                'edge_color',
-                'episode_text_color',
-                'episode_text_font_size',
-                'episode_text_vertical_shift',
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            ('edge_color' in extras
-                and extras['edge_color'] != NotificationTitleCard.EDGE_COLOR)
-            or ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    NotificationTitleCard.EPISODE_TEXT_COLOR)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
-            or ('episode_text_vertical_shift' in extras
-                and extras['episode_text_vertical_shift'] != 0)
-        )
-
-        return custom_extras or NotificationTitleCard._is_custom_font(font)
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != NotificationTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -535,7 +447,6 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'
-    BoxAdjustments = constr(pattern=BoxAdjustmentRegex)
 
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontAllText):
@@ -543,11 +454,14 @@ def get_validator_model() -> type[Base]:
         episode_text: str
         font_color: str = NotificationTitleCard.TITLE_COLOR
         font_file: FilePath = NotificationTitleCard.TITLE_FONT # type: ignore
-        box_adjustments: BoxAdjustments = (0, 0, 0, 0)
+        box_adjustments: Annotated[
+            str,
+            StringConstraints(pattern=BoxAdjustmentRegex)
+        ] | tuple[int, int, int, int] = (0, 0, 0, 0)
         edge_color: str | None = None
-        edge_width: conint(ge=0) = NotificationTitleCard.EDGE_WIDTH
+        edge_width: Annotated[int, Field(ge=0)] = NotificationTitleCard.EDGE_WIDTH
         episode_text_color: str | None = None
-        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
         episode_text_vertical_shift: int = 0
         glass_color: str = NotificationTitleCard.GLASS_COLOR
         position: Position = 'right'

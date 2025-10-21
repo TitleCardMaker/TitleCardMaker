@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import FilePath, PositiveFloat, confloat, model_validator
+from pydantic import Field, FilePath, model_validator
 
 from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
@@ -12,9 +12,6 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Shadow,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 LogoPosition = Literal['omit', 'top left', 'top right', 'bottom right']
 
@@ -183,17 +180,11 @@ class AnimeTitleCard(BaseCardType):
         'style': 'bottom',
     }
 
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Anime Style'
-
     """Characteristics of the default title font"""
     TITLE_FONT = str((REF_DIRECTORY / 'Flanker Griffo.otf').resolve())
     DEFAULT_FONT_CASE = 'source'
     TITLE_COLOR = 'white'
     FONT_REPLACEMENTS = {'♡': '', '☆': '', '＊': '', '✕': 'x', '♥': ''}
-
-    """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE = True
 
     """Source path for the gradient image overlayed over all title cards"""
     __GRADIENT_IMAGE = REF_DIRECTORY / 'gradient.png'
@@ -543,93 +534,6 @@ class AnimeTitleCard(BaseCardType):
         )
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras base on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        if not custom_font:
-            for extra in (
-                'episode_stroke_color',
-                'episode_text_color',
-                'episode_text_size',
-                'kanji_font_size',
-                'kanji_stroke_width',
-                'kanji_stroke_color',
-                'kanji_vertical_shift',
-                'logo_size',
-                'stroke_color'
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determines whether the given arguments represent a custom font
-        for this card.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = AnimeTitleCard._is_custom_extras(
-            extras,
-            {
-                'episode_stroke_color': AnimeTitleCard.EPISODE_STROKE_COLOR,
-                'episode_text_color': AnimeTitleCard.EPISODE_TEXT_COLOR,
-                'episode_text_size': 1.0,
-                'kanji_color': AnimeTitleCard.TITLE_COLOR,
-                'kanji_font_size': 1.0,
-                'kanji_stroke_color': 'black',
-                'kanji_stroke_width': 1.0,
-                'kanji_vertical_shift': 0,
-                'stroke_color': 'black'
-            }
-        )
-
-        return custom_extras or AnimeTitleCard._is_custom_font(font)
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determines whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != AnimeTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -676,19 +580,19 @@ def get_validator_model() -> type[Base]:
         kanji: str | None = None
         require_kanji: bool = False
         kanji_color: str | None = AnimeTitleCard.TITLE_COLOR
-        kanji_font_size: PositiveFloat = 1.0
+        kanji_font_size: Annotated[float, Field(gt=0)] = 1.0
         kanji_stroke_color: str | None = None
-        kanji_stroke_width: confloat(ge=0) = 1.0
+        kanji_stroke_width: Annotated[float, Field(ge=0)] = 1.0
         kanji_vertical_shift: int = 0
         separator: str = '·'
         logo_file: Path | None = None
         logo_position: LogoPosition = 'omit'
-        logo_size: PositiveFloat = 1.0
+        logo_size: Annotated[float, Field(gt=0)] = 1.0
         omit_gradient: bool = False
         episode_stroke_color: str = AnimeTitleCard.EPISODE_STROKE_COLOR
         episode_text_color: str = AnimeTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: PositiveFloat = 1.0
-        logo_size: PositiveFloat = 1.0
+        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        logo_size: Annotated[float, Field(gt=0)] = 1.0
         season_text_color: str | None = None
         stroke_color: str = 'black'
 

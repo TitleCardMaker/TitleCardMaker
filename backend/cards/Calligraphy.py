@@ -1,8 +1,8 @@
 from pathlib import Path
 from random import random
-from typing import TYPE_CHECKING, Any, Self
+from typing import Annotated, Any, Self
 
-from pydantic import FilePath, PositiveFloat, model_validator
+from pydantic import Field, FilePath, model_validator
 
 from app.info.episode import EpisodeInfo
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
@@ -14,9 +14,6 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Shadow,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 class CalligraphyTitleCard(BaseCardType):
@@ -140,12 +137,6 @@ class CalligraphyTitleCard(BaseCardType):
     """How to format episode text"""
     EPISODE_TEXT_FORMAT = 'Episode {titlecase(to_cardinal(episode_number))}'
 
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Calligraphy Style'
-
     """Texture image to compose with"""
     TEXTURE_IMAGE = REF_DIRECTORY / 'texture.jpg'
 
@@ -156,12 +147,29 @@ class CalligraphyTitleCard(BaseCardType):
     DEEP_BLUR_PROFILE = BaseCardType.BLUR_PROFILE
 
     __slots__ = (
-        'source_file', 'output_file', 'title_text', 'season_text',
-        'episode_text', 'hide_season_text', 'hide_episode_text', 'font_file',
-        'font_size', 'font_color', 'font_interline_spacing', 'shadow_color',
-        'font_interword_spacing', 'font_kerning', 'font_vertical_shift',
-        'logo_file', 'add_texture', 'episode_text_color', 'logo_size',
-        'randomize_texture', 'separator', 'deep_blur', 'episode_text_font_size',
+        'add_texture',
+        'deep_blur',
+        'episode_text_color',
+        'episode_text_font_size',
+        'episode_text',
+        'font_color',
+        'font_file',
+        'font_size',
+        'font_interline_spacing',
+        'font_vertical_shift',
+        'hide_episode_text',
+        'hide_season_text',
+        'font_interword_spacing',
+        'font_kerning',
+        'logo_file',
+        'logo_size',
+        'output_file',
+        'randomize_texture',
+        'season_text',
+        'separator',
+        'shadow_color',
+        'source_file',
+        'title_text',
     )
 
     def __init__(self, *,
@@ -442,93 +450,6 @@ class CalligraphyTitleCard(BaseCardType):
         )
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset episode color
-        if not custom_font:
-            for extra in (
-                'episode_text_color',
-                'episode_text_font_size',
-                'shadow_color'
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    CalligraphyTitleCard.TITLE_COLOR)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
-            or ('shadow_color' in extras
-                and extras['shadow_color'] != 'black')
-        )
-
-        return (custom_extras
-            or (
-                font.color != CalligraphyTitleCard.TITLE_COLOR
-                or font.file != CalligraphyTitleCard.TITLE_FONT
-                or font.interline_spacing != 0
-                or font.interword_spacing != 0
-                or font.kerning != 1.0
-                or font.size != 1.0
-                or font.vertical_shift != 0
-            )
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != CalligraphyTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -576,8 +497,8 @@ def get_validator_model() -> type[Base]:
         add_texture: bool = True
         deep_blur_if_unwatched: bool = True
         episode_text_color: str | None = None
-        episode_text_font_size: PositiveFloat = 1.0
-        logo_size: PositiveFloat = 1.0
+        episode_text_font_size: Annotated[float, Field(ge=0.0)] = 1.0
+        logo_size: Annotated[float, Field(ge=0.0)] = 1.0
         offset_titles: bool = True
         randomize_texture: bool = True
         separator: str = '-'

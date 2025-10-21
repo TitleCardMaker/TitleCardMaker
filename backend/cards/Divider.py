@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import Any, Literal, Self
 
 from pydantic import FilePath, model_validator
 
@@ -10,9 +10,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 TextGravity = Literal['center', 'east', 'west']
@@ -116,9 +113,6 @@ class DividerTitleCard(BaseCardType):
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = 'Episode {episode_number}'
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Divider Style'
@@ -356,75 +350,6 @@ class DividerTitleCard(BaseCardType):
             *self.divider_command(divider_height, divider_color),
             *self.title_text_command,
         ]
-
-
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset stroke color
-        if not custom_font:
-            for extra in ('divider_color', 'stroke_color'):
-                del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            ('divider_color' in extras
-                and extras['divider_color'] != DividerTitleCard.TITLE_COLOR)
-            or ('stroke_color' in extras
-                and extras['stroke_color'] != 'black')
-        )
-
-        return custom_extras or DividerTitleCard._is_custom_font(font)
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != DividerTitleCard.EPISODE_TEXT_FORMAT
-        )
 
 
     def create(self) -> None:

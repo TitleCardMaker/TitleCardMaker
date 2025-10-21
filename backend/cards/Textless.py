@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any
 
 from pydantic import FilePath
 
@@ -7,8 +7,6 @@ from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, CardTypeDescription
 
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 class TextlessTitleCard(BaseCardType):
@@ -54,9 +52,6 @@ class TextlessTitleCard(BaseCardType):
     TITLE_COLOR = ''
     FONT_REPLACEMENTS = {}
 
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = False
-
     """Don't require source images to work w/ importing"""
     USES_SOURCE_IMAGES = True # Set as False; if required then caught by model
 
@@ -81,43 +76,6 @@ class TextlessTitleCard(BaseCardType):
         # Store input/output files
         self.source_file = source_file
         self.output_file = card_file
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> Literal[False]:
-        """
-        Determines whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            False, as fonts are not customizable with this card.
-        """
-
-        return False
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> Literal[False]:
-        """
-        Determines whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            False, as season titles are not customizable with this card.
-        """
-
-        return False
 
 
     def create(self) -> None:

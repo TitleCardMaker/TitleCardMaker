@@ -1,9 +1,9 @@
 from pathlib import Path
 from random import choice as random_choice
 from re import compile as re_compile, IGNORECASE
-from typing import Any, Literal, TYPE_CHECKING, Self, Union
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import FilePath, PositiveFloat, confloat, conint, model_validator
+from pydantic import Field, FilePath, model_validator
 
 from app.schemas.base import Base, BaseCardTypeAllText
 from modules.BaseCardType import (
@@ -15,9 +15,6 @@ from modules.BaseCardType import (
     Rectangle,
     Shadow,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 RandomColorRegex = re_compile(r'random\[([^[\]]*(?:,[^[\]]*)*)\]', IGNORECASE)
@@ -227,12 +224,6 @@ class TintedFrameTitleCard(BaseCardType):
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = TITLE_COLOR
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Galey Semi Bold.ttf'
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Tinted Frame Style'
 
     """Implementation details"""
     BOX_OFFSET = 185
@@ -729,97 +720,6 @@ class TintedFrameTitleCard(BaseCardType):
         )
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict[str, Any],
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset episode text and box colors
-        if not custom_font:
-            for extra in (
-                'episode_text_color',
-                'episode_text_font',
-                'episode_text_font_size',
-                'episode_text_vertical_shift',
-                'frame_color',
-                'shadow_color',
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = TintedFrameTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'episode_text_color': TintedFrameTitleCard.EPISODE_TEXT_COLOR,
-                'episode_text_font': TintedFrameTitleCard.EPISODE_TEXT_FONT,
-                'episode_text_font_size': 1.0,
-                'episode_text_vertical_shift': 0,
-                'frame_color': TintedFrameTitleCard.TITLE_COLOR,
-                'shadow_color': TintedFrameTitleCard.SHADOW_COLOR,
-            }
-        )
-
-        return (
-            custom_extras
-            or font.color != TintedFrameTitleCard.TITLE_COLOR
-            or font.file != TintedFrameTitleCard.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.kerning != 1.0
-            or font.size != 1.0
-            or font.vertical_shift != 0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != TintedFrameTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -853,26 +753,30 @@ def get_validator_model() -> type[Base]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         font_vertical_shift: int = 0
         separator: str = '-'
         episode_text_color: str | None = None
-        episode_text_font: Union[
-            Literal['{title_font}'],
-            str,
-            Path
-        ] = TintedFrameTitleCard.EPISODE_TEXT_FONT
-        episode_text_font_size: confloat(ge=0.0) = 1.0
-        episode_text_vertical_shift: conint(ge=-1800, le=1800) = 0
+        episode_text_font: (
+            Literal['{title_font}'] | str | Path
+        ) = TintedFrameTitleCard.EPISODE_TEXT_FONT
+        episode_text_font_size: Annotated[float, Field(ge=0.0)] = 1.0
+        episode_text_vertical_shift: Annotated[int, Field(ge=-1800, le=1800)] = 0
         frame_color: str | None = None
-        frame_width: conint(ge=0, le=1600) = TintedFrameTitleCard.BOX_WIDTH
-        index_text_horizontal_shift: conint(ge=-1600, le=1600) = 0
-        title_horizontal_shift: conint(ge=-1600, le=1600) = 0
+        frame_width: Annotated[
+            int,
+            Field(ge=0, le=1600)
+        ] = TintedFrameTitleCard.BOX_WIDTH
+        index_text_horizontal_shift: Annotated[
+            int,
+            Field(ge=-1600, le=1600)
+        ] = 0
+        title_horizontal_shift: Annotated[int, Field(ge=-1600, le=1600)] = 0
         top_element: OuterElement = 'title'
         middle_element: MiddleElement = 'omit'
         bottom_element: OuterElement = 'index'
-        logo_size: PositiveFloat = 1.0
-        logo_vertical_shift: conint(ge=-1800, le=1800) = 0
+        logo_size: Annotated[float, Field(gt=0)] = 1.0
+        logo_vertical_shift: Annotated[int, Field(ge=-1800, le=1800)] = 0
         blur_edges: bool = True
         shadow_color: str = TintedFrameTitleCard.SHADOW_COLOR
 

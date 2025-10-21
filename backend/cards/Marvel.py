@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import FilePath, PositiveInt
+from pydantic import Field, FilePath
 
 from app.interfaces.magick import Dimensions
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
@@ -14,11 +14,9 @@ from modules.BaseCardType import (
     Rectangle,
 )
 
-if TYPE_CHECKING:
-    from app.yaml.font import Font
-
 
 EpisodeTextLocation = Literal['compact', 'fixed']
+
 
 class MarvelTitleCard(BaseCardType):
     """
@@ -139,12 +137,6 @@ class MarvelTitleCard(BaseCardType):
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = '#C9C9C9'
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Qualion ExtraBold.ttf'
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Marvel Style'
 
     """How thick the border is (in pixels)"""
     DEFAULT_BORDER_SIZE = 55
@@ -469,93 +461,6 @@ class MarvelTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset episode text and box colors
-        if not custom_font:
-            for extra in (
-                'border_color',
-                'episode_text_color',
-                'text_box_color'
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            ('border_color' in extras
-                and extras['border_color'] != \
-                    MarvelTitleCard.DEFAULT_BORDER_COLOR)
-            or ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    MarvelTitleCard.EPISODE_TEXT_COLOR)
-            or ('text_box_color' in extras
-                and extras['text_box_color'] != \
-                    MarvelTitleCard.DEFAULT_TEXT_BOX_COLOR)
-        )
-
-        return (custom_extras
-            or ((font.color != MarvelTitleCard.TITLE_COLOR)
-            or (font.file != MarvelTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != MarvelTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """
         Make the necessary ImageMagick and system calls to create this
@@ -604,12 +509,18 @@ def get_validator_model() -> type[Base]:
         font_file: FilePath = MarvelTitleCard.TITLE_FONT # type: ignore
         font_color: str = MarvelTitleCard.TITLE_COLOR
         border_color: str = MarvelTitleCard.DEFAULT_BORDER_COLOR
-        border_size: PositiveInt = MarvelTitleCard.DEFAULT_BORDER_SIZE
+        border_size: Annotated[
+            int,
+            Field(gt=0)
+        ] = MarvelTitleCard.DEFAULT_BORDER_SIZE
         episode_text_color: str = MarvelTitleCard.EPISODE_TEXT_COLOR
         episode_text_location: EpisodeTextLocation = 'fixed'
         fit_text: bool = True
         hide_border: bool = False
         text_box_color: str = MarvelTitleCard.DEFAULT_TEXT_BOX_COLOR
-        text_box_height: PositiveInt = MarvelTitleCard.DEFAULT_TEXT_BOX_HEIGHT
+        text_box_height: Annotated[
+            int,
+            Field(gt=0)
+        ] = MarvelTitleCard.DEFAULT_TEXT_BOX_HEIGHT
 
     return CardModel

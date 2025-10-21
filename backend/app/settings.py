@@ -9,11 +9,11 @@ from app.info.episode import EpisodeInfo
 from app.interfaces.magick import ImageMagickInterface
 from app.logging.logger import Logger, log
 from app.schemas.preferences import CardExtension, Style
+from cards import BUILTIN_CARD_TYPES
 from modules.BaseCardType import BaseCardType
 from modules.FormatString import FormatString
 from modules.RemoteCardType import RemoteCardType
 from modules.serialization import SerializationExclusion, SerializationMixin
-from modules.TitleCard import TitleCard
 
 
 MediaSource = Literal['Emby', 'Jellyfin', 'Plex']
@@ -98,8 +98,8 @@ class Settings(SerializationMixin):
     )
 
     # Card properties
-    card_width: int = TitleCard.DEFAULT_WIDTH
-    card_height: int = TitleCard.DEFAULT_HEIGHT
+    card_width: int = 1920
+    card_height: int = 1080
     card_quality: int = 95
     card_filename_format: str = (
         '{series_full_name} - S{season_number:02}E{episode_number:02}'
@@ -335,8 +335,8 @@ class Settings(SerializationMixin):
         ) -> type[BaseCardType] | None:
         """Get the CardType class for the given card type identifier."""
 
-        if identifier in TitleCard.CARD_TYPES:
-            return TitleCard.CARD_TYPES[identifier]
+        if identifier in BUILTIN_CARD_TYPES:
+            return BUILTIN_CARD_TYPES[identifier]
         if identifier in self.remote_card_types:
             return self.remote_card_types[identifier]
         if identifier in self.local_card_types:
@@ -476,15 +476,3 @@ def reset_settings() -> Settings:
     settings.__init__()
 
     return settings
-
-
-TQDM_KWARGS = {
-    # Progress bar format string
-    'bar_format': (
-        '{desc:.50s} {percentage:2.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
-    ),
-    # Progress bars should disappear when finished
-    'leave': False,
-    # Progress bars can not be used if no TTY is present
-    'disable': None,
-}

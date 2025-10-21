@@ -1,14 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Annotated,
-    Any,
-    Callable,
-    ClassVar,
-    Literal,
-)
+from typing import Annotated, Any, Callable, ClassVar, Literal
 
 from titlecase import titlecase
 
@@ -16,9 +9,6 @@ from app.logging.logger import log
 from app.magick.base import Dimensions, ImageMaker, ImageMagickCommands
 from app.schemas.card import CardTypeDescription, Extra
 from modules.Title import SplitCharacteristics
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 CardDescription = CardTypeDescription
 type TextCase = Literal['blank', 'lower', 'source', 'title', 'upper']
@@ -323,11 +313,6 @@ class BaseCardType(ImageMaker, ABC):
         'Characteristics for how to auto-split titles for this card type'
     ]
 
-    ARCHIVE_NAME: Annotated[
-        ClassVar[str],
-        'How to name archive directories associated with this card'
-    ]
-
     TITLE_FONT: Annotated[
         ClassVar[str],
         'Default font to use for all title text on this card'
@@ -336,11 +321,6 @@ class BaseCardType(ImageMaker, ABC):
     TITLE_COLOR: Annotated[
         ClassVar[str],
         'Default font color to use for all title text on this card'
-    ]
-
-    USES_SEASON_TITLE: Annotated[
-        ClassVar[bool],
-        'Whether this card type uses season titles for archives'
     ]
 
 
@@ -401,20 +381,6 @@ class BaseCardType(ImageMaker, ABC):
                 f'SplitCharacteristics dictionary'
             )
 
-        if not hasattr(cls, 'ARCHIVE_NAME'):
-            raise NotImplementedError(f'{ClsName}.ARCHIVE_NAME')
-        if not isinstance(cls.ARCHIVE_NAME, str):
-            raise TypeError(f'{ClsName}.ARCHIVE_NAME must be a string')
-        if len(cls.ARCHIVE_NAME) == 0:
-            raise ValueError(
-                f'{ClsName}.ARCHIVE_NAME must be at least 1 character long'
-            )
-
-        if not hasattr(cls, 'USES_SEASON_TITLE'):
-            raise NotImplementedError(f'{ClsName}.USES_SEASON_TITLE')
-        if not isinstance(cls.USES_SEASON_TITLE, bool):
-            raise TypeError(f'{ClsName}.USES_SEASON_TITLE must be a boolean')
-
         if not isinstance(cls.DEFAULT_FONT_CASE, str):
             raise TypeError(f'{ClsName}.DEFAULT_FONT_CASE must be a string')
         if cls.DEFAULT_FONT_CASE not in (
@@ -464,109 +430,6 @@ class BaseCardType(ImageMaker, ABC):
         )
 
         return f'<{self.__class__.__name__} {attributes}>'
-
-
-    @staticmethod
-    def modify_extras( # pylint: disable=unused-argument
-            extras: dict[str, Any],
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras base on whether font or season titles
-        are custom. The default behavior is to not modify the extras at
-        all.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        return None
-
-
-    @classmethod
-    def _is_custom_font(
-            cls: type['BaseCardType'],
-            font: 'Font',
-        ) -> bool:
-        """
-        Whether the given font is custom based on all the standard
-        font definitions of this class.
-
-        Args:
-            font: Font being evaluated.
-
-        Returns:
-            True if the given Font is customized, False otherwise.
-        """
-
-        return (
-            font.color != cls.TITLE_COLOR
-            or font.file != cls.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.kerning != 1.0
-            or font.size != 1.0
-            or font.stroke_width != 1.0
-            or font.vertical_shift != 0
-        )
-
-
-    @staticmethod
-    @abstractmethod
-    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
-        """
-        Abstract method to determine whether the given font
-        characteristics indicate the use of a custom font or not.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        raise NotImplementedError
-
-
-    @staticmethod
-    def _is_custom_extras(
-            extras: dict[str, Any],
-            default_extras: dict[str, Any],
-        ) -> bool:
-        """
-        Determine whether the given extra dictionary is customized. This
-        compares the assumes `default_extras` is a dictionary of keys
-        whose values indicate the "default" ones.
-
-        Args:
-            extras: Dictionary being evaluated.
-            default_extras: Dictionary of default extras.
-
-        Returns:
-            Whether the dictionary has been customized.
-        """
-
-        return any(
-            key in extras and extras[key] != default_value
-            for key, default_value in default_extras.items()
-        )
-
-
-    @staticmethod
-    @abstractmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Abstract method to determine whether the given season
-        characteristics indicate the use of a custom season title or not.
-
-        Returns:
-            True if a custom season title is indicated, False otherwise.
-        """
-
-        raise NotImplementedError
 
 
     @staticmethod

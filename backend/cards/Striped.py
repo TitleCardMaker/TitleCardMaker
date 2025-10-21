@@ -3,14 +3,12 @@ from math import tan, pi as PI
 from pathlib import Path
 from random import choice as random_choice, randint
 from re import IGNORECASE, compile as re_compile
-from typing import TYPE_CHECKING, Any, Literal, Sequence, Union
+from typing import Annotated, Any, Literal, Sequence
 
 from pydantic import (
+    Field,
     FilePath,
-    PositiveFloat,
-    confloat,
-    conint,
-    constr,
+    StringConstraints,
     field_validator,
 )
 
@@ -24,9 +22,6 @@ from modules.BaseCardType import (
     ImageMagickCommands,
 )
 from modules.Title import SplitCharacteristics
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 STRIPE_DOC_LINK = 'https://titlecardmaker.com/card_types/striped/#definition'
@@ -411,12 +406,6 @@ class StripedTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = 'Episode {episode_number}'
     INDEX_TEXT_FONT = REF_DIRECTORY / 'Gotham-Medium.ttf'
 
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Striped Style'
-
     """Implementation details"""
     DEFAULT_ANGLE = 79.5 # Degrees
     DEFAULT_INSET = 50
@@ -722,85 +711,6 @@ class StripedTitleCard(BaseCardType):
 
 
     @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        if not custom_font:
-            if 'episode_text_color' in extras:
-                extras['episode_text_color'] = StripedTitleCard.EPISODE_TEXT_COLOR
-            if 'episode_text_font_size' in extras:
-                extras['episode_text_font_size'] = 1.0
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != StripedTitleCard.EPISODE_TEXT_COLOR)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
-        )
-
-        return (
-            custom_extras
-            or font.color != StripedTitleCard.TITLE_COLOR
-            or font.file != StripedTitleCard.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.kerning != 1.0
-            or font.size != 1.0
-            or font.vertical_shift != 0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != StripedTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
-    @staticmethod
     def get_title_split_characteristics(
             characteristics: SplitCharacteristics,
             default_font_file: str,
@@ -869,14 +779,15 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     # Regex to match all supported types of polygon definitions
-    common_kwargs = {'strip_whitespace': True, 'to_lower': True}
-    PolygonDefintion = Union[
-        constr(**common_kwargs, pattern=r'^random\[[sml]+\]$'),
-        constr(**common_kwargs, pattern=r'^random\[(\d+,?)+\]$'),
-        constr(**common_kwargs, pattern=r'^random\[(\d+-\d+,?)+\]$'),
-        constr(**common_kwargs, pattern=r'^[sml]+\+?$'),
-        constr(**common_kwargs, pattern=r'^(\d+,?)+\+?$'),
-        constr(**common_kwargs, pattern=r'^(\d+-\d+,?)+\+?$'),
+    kwargs = {'strip_whitespace': True, 'to_lower': True}
+    PolygonDefintion = Annotated[
+        str,
+        StringConstraints(**kwargs, pattern=r'^random\[[sml]+\]$'),
+        StringConstraints(**kwargs, pattern=r'^random\[(\d+,?)+\]$'),
+        StringConstraints(**kwargs, pattern=r'^random\[(\d+-\d+,?)+\]$'),
+        StringConstraints(**kwargs, pattern=r'^[sml]+\+?$'),
+        StringConstraints(**kwargs, pattern=r'^(\d+,?)+\+?$'),
+        StringConstraints(**kwargs, pattern=r'^(\d+-\d+,?)+\+?$'),
     ]
 
     # pyright: reportInvalidTypeForm=false
@@ -888,17 +799,26 @@ def get_validator_model() -> type[Base]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         font_vertical_shift: int = 0
-        angle: confloat(le=135, ge=45) = StripedTitleCard.DEFAULT_ANGLE
+        angle: Annotated[
+            float,
+            Field(le=135, ge=45)
+        ] = StripedTitleCard.DEFAULT_ANGLE
         episode_text_color: str = StripedTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: PositiveFloat = 1.0
-        episode_text_vertical_shift: conint(ge=-1800, le=1800) = 0
-        inset: conint(ge=0, le=1600) = StripedTitleCard.DEFAULT_INSET
-        inter_stripe_spacing: conint(
-            ge=0,
-            le=800
-        ) = StripedTitleCard.DEFAULT_INTER_STRIPE_SPACING
+        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_vertical_shift: Annotated[
+            int,
+            Field(ge=-1800, le=1800)
+        ] = 0
+        inset: Annotated[
+            int,
+            Field(ge=0, le=1600)
+        ] = StripedTitleCard.DEFAULT_INSET
+        inter_stripe_spacing: Annotated[
+            int,
+            Field(ge=0, le=800)
+        ] = StripedTitleCard.DEFAULT_INTER_STRIPE_SPACING
         overlay_color: str = StripedTitleCard.DEFAULT_OVERLAY_COLOR
         polygons: PolygonDefintion = StripedTitleCard.DEFAULT_POLYGON_STRING
         separator: str = ' - '

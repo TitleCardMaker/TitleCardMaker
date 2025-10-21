@@ -1,9 +1,16 @@
 from collections import namedtuple
 from pathlib import Path
 from re import match as re_match
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import FilePath, conint, constr, field_validator, model_validator
+from pydantic import (
+    Field,
+    FilePath,
+    StringConstraints,
+    constr,
+    field_validator,
+    model_validator,
+)
 
 from app.schemas.base import Base, BaseCardTypeCustomFontNoText
 from modules.BaseCardType import (
@@ -12,9 +19,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 BoxCoordinates = namedtuple('BoxCoordinates', ('x0', 'y0', 'x1', 'y1'))
@@ -128,14 +132,8 @@ class TintedGlassTitleCard(BaseCardType):
     EPISODE_TEXT_COLOR = 'SlateGray1'
     EPISODE_TEXT_FONT = SW_REF_DIRECTORY / 'HelveticaNeue-Bold.ttf'
 
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = False
-
     """Whether this CardType uses unique source images"""
     USES_UNIQUE_SOURCES = True
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Tinted Glass Style'
 
     """Darkened area behind title/episode text is nearly black and 70% opaque"""
     DARKEN_COLOR = 'rgba(25, 25, 25, 0.7)'
@@ -396,95 +394,6 @@ class TintedGlassTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras base on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        if not custom_font:
-            for extra in (
-                'box_adjustments',
-                'episode_text_color',
-                'glass_color',
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if the given font is custom, False otherwise.
-        """
-
-        custom_extras = TintedGlassTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'box_adjustments': '0 0 0 0',
-                'episode_text_color': TintedGlassTitleCard.EPISODE_TEXT_COLOR,
-                'glass_color': TintedGlassTitleCard.DARKEN_COLOR,
-            }
-        )
-
-        return (
-            custom_extras
-            or font.color != TintedGlassTitleCard.TITLE_COLOR
-            or font.file != TintedGlassTitleCard.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.kerning != 1.0
-            or font.size != 1.0
-            or font.vertical_shift != 0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        standard_etfs = (
-            '{series_name} | S{season_number} E{episode_number}',
-            'S{season_number} E{episode_number}'
-        )
-
-        return (
-            custom_episode_map
-            or episode_text_format not in standard_etfs
-        )
-
-
     def create(self):
         """
         Make the necessary ImageMagick and system calls to create this
@@ -524,7 +433,7 @@ def get_validator_model() -> type[Base]:
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontNoText):
         title_text: str
-        episode_text: constr(to_upper=True)
+        episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
         font_color: str = TintedGlassTitleCard.TITLE_COLOR
         font_file: FilePath = TintedGlassTitleCard.TITLE_FONT # type: ignore
@@ -532,10 +441,10 @@ def get_validator_model() -> type[Base]:
         episode_text_color: str = TintedGlassTitleCard.EPISODE_TEXT_COLOR
         episode_text_position: Position = 'center'
         glass_color: str = TintedGlassTitleCard.DARKEN_COLOR
-        rounding_radius: conint(
-            ge=1,
-            le=150
-        ) = TintedGlassTitleCard.DEFAULT_ROUNDING_RADIUS
+        rounding_radius: Annotated[
+            int,
+            Field(ge=1, le=150)
+        ] = TintedGlassTitleCard.DEFAULT_ROUNDING_RADIUS
         vertical_adjustment: int = 0
 
         @field_validator('box_adjustments', mode='after')

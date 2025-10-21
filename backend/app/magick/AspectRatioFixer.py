@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Literal
 
-from app.magick.base import ImageMaker
 from app.logging.logger import log
+from app.magick.base import ImageMaker
 
 
 class AspectRatioFixer(ImageMaker):

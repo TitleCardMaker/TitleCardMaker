@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import FilePath, PositiveFloat, constr, model_validator
+from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.schemas.base import Base, BaseCardTypeCustomFontNoText
 from modules.BaseCardType import (
@@ -11,8 +11,6 @@ from modules.BaseCardType import (
     ImageMagickCommands,
 )
 
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 GradientType = Literal['original', 'improved']
 
@@ -113,12 +111,6 @@ class OlivierTitleCard(BaseCardType):
     EPISODE_PREFIX_FONT = SW_REF_DIRECTORY / 'HelveticaNeue.ttc'
     EPISODE_NUMBER_FONT = SW_REF_DIRECTORY / 'HelveticaNeue-Bold.ttf'
     STROKE_COLOR = 'black'
-
-    """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE = False
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Olivier Style'
 
     """Gradient image"""
     GRADIENT = REF_DIRECTORY.parent / 'overline' / 'small_gradient.png'
@@ -347,84 +339,6 @@ class OlivierTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset custom episode text color and stroke color
-        if not custom_font:
-            for extra in (
-                'episode_text_color',
-                'episode_text_font_size',
-                'episode_text_vertical_shift',
-                'stroke_color',
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given arguments represent a custom font
-        for this card.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    OlivierTitleCard.EPISODE_TEXT_COLOR)
-            or ('episode_text_font_size' in extras
-                and extras['episode_text_font_size'] != 1.0)
-            or ('episode_text_vertical_shift' in extras
-                and extras['episode_text_vertical_shift'] != 0)
-            or ('stroke_color' in extras
-                and extras['stroke_color'] != 'black')
-        )
-
-        return custom_extras or OlivierTitleCard._is_custom_font(font)
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if the episode map or episode text format is custom,
-            False otherwise.
-        """
-
-        return episode_text_format !=  OlivierTitleCard.EPISODE_TEXT_FORMAT
-
-
     def create(self) -> None:
         """Create the title card as defined by this object."""
 
@@ -448,19 +362,20 @@ class OlivierTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    CustomGradient = constr(pattern=r'^custom:.*$')
-
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontNoText):
         title_text: str
-        episode_text: constr(to_upper=True)
+        episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
         font_color: str = OlivierTitleCard.TITLE_COLOR
         font_file: FilePath = OlivierTitleCard.TITLE_FONT # type: ignore
         episode_text_color: str = OlivierTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
         episode_text_vertical_shift: int = 0
-        gradient_type: GradientType | CustomGradient = 'improved'
+        gradient_type: (
+            Annotated[str, StringConstraints(pattern=r'^custom:.*$')]
+            | GradientType
+        ) = 'improved'
         omit_gradient: bool = True
         stroke_color: str = OlivierTitleCard.STROKE_COLOR
 

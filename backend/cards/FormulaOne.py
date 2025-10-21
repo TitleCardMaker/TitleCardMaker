@@ -1,12 +1,11 @@
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
+    Field,
     FilePath,
-    PositiveFloat,
-    PositiveInt,
-    constr,
+    StringConstraints,
     model_validator,
 )
 
@@ -17,9 +16,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 Country = Literal[
@@ -133,12 +129,6 @@ class FormulaOneTitleCard(BaseCardType):
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Formula1-Bold.otf'
     EPISODE_TEXT_FORMAT = 'ROUND {season_number}'
     EPISODE_TEXT_COLOR = 'white'
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Formula 1 Style'
 
     """Implementation details"""
     DARKEN_COLOR = 'rgba(0,0,0,0.5)'
@@ -389,81 +379,6 @@ class FormulaOneTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict[str, Any],
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        if not custom_font:
-            for extra in ('episode_text_color', 'episode_text_font_size'):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = FormulaOneTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'episode_text_color': FormulaOneTitleCard.EPISODE_TEXT_COLOR,
-                'episode_text_font_size': 1.0,
-            }
-        )
-
-        return (
-            custom_extras
-            or font.color != FormulaOneTitleCard.TITLE_COLOR
-            or font.file != FormulaOneTitleCard.TITLE_FONT
-            or font.size != 1.0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != FormulaOneTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -494,22 +409,25 @@ def get_validator_model() -> type[Base]:
         airdate: datetime | None = None
         font_color: str = FormulaOneTitleCard.TITLE_COLOR
         font_file: FilePath = FormulaOneTitleCard.TITLE_FONT # type: ignore
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         country: Country | None = None
         episode_text_color: str = FormulaOneTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
         flag: Path | None = None
-        frame_year: PositiveInt | None = None
-        race: constr(min_length=1, to_upper=True) = 'GRAND PRIX'
+        frame_year: Annotated[int, Field(gt=0)] | None = None
+        race: Annotated[
+            str,
+            StringConstraints(min_length=1, to_upper=True)
+        ] = 'GRAND PRIX'
 
         @model_validator(mode='after')
         def parse_country(self) -> Self:
             """Parse the country from the season text, if none was provided"""
             if self.country is None:
                 if self.season_text.upper() in FormulaOneTitleCard._COUNTRY_FLAGS:
-                    self.country = self.season_text.upper()
+                    self.country = self.season_text.upper() # type: ignore
                 else:
-                    self.country = 'GENERIC'
+                    self.country = 'generic'
             return self
 
         @model_validator(mode='after')

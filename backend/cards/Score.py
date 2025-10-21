@@ -1,8 +1,8 @@
 from pathlib import Path
 from random import choice as random_choice
-from typing import Any, Literal, TYPE_CHECKING, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import FilePath, PositiveFloat, constr, model_validator
+from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.info.episode import EpisodeInfo
 from app.schemas.base import Base, BaseCardTypeAllText
@@ -13,9 +13,6 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Shadow,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 LabelPlacement = Literal['above', 'below', 'random']
@@ -176,12 +173,6 @@ class ScoreTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = 'EPISODE {episode_number}'
     EPISODE_TEXT_COLOR = TITLE_COLOR
     EPISODE_TEXT_FONT = TITLE_FONT
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = False
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Score Style'
 
     """Default variables"""
     STROKE_COLOR = 'black'
@@ -559,99 +550,6 @@ class ScoreTitleCard(BaseCardType):
         )
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset episode text and box colors
-        if not custom_font:
-            for extra in (
-                'episode_text_color',
-                'episode_text_font_size',
-                'episode_text_horizontal_offset',
-                'episode_text_vertical_offset',
-                'season_text_color',
-                'stroke_color',
-                'title_text_horizontal_offset',
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = ScoreTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'episode_text_color': ScoreTitleCard.EPISODE_TEXT_COLOR,
-                'episode_text_font_size': 1.0,
-                'episode_text_horizontal_offset': 0,
-                'episode_text_vertical_offset': 0,
-                'season_text_color': ScoreTitleCard.EPISODE_TEXT_COLOR,
-                'stroke_color': ScoreTitleCard.STROKE_COLOR,
-                'title_text_horizontal_offset': 0,
-            }
-        )
-
-        return (
-            custom_extras
-            or font.color != ScoreTitleCard.TITLE_COLOR
-            or font.file != ScoreTitleCard.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.kerning != 1.0
-            or font.size != 1.0
-            or font.vertical_shift != 0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != ScoreTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -675,7 +573,10 @@ class ScoreTitleCard(BaseCardType):
 def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
-    ColorPair = constr(pattern=r'^\S+( \S+)?$', strip_whitespace=True)
+    ColorPair = Annotated[
+        str,
+        StringConstraints(pattern=r'^\S+( \S+)?$', strip_whitespace=True)
+    ]
 
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
@@ -684,10 +585,10 @@ def get_validator_model() -> type[Base]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         font_vertical_shift: int = 0
         episode_text_color: ColorPair | None = None
-        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
         episode_text_horizontal_offset: int = 0
         episode_text_vertical_offset: int = 0
         season_text_color: ColorPair | None = None

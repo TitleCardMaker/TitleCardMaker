@@ -1,9 +1,9 @@
 from pathlib import Path
 from random import choice
 from re import compile as re_compile
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import Annotated, Any, NamedTuple
 
-from pydantic import FilePath, PositiveFloat, field_validator
+from pydantic import Field, FilePath, field_validator
 
 from app.logging.logger import log
 from app.schemas.base import Base, BaseCardTypeAllText
@@ -13,9 +13,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 class Offset:
@@ -272,15 +269,9 @@ class RomanNumeralTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = '{episode_number}'
     GENERIC_EPISODE_TEXT_FORMATS = (EPISODE_TEXT_FORMAT, '{abs_number}')
 
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
-
     """Whether this CardType uses unique source images"""
     USES_UNIQUE_SOURCES = False
     USES_SOURCE_IMAGES = False
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Roman Numeral Style'
 
     """Blur profile for this card is 1/3 the radius of the standard blur"""
     BLUR_PROFILE = '0x30'
@@ -706,93 +697,6 @@ class RomanNumeralTitleCard(BaseCardType):
             pass
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras base on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset roman numeral color and background
-        if not custom_font:
-            for extra in (
-                'background',
-                'roman_numeral_color',
-                'season_text_color',
-                'season_text_size',
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            False, as custom fonts aren't used.
-        """
-
-        custom_extras = RomanNumeralTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'background': RomanNumeralTitleCard.BACKGROUND_COLOR,
-                'roman_numeral_color': RomanNumeralTitleCard.ROMAN_NUMERAL_TEXT_COLOR,
-                'season_text_color': RomanNumeralTitleCard.SEASON_TEXT_COLOR,
-                'season_text_size': 1.0,
-            }
-        )
-
-        return (
-            custom_extras
-            or font.color != RomanNumeralTitleCard.TITLE_COLOR
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.file != RomanNumeralTitleCard.TITLE_FONT
-            or font.size != 1.0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if the episode map or episode text format is custom,
-            False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format not in \
-                RomanNumeralTitleCard.GENERIC_EPISODE_TEXT_FORMATS
-        )
-
-
     def create(self):
         """
         Make the necessary ImageMagick and system calls to create this
@@ -831,11 +735,11 @@ def get_validator_model() -> type[Base]:
         font_file: FilePath = RomanNumeralTitleCard.TITLE_FONT # type: ignore
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         background: str = RomanNumeralTitleCard.BACKGROUND_COLOR
         roman_numeral_color: str = RomanNumeralTitleCard.ROMAN_NUMERAL_TEXT_COLOR
         season_text_color: str = RomanNumeralTitleCard.SEASON_TEXT_COLOR
-        season_text_size: PositiveFloat = 1.0
+        season_text_size: Annotated[float, Field(gt=0)] = 1.0
 
         @field_validator('episode_text', mode='after')
         @classmethod

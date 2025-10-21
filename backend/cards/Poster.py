@@ -1,13 +1,10 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Self
+from typing import Annotated, Any, Self
 
-from pydantic import FilePath, PositiveFloat, constr, model_validator
+from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import BaseCardType, Extra, CardTypeDescription
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 class PosterTitleCard(BaseCardType):
@@ -61,12 +58,6 @@ class PosterTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = 'Ep. {episode_number}'
     EPISODE_TEXT_COLOR = '#FFFFFF'
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Amuro.otf'
-
-    """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE = False
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Poster Style'
 
     """Custom blur profile for the poster"""
     BLUR_PROFILE = '0x30'
@@ -130,81 +121,6 @@ class PosterTitleCard(BaseCardType):
         self.episode_text_color = episode_text_color
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset custom episode text color
-        if not custom_font:
-            for extra in ('episode_text_color', ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determines whether the given arguments represent a custom font
-        for this card. This CardType does not use custom fonts, so this
-        is always False.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        returns:
-            False, as fonts are not customizable with this card.
-        """
-
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    PosterTitleCard.EPISODE_TEXT_COLOR)
-        )
-
-        return (
-            custom_extras
-            or font.color != PosterTitleCard.TITLE_COLOR
-            or font.file != PosterTitleCard.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.size != 1.0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determines whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            episode_text_format: The episode text format in use.
-            args and kwargs: Generic arguments to permit  generalized
-                function calls for any CardType.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return episode_text_format != PosterTitleCard.EPISODE_TEXT_FORMAT
-
-
     def create(self) -> None:
         """Create the title card as defined by this object."""
 
@@ -266,13 +182,13 @@ def get_validator_model() -> type[Base]:
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
-        episode_text: constr(to_upper=True)
+        episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
         font_color: str = PosterTitleCard.TITLE_COLOR
         font_file: FilePath = PosterTitleCard.TITLE_FONT # type: ignore
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         logo_file: Path | None = None
         episode_text_color: str | None = None
 

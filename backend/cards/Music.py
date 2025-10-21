@@ -1,15 +1,12 @@
 from pathlib import Path
 from random import random
 from re import match as re_match
-from typing import TYPE_CHECKING, Any, Literal, NamedTuple, Self
+from typing import Annotated, Any, Literal, NamedTuple, Self
 
 from pydantic import (
+    Field,
     FilePath,
-    PositiveFloat,
-    PositiveInt,
-    confloat,
-    conint,
-    constr,
+    StringConstraints,
     field_validator,
     model_validator,
 )
@@ -31,8 +28,6 @@ from modules.BaseCardType import (
 from modules.FormatString import FormatString
 from modules.Title import SplitCharacteristics
 
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 class ControlColors(NamedTuple): # pylint: disable=missing-class-docstring
     shuffle: str
@@ -54,7 +49,7 @@ class MusicTitleCard(BaseCardType):
     """
 
     """API Parameters"""
-    API_DETAILS: CardTypeDescription = CardTypeDescription(
+    API_DETAILS = CardTypeDescription(
         name='Music',
         identifier='music',
         example='/public/cards/music.webp',
@@ -285,9 +280,6 @@ class MusicTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = 'E{episode_number}'
     EPISODE_TEXT_COLOR = 'white'
     INDEX_TEXT_FONT = REF_DIRECTORY / 'Gotham-Medium.ttf'
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE: bool = True
 
     """How to name archive directories for this type of card"""
     ARCHIVE_NAME: str = 'Music Style'
@@ -1041,84 +1033,6 @@ class MusicTitleCard(BaseCardType):
 
 
     @staticmethod
-    def modify_extras(
-            extras: dict[str, Any],
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        if not custom_font:
-            for extra in (
-                'control_colors',
-                'episode_text_color',
-                'timeline_color',
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            ('control_colors' in extras
-                and extras['control_colors'] != \
-                    MusicTitleCard.DEFAULT_CONTROL_COLORS)
-            or ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    MusicTitleCard.EPISODE_TEXT_COLOR)
-            or ('timeline_color' in extras
-                and extras['timeline_color'] != \
-                    MusicTitleCard.DEFAULT_TIMELINE_COLOR)
-        )
-
-        return custom_extras or MusicTitleCard._is_custom_font(font)
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != MusicTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
-    @staticmethod
     def get_title_split_characteristics(
             characteristics: SplitCharacteristics,
             default_font_file: str,
@@ -1192,7 +1106,6 @@ def get_validator_model() -> type[Base]:
 
     # Regex for individually coloring the controls
     ControlColorRegex = r'^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$'
-    ColorControls = constr(pattern=ControlColorRegex)
 
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontAllText):
@@ -1200,23 +1113,35 @@ def get_validator_model() -> type[Base]:
         font_color: str = MusicTitleCard.TITLE_COLOR
         add_controls: bool = False
         album_cover: FilePath | None = None
-        album_size: PositiveFloat = 1.0
-        control_colors: ColorControls = MusicTitleCard.DEFAULT_CONTROL_COLORS
+        album_size: Annotated[float, Field(gt=0)] = 1.0
+        control_colors: tuple[str, str, str, str, str] | Annotated[
+            str,
+            StringConstraints(pattern=ControlColorRegex)
+        ] = MusicTitleCard.DEFAULT_CONTROL_COLORS
         draw_heart: bool = False
         episode_text_color: str = MusicTitleCard.EPISODE_TEXT_COLOR
-        percentage: confloat(ge=0.0, le=1.0) | str | Literal['random'] = 'random'
+        percentage: Annotated[
+            float,
+            Field(ge=0.0, le=1.0)
+        ] | str | Literal['random'] = 'random'
         heart_color: str = 'transparent'
         heart_stroke_color: str = 'white'
         pause_or_play: PlayerAction = MusicTitleCard.DEFAULT_PLAYER_ACTION
         player_color: str = MusicTitleCard.DEFAULT_PLAYER_COLOR
-        player_inset: conint(ge=0, le=1200) = MusicTitleCard.DEFAULT_INSET
+        player_inset: Annotated[
+            int,
+            Field(ge=0, le=1200)
+        ] = MusicTitleCard.DEFAULT_INSET
         player_position: PlayerPosition = MusicTitleCard.DEFAULT_PLAYER_POSITION
         player_style: PlayerStyle = MusicTitleCard.DEFAULT_PLAYER_STYLE
-        player_width: conint(ge=400, le=3000) = MusicTitleCard.DEFAULT_PLAYER_WIDTH
+        player_width: Annotated[
+            int,
+            Field(ge=400, le=3000)
+        ] = MusicTitleCard.DEFAULT_PLAYER_WIDTH
         round_corners: bool = True
         subtitle: str = '{series_name}'
         timeline_color: str = MusicTitleCard.DEFAULT_TIMELINE_COLOR
-        truncate_long_titles: PositiveInt | Literal['False'] = 3
+        truncate_long_titles: Annotated[int, Field(gt=0)] | Literal['False'] = 3
         watched: bool | None = None
 
         @field_validator('control_colors', mode='after')

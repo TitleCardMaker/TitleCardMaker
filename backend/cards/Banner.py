@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Self
+from typing import Annotated, Any, Self
 
-from pydantic import FilePath, PositiveFloat, conint, model_validator
+from pydantic import Field, FilePath, model_validator
 
 from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardTypeAllText
@@ -11,9 +11,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 class BannerTitleCard(BaseCardType):
@@ -111,15 +108,9 @@ class BannerTitleCard(BaseCardType):
     EPISODE_TEXT_COLOR = 'black'
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Gill Sans Nova ExtraBold.ttf'
 
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Banner Style'
-
     """Implementation details"""
-    BANNER_HEIGHT = 185
-    X_OFFSET = 50
+    DEFAULT_BANNER_HEIGHT = 185
+    DEFAULT_X_OFFSET = 50
 
     __slots__ = (
         'alternate_color',
@@ -164,10 +155,10 @@ class BannerTitleCard(BaseCardType):
             grayscale: bool = False,
             alternate_color: str = EPISODE_TEXT_COLOR,
             banner_color: str = TITLE_COLOR,
-            banner_height: int = BANNER_HEIGHT,
+            banner_height: int = DEFAULT_BANNER_HEIGHT,
             episode_text_font_size: float = 1.0,
             hide_banner: bool = False,
-            x_offset: int = X_OFFSET,
+            x_offset: int = DEFAULT_X_OFFSET,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this Card."""
@@ -364,92 +355,6 @@ class BannerTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict[str, Any],
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        if not custom_font:
-            for extra in (
-                'alternate_color',
-                'banner_color',
-                'episode_text_font_size',
-                'x_offset'
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = BannerTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'alternate_color': BannerTitleCard.EPISODE_TEXT_COLOR,
-                'banner_color': BannerTitleCard.TITLE_COLOR,
-                'episode_text_font_size': 1.0,
-                'x_offset': BannerTitleCard.X_OFFSET,
-            }
-        )
-
-        return (
-            custom_extras
-            or font.color != BannerTitleCard.TITLE_COLOR
-            or font.file != BannerTitleCard.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.kerning != 1.0
-            or font.size != 1.0
-            or font.vertical_shift != 0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != BannerTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -478,14 +383,20 @@ def get_validator_model() -> type[Base]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(ge=0.0)] = 1.0
         font_vertical_shift: int = 0
         alternate_color: str = BannerTitleCard.EPISODE_TEXT_COLOR
         banner_color: str | None = None
-        banner_height: conint(ge=0, le=1800) = BannerTitleCard.BANNER_HEIGHT
-        episode_text_font_size: PositiveFloat = 1.0
+        banner_height: Annotated[
+            int,
+            Field(ge=0, le=1800)
+        ] = BannerTitleCard.DEFAULT_BANNER_HEIGHT
+        episode_text_font_size: Annotated[float, Field(ge=0.0)] = 1.0
         hide_banner: bool = False
-        x_offset: conint(ge=0, le=3200) = BannerTitleCard.X_OFFSET
+        x_offset: Annotated[
+            int,
+            Field(ge=0, le=3200)
+        ] = BannerTitleCard.DEFAULT_X_OFFSET
 
         @model_validator(mode='after')
         def assign_unassigned_color(self) -> Self:

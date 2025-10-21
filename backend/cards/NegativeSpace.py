@@ -1,8 +1,8 @@
 from pathlib import Path
 from random import random
-from typing import Any, Literal, TYPE_CHECKING, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import FilePath, PositiveFloat, constr, model_validator
+from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
@@ -11,9 +11,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 TextSide = Literal['left', 'right']
@@ -118,12 +115,6 @@ class NegativeSpaceTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = '{episode_number}'
     EPISODE_TEXT_COLOR = TITLE_COLOR
     EPISODE_TEXT_FONT = TITLE_FONT
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = False
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Negative Space Style'
 
     """Implementation Details"""
     DEFAULT_TEXT_SIDE: TextSide = 'left'
@@ -364,90 +355,6 @@ class NegativeSpaceTitleCard(BaseCardType):
         return image
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset episode text and box colors
-        if not custom_font:
-            for extra in (
-                'episode_text_color',
-                'episode_text_font_size',
-                'episode_text_horizontal_offset',
-                'episode_text_vertical_offset',
-                'title_text_horizontal_offset',
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    NegativeSpaceTitleCard.EPISODE_TEXT_COLOR)
-            or (extras.get('episode_text_font_size', 1.0) != 1.0)
-        )
-
-        return (custom_extras
-            or ((font.color != NegativeSpaceTitleCard.TITLE_COLOR)
-            or (font.file != NegativeSpaceTitleCard.TITLE_FONT)
-            or (font.interline_spacing != 0)
-            or (font.interword_spacing != 0)
-            or (font.kerning != 1.0)
-            or (font.size != 1.0)
-            or (font.vertical_shift != 0))
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != NegativeSpaceTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -490,19 +397,21 @@ def get_validator_model() -> type[Base]:
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
-        episode_text: constr(to_upper=True)
+        episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
         font_color: str = NegativeSpaceTitleCard.TITLE_COLOR
         font_file: FilePath = NegativeSpaceTitleCard.TITLE_FONT # type: ignore
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         font_vertical_shift: int = 0
         episode_text_color: str | None = None
-        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
         episode_text_horizontal_offset: int = 0
         episode_text_vertical_offset: int = 0
-        text_side: TextSide | Literal['random'] = NegativeSpaceTitleCard.DEFAULT_TEXT_SIDE
+        text_side: (
+            TextSide | Literal['random']
+        ) = NegativeSpaceTitleCard.DEFAULT_TEXT_SIDE
         title_text_horizontal_offset: int = 0
 
         @model_validator(mode='after')

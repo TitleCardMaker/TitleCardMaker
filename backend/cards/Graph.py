@@ -1,17 +1,9 @@
 from math import cos, sin, pi
 from pathlib import Path
 from re import compile as re_compile
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import (
-    FilePath,
-    PositiveFloat,
-    PositiveInt,
-    confloat,
-    conint,
-    constr,
-    model_validator,
-)
+from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardModel
@@ -23,9 +15,6 @@ from modules.BaseCardType import (
     ImageMagickCommands,
     Line,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 TextPosition = Literal[
@@ -242,12 +231,6 @@ class GraphTitleCard(BaseCardType):
     """Characteristics of the episode text"""
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'HelveticaNeue-BoldItalic.ttf'
     EPISODE_TEXT_FORMAT = '{episode_number} / {season_episode_max}'
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = False
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Graph Style'
 
     """Implementation details"""
     BACKGROUND_GRAPH_COLOR = 'rgba(140,140,140,0.5)'
@@ -627,76 +610,6 @@ class GraphTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict[str, Any],
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        if not custom_font:
-            for extra in ('graph_background_color', 'graph_color'):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = GraphTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'graph_background_color': GraphTitleCard.BACKGROUND_GRAPH_COLOR,
-                'graph_color': GraphTitleCard.GRAPH_COLOR,
-            }
-        )
-
-        return custom_extras or GraphTitleCard._is_custom_font(font)
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != GraphTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -731,25 +644,37 @@ def get_validator_model() -> type[Base]:
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
-        episode_text: constr(to_upper=True)
+        episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
         font_color: str
         font_file: FilePath
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         font_vertical_shift: int = 0
-        graph_text_font_size: PositiveFloat | None = None
+        graph_text_font_size: Annotated[float, Field(gt=0)] | None = None
         grayscale: bool = False
         graph_background_color: str = GraphTitleCard.BACKGROUND_GRAPH_COLOR
         graph_color: str = GraphTitleCard.GRAPH_COLOR
-        graph_inset: conint(ge=0, le=1800) = GraphTitleCard.GRAPH_INSET
-        graph_radius: conint(ge=50, le=900) = GraphTitleCard.GRAPH_RADIUS
-        graph_width: PositiveInt = GraphTitleCard.GRAPH_WIDTH
-        fill_scale: confloat(gt=0.0, le=1.0) = GraphTitleCard.GRAPH_FILL_SCALE
+        graph_inset: Annotated[
+            int,
+            Field(ge=0, le=1800)
+        ] = GraphTitleCard.GRAPH_INSET
+        graph_radius: Annotated[
+            int,
+            Field(ge=50, le=900)
+        ] = GraphTitleCard.GRAPH_RADIUS
+        graph_width: Annotated[
+            int,
+            Field(gt=0, le=1800)
+        ] = GraphTitleCard.GRAPH_WIDTH
+        fill_scale: Annotated[
+            float,
+            Field(gt=0.0, le=1.0)
+        ] = GraphTitleCard.GRAPH_FILL_SCALE
         omit_gradient: bool = False
-        percentage: confloat(ge=0.0, le=1.0) = 0.75
+        percentage: Annotated[float, Field(ge=0.0, le=1.0)] = 0.75
         text_position: TextPosition = 'lower left'
 
         @model_validator(mode='after')

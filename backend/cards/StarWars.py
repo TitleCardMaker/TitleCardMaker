@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Self
+from typing import Annotated, Any, Self
 
-from pydantic import FilePath, PositiveFloat, constr, model_validator
+from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
@@ -10,9 +10,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 class StarWarsTitleCard(BaseCardType):
@@ -68,12 +65,6 @@ class StarWarsTitleCard(BaseCardType):
     EPISODE_TEXT_COLOR = '#AB8630'
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'HelveticaNeue.ttc'
     EPISODE_NUMBER_FONT = REF_DIRECTORY / 'HelveticaNeue-Bold.ttf'
-
-    """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE = False
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Star Wars Style'
 
     """Path to the reference star image to overlay on all source images"""
     __STAR_GRADIENT_IMAGE = REF_DIRECTORY / 'star_gradient.png'
@@ -206,80 +197,6 @@ class StarWarsTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset episode text and box colors
-        if not custom_font:
-            for extra in ('episode_text_color', ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determines whether the given arguments represent a custom font
-        for this card.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            ('episode_text_color' in extras
-                and extras['episode_text_color'] != \
-                    StarWarsTitleCard.EPISODE_TEXT_COLOR)
-        )
-
-        return (
-            custom_extras
-            or font.color != StarWarsTitleCard.TITLE_COLOR
-            or font.file != StarWarsTitleCard.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.size != 1.0
-            or font.vertical_shift != 0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determines whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return episode_text_format != StarWarsTitleCard.EPISODE_TEXT_FORMAT
-
-
     def create(self) -> None:
         """Create the title card as defined by this object."""
 
@@ -308,14 +225,14 @@ def get_validator_model() -> type[Base]:
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
-        episode_text: constr(to_upper=True)
+        episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
         font_color: str = StarWarsTitleCard.TITLE_COLOR
         font_file: FilePath = StarWarsTitleCard.TITLE_FONT # type: ignore
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         font_vertical_shift: int = 0
         episode_text_color: str = StarWarsTitleCard.EPISODE_TEXT_COLOR
 

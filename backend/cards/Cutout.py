@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Annotated, Any
 
-from pydantic import FilePath, PositiveFloat, confloat, conint, constr
+from pydantic import Field, FilePath, StringConstraints
 
 from app.schemas.base import Base, BaseCardModel
 from modules.BaseCardType import (
@@ -10,9 +10,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 class CutoutTitleCard(BaseCardType):
@@ -119,12 +116,6 @@ class CutoutTitleCard(BaseCardType):
     TITLE_FONT = str((OLIVIER_REF_DIRECTORY / 'Montserrat-Bold.ttf').resolve())
     TITLE_COLOR = 'white'
     FONT_REPLACEMENTS = {}
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = False
-
-    """How to name archive directories for this type of card"""
-    ARCHIVE_NAME = 'Cutout Style'
 
     """Default fonts and color for series count text"""
     EPISODE_TEXT_FORMAT = '{to_cardinal(episode_number)}'
@@ -348,57 +339,6 @@ class CutoutTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = (
-            'overlay_color' in extras and extras['overlay_color'] != 'black'
-        )
-
-        return (custom_extras
-            or (
-                font.color != CutoutTitleCard.TITLE_COLOR
-                or font.file != CutoutTitleCard.TITLE_FONT
-                or font.interline_spacing != 0
-                or font.interword_spacing != 0
-                or font.kerning != 1.0
-                or font.size != 1.0
-                or font.vertical_shift != 0
-            )
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return episode_text_format != CutoutTitleCard.EPISODE_TEXT_FORMAT
-
-
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
@@ -440,18 +380,21 @@ def get_validator_model() -> type[Base]:
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
-        episode_text: constr(to_upper=True)
+        episode_text: Annotated[str, StringConstraints(to_upper=True)]
         font_color: str = CutoutTitleCard.TITLE_COLOR
         font_file: FilePath = CutoutTitleCard.TITLE_FONT # type: ignore
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(ge=0.0)] = 1.0
         font_vertical_shift: int = 0
         blur_edges: bool = False
-        blur_profile: constr(pattern=r'^\d+x\d+$') = CutoutTitleCard.BLUR_PROFILE
+        blur_profile: Annotated[
+            str,
+            StringConstraints(pattern=r'^\d+x\d+$')
+        ] = CutoutTitleCard.BLUR_PROFILE
         cutout_vertical_shift: int = 0
         overlay_color: str = 'black'
-        overlay_transparency: confloat(ge=0.0, le=1.0) = 0.0
-        title_horizontal_shift: conint(ge=-3200, le=3200) = 0
+        overlay_transparency: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
+        title_horizontal_shift: Annotated[int, Field(ge=-3200, le=3200)] = 0
 
     return CardModel

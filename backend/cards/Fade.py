@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Annotated, Any
 
-from pydantic import FilePath, PositiveFloat
+from pydantic import Field, FilePath
 
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from modules.BaseCardType import (
@@ -10,9 +10,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 class FadeTitleCard(BaseCardType):
@@ -76,9 +73,6 @@ class FadeTitleCard(BaseCardType):
     EPISODE_TEXT_FORMAT = 'EPISODE {episode_number}'
     EPISODE_TEXT_COLOR = 'rgb(163, 163, 163)'
     EPISODE_TEXT_FONT = FONT_REF_DIRECTORY / 'Proxima Nova Semibold.otf'
-
-    """Whether this class uses season titles for the purpose of archives"""
-    USES_SEASON_TITLE = True
 
     """How to name archive directories for this type of card"""
     ARCHIVE_NAME = '4x3 Fade Style'
@@ -231,64 +225,6 @@ class FadeTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict[str, Any]) -> bool:
-        """
-        Determine whether the given arguments represent a custom font
-        for this card.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = FadeTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'episode_text_color': FadeTitleCard.EPISODE_TEXT_COLOR,
-                'episode_text_font_size': 1.0,
-            }
-        )
-
-        return (
-            custom_extras
-            or font.color != FadeTitleCard.TITLE_COLOR
-            or font.file != FadeTitleCard.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.kerning != 1.0
-            or font.size != 1.0
-            or font.vertical_shift != 0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        genericseason titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if the episode map or episode text format is custom,
-            False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != FadeTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """Create the title card as defined by this object."""
 
@@ -329,8 +265,8 @@ def get_validator_model() -> type[Base]:
         font_file: FilePath = FadeTitleCard.TITLE_FONT # type: ignore
         logo_file: Path | None = None
         episode_text_color: str = FadeTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: PositiveFloat = 1.0
-        logo_size: PositiveFloat = 1.0
+        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        logo_size: Annotated[float, Field(gt=0)] = 1.0
         separator: str = '•'
 
     return CardModel

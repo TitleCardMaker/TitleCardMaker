@@ -39,6 +39,7 @@ from app.schemas.font import DefaultFont
 from app.schemas.card import NewTitleCard, TitleCardReduced
 from app.schemas.card_type import LocalCardTypeModels
 from app.settings import settings
+from cards import BUILTIN_CARD_TYPES
 from modules.BaseCardType import BaseCardType
 from modules.CleanPath import CleanPath
 from modules.FormatString import FormatString
@@ -47,7 +48,6 @@ from modules.RemoteFile import RemoteFile
 from modules.SeasonTitleRanges import SeasonTitleRanges
 from modules.TieredSettings import TieredSettings
 from modules.Title import Title
-from modules.TitleCard import TitleCard as TitleCardCreator
 
 
 def create_all_title_cards(*, log: Logger = log) -> None:
@@ -272,7 +272,7 @@ def refresh_remote_card_types(
     for card_identifier in card_identifiers:
         # Skip blank identifiers, and builtin or local cards
         if (card_identifier is None
-            or card_identifier in TitleCardCreator.CARD_TYPES
+            or card_identifier in BUILTIN_CARD_TYPES
             or card_identifier in settings.local_card_types):
             continue
 

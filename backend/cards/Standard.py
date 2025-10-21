@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import Annotated, Any
 
-from pydantic import FilePath, PositiveFloat
+from pydantic import Field, FilePath
 
 from app.logging.logger import log # noqa: F401
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
@@ -11,9 +11,6 @@ from modules.BaseCardType import (
     Extra,
     ImageMagickCommands,
 )
-
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 class StandardTitleCard(BaseCardType):
@@ -114,9 +111,6 @@ class StandardTitleCard(BaseCardType):
     FONT_REPLACEMENTS = {
         '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...', '“': '"'
     }
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = True
 
     """Standard class has standard archive name"""
     ARCHIVE_NAME = 'standard'
@@ -332,86 +326,6 @@ class StandardTitleCard(BaseCardType):
         ]
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras based on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset custom episode text color
-        if not custom_font:
-            for extra in (
-                'episode_text_color',
-                'episode_text_font_size',
-                'episode_text_stroke_color',
-                'episode_text_vertical_shift',
-                'stroke_color'
-            ):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if a custom font is indicated, False otherwise.
-        """
-
-        custom_extras = StandardTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'episode_text_color': StandardTitleCard.SERIES_COUNT_TEXT_COLOR,
-                'episode_text_font_size': 1.0,
-                'episode_text_stroke_color': StandardTitleCard.DEFAULT_STROKE_COLOR,
-                'episode_text_vertical_shift': 0,
-                'stroke_color': StandardTitleCard.DEFAULT_STROKE_COLOR,
-            }
-        )
-
-        return custom_extras or StandardTitleCard._is_custom_font(font)
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            True if custom season titles are indicated, False otherwise.
-        """
-
-        return (
-            custom_episode_map
-            or episode_text_format != StandardTitleCard.EPISODE_TEXT_FORMAT
-        )
-
-
     def create(self) -> None:
         """
         Make the necessary ImageMagick and system calls to create this
@@ -471,7 +385,7 @@ def get_validator_model() -> type[Base]:
         separator: str = '•'
         stroke_color: str = StandardTitleCard.DEFAULT_STROKE_COLOR
         episode_text_color: str = StandardTitleCard.SERIES_COUNT_TEXT_COLOR
-        episode_text_font_size: PositiveFloat = 1.0
+        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
         episode_text_stroke_color: str = StandardTitleCard.DEFAULT_STROKE_COLOR
         episode_text_vertical_shift: int = 0
 

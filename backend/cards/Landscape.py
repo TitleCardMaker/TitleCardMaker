@@ -1,13 +1,12 @@
 from collections import namedtuple
 from pathlib import Path
 from re import match as re_match
-from typing import TYPE_CHECKING, Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
+    Field,
     FilePath,
-    PositiveFloat,
-    PositiveInt,
-    conint,
+    StringConstraints,
     constr,
     field_validator,
     model_validator,
@@ -23,8 +22,6 @@ from modules.BaseCardType import (
     Shadow,
 )
 
-if TYPE_CHECKING:
-    from app.yaml.font import Font
 
 
 DarkenOption = Literal['all', 'box'] | bool
@@ -174,9 +171,6 @@ class LandscapeTitleCard(BaseCardType):
 
     """Default episode text format for this class"""
     EPISODE_TEXT_FORMAT = ''
-
-    """Whether this CardType uses season titles for archival purposes"""
-    USES_SEASON_TITLE = False
 
     """Whether this CardType uses unique source images"""
     USES_UNIQUE_SOURCES = True
@@ -474,82 +468,6 @@ class LandscapeTitleCard(BaseCardType):
         )
 
 
-    @staticmethod
-    def modify_extras(
-            extras: dict,
-            custom_font: bool,
-            custom_season_titles: bool,
-        ) -> None:
-        """
-        Modify the given extras base on whether font or season titles
-        are custom.
-
-        Args:
-            extras: Dictionary to modify.
-            custom_font: Whether the font are custom.
-            custom_season_titles: Whether the season titles are custom.
-        """
-
-        # Generic font, reset box adjustments and coloring
-        if not custom_font:
-            for extra in ('box_adjustments', 'box_color'):
-                if extra in extras:
-                    del extras[extra]
-
-
-    @staticmethod
-    def is_custom_font(font: 'Font', extras: dict) -> bool:
-        """
-        Determine whether the given font characteristics constitute a
-        default or custom font.
-
-        Args:
-            font: The Font being evaluated.
-            extras: Dictionary of extras for evaluation.
-
-        Returns:
-            True if the given font is custom, False otherwise.
-        """
-
-        custom_extras = LandscapeTitleCard._is_custom_extras(
-            extras,
-            default_extras={
-                'box_adjustments': '0 0 0 0',
-                'box_color': LandscapeTitleCard.TITLE_COLOR,
-            }
-        )
-
-        return (
-            custom_extras
-            or font.color != LandscapeTitleCard.TITLE_COLOR
-            or font.file != LandscapeTitleCard.TITLE_FONT
-            or font.interline_spacing != 0
-            or font.interword_spacing != 0
-            or font.kerning != 1.0
-            or font.size != 1.0
-        )
-
-
-    @staticmethod
-    def is_custom_season_titles(
-            custom_episode_map: bool,
-            episode_text_format: str,
-        ) -> bool:
-        """
-        Determine whether the given attributes constitute custom or
-        generic season titles.
-
-        Args:
-            custom_episode_map: Whether the EpisodeMap was customized.
-            episode_text_format: The episode text format in use.
-
-        Returns:
-            False, as season titles aren't used.
-        """
-
-        return False
-
-
     def create(self):
         """Create this object's defined Title Card."""
 
@@ -602,17 +520,23 @@ def get_validator_model() -> type[Base]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: PositiveFloat = 1.0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
         font_vertical_shift: int = 0
         add_bounding_box: bool = True
         blur_box: bool = False
         box_adjustments: BoxAdjustments = (0, 0, 0, 0)
-        box_blur_profile: constr(pattern=r'^\d+x\d+$') = LandscapeTitleCard.BOX_BLUR_PROFILE
+        box_blur_profile: Annotated[
+            str,
+            StringConstraints(pattern=r'^\d+x\d+$')
+        ] = LandscapeTitleCard.BOX_BLUR_PROFILE
         box_color: str | None = None
-        box_width: PositiveInt = LandscapeTitleCard.BOX_WIDTH
+        box_width: Annotated[int, Field(ge=0)] = LandscapeTitleCard.BOX_WIDTH
         darken: DarkenOption = 'box'
         darken_color: str = LandscapeTitleCard.DARKEN_COLOR
-        rounding_radius: conint(ge=0, le=500) = LandscapeTitleCard.ROUNDING_RADIUS
+        rounding_radius: Annotated[
+            int,
+            Field(ge=0, le=500)
+        ] = LandscapeTitleCard.ROUNDING_RADIUS
         shadow_color: str = LandscapeTitleCard.SHADOW_COLOR
 
         @field_validator('box_adjustments', mode='after')
