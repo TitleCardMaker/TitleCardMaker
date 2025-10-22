@@ -5,7 +5,7 @@ from typing import Callable
 
 from app.info.episode import EpisodeInfo
 from app.logging.logger import Logger, log
-from modules.FormatString import FormatString
+from app.utils.fstring import FormatString
 
 
 AbsoluteRange = namedtuple('AbsoluteRange', ('start', 'end'))
