@@ -753,10 +753,10 @@ def resolve_card_settings(
     # Exit if the source file does not exist
     if (CardClass.USES_SOURCE_IMAGES
         and not card_settings['source_file'].exists()):
-        log.debug(
+        log.debug((
             f'{episode} Card source image ({card_settings["source_file"]}) is '
             f'missing'
-        )
+        ))
         raise MissingSourceImage
 
     # Get card folder
@@ -907,10 +907,10 @@ def create_episode_card(
         )
         different = True
     elif card.source_file != existing_card.source_file:
-        log.trace(
+        log.trace((
             f'{episode}.source_file = {existing_card.source_file} -> '
             f'{card.source_file}'
-        )
+        ))
         different = True
     else:
         for attr in existing_card.model_json:
@@ -922,10 +922,10 @@ def create_episode_card(
             for attr, new_val in new_model_json.items():
                 if (not attr.endswith('_rotation_angle')
                     and str(new_val) != str(_get_existing(attr))):
-                    log.trace(
+                    log.trace((
                         f'{episode}.{attr} = {_get_existing(attr)!r} -> '
                         f'{new_val!r}'
-                    )
+                    ))
                     different = True
                     break
 

@@ -12,7 +12,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from tzlocal import get_localzone
 
-from modules.Version import Version
+from app.utils.version import Version
 
 """
 Application root directories

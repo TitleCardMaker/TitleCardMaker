@@ -1,10 +1,7 @@
-from typing import Union
-
 from sqlalchemy.orm import Session
 
 from app.db.query import get_connection
 from app.dependencies import (
-    AnyInterface,
     get_emby_interfaces,
     get_jellyfin_interfaces,
     get_plex_interfaces,
@@ -40,13 +37,22 @@ from app.settings import settings
 
 
 _MediaServerInterface = (EmbyInterface, JellyfinInterface, PlexInterface)
-type _NewConnection = Union[
-    NewEmbyConnection, NewJellyfinConnection, NewPlexConnection,
-    NewSonarrConnection, NewTMDbConnection, NewTVDbConnection,
-]
-type _UpdateConnection = Union[
-    UpdateEmby, UpdateJellyfin, UpdatePlex, UpdateSonarr, UpdateTMDb, UpdateTVDb
-]
+type _NewConnection = (
+    NewEmbyConnection
+    | NewJellyfinConnection
+    | NewPlexConnection
+    | NewSonarrConnection
+    | NewTMDbConnection
+    |NewTVDbConnection
+)
+type _UpdateConnection = (
+    UpdateEmby
+    | UpdateJellyfin
+    | UpdatePlex
+    | UpdateSonarr
+    | UpdateTMDb
+    | UpdateTVDb
+)
 
 
 def initialize_connections(
@@ -184,7 +190,7 @@ def add_connection(
 def update_connection(
         db: Session,
         interface_id: int,
-        interface_group: InterfaceGroup[int, AnyInterface],
+        interface_group: InterfaceGroup,
         update_object: _UpdateConnection,
         *,
         log: Logger = log,

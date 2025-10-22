@@ -484,10 +484,10 @@ class DatabaseInfoContainer(ABC):
                 try:
                     setattr(self, attribute, type_(value))
                 except ValueError:
-                    log.exception(
+                    log.exception((
                         f'Invalid ID {attribute} of {value} - cannot be '
                         f'converted to type {type_}'
-                    )
+                    ))
 
         return None
 
@@ -628,8 +628,10 @@ class DatabaseInfoContainer(ABC):
             # If this is an InterfaceID, combine
             if isinstance(getattr(self, attr), InterfaceID):
                 if getattr(other, attr) > getattr(self, attr):
-                    log.debug(f'Merging {attr} <-- {getattr(self, attr)!r}'
-                              f' + {getattr(other, attr)!r}')
+                    log.debug((
+                        f'Merging {attr} <-- {getattr(self, attr)!r} + '
+                        f'{getattr(other, attr)!r}'
+                    ))
                     setattr(
                         self,
                         attr,

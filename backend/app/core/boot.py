@@ -1,6 +1,5 @@
 import asyncio
 from io import StringIO
-from pathlib import Path
 from sys import exit as sys_exit
 from typing import Annotated
 

@@ -231,6 +231,7 @@ def download_series_logo(
         # Handle TMDb and TVDb separately
         if isinstance(interface, (TMDbInterface, TVDbInterface)):
             logo = interface.get_series_logo(series.as_series_info)
+            continue
 
         # Go through each library of this interface
         for _, library in series.get_libraries(interface_id):
