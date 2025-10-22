@@ -694,7 +694,7 @@ def add_tautulli_integration(
 
     TautulliInterface(
         tcm_url=tautulli_connection.tcm_url,
-        tautulli_url=tautulli_connection.url,
+        tautulli_url=str(tautulli_connection.url),
         api_key=tautulli_connection.api_key.get_secret_value(),
         plex_interface_id=plex_interface_id,
         use_ssl=tautulli_connection.use_ssl,
