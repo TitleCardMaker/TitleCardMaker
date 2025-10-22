@@ -100,12 +100,8 @@ exclude = [
     "_build",
     "build",
     "dist",
-    "node_modules",
-    "venv",
-    "config",
-    "archives",
-    "backend/modules/.objects",
-    "backend/app/alembic/",
+    "modules/.objects/",
+    "app/alembic/",
 ]
 
 line-length = 88
