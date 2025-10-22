@@ -3,14 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from re import sub as regex_replace, IGNORECASE
 from string import ascii_letters, digits
-from typing import (
-    Any,
-    Iterator,
-    Literal,
-    Optional,
-    TypedDict,
-    TYPE_CHECKING,
-)
+from typing import Any, Iterator, Literal, TypedDict, TYPE_CHECKING
 
 from sqlalchemy import ColumnElement, ForeignKey, JSON, String, event, func
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
@@ -140,14 +133,14 @@ class Series(Base):
     card_filename_format: Mapped[str | None]
     sync_specials: Mapped[bool | None]
     skip_localized_images: Mapped[bool | None]
-    translations: Mapped[Optional[list[dict[str, str]]]] = mapped_column(
+    translations: Mapped[list[dict[str, str]] | None] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=None
     )
     match_titles: Mapped[bool] = mapped_column(default=True)
     auto_split_title: Mapped[bool] = mapped_column(default=True)
     use_per_season_assets: Mapped[bool] = mapped_column(default=False)
-    image_source_priority: Mapped[Optional[list[int]]] = mapped_column(
+    image_source_priority: Mapped[list[int] | None] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=None,
     )
@@ -175,7 +168,7 @@ class Series(Base):
     # Card arguments
     card_type: Mapped[str | None]
     hide_season_text: Mapped[bool | None]
-    season_titles: Mapped[Optional[dict[str, str]]] = mapped_column(
+    season_titles: Mapped[dict[str, str] | None] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
         default=None,
     )
@@ -183,7 +176,7 @@ class Series(Base):
     episode_text_format: Mapped[str | None]
     unwatched_style: Mapped[str | None]
     watched_style: Mapped[str | None]
-    extras: Mapped[Optional[dict[str, str]]] = mapped_column(
+    extras: Mapped[dict[str, str] | None] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
         default=None,
     )

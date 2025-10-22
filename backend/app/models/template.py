@@ -2,7 +2,7 @@
 from datetime import datetime
 from pathlib import Path
 from re import match as re_match, sub as re_sub, IGNORECASE
-from typing import Any, Callable, Literal, Optional, TypedDict, TYPE_CHECKING
+from typing import Any, Callable, Literal, TypedDict, TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, JSON, event
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
@@ -125,7 +125,7 @@ Table for the Template SQL objects themselves.
 class Filter(TypedDict):
     argument: Literal[ARGUMENT_KEYS] # type: ignore
     operation: Literal[tuple(OPERATIONS.keys())] # type: ignore
-    reference: Optional[str]
+    reference: str | None
 
 class Library(TypedDict):
     interface: ServerName
@@ -144,8 +144,8 @@ class Template(Base):
 
     # Referencial arguments
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    data_source_id: Mapped[Optional[int]] = mapped_column(ForeignKey('connection.id'))
-    font_id: Mapped[Optional[int]] = mapped_column(ForeignKey('font.id'))
+    data_source_id: Mapped[int | None] = mapped_column(ForeignKey('connection.id'))
+    font_id: Mapped[int | None] = mapped_column(ForeignKey('font.id'))
 
     data_source: Mapped['Connection'] = relationship(back_populates='templates')
     font: Mapped['Font'] = relationship(back_populates='templates')
@@ -182,28 +182,28 @@ class Template(Base):
         default=[],
     )
 
-    card_filename_format: Mapped[Optional[str]]
-    sync_specials: Mapped[Optional[bool]]
-    skip_localized_images: Mapped[Optional[bool]]
+    card_filename_format: Mapped[str | None]
+    sync_specials: Mapped[bool | None]
+    skip_localized_images: Mapped[bool | None]
     translations: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=[],
     )
-    image_source_priority: Mapped[Optional[list[int]]] = mapped_column(
+    image_source_priority: Mapped[list[int] | None] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=None,
     )
 
-    card_type: Mapped[Optional[str]]
-    hide_season_text: Mapped[Optional[bool]]
+    card_type: Mapped[str | None]
+    hide_season_text: Mapped[bool | None]
     season_titles: Mapped[dict[str, str]] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
         default={},
     )
-    hide_episode_text: Mapped[Optional[bool]]
-    episode_text_format: Mapped[Optional[str]]
-    unwatched_style: Mapped[Optional[str]]
-    watched_style: Mapped[Optional[str]]
+    hide_episode_text: Mapped[bool | None]
+    episode_text_format: Mapped[str | None]
+    unwatched_style: Mapped[str | None]
+    watched_style: Mapped[str | None]
 
     extras: Mapped[dict[str, str]] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
@@ -273,7 +273,7 @@ class Template(Base):
 
 
     @property
-    def image_source_properties(self) -> dict[str, Optional[bool]]:
+    def image_source_properties(self) -> dict[str, bool | None]:
         """
         Properties to use in image source setting evaluations.
 
@@ -288,8 +288,8 @@ class Template(Base):
 
     def meets_filter_criteria(self,
             series: 'Series',
-            episode: Optional['Episode'] = None,
-            library: Optional[Library] = None,
+            episode: 'Episode | None' = None,
+            library: Library | None = None,
         ) -> bool:
         """
         Determine whether the given Series and Episode meet this
