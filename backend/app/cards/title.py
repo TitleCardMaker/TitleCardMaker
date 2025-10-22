@@ -1,12 +1,7 @@
 from functools import lru_cache
-from re import compile as re_compile, IGNORECASE
-from typing import TYPE_CHECKING, Literal, TypedDict
+from typing import Literal, TypedDict
 
 from app.logging.logger import log
-
-if TYPE_CHECKING:
-    from modules.Profile import Profile
-
 
 type SplitStyle = Literal['top', 'bottom', 'even', 'forced even']
 class SplitCharacteristics(TypedDict):
@@ -34,64 +29,20 @@ class Title:
     """Characters that should be used for priority line splitting"""
     SPLIT_CHARACTERS = (':', ',', ')', ']', '?', '!', '-', '.', '/', '|')
 
-    """Regex for identifying partless titles for MultiEpisodes"""
-    PARTLESS_REGEX = (
-        # Match for "title" ((digit)) or "title" (Part (digit))
-        re_compile(r'^(.*?)\s*\((?:Part\s*)?(?:\d|[IVXLCDM])+\)', IGNORECASE),
-        # Match for "title" (optional separator) Part (word)
-        re_compile(r'^(.*?)(?::|\s*-|,)?\s+Part\s+[a-zA-Z0-9]+', IGNORECASE),
-        # Match for "title" (Part (word))
-        re_compile(r'^(.*?)\s*\(Part\s*[a-zA-Z0-9]+\)', IGNORECASE),
-        # Match for "title" (roman numeral)
-        re_compile(r'^(.*?)\s+[IVXLCDM]+\s*$', IGNORECASE),
-    )
 
-    __slots__ = (
-        'full_title', '__title_lines', '__manually_specified', 'title_yaml',
-        'match_title', '__original_title'
-    )
+    __slots__ = ('full_title', 'match_title')
 
 
-    def __init__(self,
-            title: str | list[str],
-            *,
-            original_title: str | None = None
-        ) -> None:
+    def __init__(self, title: str, /) -> None:
         """
-        Constructs a new instance of a Title from either a full, unsplit
-        title, or a list of title lines.
+        Constructs a new instance of a Title from a full, unsplit title.
 
         Args:
             title: Title for this object.
-            original_title: Original title for matching.
         """
 
-        # If given as str, then title is not manually specified
-        if isinstance(title, list):
-            # If title was given line-by-line, join with spaces
-            self.full_title = ' '.join(title)
-            self.__title_lines = title
-            self.__manually_specified = True
-        else:
-            try:
-                self.full_title = str(title)
-                self.__title_lines = []
-                self.__manually_specified = False
-            except Exception as e:
-                raise TypeError(f'Cannot create Title with {title!r}') from e
-
-        # This title as represented in YAML
-        self.title_yaml = title
-
-        # Generate title to use for matching purposes
+        self.full_title = title
         self.match_title = self.get_matching_title(self.full_title)
-        if original_title != title and original_title:
-            # Combine if manually specified
-            if isinstance(original_title, list):
-                original_title = ' '.join(original_title)
-            self.__original_title = self.get_matching_title(original_title)
-        else:
-            self.__original_title = None
 
 
     def __str__(self) -> str:
@@ -103,32 +54,13 @@ class Title:
     def __repr__(self) -> str:
         """Returns an unambiguous string representation of the object."""
 
-        return f'<Title title="{self.full_title}", lines={self.__title_lines}>'
+        return f'<Title "{self.full_title}">'
 
 
     def __len__(self) -> int:
         """Length of this title (without splitting)."""
 
         return len(self.full_title)
-
-
-    def get_partless_title(self) -> str:
-        """
-        Gets the partless title for this object. This removes
-        parenthesized digits, and title with "part" in them.
-
-        Returns:
-            The partless title for this object.
-        """
-
-        # Attempt to match any compiled partless regex
-        for regex in self.PARTLESS_REGEX:
-            if (partless := regex.match(self.full_title)):
-                # If this regex matched, return partless group
-                return partless.group(1)
-
-        # No match, return full title
-        return self.full_title
 
 
     def __evenly_split(self) -> str:
@@ -233,9 +165,10 @@ class Title:
         all_lines = [self.full_title]
         for _ in range(max_line_count+2-1):
             top, bottom = '', all_lines.pop()
-            while (' ' in bottom and
-                   (len(bottom) > max_line_width
-                    or len(top) in range(1, 6))):
+            while (
+                ' ' in bottom and
+                (len(bottom) > max_line_width or len(top) in range(1, 6))
+            ):
                 # Look to split on special characters
                 special_split = False
                 for char in self.SPLIT_CHARACTERS:
@@ -276,10 +209,6 @@ class Title:
             Split title text.
         """
 
-        # If the object was initialized with lines, return those
-        if self.__manually_specified:
-            return '\n'.join(self.__title_lines)
-
         # Is one word, return
         if ' ' not in self.full_title:
             return self.full_title
@@ -309,36 +238,6 @@ class Title:
             )
 
         return self.full_title
-
-
-    def apply_profile(self,
-            profile: 'Profile',
-            split: SplitCharacteristics,
-        ) -> str:
-        """
-        Apply the given profile to this title. If this object was
-        created with manually specified title lines, then the profile is
-        applied to each line, otherwise it's applied to the full title.
-        Then newlines are used to join each line
-
-        Args:
-            profile: Profile object to convert title with.
-            split: Split characteristics to apply to this object.
-
-        Returns:
-            This title with the given profile and splitting details
-            applied.
-        """
-
-        # If manually specified, apply the profile to each line, skip splitting
-        if self.__manually_specified:
-            return '\n'.join(list(map(
-                lambda line: profile.convert_title(line, True),
-                self.__title_lines
-            )))
-
-        # Title lines weren't manually specified - apply profile, make new Title
-        return Title(profile.convert_title(self.full_title, False)).split(split)
 
 
     @staticmethod
@@ -375,11 +274,5 @@ class Title:
             return self.get_matching_title(title)
 
         matching_titles = map(_get_title, titles)
-
-        if self.__original_title is not None:
-            return any(
-                title in (self.__original_title, self.match_title)
-                for title in matching_titles
-            )
 
         return any(title == self.match_title for title in matching_titles)

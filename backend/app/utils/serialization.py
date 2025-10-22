@@ -12,7 +12,7 @@ from typing import (
     get_type_hints,
 )
 
-from modules.Version import Version
+from app.utils.version import Version
 
 
 _ExcludedText = 'Excluded from JSON serialization'

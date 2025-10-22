@@ -8,7 +8,7 @@ from titlecase import titlecase
 
 from app.exceptions import InvalidFormatString
 from app.logging.logger import Logger, log
-from modules.CleanPath import CleanPath
+from app.utils.paths import CleanPath
 
 
 # Patch JSON dumps to work with CleanPath objects

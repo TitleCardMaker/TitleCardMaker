@@ -105,7 +105,7 @@ class TieredSettings:
 
 
     @staticmethod
-    def resolve_singular_setting(*values: _Setting | None) -> _Setting:
+    def resolve_singular_setting(*values: _Setting | None) -> _Setting | None:
         """
         Get the highest priority (non-None) value of the given values.
 
