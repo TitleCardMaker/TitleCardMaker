@@ -28,8 +28,6 @@ from app.schemas.sync import (
     UpdateSync,
 )
 from app.schemas.series import Series
-from app.settings import settings
-
 
 
 # Create sub router for all /sync API requests
@@ -175,7 +173,7 @@ def get_all_syncs(
     ) -> list[Sync]:
     """Get all defined Syncs."""
 
-    return db.query(SyncModel).all()
+    return [Sync.model_validate(sync) for sync in db.query(SyncModel).all()]
 
 
 @sync_router.get('/emby/all', tags=['Emby'])
@@ -184,7 +182,11 @@ def get_all_emby_syncs(
     ) -> list[EmbySync]:
     """Get all defined Syncs that interface with Emby."""
 
-    return db.query(SyncModel).filter_by(interface='Emby').all()
+    return [
+        EmbySync.model_validate(sync)
+        for sync in
+        db.query(SyncModel).filter_by(interface='Emby').all()
+    ]
 
 
 @sync_router.get('/jellyfin/all', tags=['Jellyfin'])
@@ -193,7 +195,11 @@ def get_all_jellyfin_syncs(
     ) -> list[JellyfinSync]:
     """Get all defined Syncs that interface with Jellyfin."""
 
-    return db.query(SyncModel).filter_by(interface='Jellyfin').all()
+    return [
+        JellyfinSync.model_validate(sync)
+        for sync in
+        db.query(SyncModel).filter_by(interface='Jellyfin').all()
+    ]
 
 
 @sync_router.get('/plex/all', tags=['Plex'])
@@ -202,7 +208,11 @@ def get_all_plex_syncs(
     ) -> list[PlexSync]:
     """Get all defined Syncs that interface with Plex."""
 
-    return db.query(SyncModel).filter_by(interface='Plex').all()
+    return [
+        PlexSync.model_validate(sync)
+        for sync in
+        db.query(SyncModel).filter_by(interface='Plex').all()
+    ]
 
 
 @sync_router.get('/sonarr/all', tags=['Sonarr'])
@@ -211,7 +221,11 @@ def get_all_sonarr_syncs(
     ) -> list[SonarrSync]:
     """Get all defined Syncs that interface with Sonarr."""
 
-    return db.query(SyncModel).filter_by(interface='Sonarr').all()
+    return [
+        SonarrSync.model_validate(sync)
+        for sync in
+        db.query(SyncModel).filter_by(interface='Sonarr').all()
+    ]
 
 
 @sync_router.get('/{sync_id}')
