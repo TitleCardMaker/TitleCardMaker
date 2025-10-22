@@ -1,0 +1,761 @@
+from pathlib import Path
+from random import choice
+from re import compile as re_compile
+from typing import Annotated, Any, ClassVar, NamedTuple
+
+from pydantic import Field, FilePath, field_validator
+
+from app.logging.logger import log
+from app.schemas.base import Base, BaseCardTypeAllText
+from app.cards.base import (
+    BaseCardType,
+    CardTypeDescription,
+    Extra,
+    ImageMagickCommands,
+)
+
+
+class Offset:
+    """
+    This class defines an Offset of x/y to be utilized for placing
+    season text around roman numerals.
+    """
+
+    """Regex to match signed float offsets from an ImageMagick offset string"""
+    OFFSET_REGEX = re_compile(r'([-+]\d+.?\d*)([-+]\d+.?\d*)')
+
+    def __init__(self,
+            offset_str: str | None = None,
+            *,
+            x: float | None = None,
+            y: float | None = None,
+        ) -> None:
+        """
+        Initialize an Offset object with the given ImageMagick offset
+        string. For example, Offset('+20-10') indicates a 20 pixel
+        positive X offset, and a 10 pixel negative Y offset.
+
+        This can be initialized with offset string or x/y coordinates.
+
+        Args:
+            offset_str: ImageMagick offset string.
+            x: (Keyword) X offset to initialize this object with.
+            y: (Keyword) Y offset to initialize this object with.
+        """
+
+        # Initialize with offset string
+        if offset_str is not None:
+            self.x, self.y = map(
+                float, self.OFFSET_REGEX.match(offset_str).groups()
+            )
+        else:
+            self.x, self.y = float(x), float(y)
+
+
+    def __repr__(self) -> str:
+        return f'<Offset {self.x=}, {self.y=}>'
+
+
+    def __str__(self) -> str:
+        return f'{self.x:+}{self.y:+}'
+
+
+    def __add__(self, other: 'Offset') -> 'Offset':
+        """
+        Add an offset to this object, returning a new object.
+
+        Args:
+            other: Offset to add to this object.
+        """
+
+        return Offset(x=self.x + other.x, y=self.y + other.y)
+
+
+    def __iadd__(self, other: 'Offset') -> 'Offset':
+        """
+        Adjust this object by the given offset. For example:
+
+        >>> o = Offset('+10+30')
+        >>> o += Offset('-10-30')
+        >>> repr(o)
+        '<Offset self.x=0.0, self.y=0.0>'
+
+        Args:
+            other: Offset to adjust this object by.
+        """
+
+        self.x += other.x
+        self.y += other.y
+
+        return self
+
+
+    def __mul__(self, scalar: float) -> 'Offset':
+        """
+        Scale this object's offsets by the given scalar, returning a new
+        object.
+
+        Args:
+            scalar: Scalar multiple to scale this offset by.
+        """
+
+        return Offset(x=self.x*scalar, y=self.y*scalar)
+
+
+    def __imul__(self, scalar: float) -> 'Offset':
+        """
+        Scale this object's offsets by the given scalar. For example:
+
+        >>> o = Offset('+100+50')
+        >>> o *= 0.5
+        >>> repr(o)
+        '<Offset self.x=50.0, self.y=25.0>'
+
+        Args:
+            scalar: Scalar multiple to adjust this object by.
+        """
+
+        self.x *= scalar
+        self.y *= scalar
+
+        return self
+
+
+class Position(NamedTuple):
+    location: str
+    offset: Offset
+    rotation: str
+
+"""
+Lists of all possible Positions for season text around each possible
+roman numeral.
+"""
+POSITIONS: dict[str, list[Position]] = {
+    'I': [
+        Position('Below', Offset('+0+425'), '0x0'),
+        Position('Above', Offset('+0-360'), '0x0'),
+        Position('Lower', Offset('+0+300'), '0x0'),
+        Position('Upper', Offset('+0-250'), '0x0'),
+        Position('Left', Offset('-75+0'), '-90x-90'),
+        Position('Right', Offset('+75+0'), '90x90'),
+    ],
+    'V': [
+        Position('Inside', Offset('+0-275'), '0x0'),
+        Position('Above', Offset('+0-365'), '0x0'),
+        Position('Lower', Offset('+0+315'), '0x0'),
+        Position('Lower Left', Offset('-185+350'), '0x0'),
+        Position('Lower Right', Offset('+175+350'), '0x0'),
+        Position('Lower Right Rotated', Offset('+90+280'), '-67x-67'),
+        Position('Lower Left Rotated', Offset('-120+260'), '67x67'),
+        Position('Upper Left', Offset('-270-370'), '0x0'),
+        Position('Upper Right', Offset('+280-370'), '0x0'),
+    ],
+    'X': [
+        Position('Upper Right', Offset('+230-360'), '0x0'),
+        Position('Upper Left', Offset('-230-360'), '0x0'),
+        Position('Lower Right', Offset('+240+425'), '0x0'),
+        Position('Lower Left', Offset('-240+425'), '0x0'),
+        Position('Lower Middle', Offset('+0+325'), '0x0'),
+        Position('Right Rotated', Offset('+175+150'), '55x55'),
+    ],
+    'L': [
+        Position('Below', Offset('+0+425'), '0x0'),
+        Position('Top Left', Offset('-110-365'), '0x0'),
+        Position('Left', Offset('-190+0'), '-90x-90'),
+        Position('Right', Offset('-45+0'), '90x90'),
+    ],
+    'C': [
+        Position('Above', Offset('+0-375'), '0x0'),
+        Position('Below', Offset('+0+425'), '0x0'),
+        Position('Left', Offset('-365+0'), '-90x-90'),
+        Position('Center', Offset('+0+0'), '0x0'),
+    ],
+    'D': [
+        Position('Above', Offset('+0-375'), '0x0'),
+        Position('Below', Offset('+0+425'), '0x0'),
+        Position('Left', Offset('-325+0'), '-90x-90'),
+        Position('Right', Offset('+400+0'), '90x90'),
+        Position('Center', Offset('+0+0'), '0x0'),
+        Position('Above Left', Offset('-240-355'), '0x0'),
+        Position('Below Left', Offset('-240+425'), '0x0'),
+    ],
+    'M': [
+        Position('Above', Offset('+0-300'), '0x0'),
+        Position('Below', Offset('+0+300'), '0x0'),
+        Position('Below Left', Offset('-350+425'), '0x0'),
+        Position('Below Right', Offset('+340+425'), '0x0'),
+        Position('Upper Left', Offset('-145-180'), '59x59'),
+        Position('Left', Offset('-375+0'), '-88x-88'),
+        Position('Right', Offset('+395+0'), '88x88'),
+    ]
+}
+
+
+class RomanNumeralTitleCard(BaseCardType):
+    """
+    This class defines a type of CardType that produces imageless title
+    cards with roman numeral text behind the central title. The style is
+    inspired from the official Devilman Crybaby title cards.
+
+    If enabled, season text is randomly placed around fixed positions on
+    the roman numerals.
+    """
+
+    """API Parameters"""
+    API_DETAILS = CardTypeDescription(
+        name='Roman Numeral',
+        identifier='roman numeral',
+        example='/public/cards/roman.webp',
+        creators=['CollinHeist'],
+        source='builtin',
+        supports_custom_fonts=True,
+        supports_custom_seasons=True,
+        supported_extras=[
+            Extra(
+                name='Background Color',
+                identifier='background',
+                description='Color of the background',
+                tooltip='Default is <c>black</c>.',
+                default='black',
+            ),
+            Extra(
+                name='Roman Numeral Color',
+                identifier='roman_numeral_color',
+                description='Color of the roman numerals',
+                tooltip='Default is <c>#AE2317</c>.',
+                default='#AE2317',
+            ),
+            Extra(
+                name='Season Text Color',
+                identifier='season_text_color',
+                description='Color of the season text',
+                tooltip='Default is <c>rgb(200, 200, 200)</c>.',
+                default='rgb(200, 200, 200)',
+            ),
+            Extra(
+                name='Season Text Size',
+                identifier='season_text_size',
+                description='Size adjustment for the season text',
+                tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
+                default=1.0,
+            ),
+        ],
+        description=[
+            'Imageless title cards featuring large roman numerals indicating '
+            'the episode or absolute episode number just behind the title.',
+            'Season text, if enabled, is placed at deterministic, but randomly '
+            'selected locations around the roman numerals.',
+        ]
+    )
+
+    """Directory where all reference files used by this card are stored"""
+    REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'roman'
+
+    """Characteristics for title splitting by this class"""
+    TITLE_CHARACTERISTICS = {
+        'max_line_width': 26,
+        'max_line_count': 5,
+        'style': 'top',
+    }
+
+    """Default font and text color for episode title text"""
+    TITLE_FONT = str((REF_DIRECTORY / 'flanker-griffo.otf').resolve())
+    TITLE_COLOR = 'white'
+
+    """Default characters to replace in the generic font"""
+    FONT_REPLACEMENTS = {}
+
+    """Default episode text format for this class"""
+    EPISODE_TEXT_FORMAT = '{episode_number}'
+    GENERIC_EPISODE_TEXT_FORMATS = (EPISODE_TEXT_FORMAT, '{abs_number}')
+
+    USES_SOURCE_IMAGES: Annotated[
+        ClassVar[bool],
+        'This card type does not use Source Images'
+    ] = False
+
+    """Blur profile for this card is 1/3 the radius of the standard blur"""
+    BLUR_PROFILE = '0x30'
+
+    """Default fonts and color for series count text"""
+    BACKGROUND_COLOR = 'black'
+    ROMAN_NUMERAL_FONT = REF_DIRECTORY / 'sinete-regular.otf'
+    ROMAN_NUMERAL_TEXT_COLOR = '#AE2317'
+    SEASON_TEXT_COLOR = 'rgb(200, 200, 200)'
+
+    """Maximum possible roman numeral (as overline'd characters are invalid)"""
+    MAX_ROMAN_NUMERAL = 3999
+
+    """Maximum number of attempts for season text placement (if overlapping)"""
+    SEASON_TEXT_PLACEMENT_ATTEMPTS = 5
+
+    __slots__ = (
+        'background',
+        'font_color',
+        'font_file',
+        'font_interline_spacing',
+        'font_interword_spacing',
+        'font_size',
+        'hide_season_text',
+        'hide_episode_text',
+        'offset',
+        'output_file',
+        'roman_numeral_color',
+        'roman_numeral',
+        'rotation',
+        '_roman_text_scalar',
+        '__roman_numeral_lines',
+        'season_text',
+        'season_text_color',
+        'season_text_size',
+        'title_text',
+    )
+
+    def __init__(self, *,
+            card_file: Path,
+            title_text: str,
+            season_text: str,
+            episode_text: str,
+            hide_season_text: bool = False,
+            hide_episode_text: bool = False,
+            font_color: str = TITLE_COLOR,
+            font_interline_spacing: int = 0,
+            font_interword_spacing: int = 0,
+            font_file: str = TITLE_FONT,
+            font_size: float = 1.0,
+            blur: bool = False,
+            grayscale: bool = False,
+            background: str = BACKGROUND_COLOR,
+            roman_numeral_color: str = ROMAN_NUMERAL_TEXT_COLOR,
+            season_text_color: str = SEASON_TEXT_COLOR,
+            season_text_size: float = 1.0,
+            **unused: Any,
+        ) -> None:
+        """Construct a new instance of this Card."""
+
+        # Initialize the parent class - this sets up an ImageMagickInterface
+        super().__init__(blur, grayscale)
+
+        # Store object attributes
+        self.output_file = card_file
+        self.title_text = self.image_magick.escape_chars(title_text)
+
+        self.font_color = font_color
+        self.font_interline_spacing = font_interline_spacing
+        self.font_interword_spacing = font_interword_spacing
+        self.font_file = font_file
+        self.font_size = font_size
+
+        # Extras
+        self.background = background
+        self.roman_numeral_color = roman_numeral_color
+        self.season_text_color = season_text_color
+        self.season_text_size = season_text_size
+
+        # Parse roman digits from the episode number
+        self.__assign_roman_numeral(int(episode_text))
+
+        # Select roman numeral for season text
+        self.season_text = self.image_magick.escape_chars(season_text)
+        self.hide_season_text = hide_season_text
+        self.hide_episode_text = hide_episode_text
+
+        # Rotation and offset attributes to be determined later
+        self.rotation: str | None = None
+        self.offset: Offset | None = None
+
+
+    def __assign_roman_numeral(self, number: int) -> None:
+        """
+        Convert the given number to a roman numeral, update the scalar
+        and text attributes of this object.
+
+        Args:
+            number: The number to become the roman numeral.
+        """
+
+        # Limit to maximum possible roman numeral
+        if number > self.MAX_ROMAN_NUMERAL:
+            log.warning(
+                f'Numbers larger than {self.MAX_ROMAN_NUMERAL:,} cannot be '
+                f'represented as roman numerals'
+            )
+            number = self.MAX_ROMAN_NUMERAL
+
+        # Index-sorted places -> roman numerals
+        m_text = ['', 'M', 'MM', 'MMM']
+        c_text = ['', 'C', 'CC', 'CCC', 'CD', 'D', 'DC', 'DCC', 'DCCC', 'CM']
+        x_text = ['', 'X', 'XX', 'XXX', 'XL', 'L', 'LX', 'LXX', 'LXXX', 'XC']
+        i_text = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
+
+        # Get each places' roman numeral
+        thousands = m_text[number // 1000]
+        hundreds = c_text[(number % 1000) // 100]
+        tens = x_text[(number % 100) // 10]
+        ones = i_text[number % 10]
+
+        numeral = (thousands + hundreds + tens + ones).strip()
+
+        # Split roman numerals that are longer than 4 chars into two lines
+        if len(numeral) >= 5:
+            self.__roman_numeral_lines = 2
+            roman_text = [numeral[:len(numeral)//2], numeral[len(numeral)//2:]]
+        else:
+            self.__roman_numeral_lines = 1
+            roman_text = [numeral]
+
+        # Update scalar for this text
+        self._roman_text_scalar = 1.0
+        self.__assign_roman_scalar(roman_text)
+
+        # Assign combined roman numeral text
+        self.roman_numeral = '\n'.join(roman_text)
+
+
+    def __assign_roman_scalar(self, roman_text: list[str]) -> None:
+        """
+        Assign the roman text scalar for this text based on the widest
+        line of the given roman numeral text.
+
+        Args:
+            roman_text: List of strings, where each entry is a new line
+                in the roman numeral string.
+        """
+
+        # Width of each roman numeral
+        widths = {
+            'I': 364, 'V': 782, 'X': 727, 'L': 599,
+            'C': 779, 'D': 856, 'M': 1004,
+        }
+
+        # Get max width of all lines
+        max_width = max(sum(widths[ch] for ch in line) for line in roman_text)
+
+        # Get width of output title card for comparison
+        card_width = int(self.TITLE_CARD_SIZE.split('x')[0])
+
+        # Scale roman numeral text if line width is larger than card (+margin)
+        if max_width > (card_width - 100):
+            self._roman_text_scalar = (card_width - 100) / max_width
+
+
+    def create_roman_numeral_command(self,
+            roman_numeral: str
+        ) -> ImageMagickCommands:
+        """
+        Subcommand to add roman numerals to the image.
+
+        Returns:
+            List of ImageMagick commands.
+        """
+
+        if self.hide_episode_text:
+            return []
+
+        # Scale font size and interline spacing of roman text
+        font_size = 1250 * self._roman_text_scalar
+        interline_spacing = -400 * self._roman_text_scalar
+
+        return [
+            f'-font "{self.ROMAN_NUMERAL_FONT.resolve()}"',
+            f'-fill "{self.roman_numeral_color}"',
+            f'-pointsize {font_size}',
+            f'-gravity center',
+            f'-interline-spacing {interline_spacing}',
+            f'-annotate +0-30 "{roman_numeral}"',
+        ]
+
+
+    def create_season_text_command(self,
+            rotation: str | None,
+            offset: str | Offset | None,
+        ) -> ImageMagickCommands:
+        """
+        Generate the ImageMagick commands necessary to create season
+        text at the given rotation and offset.
+
+        Args:
+            rotation: Rotation (string) to utilize - e.g. `"90x90"`.
+            offset: Offset (string, not Object) to utilize relative to
+                the center of the canvas - e.g. `"+100-300"`.
+
+        Returns:
+            List of ImageMagick commands.
+        """
+
+        if (self.hide_season_text or self.hide_episode_text
+            or rotation is None or offset is None):
+            return []
+
+        # Override font color only if a custom background color was specified
+        if self.season_text_color != self.SEASON_TEXT_COLOR:
+            color = self.season_text_color
+        elif self.background != self.BACKGROUND_COLOR:
+            color = self.font_color
+        else:
+            color = self.SEASON_TEXT_COLOR
+
+        return [
+            f'-size "{self.TITLE_CARD_SIZE}"',
+            f'-gravity center',
+            f'-font "{self.TITLE_FONT}"',
+            f'-fill "{color}"',
+            f'-pointsize {50 * self.season_text_size}',
+            f'+interword-spacing',
+            f'+interline-spacing',
+            f'-annotate {rotation}{offset} "{self.season_text}"',
+        ]
+
+
+    @property
+    def title_text_command(self) -> ImageMagickCommands:
+        """Subcommand to add title text to the image."""
+
+        font_size = 150 * self.font_size
+        interword_spacing = 40 + self.font_interword_spacing
+
+        return [
+            f'-font "{self.font_file}"',
+            f'-pointsize {font_size}',
+            f'-interline-spacing {self.font_interline_spacing}',
+            f'-interword-spacing {interword_spacing}',
+            f'-fill "{self.font_color}"',
+            f'-annotate +0+0 "{self.title_text}"',
+        ]
+
+
+    def randomize_season_text_position(self) -> tuple[str, Offset]:
+        """
+        Select a random roman numeral and position for season text
+        placement.
+
+        Returns:
+            Tuple of the rotation string and the final Offset of the
+            randomly selected position.
+        """
+
+        # Select random roman numeral and position on that numeral
+        random_index = choice(range(len(self.roman_numeral)))
+        if self.roman_numeral[random_index] == '\n':
+            random_index -= 1
+        random_letter = self.roman_numeral[random_index]
+        random_position = choice(POSITIONS[random_letter])
+
+        offset = Offset('+0-30')
+
+        # If the roman numeral has multiple lines, adjust accordingly
+        if self.__roman_numeral_lines > 1:
+            # Determine whether on the top/bottom of the roman numeral text
+            top, bottom = self.roman_numeral.split('\n')
+            on_top = random_index < len(top)
+            line = top if on_top else bottom
+
+            # Shift offset down/up if on top/bottom
+            amount = (425 * self._roman_text_scalar) * (-1 if on_top else 1)
+            offset += Offset(x=0, y=amount)
+
+            # Calculate widths only against relevant line
+            adjusted_index = random_index - (0 if on_top else len(top)+1)
+            left_text = line[:adjusted_index]
+            right_text = line[adjusted_index+1:]
+            numeral_command = self.create_roman_numeral_command(line)
+        # Single line, no vertical offset necessary
+        else:
+            left_text = self.roman_numeral[:random_index]
+            right_text = self.roman_numeral[random_index+1:]
+            numeral_command = self.create_roman_numeral_command(
+                self.roman_numeral
+            )
+
+        # Get width of whole line
+        total_width, _ = self.image_magick.get_text_dimensions(
+            numeral_command, width='sum',
+        )
+
+        # Get width of line to the left of the selected numeral
+        left_width = 0
+        if len(left_text) > 0:
+            left_width, _ = self.image_magick.get_text_dimensions(
+                self.create_roman_numeral_command(left_text),
+                width='sum',
+            )
+
+        # Get width of line to the right of the selected numeral
+        right_width = 0
+        if len(right_text) > 0:
+            right_width, _ = self.image_magick.get_text_dimensions(
+                self.create_roman_numeral_command(right_text),
+                width='sum',
+            )
+
+        # Determine necesary offset by position within the line
+        on_right = left_width > right_width
+        amount = (left_width if on_right else right_width) \
+            - (total_width / 2) \
+            + ((total_width - left_width - right_width) / 2)
+        amount *= (1 if on_right else -1)
+
+        # Adjust offset horizontally by position in the line
+        offset += Offset(x=amount, y=0)
+
+        # Adjust offset from center of letter to randomly selected position
+        offset += (random_position.offset * self._roman_text_scalar)
+
+        return random_position.rotation, offset
+
+
+    def place_season_text(self) -> None:
+        """
+        Determine the final placement for season text on this image.
+        This  randomly selects letters/positions until they do not
+        overlap the title, or until the maximum number of attempts has
+        been reached (very unlikely).
+
+        When finished, the value of this object's rotation and offset
+        attributes are set.
+        """
+
+        # If text is hidden, exit
+        if self.hide_season_text or self.hide_episode_text:
+            return None
+
+        # Get boundaries of title text
+        width, height = self.image_magick.get_text_dimensions(
+            self.title_text_command,
+            interline_spacing=self.font_interline_spacing,
+            line_count=len(self.title_text.splitlines()),
+        )
+        box0 = {
+            'start_x': (-width  + self.WIDTH)  / 2,
+            'start_y': (-height + self.HEIGHT) / 2,
+            'end_x':   (+width  + self.WIDTH)  / 2,
+            'end_y':   (+height + self.HEIGHT) / 2,
+        }
+
+        # Inner function to randomize position and determine if overlapping
+        def select_position() -> bool:
+            """
+            Select a random position for season text.
+
+            Returns:
+                True if the selected position is invalid (i.e. overlaps
+                the title, or extends beyond the bounds of the card).
+                False otherwise.
+            """
+
+            # Select random position and get it's associated offset
+            rotation, offset = self.randomize_season_text_position()
+            self.rotation, self.offset = rotation, offset
+
+            # Get dimensions of season text
+            season_width, season_height = self.image_magick.get_text_dimensions(
+                self.create_season_text_command(rotation, offset),
+            )
+
+            # Modify dimensions or add margin based on rotation of text
+            margin = 0
+            # If not rotated, no margin necessary
+            if rotation == '0x0':
+                pass
+            # If rotated 90 degrees, then swap width/height of text
+            elif rotation in ('90x90', '-90x-90'):
+                season_width, season_height = season_height, season_width
+            # If rotated, but not at 90 degrees, then add margin based on max
+            # dimension - this is equivalent to expanding the bounds of the text
+            # box by the maximum possible error in the dimensions of the text
+            else:
+                # Worst case is a _nearly_ 90 degree rotation with large delta
+                # between width/height; in which case the width would be off by
+                # the height/2 (in either direction), and the height off by
+                # width/2 (in either direction)
+                max_error = abs(season_width - season_height)
+                margin = max_error / 2
+
+            # Get boundaries of season text
+            box1 = {
+                'start_x': offset.x - season_width/2  + 3200/2 - margin,
+                'start_y': offset.y - season_height/2 + 1800/2 - margin,
+                'end_x': offset.x   + season_width/2  + 3200/2 + margin,
+                'end_y': offset.y   + season_height/2 + 1800/2 + margin,
+            }
+
+            # If outside the bounds of the image, return invalid
+            if (box1['start_x'] < 0 or box1['start_x'] > 3200
+                or box1['end_x'] < 0 or box1['end_x'] > 3200
+                or box1['start_y'] < 0 or box1['start_y'] > 1800
+                or box1['end_y'] < 0 or box1['end_y'] > 1800):
+                return True
+
+            # Return whether the bounds of the season text overlap the title
+            return (box0['start_x'] < box1['end_x']  # Box0 left before Box1 right
+                and box0['end_x'] > box1['start_x']  # Box0 right after Box1 left
+                and box0['start_y'] < box1['end_y']  # Box0 top before Box1 bottom
+                and box0['end_y'] > box1['start_y']) # Box0 bottom after Box1 top
+
+        # Attempt position selection until not overlapping, or out of attempts
+        attempts_left = self.SEASON_TEXT_PLACEMENT_ATTEMPTS
+        while (attempts_left := attempts_left-1) > 0 and select_position():
+            pass
+
+
+    def create(self):
+        """
+        Make the necessary ImageMagick and system calls to create this
+        object's defined title card.
+        """
+
+        # Determine placement of season text
+        self.place_season_text()
+
+        self.image_magick.run([
+            f'convert',
+            # Create fixed color background
+            f'-size "{self.TITLE_CARD_SIZE}"',
+            f'xc:"{self.background}"',
+            f'-alpha on',
+            # Overlay roman numerals
+            *self.create_roman_numeral_command(self.roman_numeral),
+            # Overlay season text
+            *self.create_season_text_command(self.rotation, self.offset),
+            # Apply any set style modifiers
+            *self.style,
+            # Overlay title text
+            *self.title_text_command,
+            # Create card
+            *self.resize_output,
+            f'"{self.output_file.resolve()}"',
+        ])
+
+
+def get_validator_model() -> type[Base]:
+    """Get the Pydantic validator class for this card type."""
+
+    class CardModel(BaseCardTypeAllText):
+        source_file: Any
+        font_color: str = RomanNumeralTitleCard.TITLE_COLOR
+        font_file: FilePath = RomanNumeralTitleCard.TITLE_FONT # type: ignore
+        font_interline_spacing: int = 0
+        font_interword_spacing: int = 0
+        font_size: Annotated[float, Field(gt=0)] = 1.0
+        background: str = RomanNumeralTitleCard.BACKGROUND_COLOR
+        roman_numeral_color: str = RomanNumeralTitleCard.ROMAN_NUMERAL_TEXT_COLOR
+        season_text_color: str = RomanNumeralTitleCard.SEASON_TEXT_COLOR
+        season_text_size: Annotated[float, Field(gt=0)] = 1.0
+
+        @field_validator('episode_text', mode='after')
+        @classmethod
+        def validate_episode_text_numeral(cls, value: str) -> str:
+            """
+            Remove all non-digits from the episode text, and verify the
+            number can be represented by a roman numeral.
+            """
+
+            val = ''.join(c for c in value if c.isdigit())
+            if not (0 <= int(val) <= RomanNumeralTitleCard.MAX_ROMAN_NUMERAL):
+                raise ValueError(
+                    f'Episode text number must be between 0 and '
+                    f'{RomanNumeralTitleCard.MAX_ROMAN_NUMERAL}'
+                )
+            return val
+
+    return CardModel
