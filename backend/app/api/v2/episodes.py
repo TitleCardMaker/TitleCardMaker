@@ -10,7 +10,7 @@ from fastapi import (
 )
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import paginate as paginate_sequence
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy.orm import Session
 
 from app.db.query import (
     get_all_templates,
@@ -266,7 +266,7 @@ def get_all_series_episodes(
         series_id: int,
         order_by: Literal['index', 'absolute', 'id'] = 'index',
         db: Session = Depends(get_database),
-    ) -> Page[Episode]:
+    ) -> Page[Episode]: # type: ignore
     """
     Get all the episodes associated with the given series.
 
@@ -302,8 +302,7 @@ def get_series_extended_episode_data(
     - series_id: Series being queried.
     """
 
-    episodes = get_series_episodes_with_cache(db, series_id, log=log)
-    return paginate(episodes)
+    return paginate(get_series_episodes_with_cache(db, series_id, log=log))
 
 
 @episodes_router.get('/series/{series_id}/simplified', tags=['Series'])
