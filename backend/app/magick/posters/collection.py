@@ -78,10 +78,10 @@ class CollectionPosterMaker(ImageMaker):
 
         # If the source file doesn't exist, exit
         if not self.source.exists():
-            log.error(
+            log.error((
                 f'Cannot create genre card, "{self.source.resolve()}" does not '
                 f'exist.'
-            )
+            ))
             return None
 
         # Gradient command to either add/omit gradient
@@ -95,7 +95,7 @@ class CollectionPosterMaker(ImageMaker):
             ]
 
         # Command to create collection poster
-        command = ' '.join([
+        self.image_magick.run([
             f'convert',
             # Resize source
             f'"{self.source.resolve()}"',
@@ -125,7 +125,5 @@ class CollectionPosterMaker(ImageMaker):
             # Write output file
             f'"{self.output.resolve()}"'
         ])
-
-        self.image_magick.run(command)
 
         return None

@@ -208,7 +208,7 @@ class SeasonPoster(ImageMaker):
         self.destination.parent.mkdir(parents=True, exist_ok=True)
 
         # Create the command
-        command = ' '.join([
+        self.image_magick.run([
             f'convert',
             f'-density 300',
             # Resize input image
@@ -225,5 +225,4 @@ class SeasonPoster(ImageMaker):
             f'"{self.destination.resolve()}"',
         ])
 
-        self.image_magick.run(command)
         return None

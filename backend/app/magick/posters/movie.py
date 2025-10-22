@@ -229,20 +229,20 @@ class MoviePosterMaker(ImageMaker):
 
         # If the source file doesn't exist, exit
         if not self.source.exists():
-            log.error(
+            log.error((
                 f'Cannot create movie poster - "{self.source.resolve()}" does '
                 f'not exist.'
-            )
+            ))
             return None
         if isinstance(self.logo, Path) and not self.logo.exists():
-            log.error(
+            log.error((
                 f'Cannot create movie poster - "{self.logo.resolve()}" does '
                 f'not exist.'
-            )
+            ))
             return None
 
         # Command to create collection poster
-        command = ' '.join([
+        self.image_magick.run([
             f'convert',
             # Start with source
             f'"{self.source.resolve()}"',
@@ -268,5 +268,4 @@ class MoviePosterMaker(ImageMaker):
             f'"{self.output.resolve()}"',
         ])
 
-        self.image_magick.run(command)
         return None

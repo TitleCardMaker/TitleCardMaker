@@ -81,10 +81,10 @@ class GenreMaker(ImageMaker):
 
         # If the source file doesn't exist, exit
         if not self.source.exists():
-            log.error(
+            log.error((
                 f'Cannot create genre card - "{self.source.resolve()}" does '
                 f'not exist.'
-            )
+            ))
             return None
 
         # Create the output directory and any necessary parents
