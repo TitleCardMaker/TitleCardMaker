@@ -6,9 +6,9 @@ from fastapi.responses import RedirectResponse
 
 
 async def redirect_non_api_404_requests(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[Response]],
-) -> Response:
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
     """
     Redirect all non-API invalid requests to missing pages/endpoints to
     the home page.

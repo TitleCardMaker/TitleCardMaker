@@ -11,9 +11,9 @@ import modules.BackgroundTasks
 
 
 async def log_internal_server_errors(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[Response]],
-) -> Response:
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
     """
     Middleware to log "enhanced" tracebacks for all uncaught exceptions
     (e.g. internal server errors). This middleware MUST be the last one

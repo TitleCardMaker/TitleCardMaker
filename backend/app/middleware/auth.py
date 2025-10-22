@@ -8,9 +8,9 @@ from app.logging.logger import log
 
 
 async def redirect_non_api_401_requests(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[Response]],
-) -> Response:
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
     """
     Redirect all non-API unauthenticated 401 requests to the login page.
     """

@@ -9,9 +9,9 @@ from app.logging.logger import contextualize
 
 
 async def contextualize_api_requests(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[Response]],
-) -> Response:
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
     """
     Middleware for all HTTP requests that logs the start and end of all
     API requests to the API logger. This also adds a contextualized
