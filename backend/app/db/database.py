@@ -31,19 +31,6 @@ engine = create_engine(
     pool_size=5, max_overflow=-1,
 )
 
-yaml_engine = create_engine(
-    YAML_DATABASE_URL,
-    # https://docs.sqlalchemy.org/en/20/core/pooling.html#disconnect-handling-pessimistic
-    pool_pre_ping=True,
-    # https://docs.sqlalchemy.org/en/20/core/pooling.html#pool-disconnects
-    connect_args={'check_same_thread': False, 'timeout': 30},
-    # echo=True,
-    # Do not limit pool overflow since "new" connections are made inside queued
-    # BackgroundTasks - see https://docs.sqlalchemy.org/en/20/errors.html for
-    # reference
-    pool_size=5, max_overflow=-1,
-)
-
 # URL to the Blueprints SQL database
 if config.IS_DOCKER:
     BLUEPRINT_SQL_DATABASE_URL = 'sqlite:////tcm/backend/modules/.objects/blueprints.db'
@@ -59,11 +46,6 @@ SessionLocal = sessionmaker(
     bind=engine, expire_on_commit=False, autocommit=False, autoflush=False,
 )
 Base = declarative_base()
-
-YamlSessionLocal = sessionmaker(
-    bind=yaml_engine, expire_on_commit=False, autocommit=False, autoflush=False,
-)
-YamlBase = declarative_base()
 
 BlueprintSessionMaker = sessionmaker(bind=blueprint_engine)
 BlueprintBase = declarative_base() 

@@ -7,7 +7,7 @@ from rich.console import Console
 from rich.traceback import Traceback
 
 from app.logging.logger import log
-import modules.BackgroundTasks
+import app.utils.tasks
 
 
 async def log_internal_server_errors(
@@ -33,7 +33,7 @@ async def log_internal_server_errors(
                 locals_max_string=512,
                 extra_lines=2,
                 indent_guides=False,
-                suppress=modules.BackgroundTasks.TracebackSuppressedPackages,
+                suppress=app.utils.tasks.TracebackSuppressedPackages,
             )
         )
         # Try and use contextual logger if attached to Request state

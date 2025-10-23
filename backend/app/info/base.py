@@ -75,12 +75,8 @@ class InterfaceID:
 
         self._type = type_
         self._libraries = libraries
+        self._ids: dict[int, dict[str, DatabaseID]] | dict[int, DatabaseID] = {}
 
-        # No ID provided
-        if libraries:
-            self._ids: dict[int, dict[str, DatabaseID]] = {}
-        else:
-            self._ids: dict[int, DatabaseID] = {}
         if not id_:
             return None
 

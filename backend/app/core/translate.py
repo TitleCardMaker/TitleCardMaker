@@ -4,7 +4,7 @@ from app.dependencies import get_tmdb_interfaces
 from app.core.templates import get_effective_templates
 from app.models.episode import Episode
 from app.logging.logger import Logger, log
-from modules.TieredSettings import TieredSettings
+from app.utils.tiered_settings import TieredSettings
 
 
 def translate_episode(

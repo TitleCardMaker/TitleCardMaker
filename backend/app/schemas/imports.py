@@ -1,5 +1,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
-from pydantic import AnyUrl, DirectoryPath, NonNegativeInt
+from typing import Annotated
+from pydantic import AnyUrl, DirectoryPath, Field
 
 from app.schemas.base import Base
 from app.schemas.preferences import CardExtension
@@ -15,12 +16,12 @@ class _KometaEpisode(Base):
 
 class _KometaSeason(Base):
     url_poster: AnyUrl | None = None
-    episodes: dict[NonNegativeInt, _KometaEpisode] = {}
+    episodes: dict[Annotated[int, Field(ge=0)], _KometaEpisode] = {}
 
 class _KometaSeries(Base):
     url_poster: AnyUrl | None = None
     url_background: AnyUrl | None = None
-    seasons: dict[NonNegativeInt, _KometaSeason] = {}
+    seasons: dict[Annotated[int, Field(ge=0)], _KometaSeason] = {}
 
 class KometaYaml(Base):
     yaml: dict[int, _KometaSeries]

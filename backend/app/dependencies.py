@@ -15,7 +15,7 @@ from app.db.interfaces import (
     TMDbInterfaces,
     TVDbInterfaces,
 )
-from app.db.database import BlueprintSessionMaker, SessionLocal, YamlSessionLocal
+from app.db.database import BlueprintSessionMaker, SessionLocal
 from app.interfaces.base import Interface, InterfaceGroup
 from app.interfaces.v2 import (
     AnyInterface,
@@ -53,16 +53,6 @@ def get_log_database() -> Iterator[Session]:
     """Yield a Session to the logging database."""
 
     db = LogsSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-def get_yaml_database() -> Iterator[Session]:
-    """Yield a Session to the YAML database."""
-
-    db = YamlSessionLocal()
     try:
         yield db
     finally:

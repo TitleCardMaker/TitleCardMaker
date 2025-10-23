@@ -1,9 +1,9 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false
 from datetime import datetime
-from typing import Any, Self
+from typing import Annotated, Any, Self
 
-from pydantic import PositiveFloat, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 
 from app.schemas.base import Base, DictKey, UNSPECIFIED
 from app.schemas.ids import EmbyID, IMDbID, JellyfinID, TMDbID, TVDbID, TVRageID
@@ -41,7 +41,7 @@ class NewEpisode(Base):
     watched_style: Style | None
 
     font_color: str | None = None
-    font_size: PositiveFloat | None = None
+    font_size: Annotated[float, Field(ge=0.0)] | None = None
     font_kerning: float | None = None
     font_stroke_width: float | None = None
     font_interline_spacing: int | None = None
@@ -92,7 +92,7 @@ class UpdateEpisode(Base):
     watched_style: Style | None = UNSPECIFIED
 
     font_color: str | None = UNSPECIFIED
-    font_size: PositiveFloat | None = UNSPECIFIED
+    font_size: Annotated[float, Field(ge=0.0)] | None = UNSPECIFIED
     font_kerning: float | None = UNSPECIFIED
     font_stroke_width: float | None = UNSPECIFIED
     font_interline_spacing: int | None = UNSPECIFIED
@@ -177,7 +177,7 @@ class Episode(Base):
     watched_style: str | None
 
     font_color: str | None
-    font_size: PositiveFloat | None
+    font_size: Annotated[float, Field(ge=0.0)] | None
     font_kerning: float | None
     font_stroke_width: float | None
     font_interline_spacing: int | None

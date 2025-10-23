@@ -9,11 +9,11 @@ from app.info.episode import EpisodeInfo
 from app.interfaces.magick import ImageMagickInterface
 from app.logging.logger import Logger, log
 from app.schemas.preferences import CardExtension, Style
-from cards import BUILTIN_CARD_TYPES
-from modules.BaseCardType import BaseCardType
-from modules.FormatString import FormatString
-from modules.RemoteCardType import RemoteCardType
-from modules.serialization import SerializationExclusion, SerializationMixin
+from app.cards.types import BUILTIN_CARD_TYPES
+from app.cards.base import BaseCardType
+from app.utils.fstring import FormatString
+from app.cards.loader import RemoteCardType
+from app.utils.serialization import SerializationExclusion, SerializationMixin
 
 
 MediaSource = Literal['Emby', 'Jellyfin', 'Plex']

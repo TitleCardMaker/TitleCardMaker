@@ -166,13 +166,10 @@ class EpisodeDataSource(ABC):
     this type define sources of Episode data.
     """
 
-
-    @property
-    @abstractmethod
-    def SERIES_IDS(self) -> tuple[str]:
-        """Valid SeriesInfo ID's that can be set by this data source."""
-        raise NotImplementedError
-
+    SERIES_IDS: Annotated[
+        ClassVar[tuple[str, ...]],
+        "Series ID's that can be set by this data source"
+    ]
 
     @abstractmethod
     def set_series_ids(self,

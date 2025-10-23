@@ -20,7 +20,7 @@ from app.schemas.episode import UpdateEpisode
 from app.schemas.font import NewNamedFont
 from app.schemas.series import NewTemplate, UpdateSeries
 from app.settings import settings
-from modules.TieredSettings import TieredSettings
+from app.utils.tiered_settings import TieredSettings
 
 
 """

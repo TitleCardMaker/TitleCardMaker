@@ -21,7 +21,7 @@ import sqlalchemy as sa
 
 from app.logging.logger import contextualize
 from app.settings import settings
-from modules.CleanPath import CleanPath
+from app.utils.paths import CleanPath
 
 # revision identifiers, used by Alembic.
 revision = 'caec4f618689'

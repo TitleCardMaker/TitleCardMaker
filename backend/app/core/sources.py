@@ -22,7 +22,7 @@ from app.models.series import Library, Series
 from app.schemas.card import SourceImage
 from app.schemas.preferences import Style
 from app.settings import settings
-from modules.TieredSettings import TieredSettings
+from app.utils.tiered_settings import TieredSettings
 
 
 def download_all_series_logos(*, log: Logger = log) -> None:

@@ -28,7 +28,7 @@ from app.logging.database import logs_engine, LOGS_DATABASE_URL
 from app.logging.logger import contextualize, log as logger, Logger
 from app.models.user import User
 from app.settings import BACKEND_ROOT, FRONTEND_ROOT, settings
-from modules.BackgroundTasks import TracebackSuppressedPackages
+from app.utils.tasks import TracebackSuppressedPackages
 
 
 APP_ROOT = BACKEND_ROOT / 'app'

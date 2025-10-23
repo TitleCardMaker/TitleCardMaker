@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Annotated
 
 if TYPE_CHECKING:
-    from modules.BaseCardType import BaseCardType, CardTypeDescription
+    from app.cards.base import BaseCardType, CardTypeDescription
 
 
 DEFAULT_BLUR_PROFILES: Annotated[

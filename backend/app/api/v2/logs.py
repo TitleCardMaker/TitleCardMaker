@@ -22,7 +22,7 @@ from app.logging.logger import Logger, log
 from app.logging.models import Log as LogModel
 from app.schemas.logs import LogEntry, LogInternalServerError, LogLevel
 from app.settings import settings
-from modules.TemporaryZip import TemporaryZip
+from app.utils.tzip import TemporaryZip
 
 
 # Do not warn about SQL pagination, not used for log filtering

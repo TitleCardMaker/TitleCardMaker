@@ -46,7 +46,7 @@ from app.schemas.blueprint import (
 from app.schemas.series import Series
 from app.settings import settings
 from app.logging.logger import Logger
-from modules.TemporaryZip import TemporaryZip
+from app.utils.tzip import TemporaryZip
 
 
 # Create sub router for all /blueprints API requests

@@ -8,7 +8,7 @@ from app.schemas.base import (
     BaseCardTypeCustomFontNoText, # noqa: F401
     DictKey,
 )
-from cards import *
+from app.cards.types import *
 
 
 class Extra(Base):

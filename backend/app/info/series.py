@@ -6,7 +6,7 @@ from plexapi.video import Show as PlexShow
 from sqlalchemy import ColumnElement, and_, false as sql_false, func, or_
 
 from app.info.base import DatabaseInfoContainer, InterfaceID
-from modules.CleanPath import CleanPath
+from app.utils.paths import CleanPath
 
 if TYPE_CHECKING:
     from app.models.series import Series
@@ -445,7 +445,7 @@ class SeriesInfo(DatabaseInfoContainer):
 
 
     def filter_conditions(self,
-            SeriesModel: 'Series',
+            SeriesModel: 'type[Series]',
         ) -> ColumnElement[bool]:
         """
         Get the SQLAlchemy Query condition for this object.

@@ -99,7 +99,7 @@ def add_sync(
     """
 
     # Verify all Templates exists, raise 404 if DNE
-    new_sync_dict = new_sync.dict()
+    new_sync_dict = new_sync.model_dump()
     templates = get_all_templates(db, new_sync_dict)
 
     # Create DB entry from Pydantic model, add to database

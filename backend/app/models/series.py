@@ -19,7 +19,7 @@ from app.logging.logger import Logger, log
 from app.models.template import SeriesTemplates, Template
 from app.schemas.connection import ServerName
 from app.settings import settings
-from modules.CleanPath import CleanPath
+from app.utils.paths import CleanPath
 
 # Import cache functions for invalidation
 from app.core.cache import invalidate_series_cache

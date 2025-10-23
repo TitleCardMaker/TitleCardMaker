@@ -34,7 +34,7 @@ from app.schemas.base import UNSPECIFIED
 from app.schemas.episode import UpdateEpisode
 from app.schemas.schedule import Hours
 from app.settings import settings
-from modules.TieredSettings import TieredSettings
+from app.utils.tiered_settings import TieredSettings
 
 
 def set_episode_ids(
