@@ -192,14 +192,16 @@ class InsetTitleCard(BaseCardType):
         size = 250 * self.font_size
 
         return [
-            fr'\( -background none',
-            f'-pointsize {size}',
-            f'-font "{self.font_file}"',
-            f'-interline-spacing {self.font_interline_spacing}',
-            f'-interword-spacing {self.font_interword_spacing}',
-            f'-kerning {self.font_kerning}',
-            f'-fill "{self.font_color}"',
-            fr'label:"{self.title_text}" \)',
+            fr'\(',
+                f'-background none',
+                f'-pointsize {size}',
+                f'-font "{self.font_file}"',
+                f'-interline-spacing {self.font_interline_spacing}',
+                f'-interword-spacing {self.font_interword_spacing}',
+                f'-kerning {self.font_kerning}',
+                f'-fill "{self.font_color}"',
+                f'label:"{self.title_text}"',
+            fr'\)',
             f'-gravity south',
         ]
 
@@ -248,13 +250,15 @@ class InsetTitleCard(BaseCardType):
         size = 75 * self.episode_text_font_size # 1-3-1/4 font size base
 
         index_text_commands = [
-            fr'\( -background none',
-            f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
-            f'+interline-spacing',
-            f'-fill "{self.episode_text_color}"',
-            f'-pointsize {size}',
-            f'-gravity south',
-            fr'label:"{index_text}" \)',
+            fr'\(',
+                f'-background none',
+                f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
+                f'+interline-spacing',
+                f'-fill "{self.episode_text_color}"',
+                f'-pointsize {size}',
+                f'-gravity south',
+                f'label:"{index_text}"',
+            fr'\)',
         ]
         index_width, index_height = self.image_magick.get_text_dimensions(
             index_text_commands
@@ -267,24 +271,24 @@ class InsetTitleCard(BaseCardType):
         return [
             # Copy source image
             fr'\(',
-            f'"{self.source_file.resolve()}"',
-            # Make source transparent (according to transparency)
-            f'-alpha set',
-            f'-channel A',
-            f'-evaluate multiply {self.transparency:.2f}',
-            f'+channel',
-            # Stylize so it matches the background
-            *self.resize_and_style,
-            *self.gradient_commands,
-            # Crop out the area which the index text will cover
-            f'-gravity south',
-            f'-crop {crop_width}x{crop_height}+0+{crop_y:.0f}',
-            f'-gravity center',
-            # Increase canvas size so blurring can extend beyond bounds
-            f'-extent {crop_width+20}x{crop_height+20}',
-            # Blur edges so cropping is not so sharp
-            f'-blur 0x7',
-            f'-gravity south',
+                f'"{self.source_file.resolve()}"',
+                # Make source transparent (according to transparency)
+                f'-alpha set',
+                f'-channel A',
+                f'-evaluate multiply {self.transparency:.2f}',
+                f'+channel',
+                # Stylize so it matches the background
+                *self.resize_and_style,
+                *self.gradient_commands,
+                # Crop out the area which the index text will cover
+                f'-gravity south',
+                f'-crop {crop_width}x{crop_height}+0+{crop_y:.0f}',
+                f'-gravity center',
+                # Increase canvas size so blurring can extend beyond bounds
+                f'-extent {crop_width+20}x{crop_height+20}',
+                # Blur edges so cropping is not so sharp
+                f'-blur 0x7',
+                f'-gravity south',
             fr'\)',
             f'-geometry +0+{crop_y-10:.0f}',
             f'-composite',

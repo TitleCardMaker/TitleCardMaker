@@ -506,14 +506,14 @@ class SkeletonCrewTitleCard(BaseCardType):
             f'-background transparent',
             f'-fill "{self.font_color}"',
             fr'\(',
-            f'-font "{self.CardConfig.font_file.resolve()}"',
-            *stroke_commands,
-            f'label:"{title_main_text}"',
+                f'-font "{self.CardConfig.font_file.resolve()}"',
+                *stroke_commands,
+                f'label:"{title_main_text}"',
         ] + ([
-            # Conditionally add bottom title text if it exists
-            f'-font "{self.TITLE_FONT_BOTTOM.resolve()}"',
-            f'label:"{title_bottom_text}"',
-            f'-append',
+                # Conditionally add bottom title text if it exists
+                f'-font "{self.TITLE_FONT_BOTTOM.resolve()}"',
+                f'label:"{title_bottom_text}"',
+                f'-append',
         ] if title_bottom_text else []) + [
             fr'\)',
             f'-geometry +0{y:+}',
@@ -599,9 +599,9 @@ class SkeletonCrewTitleCard(BaseCardType):
             f'convert',
             # Layer 0 is the source image which will be the background
             fr'\(',
-            f'"{self.source_file.resolve()}"',
-            # Resize and apply styles to source image
-            *self.resize_and_style,
+                f'"{self.source_file.resolve()}"',
+                # Resize and apply styles to source image
+                *self.resize_and_style,
             fr'\)',
             # Layer 1 is the overlay image
             f'"{overlay_image.resolve()}"',

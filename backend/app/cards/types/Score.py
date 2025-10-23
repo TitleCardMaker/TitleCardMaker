@@ -306,9 +306,11 @@ class ScoreTitleCard(BaseCardType):
         rotation = 180 if self.placement == 'top' else 0
 
         return [
-            fr'\( "{self._GRADIENT_IMAGE.resolve()}"',
-            f'-gravity center',
-            fr'-rotate {rotation} \)',
+            fr'\(',
+                f'"{self._GRADIENT_IMAGE.resolve()}"',
+                f'-gravity center',
+                f'-rotate {rotation}',
+            fr'\)',
             f'-composite',
         ]
 
@@ -358,13 +360,14 @@ class ScoreTitleCard(BaseCardType):
 
         return self.add_drop_shadow(
             [
-                fr'\( -background transparent',
-                f'-font "{self.EPISODE_TEXT_FONT}"',
-                *(prefix_cmds if self.label_placement == 'above' else number_cmds),
-                *(number_cmds if self.label_placement == 'above' else prefix_cmds),
-                # Combine two text images (vertically)
-                f'-gravity center',
-                f'-smush 15' if prefix else '',
+                fr'\(',
+                    f'-background transparent',
+                    f'-font "{self.EPISODE_TEXT_FONT}"',
+                    *(prefix_cmds if self.label_placement == 'above' else number_cmds),
+                    *(number_cmds if self.label_placement == 'above' else prefix_cmds),
+                    # Combine two text images (vertically)
+                    f'-gravity center',
+                    f'-smush 15' if prefix else '',
                 fr'\)',
             ],
             Shadow(opacity=90, sigma=2, x=7, y=7),
@@ -418,13 +421,14 @@ class ScoreTitleCard(BaseCardType):
 
         return self.add_drop_shadow(
             [
-                fr'\( -background transparent',
-                f'-font "{self.EPISODE_TEXT_FONT}"',
-                *(prefix_cmds if self.label_placement == 'above' else number_cmds),
-                *(number_cmds if self.label_placement == 'above' else prefix_cmds),
-                # Combine two text images (vertically)
-                f'-gravity center',
-                f'-smush 15' if prefix else '',
+                fr'\(',
+                    f'-background transparent',
+                    f'-font "{self.EPISODE_TEXT_FONT}"',
+                    *(prefix_cmds if self.label_placement == 'above' else number_cmds),
+                    *(number_cmds if self.label_placement == 'above' else prefix_cmds),
+                    # Combine two text images (vertically)
+                    f'-gravity center',
+                    f'-smush 15' if prefix else '',
                 fr'\)',
             ],
             Shadow(opacity=90, sigma=2, x=7, y=7),
@@ -478,10 +482,11 @@ class ScoreTitleCard(BaseCardType):
         if self.variation == 'left':
             return [
                 fr'\(',
-                *self._season_text_commands,
-                *self._episode_text_commands,
-                f'-gravity west',
-                fr'+smush 65 \)',
+                    *self._season_text_commands,
+                    *self._episode_text_commands,
+                    f'-gravity west',
+                    f'+smush 65',
+                fr'\)',
                 f'-gravity {gravity_prefix}west',
                 f'-geometry {x:+}{y:+}',
                 f'-composite',
@@ -490,10 +495,11 @@ class ScoreTitleCard(BaseCardType):
         # Right style is [ title / season / episode ]
         return [
             fr'\(',
-            *self._season_text_commands,
-            *self._episode_text_commands,
-            f'-gravity east',
-            fr'+smush 65 \)',
+                *self._season_text_commands,
+                *self._episode_text_commands,
+                f'-gravity east',
+                f'+smush 65',
+            fr'\)',
             f'-gravity {gravity_prefix}east',
             f'-geometry {x:+}{y:+}',
             f'-composite',

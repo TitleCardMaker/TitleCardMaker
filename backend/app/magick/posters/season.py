@@ -122,8 +122,8 @@ class SeasonPoster(ImageMaker):
         if self.text_placement == 'top':
             return [
                 fr'\(',
-                f'"{self.GRADIENT_OVERLAY.resolve()}"',
-                f'-rotate 180',
+                    f'"{self.GRADIENT_OVERLAY.resolve()}"',
+                    f'-rotate 180',
                 fr'\)',
                 f'-compose Darken',
                 f'-composite',
@@ -154,11 +154,11 @@ class SeasonPoster(ImageMaker):
         return [
             # Overlay logo
             fr'\(',
-            f'"{self.logo.resolve()}"',
-            # Fit to 1460px wide
-            f'-resize 1460x',
-            # Limit to 750px tall
-            fr'-resize x750\>',
+                f'"{self.logo.resolve()}"',
+                # Fit to 1460px wide
+                f'-resize 1460x',
+                # Limit to 750px tall
+                fr'-resize x750\>',
             fr'\)',
             # Begin logo merge
             f'-gravity {gravity}',

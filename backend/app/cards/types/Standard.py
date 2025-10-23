@@ -266,17 +266,17 @@ class StandardTitleCard(BaseCardType):
             f'-gravity center',
             # Stroke behind primary text
             fr'\(',
-            f'-fill "{self.episode_text_stroke_color}"',
-            f'-stroke "{self.episode_text_stroke_color}"',
-            f'-strokewidth 6',
-            # Add season text
-            f'-font "{self.SEASON_COUNT_FONT.resolve()}"',
-            f'label:"{self.season_text} {self.separator}"',
-            # Add episode text
-            f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
-            f'label:"{self.episode_text}"',
-            # Combine season+episode text into one "image"
-            f'+smush 25',
+                f'-fill "{self.episode_text_stroke_color}"',
+                f'-stroke "{self.episode_text_stroke_color}"',
+                f'-strokewidth 6',
+                # Add season text
+                f'-font "{self.SEASON_COUNT_FONT.resolve()}"',
+                f'label:"{self.season_text} {self.separator}"',
+                # Add episode text
+                f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
+                f'label:"{self.episode_text}"',
+                # Combine season+episode text into one "image"
+                f'+smush 25',
             fr'\)',
             # Add season+episode text "image" to source image
             f'-gravity north',
@@ -285,16 +285,16 @@ class StandardTitleCard(BaseCardType):
             # Primary text
             f'-gravity center',
             fr'\(',
-            f'-fill "{self.episode_text_color}"',
-            f'-stroke "{self.episode_text_color}"',
-            f'-strokewidth 0.75',
-            # Add season text
-            f'-font "{self.SEASON_COUNT_FONT.resolve()}"',
-            f'label:"{self.season_text} {self.separator}"',
-            # Add episode text
-            f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
-            f'label:"{self.episode_text}"',
-            f'+smush 30',
+                f'-fill "{self.episode_text_color}"',
+                f'-stroke "{self.episode_text_color}"',
+                f'-strokewidth 0.75',
+                # Add season text
+                f'-font "{self.SEASON_COUNT_FONT.resolve()}"',
+                f'label:"{self.season_text} {self.separator}"',
+                # Add episode text
+                f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
+                f'label:"{self.episode_text}"',
+                f'+smush 30',
             fr'\)',
             # Add text to source image
             f'-gravity north',

@@ -471,12 +471,14 @@ class AnimeTitleCard(BaseCardType):
             f'-stroke "{self.episode_stroke_color}"',
             f'-strokewidth 6',
             # Stroke behind season and episode text
-            fr'\( -gravity center',
-            # Stroke uses same font for season/episode text
-            f'label:"{self.season_text} {self.separator}"',
-            f'label:"{self.episode_text}"',
-            # Combine season and episode text into one "image"
-            fr'+smush 30 \)',
+            fr'\(',
+                f'-gravity center',
+                # Stroke uses same font for season/episode text
+                f'label:"{self.season_text} {self.separator}"',
+                f'label:"{self.episode_text}"',
+                # Combine season and episode text into one "image"
+                f'+smush 30',
+            fr'\)',
             f'-gravity southwest',
             # Overlay stroke "image" - use different offset for stroke
             f'-geometry +73+88',
@@ -485,17 +487,19 @@ class AnimeTitleCard(BaseCardType):
             *self.__series_count_text_global_effects,
             f'-fill "{self.season_text_color}"',
             f'-stroke "{self.season_text_color}"',
-            fr'\( -gravity center',
-            # Season text and separator uses larger stroke
-            f'-strokewidth 2',
-            f'label:"{self.season_text} {self.separator}"',
-            # Zero-width stroke for episode text
-            f'-strokewidth 0',
-            f'-fill "{self.episode_text_color}"',
-            f'-stroke "{self.episode_text_color}"',
-            f'label:"{self.episode_text}"',
-            # Combine season+episode text images
-            fr'+smush 35 \)',
+            fr'\(',
+                f'-gravity center',
+                # Season text and separator uses larger stroke
+                f'-strokewidth 2',
+                f'label:"{self.season_text} {self.separator}"',
+                # Zero-width stroke for episode text
+                f'-strokewidth 0',
+                f'-fill "{self.episode_text_color}"',
+                f'-stroke "{self.episode_text_color}"',
+                f'label:"{self.episode_text}"',
+                # Combine season+episode text images
+                f'+smush 35',
+            fr'\)',
             # Add text to source image
             f'-gravity southwest',
             f'-geometry +75+90',
@@ -525,8 +529,8 @@ class AnimeTitleCard(BaseCardType):
         return self.add_drop_shadow(
             [
                 fr'\(',
-                f'"{self.logo_file.resolve()}"',
-                f'-resize x{100 * self.logo_size}',
+                    f'"{self.logo_file.resolve()}"',
+                    f'-resize x{100 * self.logo_size}',
                 fr'\)',
                 f'-gravity {gravity}',
             ],

@@ -296,9 +296,9 @@ class LogoTitleCard(BaseCardType):
         return [
             f'-gravity north',
             fr'\(',
-            f'"{self.logo.resolve()}"',
-            f'-resize x{max_height}',
-            fr'-resize {max_width}x{max_height}\>',
+                f'"{self.logo.resolve()}"',
+                f'-resize x{max_height}',
+                fr'-resize {max_width}x{max_height}\>',
             fr'\)',
             f'-geometry {self.logo_horizontal_shift:+}{offset:+}',
             f'-composite',
@@ -359,33 +359,33 @@ class LogoTitleCard(BaseCardType):
             f'-interword-spacing 14.5',
             # Black stroke behind primary text
             fr'\(',
-            f'-fill black',
-            f'-stroke black',
-            f'-strokewidth 6',
-            # Add season text
-            f'-font "{self.SEASON_COUNT_FONT.resolve()}"',
-            f'label:"{self.season_text} {self.separator}"',
-            # Add episode text
-            f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
-            f'label:"{self.episode_text}"',
-            # Combine season+episode text into one "image"
-            f'+smush 25',
+                f'-fill black',
+                f'-stroke black',
+                f'-strokewidth 6',
+                # Add season text
+                f'-font "{self.SEASON_COUNT_FONT.resolve()}"',
+                f'label:"{self.season_text} {self.separator}"',
+                # Add episode text
+                f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
+                f'label:"{self.episode_text}"',
+                # Combine season+episode text into one "image"
+                f'+smush 25',
             fr'\)',
             # Add season+episode text "image" to source image
             f'-geometry +0{y:+}',
             f'-composite',
             # Primary text
             fr'\(',
-            f'-fill "{self.episode_text_color}"',
-            f'-stroke "{self.episode_text_color}"',
-            f'-strokewidth 0.75',
-            # Add season text
-            f'-font "{self.SEASON_COUNT_FONT.resolve()}"',
-            f'label:"{self.season_text} {self.separator}"',
-            # Add episode text
-            f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
-            f'label:"{self.episode_text}"',
-            f'+smush 30',
+                f'-fill "{self.episode_text_color}"',
+                f'-stroke "{self.episode_text_color}"',
+                f'-strokewidth 0.75',
+                # Add season text
+                f'-font "{self.SEASON_COUNT_FONT.resolve()}"',
+                f'label:"{self.season_text} {self.separator}"',
+                # Add episode text
+                f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
+                f'label:"{self.episode_text}"',
+                f'+smush 30',
             fr'\)',
             # Add text to source image
             f'-geometry +0{y:+}',

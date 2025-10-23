@@ -386,14 +386,16 @@ class NotificationTitleCard(BaseCardType):
 
         return [
             # Duplicate image to blur rectangle in the given bounds
-            fr'\( -clone 0',
-            f'-fill white',
-            f'-colorize 100',
-            f'-fill black',
-            glass.draw(),
-            f'-alpha off',
-            f'-write mpr:mask',
-            fr'+delete \)',
+            fr'\(',
+                f'-clone 0',
+                f'-fill white',
+                f'-colorize 100',
+                f'-fill black',
+                glass.draw(),
+                f'-alpha off',
+                f'-write mpr:mask',
+                f'+delete',
+            fr'\)',
             f'-mask mpr:mask',
             # Do not blur if whole image is being blurred
             f'' if self.blur else f'-blur {self._GLASS_BLUR_PROFILE}',

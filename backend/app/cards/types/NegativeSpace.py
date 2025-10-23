@@ -333,14 +333,14 @@ class NegativeSpaceTitleCard(BaseCardType):
             # First image is the filled number mask where white is the
             # episode number, and the background is black
             fr'\(',
-            f'xc:black',
-            *self.numeral_commands('white'),
+                f'xc:black',
+                *self.numeral_commands('white'),
             fr'\)',
             # Second image is the filled title mask where black is the
             # title text, and the background is white
             fr'\(',
-            f'xc:white',
-            *self.title_text_commands('black'),
+                f'xc:white',
+                *self.title_text_commands('black'),
             fr'\)',
             # Create difference composite mask of the two images
             f'-compose difference',
@@ -367,9 +367,9 @@ class NegativeSpaceTitleCard(BaseCardType):
             f'"{text_image.resolve()}"',
             # Layer 1 is the source image
             fr'\(',
-            f'"{self.source_file.resolve()}"',
-            # Resize and apply styles to source image
-            *self.resize_and_style,
+                f'"{self.source_file.resolve()}"',
+                # Resize and apply styles to source image
+                *self.resize_and_style,
             fr'\)',
             # Layer 2 is the mask
             f'"{difference_mask.resolve()}"',

@@ -337,8 +337,10 @@ class CalligraphyTitleCard(BaseCardType):
         if self.randomize_texture:
             random_height = (random() + 1.0) * self.HEIGHT
             texture_command = [
-                fr'\( "{self.TEXTURE_IMAGE.resolve()}"',
-                fr'-resize x{random_height} \)',
+                fr'\(',
+                    f'"{self.TEXTURE_IMAGE.resolve()}"',
+                    f'-resize x{random_height}',
+                fr'\)',
             ]
 
         return [

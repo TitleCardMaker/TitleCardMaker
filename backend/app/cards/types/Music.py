@@ -763,9 +763,9 @@ class MusicTitleCard(BaseCardType):
         base_commands = [
             f'-gravity south',
             fr'\(',
-            f'"{self.album_cover.resolve()}"',
-            f'-resize {dimensions.width}x',
-            fr'-resize x{dimensions.height}\>',
+                f'"{self.album_cover.resolve()}"',
+                f'-resize {dimensions.width}x',
+                fr'-resize x{dimensions.height}\>',
             fr'\)',
         ]
 
@@ -828,14 +828,16 @@ class MusicTitleCard(BaseCardType):
 
         return [
             # Blur rectangle in the given bounds
-            fr'\( -clone 0',
-            f'-fill white',
-            f'-colorize 100',
-            f'-fill black',
-            f'-draw "roundrectangle {start.x},{start.y} {end.x},{end.y} 25,25"',
-            f'-alpha off',
-            f'-write mpr:mask',
-            fr'+delete \)',
+            fr'\(',
+                f'-clone 0',
+                f'-fill white',
+                f'-colorize 100',
+                f'-fill black',
+                f'-draw "roundrectangle {start.x},{start.y} {end.x},{end.y} 25,25"',
+                f'-alpha off',
+                f'-write mpr:mask',
+                f'+delete',
+            fr'\)',
             f'-mask mpr:mask',
             f'' if self.blur else f'-blur {self.GLASS_BLUR_PROFILE}',
             f'+mask',

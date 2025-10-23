@@ -526,14 +526,16 @@ class CascadeTitleCard(BaseCardType):
 
         return [
             # Blur rectangle in the given bounds
-            fr'\( -clone 0',
-            f'-fill white',
-            f'-colorize 100',
-            f'-fill black',
-            f'-draw "roundrectangle {rectangle} 25,25"',
-            f'-alpha off',
-            f'-write mpr:mask',
-            fr'+delete \)',
+            fr'\(',
+                f'-clone 0',
+                f'-fill white',
+                f'-colorize 100',
+                f'-fill black',
+                f'-draw "roundrectangle {rectangle} 25,25"',
+                f'-alpha off',
+                f'-write mpr:mask',
+                f'+delete',
+            fr'\)',
             f'-mask mpr:mask',
             f'' if self.blur else f'-blur 0x12',
             f'+mask',
@@ -557,15 +559,15 @@ class CascadeTitleCard(BaseCardType):
         # Both text modes need a reference image for the top line
         commands = [
             fr'\(',
-            f'-background none',
-            f'-fill "{self.cascade_fill_color}"',
-            f'-stroke "{self.cascade_outline_color}"',
-            f'-strokewidth {self.cascade_width}',
-            f'label:"{self.title_text.splitlines()[0]}"',
-            # Remove any white space padding
-            f'-trim',
-            # Repage so that future crops aren't misaligned
-            f'+repage',
+                f'-background none',
+                f'-fill "{self.cascade_fill_color}"',
+                f'-stroke "{self.cascade_outline_color}"',
+                f'-strokewidth {self.cascade_width}',
+                f'label:"{self.title_text.splitlines()[0]}"',
+                # Remove any white space padding
+                f'-trim',
+                # Repage so that future crops aren't misaligned
+                f'+repage',
             fr'\)',
         ]
         # Multiple lines of text: Create two reference images; one for
@@ -574,15 +576,15 @@ class CascadeTitleCard(BaseCardType):
         if self.__multiline_mode:
             commands.extend([
                 fr'\(',
-                f'-background none',
-                f'-fill "{self.cascade_fill_color}"',
-                f'-stroke "{self.cascade_outline_color}"',
-                f'-strokewidth {self.cascade_width}',
-                f'label:"{self.title_text.splitlines()[-1]}"',
-                # Remove any white space padding
-                f'-trim',
-                # Repage so that future crops aren't misaligned
-                f'+repage',
+                    f'-background none',
+                    f'-fill "{self.cascade_fill_color}"',
+                    f'-stroke "{self.cascade_outline_color}"',
+                    f'-strokewidth {self.cascade_width}',
+                    f'label:"{self.title_text.splitlines()[-1]}"',
+                    # Remove any white space padding
+                    f'-trim',
+                    # Repage so that future crops aren't misaligned
+                    f'+repage',
                 fr'\)',
             ])
         # Single line of text: Create one reference image as the entire
@@ -621,23 +623,23 @@ class CascadeTitleCard(BaseCardType):
             commands.extend([
                 # Add a new image to the stack
                 fr'\(',
-                # Clone the reference outline image
-                f'-clone {top_reference_id}',
-                # Crop the top part of the reference image
-                f'-gravity north',
-                f'-crop 0x{crop}%',
-                # Apply alpha modifier to cloned image
-                f'-channel A',
-                f'-evaluate multiply {alpha}',
-                f'+channel',
-                # On the first cascade, clone the base image, all other
-                # passes just grab the most recent cascade on the stack
-                f'-clone 0' if cascade_index == 0 else f'+clone',
-                # Swap so that the text image is composed atop the reference
-                f'+swap',
-                f'-gravity center',
-                f'-geometry +0-{top_dy}',
-                f'-composite',
+                    # Clone the reference outline image
+                    f'-clone {top_reference_id}',
+                    # Crop the top part of the reference image
+                    f'-gravity north',
+                    f'-crop 0x{crop}%',
+                    # Apply alpha modifier to cloned image
+                    f'-channel A',
+                    f'-evaluate multiply {alpha}',
+                    f'+channel',
+                    # On the first cascade, clone the base image, all other
+                    # passes just grab the most recent cascade on the stack
+                    f'-clone 0' if cascade_index == 0 else f'+clone',
+                    # Swap so that the text image is composed atop the reference
+                    f'+swap',
+                    f'-gravity center',
+                    f'-geometry +0-{top_dy}',
+                    f'-composite',
                 fr'\)',
             ])
 
@@ -646,22 +648,22 @@ class CascadeTitleCard(BaseCardType):
             commands.extend([
                 # Add a new image to the stack
                 fr'\(',
-                # Clone the reference outline image
-                f'-clone {bottom_reference_id}',
-                # Crop the bottom part of the reference image
-                f'-gravity south',
-                f'-crop 0x{crop}%',
-                # Apply alpha modifier to cloned image
-                f'-channel A',
-                f'-evaluate multiply {alpha}',
-                f'+channel',
-                # Always clone the most recent cascade on the stack
-                f'+clone',
-                # Swap so that the text image is composed atop the reference
-                f'+swap',
-                f'-gravity center',
-                f'-geometry +0+{bottom_dy}',
-                f'-composite',
+                    # Clone the reference outline image
+                    f'-clone {bottom_reference_id}',
+                    # Crop the bottom part of the reference image
+                    f'-gravity south',
+                    f'-crop 0x{crop}%',
+                    # Apply alpha modifier to cloned image
+                    f'-channel A',
+                    f'-evaluate multiply {alpha}',
+                    f'+channel',
+                    # Always clone the most recent cascade on the stack
+                    f'+clone',
+                    # Swap so that the text image is composed atop the reference
+                    f'+swap',
+                    f'-gravity center',
+                    f'-geometry +0+{bottom_dy}',
+                    f'-composite',
                 fr'\)',
             ])
 
@@ -819,17 +821,17 @@ class CascadeTitleCard(BaseCardType):
 
         return [
             fr'\(',
-            f'-background none',
-            f'-fill "{self.font_color}"',
-            f'-font "{file}"',
-            f'-interline-spacing {interline_spacing}',
-            f'-interword-spacing {interword_spacing}',
-            f'-kerning {kerning}',
-            f'-pointsize {size}',
-            f'-gravity center',
-            f'label:"{text}"',
-            # Remove any white space padding
-            f'-trim',
+                f'-background none',
+                f'-fill "{self.font_color}"',
+                f'-font "{file}"',
+                f'-interline-spacing {interline_spacing}',
+                f'-interword-spacing {interword_spacing}',
+                f'-kerning {kerning}',
+                f'-pointsize {size}',
+                f'-gravity center',
+                f'label:"{text}"',
+                # Remove any white space padding
+                f'-trim',
             fr'\)',
             f'-geometry +0{y_pos:+}',
             # Add to image

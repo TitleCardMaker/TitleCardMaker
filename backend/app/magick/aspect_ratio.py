@@ -105,16 +105,22 @@ class AspectRatioFixer(ImageMaker):
             self.image_magick.run([
                 f'convert',
                 # Crop left 50px and stretch
-                fr'\( "{self.__RESIZED_TEMP.resolve()}"',
-                f'-crop "50x1800+0+0"',
-                fr'-resize "{side_width}!" \)',
+                fr'\(',
+                    f'"{self.__RESIZED_TEMP.resolve()}"',
+                    f'-crop "50x1800+0+0"',
+                    f'-resize "{side_width}!"',
+                fr'\)',
                 # Crop middle section
-                fr'\(  "{self.__RESIZED_TEMP.resolve()}"',
-                fr'-crop "{width-100}x1800+50+0" \)',
+                fr'\('
+                    f'"{self.__RESIZED_TEMP.resolve()}"',
+                    f'-crop "{width-100}x1800+50+0"',
+                fr'\)',
                 # Crop right 50px and stretch
-                fr'\(  "{self.__RESIZED_TEMP.resolve()}"',
-                f'-crop "50x1800+{width-50}+0"',
-                fr'-resize "{side_width}!" \)',
+                fr'\(',
+                    f'"{self.__RESIZED_TEMP.resolve()}"',
+                    f'-crop "50x1800+{width-50}+0"',
+                    f'-resize "{side_width}!"',
+                fr'\)',
                 # Append like [LEFT 50][MIDDLE][RIGHT 50] left-to-right
                 f'+append',
                 f'"{self.destination.resolve()}"',

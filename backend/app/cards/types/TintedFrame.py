@@ -392,10 +392,10 @@ class TintedFrameTitleCard(BaseCardType):
             # Crop out center area of the source image
             f'-gravity center',
             fr'\(',
-            f'"{self.source_file.resolve()}"',
-            *self.resize_and_style,
-            f'-crop {crop_width}x{crop_height}+0+0',
-            f'+repage',
+                f'"{self.source_file.resolve()}"',
+                *self.resize_and_style,
+                f'-crop {crop_width}x{crop_height}+0+0',
+                f'+repage',
             fr'\)',
             # Overlay unblurred center area
             f'-composite',
@@ -519,8 +519,8 @@ class TintedFrameTitleCard(BaseCardType):
         return self.add_drop_shadow(
             [
                 fr'\(',
-                f'"{self.logo.resolve()}"',
-                *resize_command,
+                    f'"{self.logo.resolve()}"',
+                    *resize_command,
                 fr'\)',
                 f'-gravity center',
             ],

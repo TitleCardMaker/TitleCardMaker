@@ -307,8 +307,8 @@ class CutoutTitleCard(BaseCardType):
         # No cutout shift, can generate mask on-the-fly
         return [
             fr'\(',
-            *text_commands,
-            blur,
+                *text_commands,
+                blur,
             fr'\)'
         ]
 
@@ -323,14 +323,15 @@ class CutoutTitleCard(BaseCardType):
 
         return [
             # Add source image
-            fr'\( "{self.source_file.resolve()}"',
-            # Scale the alpha channel by the given transparency
-            f'-alpha set',
-            f'-channel A',
-            f'-evaluate multiply {self.overlay_transparency:.2f}',
-            f'+channel',
-            # Apply styling
-            *self.resize_and_style,
+            fr'\(',
+                f'"{self.source_file.resolve()}"',
+                # Scale the alpha channel by the given transparency
+                f'-alpha set',
+                f'-channel A',
+                f'-evaluate multiply {self.overlay_transparency:.2f}',
+                f'+channel',
+                # Apply styling
+                *self.resize_and_style,
             fr'\)',
             # Add semi-transparent source on top of composition
             f'-composite',
@@ -347,11 +348,14 @@ class CutoutTitleCard(BaseCardType):
             f'convert',
             f'-set colorspace sRGB',
             # Create solid-color overlay
-            fr'\( -size "{self.TITLE_CARD_SIZE}"',
-            fr'xc:"{self.overlay_color}" \)',
+            fr'\(',
+                f'-size "{self.TITLE_CARD_SIZE}"',
+                f'xc:"{self.overlay_color}"',
+            fr'\)',
             # Resize and optionally blur source image
-            fr'\( "{self.source_file.resolve()}"',
-            *self.resize_and_style,
+            fr'\(',
+                f'"{self.source_file.resolve()}"',
+                *self.resize_and_style,
             fr'\)',
             # Create/add cutout of episode text
             *self.episode_text_mask,

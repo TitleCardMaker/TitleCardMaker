@@ -308,8 +308,8 @@ class LandscapeTitleCard(BaseCardType):
         return [
             # Create image the size of the title card filled with darken color
             fr'\(',
-            f'-size "{self.TITLE_CARD_SIZE}"',
-            f'xc:"{self.darken_color}"',
+                f'-size "{self.TITLE_CARD_SIZE}"',
+                f'xc:"{self.darken_color}"',
             fr'\)',
             # Compose atop of source image
             f'-gravity center',
@@ -338,9 +338,9 @@ class LandscapeTitleCard(BaseCardType):
 
         return  [
             fr'\(',
-            f'-clone 0',
-            f'-crop {x_end - x_start}x{y_end - y_start}+0+0',
-            f'-blur {self.box_blur_profile}',
+                f'-clone 0',
+                f'-crop {x_end - x_start}x{y_end - y_start}+0+0',
+                f'-blur {self.box_blur_profile}',
             fr'\)',
             f'-geometry -{self.box_width / 2}-20',
             f'-composite',

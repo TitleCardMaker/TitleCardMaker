@@ -166,9 +166,9 @@ class FadeTitleCard(BaseCardType):
 
         return [
             fr'\(',
-            f'"{self.logo.resolve()}"',
-            f'-resize 900x',
-            fr'-resize x{logo_size}\>',
+                f'"{self.logo.resolve()}"',
+                f'-resize 900x',
+                fr'-resize x{logo_size}\>',
             fr'\)',
             f'-gravity west',
             f'-geometry +100-550',
@@ -231,9 +231,9 @@ class FadeTitleCard(BaseCardType):
             f'xc:None',
             # Resize source to subsection of card
             fr'\(',
-            f'"{self.source_file.resolve()}"',
-            f'-resize x1525',
-            *self.style,
+                f'"{self.source_file.resolve()}"',
+                f'-resize x1525',
+                *self.style,
             fr'\)',
             # Compose source onto proper place on canvas (100px from right)
             f'-gravity east',

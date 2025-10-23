@@ -149,10 +149,10 @@ class MoviePosterMaker(ImageMaker):
         return [
             # Bring in logo image
             fr'\(',
-            f'"{self.logo.resolve()}"',
-            # Resize to 400px wide, limit to 200px tall
-            f'-resize 400x',
-            fr'-resize x200\>',
+                f'"{self.logo.resolve()}"',
+                # Resize to 400px wide, limit to 200px tall
+                f'-resize 400x',
+                fr'-resize x200\>',
             fr'\)',
             # Overlay 100px from top of image
             f'-gravity north',
@@ -180,9 +180,9 @@ class MoviePosterMaker(ImageMaker):
             y_offset -= 15
             shadow_commands = [
                 fr'\(',
-                f'+clone',
-                f'-background None',
-                f'-shadow 90x3+10+10',
+                    f'+clone',
+                    f'-background None',
+                    f'-shadow 90x3+10+10',
                 fr'\)',
                 f'+swap',
                 f'-background None',
@@ -198,21 +198,21 @@ class MoviePosterMaker(ImageMaker):
             f'-fill "{self.font_color}"',
             # Create an image for each title
             fr'\(',
-            fr'\(',
-            f'-background transparent',
-            *self.subtitle_font_attributes,
-            # Combine in order [TOP SUBTITLE] / [TITLE] / [SUBTITLE]
-            f'label:"{self.top_subtitle}"' if len(self.top_subtitle)>0 else '',
-            *self.title_font_attributes,
-            f'label:"{self.title}"' if len(self.title) > 0 else '',
-            *self.subtitle_font_attributes,
-            f'label:"{self.subtitle}"' if len(self.subtitle) > 0 else '',
-            # Merge images
-            f'-smush 30',
-            fr'\)',
-            # Add drop shadow to text
-            *shadow_commands,
-            # Add titles to image
+                fr'\(',
+                    f'-background transparent',
+                    *self.subtitle_font_attributes,
+                    # Combine in order [TOP SUBTITLE] / [TITLE] / [SUBTITLE]
+                    f'label:"{self.top_subtitle}"' if self.top_subtitle else '',
+                    *self.title_font_attributes,
+                    f'label:"{self.title}"' if self.title else '',
+                    *self.subtitle_font_attributes,
+                    f'label:"{self.subtitle}"' if self.subtitle else '',
+                    # Merge images
+                    f'-smush 30',
+                fr'\)',
+                # Add drop shadow to text
+                *shadow_commands,
+                # Add titles to image
             fr'\)',
             f'-gravity south',
             f'-geometry +0+{y_offset}',
