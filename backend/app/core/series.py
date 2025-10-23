@@ -535,6 +535,10 @@ def delete_series(
     if settings.completely_delete_series:
         _delete_folder(series.source_directory, log=log)
 
+    # If all Cards have been deleted, delete the card directory
+    if not any(series.card_directory.iterdir()):
+        series.card_directory.rmdir()
+
     # Delete Series; all child objects are deleted on cascade
     log.info(f'Deleting {series}')
     db.delete(series)
