@@ -547,10 +547,6 @@ def delete_series(
     if commit_changes:
         db.commit()
 
-    # Invalidate series cache since we deleted a series
-    invalidate_series_cache(series.id)
-    log.debug(f'Invalidated series, card, and episode cache after deleting {series}')
-
 
 def load_series_title_cards(
         series: Series,
@@ -663,7 +659,7 @@ def load_series_title_cards(
             ))
         except InvalidRequestError:
             log.warning(
-                f'Error creating Loaded asset for {loaded_episode} {card}'
+                f'Error creating Loaded asset for {loaded_episode} {loaded_card}'
             )
             continue
 
