@@ -29,9 +29,9 @@ async def log_internal_server_errors(
         console.print(
             Traceback(
                 show_locals=True,
-                locals_max_length=512,
-                locals_max_string=512,
-                extra_lines=2,
+                locals_max_length=32, # Display up to 32 local items
+                locals_max_string=1024,
+                extra_lines=2, # Display two lines around the error line
                 indent_guides=False,
                 suppress=app.utils.tasks.TracebackSuppressedPackages,
             )
