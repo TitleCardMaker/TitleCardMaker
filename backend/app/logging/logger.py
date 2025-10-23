@@ -3,7 +3,7 @@ import logging
 from random import choices as random_choices
 from string import hexdigits
 import sys
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 
 import better_exceptions
 from fastapi import WebSocket
@@ -16,15 +16,7 @@ from app.logging.database import LogsSessionLocal
 from app.logging.models import Log
 
 if TYPE_CHECKING:
-    class Record(TypedDict):
-        exception: Exception | None
-        time: datetime
-        extra: dict[str, str | None]
-        file: dict[str, dict[str, str] | None]
-        line: int | None
-
-    class Message(str):
-        record: Record
+    from loguru import Message
 
 
 """Websocket connections to send log messages to"""
@@ -37,7 +29,7 @@ better_exceptions.MAX_LENGTH = None
 Logging filters and sinks
 """
 SECRETS: set[str] = set()
-def _redact_secrets(message: 'Message') -> str:
+def _redact_secrets(message: str) -> str:
     """Redact all secrets from the given message."""
 
     # Redact the longest secrets first so that substrings of secrets are
@@ -210,7 +202,7 @@ def _intercept_plex_logs(logger: Logger) -> Logger:
                 level = record.levelno
 
             frame, depth = logging.currentframe(), 2
-            while frame.f_code.co_filename == logging.__file__:
+            while frame and frame.f_code.co_filename == logging.__file__:
                 frame = frame.f_back
                 depth += 1
 

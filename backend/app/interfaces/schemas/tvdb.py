@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, PositiveInt
+from pydantic import BaseModel, Field
 
 
 type ArtType = Literal[
@@ -241,7 +241,7 @@ class SeriesBaseRecord(BaseModel):
 
 class EpisodeBaseRecord(BaseModel):
     # absoluteNumber: int | None = None
-    aired: date | Literal[''] = ''
+    aired: datetime | Literal[''] = ''
     # airsAfterSeason: int | None = None
     # airsBeforeEpisode: int | None = None
     # airsBeforeSeason: int | None = None
@@ -275,7 +275,7 @@ class SeriesEpisodeResponse(BaseModel):
 
 class ArtworkExtendedRecord(BaseModel):
     # episodeId: int | None = None
-    height: Annotated[int, PositiveInt] = 0
+    height: Annotated[int, Field(ge=1)] = 0
     # id: int
     image: str
     # includesText: bool
@@ -290,11 +290,11 @@ class ArtworkExtendedRecord(BaseModel):
     # status: ArtworkStatus
     # tagOptions: TagOption | None = None
     # thumbnail: str
-    # thumbnailHeight: Annotated[int, PositiveInt]
-    # thumbnailWidth: Annotated[int, PositiveInt]
+    # thumbnailHeight: Annotated[int, Field(ge=1)]
+    # thumbnailWidth: Annotated[int, Field(ge=1)]
     type: Annotated[int, Field(ge=1, le=27)]
     # updatedAt: int
-    width: Annotated[int, PositiveInt]
+    width: Annotated[int, Field(ge=1)]
 
 class SeasonType(BaseModel):
     # alternateName: str | None = None

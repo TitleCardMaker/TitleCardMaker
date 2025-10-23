@@ -162,7 +162,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         )
 
         try:
-            auth = Authentication.model_validate_json(response.json())
+            auth = Authentication.model_validate(response.json())
         except ValidationError:
             log.debug(
                 f'API login failed [{response.status_code}] - {response.text}'
@@ -245,7 +245,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         for id_ in ids:
             # Query API for each ID, and then validate the response
             try:
-                response = RemoteIDSearchResult.model_validate_json(
+                response = RemoteIDSearchResult.model_validate(
                     self.get(f'{self.__ROOT_API_URL}/search/remoteid/{id_}')
                 )
             # Validation error, skip
@@ -298,7 +298,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         })
 
         try:
-            response = SearchResultResponse.model_validate_json(
+            response = SearchResultResponse.model_validate(
                 self.get(f'{self.__ROOT_API_URL}/search?{params}')
             )
         except ValidationError:
@@ -352,7 +352,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Make request
         try:
-            response = SeriesEpisodeResponse.model_validate_json(
+            response = SeriesEpisodeResponse.model_validate(
                 self.get((
                     f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes/'
                     f'{self._order_type}?{params}'
@@ -386,7 +386,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             """Query the episodes on the given page number"""
 
             try:
-                return SeriesEpisodeResponse.model_validate_json(
+                return SeriesEpisodeResponse.model_validate(
                     self.get((
                         f'{self.__ROOT_API_URL}/series/{tvdb_id}/episodes'
                         f'/{self._order_type}?page={page}'
@@ -436,7 +436,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         try:
             return [
                 art
-                for art in SeriesArtworkResponse.model_validate_json(
+                for art in SeriesArtworkResponse.model_validate(
                     self.get(url)
                 ).data.artworks
                 if art.type == self.ARTWORK_TYPES[art_type]
@@ -506,7 +506,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         series_info.set_tvdb_id(tvdb_id)
 
         try:
-            response = SeriesExtendedRecord.model_validate_json(
+            response = SeriesExtendedRecord.model_validate(
                 self.get(
                     f'{self.__ROOT_API_URL}/series/{tvdb_id}/extended?short=true'
                 )
@@ -541,7 +541,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         """
 
         try:
-            results = SearchResultResponse.model_validate_json(
+            results = SearchResultResponse.model_validate(
                 self.get(
                     f'{self.__ROOT_API_URL}/search?query={url_quote(query)}'
                 )
@@ -651,7 +651,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
             # Query extended info for this episode
             try:
-                response = EpisodeExtendedResponse.model_validate_json(
+                response = EpisodeExtendedResponse.model_validate(
                     self.get(
                         f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/extended'
                     )
@@ -759,7 +759,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Get associated image for this Episode
         try:
-            response = EpisodeExtendedResponse.model_validate_json(
+            response = EpisodeExtendedResponse.model_validate(
                 self.get(f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/extended')
             )
         except ValidationError:
@@ -823,7 +823,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
         try:
-            return EpisodeTranslationResponse.model_validate_json(
+            return EpisodeTranslationResponse.model_validate(
                 self.get((
                     f'{self.__ROOT_API_URL}/episodes/{tvdb_id}/translations/'
                     f'{language_code}'
@@ -932,7 +932,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Read all season data
         try:
-            series_data = SeriesExtendedRecord.model_validate_json(
+            series_data = SeriesExtendedRecord.model_validate(
                 self.get(
                     f'{self.__ROOT_API_URL}/series/{tvdb_id}/extended?short=true'
                 )
@@ -964,7 +964,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             for language in season.nameTranslations[0].split(','):
                 # Query translated season data
                 try:
-                    season_data = SeasonTranslationResponse.model_validate_json(
+                    season_data = SeasonTranslationResponse.model_validate(
                         self.get((
                             f'{self.__ROOT_API_URL}/seasons/{season.id}'
                             f'/translations/{language}'
