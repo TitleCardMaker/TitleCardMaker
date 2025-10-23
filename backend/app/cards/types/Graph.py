@@ -5,16 +5,17 @@ from typing import Annotated, Any, Literal, Self
 
 from pydantic import Field, FilePath, StringConstraints, model_validator
 
-from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardModel
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     Coordinate,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Line,
 )
+from app.logging.logger import log # noqa: F401
+from app.schemas.base import Base, BaseCardModel
 
 
 TextPosition = Literal[
@@ -215,22 +216,19 @@ class GraphTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'inset'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 35,
-        'max_line_count': 3,
-        'style': 'top',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'HelveticaNeue-BoldItalic.ttf').resolve())
-    TITLE_COLOR = 'rgb(247, 247, 247)'
-    DEFAULT_FONT_CASE = 'source'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'HelveticaNeue-BoldItalic.ttf',
+        font_color='rgb(247, 247, 247)',
+        font_case='source',
+        title_max_line_width=35,
+        title_max_line_count=3,
+        title_split_style='top',
+        episode_text_format='{episode_number} / {season_episode_max}',
+    )
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'HelveticaNeue-BoldItalic.ttf'
-    EPISODE_TEXT_FORMAT = '{episode_number} / {season_episode_max}'
 
     """Implementation details"""
     BACKGROUND_GRAPH_COLOR = 'rgba(140,140,140,0.5)'
@@ -276,8 +274,8 @@ class GraphTitleCard(BaseCardType):
             title_text: str,
             episode_text: str,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,

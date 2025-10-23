@@ -4,7 +4,12 @@ from typing import Annotated, Any, Self
 from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.schemas.base import Base, BaseCardModel
-from app.cards.base import BaseCardType, Extra, CardTypeDescription
+from app.cards.base import (
+    BaseCardType,
+    CardTypeDescription,
+    DefaultCardConfig,
+    Extra,
+)
 
 
 class PosterTitleCard(BaseCardType):
@@ -42,20 +47,17 @@ class PosterTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'poster_card'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 16,
-        'max_line_count': 5,
-        'style': 'top',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Amuro.otf').resolve())
-    TITLE_COLOR = '#FFFFFF'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Amuro.otf',
+        font_color='#FFFFFF',
+        title_max_line_width=16,
+        title_max_line_count=5,
+        title_split_style='top',
+        episode_text_format='Ep. {episode_number}',
+    )
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_FORMAT = 'Ep. {episode_number}'
     EPISODE_TEXT_COLOR = '#FFFFFF'
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Amuro.otf'
 
@@ -85,8 +87,8 @@ class PosterTitleCard(BaseCardType):
             card_file: Path,
             title_text: str,
             episode_text: str,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_size: float = 1.0,
@@ -184,8 +186,8 @@ def get_validator_model() -> type[Base]:
         title_text: str
         episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
-        font_color: str = PosterTitleCard.TITLE_COLOR
-        font_file: FilePath = PosterTitleCard.TITLE_FONT # type: ignore
+        font_color: str = PosterTitleCard.CardConfig.font_color
+        font_file: FilePath = PosterTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_size: Annotated[float, Field(gt=0)] = 1.0

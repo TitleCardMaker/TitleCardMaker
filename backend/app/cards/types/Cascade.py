@@ -10,12 +10,12 @@ from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     Coordinate,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Rectangle,
 )
 from app.utils.fstring import FormatString
-
 
 
 class SequenceGenerator:
@@ -321,24 +321,23 @@ class CascadeTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'cascade'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 20,
-        'max_line_count': 4,
-        'style': 'bottom',
-    }
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'SpockEssAlt1.ttf',
+        font_color='white',
+        font_case='upper',
+        title_max_line_width=20,
+        title_max_line_count=4,
+        title_split_style='bottom',
+        episode_text_format='E{episode_number}',
+    )
 
     """Characteristics of the default title font"""
     _ITALIC_TITLE_FONT = REF_DIRECTORY / 'SpockEssAlt1-It.ttf'
-    TITLE_FONT = str((REF_DIRECTORY / 'SpockEssAlt1.ttf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS = {}
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_FORMAT = 'E{episode_number}'
-    EPISODE_TEXT_COLOR = TITLE_COLOR
-    EPISODE_TEXT_FONT = TITLE_FONT
+    EPISODE_TEXT_COLOR = CardConfig.font_color
+    EPISODE_TEXT_FONT = CardConfig.font_file
     _KANJI_TEXT_FONT = REF_DIRECTORY.parent / 'anime' / 'hiragino-mincho-w3.ttc'
 
     """Implementation details"""
@@ -346,7 +345,7 @@ class CascadeTitleCard(BaseCardType):
     DEFAULT_CASCADE_COUNT: int = 2
     DEFAULT_CASCASE_CROP: str = '66,/2'
     DEFAULT_CASCADE_FILL_COLOR: str = 'transparent'
-    DEFAULT_CASCADE_OUTLINE_COLOR: str = TITLE_COLOR#'red'
+    DEFAULT_CASCADE_OUTLINE_COLOR: str = CardConfig.font_color#'red'
     DEFAULT_CASCADE_WIDTH: int = 5
     DEFAULT_GLASS_COLOR: str = 'rgba(0,0,0,0.3)'
     DEFAULT_GLASS_EDGE_COLOR: str = 'rgba(12,12,12,0.4)'
@@ -414,8 +413,8 @@ class CascadeTitleCard(BaseCardType):
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
             # Font
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -710,7 +709,7 @@ class CascadeTitleCard(BaseCardType):
         size = 40 * self.episode_text_font_size
 
         text_commands = [
-            f'-font "{self.TITLE_FONT}"',
+            f'-font "{self.CardConfig.font_file.resolve()}"',
             f'-fill "{self.alt_text_color}"',
             f'-pointsize {size}',
             f'-gravity west',
@@ -753,7 +752,7 @@ class CascadeTitleCard(BaseCardType):
         else:
             index_text = f'{self.season_text} {self.episode_text}'
 
-        font = self.TITLE_FONT
+        font = self.CardConfig.font_file.resolve()
         if self.allow_kanji_episode_text:
             font = str(self._KANJI_TEXT_FONT.resolve())
 
@@ -885,8 +884,8 @@ def get_validator_model() -> type[Base]:
 
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
-        font_color: str = CascadeTitleCard.TITLE_COLOR
-        font_file: FilePath = CascadeTitleCard.TITLE_FONT # type: ignore
+        font_color: str = CascadeTitleCard.CardConfig.font_color
+        font_file: FilePath = CascadeTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0

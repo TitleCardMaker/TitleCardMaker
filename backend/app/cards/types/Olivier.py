@@ -3,13 +3,14 @@ from typing import Annotated, Any, Literal, Self
 
 from pydantic import Field, FilePath, StringConstraints, model_validator
 
-from app.schemas.base import Base, BaseCardTypeCustomFontNoText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
+from app.schemas.base import Base, BaseCardTypeCustomFontNoText
 
 
 GradientType = Literal['original', 'improved']
@@ -93,20 +94,17 @@ class OlivierTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'olivier'
     SW_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'star_wars'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 16,
-        'max_line_count': 5,
-        'style': 'top',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Montserrat-Bold.ttf').resolve())
-    TITLE_COLOR = 'white'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Montserrat-Bold.ttf',
+        font_color='white',
+        title_max_line_width=16,
+        title_max_line_count=5,
+        title_split_style='top',
+        episode_text_format='EPISODE {to_cardinal(episode_number)}',
+    )
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_FORMAT = 'EPISODE {to_cardinal(episode_number)}'
     EPISODE_TEXT_COLOR = 'white'
     EPISODE_PREFIX_FONT = SW_REF_DIRECTORY / 'HelveticaNeue.ttc'
     EPISODE_NUMBER_FONT = SW_REF_DIRECTORY / 'HelveticaNeue-Bold.ttf'
@@ -147,8 +145,8 @@ class OlivierTitleCard(BaseCardType):
             episode_text: str,
             hide_episode_text: bool = False,
             # Font
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -367,8 +365,8 @@ def get_validator_model() -> type[Base]:
         title_text: str
         episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
-        font_color: str = OlivierTitleCard.TITLE_COLOR
-        font_file: FilePath = OlivierTitleCard.TITLE_FONT # type: ignore
+        font_color: str = OlivierTitleCard.CardConfig.font_color
+        font_file: FilePath = OlivierTitleCard.CardConfig.font_file
         episode_text_color: str = OlivierTitleCard.EPISODE_TEXT_COLOR
         episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
         episode_text_vertical_shift: int = 0

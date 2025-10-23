@@ -11,9 +11,6 @@ from pydantic import (
     model_validator,
 )
 
-from app.info.episode import EpisodeInfo
-from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
@@ -24,10 +21,11 @@ from app.cards.base import (
     Extra,
     Rectangle,
     Shadow,
-    TextCase,
+    SplitStyle,
 )
+from app.info.episode import EpisodeInfo
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.utils.fstring import FormatString
-from app.cards.title import SplitCharacteristics
 
 
 class ControlColors(NamedTuple): # pylint: disable=missing-class-docstring
@@ -264,25 +262,9 @@ class MusicTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'music'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS: SplitCharacteristics = {
-        'max_line_width': 17,
-        'max_line_count': 4,
-        'style': 'bottom',
-    }
-
-    # class CardConfig(DefaultCardConfig):
-    #     """Unified configuration for Music card type defaults"""
-    #     _ref = BaseCardType.BASE_REF_DIRECTORY / 'music'
-    #     font_file: str = str((_ref / 'Gotham-Bold.otf').resolve())
-    #     font_color: str = 'white'
-    #     font_case: TextCase = 'source'
-    #     font_replacements: dict[str, str] = {}
-    #     episode_text_format: str = 'E{episode_number}'
-    #     episode_text_color: str = 'white'
-
+    """Default configuration for this card type"""
     CardConfig = DefaultCardConfig(
-        font_file=BaseCardType.BASE_REF_DIRECTORY / 'music' / 'Gotham-Bold.otf',
+        font_file=REF_DIRECTORY / 'Gotham-Bold.otf',
         font_color='white',
         font_case='source',
         title_max_line_width=17,
@@ -291,13 +273,7 @@ class MusicTitleCard(BaseCardType):
         episode_text_format='E{episode_number}',
     )
 
-    # Backward compatibility class variables
-    TITLE_FONT: ClassVar[str] = Config.font_file
-    TITLE_COLOR: ClassVar[str] = Config.font_color
-    DEFAULT_FONT_CASE: ClassVar[TextCase] = Config.font_case
-    FONT_REPLACEMENTS: ClassVar[dict[str, str]] = Config.font_replacements
-    EPISODE_TEXT_FORMAT: ClassVar[str] = Config.episode_text_format
-    EPISODE_TEXT_COLOR: ClassVar[str] = Config.episode_text_color
+    EPISODE_TEXT_COLOR: ClassVar[str] = 'white'
     INDEX_TEXT_FONT = REF_DIRECTORY / 'Gotham-Medium.ttf'
 
     """Implementation details"""
@@ -419,8 +395,8 @@ class MusicTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = Config.font_color,
-            font_file: str = Config.font_file,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -433,7 +409,7 @@ class MusicTitleCard(BaseCardType):
             album_size: float = 1.0,
             control_colors: tuple[str, str, str, str, str] = DEFAULT_CONTROL_COLORS,
             draw_heart: bool = False,
-            episode_text_color: str = Config.episode_text_color,
+            episode_text_color: str = EPISODE_TEXT_COLOR,
             heart_color: str = 'transparent',
             heart_stroke_color: str = 'white',
             pause_or_play: PlayerAction = DEFAULT_PLAYER_ACTION,
@@ -1168,7 +1144,7 @@ def get_validator_model() -> type[Base]:
             colors.
             """
 
-            return tuple(re_match(ControlColorRegex, value).groups())
+            return tuple(re_match(ControlColorRegex, value).groups()) # type: ignore
 
         @model_validator(mode='after')
         def assign_unassigned_player_action(self) -> Self:
@@ -1257,7 +1233,8 @@ def get_validator_model() -> type[Base]:
             if (cover := data.get('album_cover')) and data.get('source_file'):
                 cover = Path(FormatString(str(cover), data=data).result)
                 if not cover.exists():
-                    cover = Path(data.get('source_file')).parent / cover.name
+                    source = str(data.get('source_file'))
+                    cover = Path(source).parent / cover.name
                 data['album_cover'] = cover
 
             # If no album cover is indicated and not in basic mode, error

@@ -8,6 +8,7 @@ from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
@@ -98,19 +99,17 @@ class StandardTitleCard(BaseCardType):
         'Directory where all reference files used by this card are stored'
     ] = BaseCardType.BASE_REF_DIRECTORY / 'standard'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 32,
-        'max_line_count': 4,
-        'style': 'bottom',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Sequel-Neue.otf').resolve())
-    TITLE_COLOR = '#EBEBEB'
-    FONT_REPLACEMENTS = {
-        '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...', '“': '"'
-    }
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Sequel-Neue.otf',
+        font_color='#EBEBEB',
+        font_replacements={
+            '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...', '“': '"'
+        },
+        title_max_line_width=32,
+        title_max_line_count=4,
+        title_split_style='bottom',
+    )
 
     """Default fonts and color for series count text"""
     SEASON_COUNT_FONT = REF_DIRECTORY / 'Proxima Nova Semibold.otf'
@@ -156,8 +155,8 @@ class StandardTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -376,8 +375,8 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeCustomFontAllText):
-        font_color: str = StandardTitleCard.TITLE_COLOR
-        font_file: FilePath = StandardTitleCard.TITLE_FONT # type: ignore
+        font_color: str = StandardTitleCard.CardConfig.font_color
+        font_file: FilePath = StandardTitleCard.CardConfig.font_file
         omit_gradient: bool = False
         separator: str = '•'
         stroke_color: str = StandardTitleCard.DEFAULT_STROKE_COLOR

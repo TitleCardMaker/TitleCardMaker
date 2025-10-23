@@ -7,6 +7,7 @@ from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
@@ -61,18 +62,15 @@ class FrameTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'frame'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 31,
-        'max_line_count': 2,
-        'style': 'bottom',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'guess-sans-medium.otf').resolve())
-    DEFAULT_FONT_CASE = 'upper'
-    TITLE_COLOR = 'rgb(80, 80, 80)'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'guess-sans-medium.otf',
+        font_color='rgb(80, 80, 80)',
+        font_case='upper',
+        title_max_line_width=31,
+        title_max_line_count=2,
+        title_split_style='bottom',
+    )
 
     """Default colors for space outside the frame, and index text"""
     BACKGROUND_COLOR = 'black'
@@ -111,8 +109,8 @@ class FrameTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -305,8 +303,8 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeCustomFontAllText):
-        font_color: str = FrameTitleCard.TITLE_COLOR
-        font_file: FilePath = FrameTitleCard.TITLE_FONT # type: ignore
+        font_color: str = FrameTitleCard.CardConfig.font_color
+        font_file: FilePath = FrameTitleCard.CardConfig.font_file
         episode_text_color: str = FrameTitleCard.EPISODE_TEXT_COLOR
         episode_text_position: Position = 'surround'
 

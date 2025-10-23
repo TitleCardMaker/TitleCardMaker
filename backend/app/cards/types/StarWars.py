@@ -3,13 +3,14 @@ from typing import Annotated, Any, Self
 
 from pydantic import Field, FilePath, StringConstraints, model_validator
 
-from app.schemas.base import Base, BaseCardModel
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
+from app.schemas.base import Base, BaseCardModel
 
 
 class StarWarsTitleCard(BaseCardType):
@@ -48,17 +49,16 @@ class StarWarsTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'star_wars'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 16,
-        'max_line_count': 5,
-        'style': 'top',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Monstice-Base.ttf').resolve())
-    TITLE_COLOR = '#DAC960'
-    FONT_REPLACEMENTS = {'Ō': 'O', 'ō': 'o'}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Monstice-Base.ttf',
+        font_color='#DAC960',
+        font_case='upper',
+        font_replacements={'Ō': 'O', 'ō': 'o'},
+        title_max_line_width=16,
+        title_max_line_count=5,
+        title_split_style='top',
+    )
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FORMAT = 'EPISODE {to_cardinal(episode_number)}'
@@ -92,8 +92,8 @@ class StarWarsTitleCard(BaseCardType):
             title_text: str,
             episode_text: str,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -227,8 +227,8 @@ def get_validator_model() -> type[Base]:
         title_text: str
         episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
-        font_color: str = StarWarsTitleCard.TITLE_COLOR
-        font_file: FilePath = StarWarsTitleCard.TITLE_FONT # type: ignore
+        font_color: str = StarWarsTitleCard.CardConfig.font_color
+        font_file: FilePath = StarWarsTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0

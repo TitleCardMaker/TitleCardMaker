@@ -17,14 +17,15 @@ from pydantic import (
     model_validator,
 )
 
-from app.schemas.base import Base, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
     Coordinate,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
+from app.schemas.base import Base, BaseCardTypeAllText
 
 
 _DEG_TO_RAD = PI / 180.0
@@ -218,24 +219,21 @@ class ShapeTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'shape'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 32,
-        'max_line_count': 3,
-        'style': 'top',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Golca Extra Bold.ttf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'source'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Golca Extra Bold.ttf',
+        font_case='source',
+        font_color='white',
+        title_max_line_width=32,
+        title_max_line_count=3,
+        title_split_style='top',
+        episode_text_format='{episode_number}.',
+    )
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = 'skyblue' # gold1
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Golca Bold.ttf'
     EPISODE_TEXT_FONT_ITALIC = REF_DIRECTORY / 'Golca Bold Italic.ttf'
-    EPISODE_TEXT_FORMAT = '{episode_number}.'
 
     """Implementation details"""
     DEFAULT_SHAPE: Shape = 'diamond'
@@ -294,8 +292,8 @@ class ShapeTitleCard(BaseCardType):
             title_text: str,
             season_text: str,
             hide_season_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -310,7 +308,7 @@ class ShapeTitleCard(BaseCardType):
             season_text_color : str = EPISODE_TEXT_COLOR,
             season_text_font_size: float = 1.0,
             season_text_position: SeasonTextPosition = 'below',
-            shape: str = DEFAULT_SHAPE,
+            shape: Shape = DEFAULT_SHAPE,
             shape_color: str = SHAPE_COLOR,
             shape_inset: int = SHAPE_INSET,
             shape_size: float = 1.0,
@@ -502,7 +500,7 @@ class ShapeTitleCard(BaseCardType):
 
 
     @property
-    def _title_text_height(self) -> int:
+    def _title_text_height(self) -> int | float:
         """The height of the title text. Only calculated once."""
 
         # No title text, height of 0
@@ -1259,8 +1257,8 @@ def get_validator_model() -> type[Base]:
     class CardModel(BaseCardTypeAllText):
         season_text: str
         episode_text: str
-        font_color: str = ShapeTitleCard.TITLE_COLOR
-        font_file: FilePath = ShapeTitleCard.TITLE_FONT # type: ignore
+        font_color: str = ShapeTitleCard.CardConfig.font_color
+        font_file: FilePath = ShapeTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0

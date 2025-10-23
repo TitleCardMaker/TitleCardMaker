@@ -9,6 +9,7 @@ from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Dimensions,
     Extra,
     ImageMagickCommands,
@@ -121,21 +122,16 @@ class CalligraphyTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'calligraphy'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 20,
-        'max_line_count': 2,
-        'style': 'forced even',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'SlashSignature.ttf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'source'
-    FONT_REPLACEMENTS = {}
-
-    """How to format episode text"""
-    EPISODE_TEXT_FORMAT = 'Episode {titlecase(to_cardinal(episode_number))}'
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'SlashSignature.ttf',
+        font_color='white',
+        font_case='source',
+        title_max_line_width=20,
+        title_max_line_count=2,
+        title_split_style='forced even',
+        episode_text_format='Episode {titlecase(to_cardinal(episode_number))}'
+    )
 
     """Texture image to compose with"""
     TEXTURE_IMAGE = REF_DIRECTORY / 'texture.jpg'
@@ -180,8 +176,8 @@ class CalligraphyTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = True,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -193,7 +189,7 @@ class CalligraphyTitleCard(BaseCardType):
             grayscale: bool = False,
             add_texture: bool = True,
             deep_blur_if_unwatched: bool = True,
-            episode_text_color: str = TITLE_COLOR,
+            episode_text_color: str = CardConfig.font_color,
             episode_text_font_size: float = 1.0,
             logo_size: float = 1.0,
             offset_titles: bool = True,
@@ -490,8 +486,8 @@ def get_validator_model() -> type[Base]:
     class CardModel(BaseCardTypeCustomFontAllText):
         season_text: str
         episode_text: str
-        font_color: str = CalligraphyTitleCard.TITLE_COLOR
-        font_file: FilePath = CalligraphyTitleCard.TITLE_FONT # type: ignore
+        font_color: str = CalligraphyTitleCard.CardConfig.font_color
+        font_file: FilePath = CalligraphyTitleCard.CardConfig.font_file
         logo_file: Path
         watched: bool = False
         add_texture: bool = True

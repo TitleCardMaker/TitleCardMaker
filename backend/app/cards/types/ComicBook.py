@@ -2,15 +2,16 @@ from math import cos, sin, pi as PI
 from pathlib import Path
 from random import uniform
 from re import match as re_match
-from typing import Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import FilePath, constr, field_validator, model_validator
+from pydantic import FilePath, StringConstraints, constr, field_validator, model_validator
 
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     Coordinate,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
@@ -239,22 +240,20 @@ class ComicBookTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'comic_book'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 32,
-        'max_line_count': 2,
-        'style': 'top',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY /'cc-wild-words-bold-italic.ttf').resolve())
-    TITLE_COLOR = 'black'
-    DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS = {'é': 'e', 'É': 'E'}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'cc-wild-words-bold-italic.ttf',
+        font_color='black',
+        font_case='upper',
+        font_replacements={'é': 'e', 'É': 'E'},
+        title_max_line_width=32,
+        title_max_line_count=2,
+        title_split_style='top',
+    )
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_COLOR = TITLE_COLOR
-    EPISODE_TEXT_FONT = REF_DIRECTORY / 'cc-wild-words-bold-italic.ttf'
+    EPISODE_TEXT_COLOR = CardConfig.font_color
+    EPISODE_TEXT_FONT = CardConfig.font_file
 
     """Implementation details"""
     BANNER_FILL_COLOR = 'rgba(235,73,69,0.6)'
@@ -299,8 +298,8 @@ class ComicBookTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -308,7 +307,7 @@ class ComicBookTitleCard(BaseCardType):
             font_vertical_shift: int = 0,
             blur: bool = False,
             grayscale: bool = False,
-            episode_text_color : str = 'black',
+            episode_text_color : str = EPISODE_TEXT_COLOR,
             index_text_position: Literal['left', 'middle', 'right'] = 'left',
             text_box_fill_color: str = 'white',
             episode_text_box_fill_color: str = 'white',
@@ -646,13 +645,13 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     RandomAngleRegex = r'random\[([+-]?\d+.?\d*),\s*([+-]?\d+.?\d*)\]'
-    RandomAngle = constr(pattern=RandomAngleRegex)
+    RandomAngle = Annotated[str, StringConstraints(pattern=RandomAngleRegex)]
 
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontAllText):
-        font_color: str = ComicBookTitleCard.TITLE_COLOR
-        font_file: FilePath = ComicBookTitleCard.TITLE_FONT # type: ignore
-        episode_text_color: str = 'black'
+        font_color: str = ComicBookTitleCard.CardConfig.font_color
+        font_file: FilePath = ComicBookTitleCard.CardConfig.font_file
+        episode_text_color: str = ComicBookTitleCard.EPISODE_TEXT_COLOR
         index_text_position: Literal['left', 'middle', 'right'] = 'left'
         text_box_fill_color: str = 'white'
         episode_text_box_fill_color: str | None = None

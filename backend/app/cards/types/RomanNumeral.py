@@ -1,18 +1,19 @@
 from pathlib import Path
 from random import choice
 from re import compile as re_compile
-from typing import Annotated, Any, ClassVar, NamedTuple
+from typing import Annotated, Any, NamedTuple
 
 from pydantic import Field, FilePath, field_validator
 
-from app.logging.logger import log
-from app.schemas.base import Base, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
+from app.logging.logger import log
+from app.schemas.base import Base, BaseCardTypeAllText
 
 
 class Offset:
@@ -251,28 +252,16 @@ class RomanNumeralTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'roman'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 26,
-        'max_line_count': 5,
-        'style': 'top',
-    }
-
-    """Default font and text color for episode title text"""
-    TITLE_FONT = str((REF_DIRECTORY / 'flanker-griffo.otf').resolve())
-    TITLE_COLOR = 'white'
-
-    """Default characters to replace in the generic font"""
-    FONT_REPLACEMENTS = {}
-
-    """Default episode text format for this class"""
-    EPISODE_TEXT_FORMAT = '{episode_number}'
-    GENERIC_EPISODE_TEXT_FORMATS = (EPISODE_TEXT_FORMAT, '{abs_number}')
-
-    USES_SOURCE_IMAGES: Annotated[
-        ClassVar[bool],
-        'This card type does not use Source Images'
-    ] = False
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'flanker-griffo.otf',
+        font_color='white',
+        title_max_line_width=26,
+        title_max_line_count=5,
+        title_split_style='top',
+        episode_text_format='{episode_number}',
+        uses_source_images=False,
+    )
 
     """Blur profile for this card is 1/3 the radius of the standard blur"""
     BLUR_PROFILE = '0x30'
@@ -282,6 +271,7 @@ class RomanNumeralTitleCard(BaseCardType):
     ROMAN_NUMERAL_FONT = REF_DIRECTORY / 'sinete-regular.otf'
     ROMAN_NUMERAL_TEXT_COLOR = '#AE2317'
     SEASON_TEXT_COLOR = 'rgb(200, 200, 200)'
+    SEASON_TEXT_FONT = CardConfig.font_file
 
     """Maximum possible roman numeral (as overline'd characters are invalid)"""
     MAX_ROMAN_NUMERAL = 3999
@@ -318,10 +308,10 @@ class RomanNumeralTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
+            font_color: str = CardConfig.font_color,
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
-            font_file: str = TITLE_FONT,
+            font_file: str = str(CardConfig.font_file),
             font_size: float = 1.0,
             blur: bool = False,
             grayscale: bool = False,
@@ -498,7 +488,7 @@ class RomanNumeralTitleCard(BaseCardType):
         return [
             f'-size "{self.TITLE_CARD_SIZE}"',
             f'-gravity center',
-            f'-font "{self.TITLE_FONT}"',
+            f'-font "{self.SEASON_TEXT_FONT.resolve()}"',
             f'-fill "{color}"',
             f'-pointsize {50 * self.season_text_size}',
             f'+interword-spacing',
@@ -732,8 +722,8 @@ def get_validator_model() -> type[Base]:
 
     class CardModel(BaseCardTypeAllText):
         source_file: Any
-        font_color: str = RomanNumeralTitleCard.TITLE_COLOR
-        font_file: FilePath = RomanNumeralTitleCard.TITLE_FONT # type: ignore
+        font_color: str = RomanNumeralTitleCard.CardConfig.font_color
+        font_file: FilePath = RomanNumeralTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_size: Annotated[float, Field(gt=0)] = 1.0

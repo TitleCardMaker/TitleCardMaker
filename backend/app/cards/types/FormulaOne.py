@@ -13,6 +13,7 @@ from app.schemas.base import Base, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
@@ -112,22 +113,19 @@ class FormulaOneTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'formula'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 40,
-        'max_line_count': 1,
-        'style': 'bottom',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Formula1-Bold.otf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Formula1-Bold.otf',
+        font_color='white',
+        font_case='upper',
+        title_max_line_width=40,
+        title_max_line_count=1,
+        title_split_style='bottom',
+        episode_text_format='ROUND {season_number}',
+    )
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Formula1-Bold.otf'
-    EPISODE_TEXT_FORMAT = 'ROUND {season_number}'
     EPISODE_TEXT_COLOR = 'white'
 
     """Implementation details"""
@@ -194,8 +192,8 @@ class FormulaOneTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             # font_interline_spacing: int = 0,
             # font_interword_spacing: int = 0,
             # font_kerning: float = 1.0,
@@ -204,7 +202,7 @@ class FormulaOneTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             country: Country = 'Australian',
-            episode_text_color: str = TITLE_COLOR,
+            episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
             flag: Path | None = None,
             frame_year: int = 2024,
@@ -407,8 +405,8 @@ def get_validator_model() -> type[Base]:
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
         airdate: datetime | None = None
-        font_color: str = FormulaOneTitleCard.TITLE_COLOR
-        font_file: FilePath = FormulaOneTitleCard.TITLE_FONT # type: ignore
+        font_color: str = FormulaOneTitleCard.CardConfig.font_color
+        font_file: FilePath = FormulaOneTitleCard.CardConfig.font_file
         font_size: Annotated[float, Field(gt=0)] = 1.0
         country: Country | None = None
         episode_text_color: str = FormulaOneTitleCard.EPISODE_TEXT_COLOR

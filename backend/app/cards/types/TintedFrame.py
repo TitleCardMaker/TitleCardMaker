@@ -10,6 +10,7 @@ from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     Coordinate,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Rectangle,
@@ -30,6 +31,7 @@ class TintedFrameTitleCard(BaseCardType):
     index text, or a logo at the top and bottom.
     """
 
+    """API Parameters"""
     API_DETAILS = CardTypeDescription(
         name='Tinted Frame',
         identifier='tinted frame',
@@ -208,21 +210,18 @@ class TintedFrameTitleCard(BaseCardType):
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'tinted_frame'
     """Directory where all reference files used by this card are stored"""
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 42,
-        'max_line_count': 2,
-        'style': 'even',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Galey Semi Bold.ttf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Galey Semi Bold.ttf',
+        font_color='white',
+        font_case='upper',
+        title_max_line_width=42,
+        title_max_line_count=2,
+        title_split_style='even',
+    )
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_COLOR = TITLE_COLOR
+    EPISODE_TEXT_COLOR = CardConfig.font_color
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Galey Semi Bold.ttf'
 
     """Implementation details"""
@@ -274,8 +273,8 @@ class TintedFrameTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -748,8 +747,8 @@ def get_validator_model() -> type[Base]:
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
         logo_file: Path
-        font_color: str = TintedFrameTitleCard.TITLE_COLOR
-        font_file: FilePath = TintedFrameTitleCard.TITLE_FONT # type: ignore
+        font_color: str = TintedFrameTitleCard.CardConfig.font_color
+        font_file: FilePath = TintedFrameTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0

@@ -3,16 +3,16 @@ from typing import Annotated, Any
 
 from pydantic import FilePath, Field
 
-from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Shadow,
 )
-
+from app.logging.logger import log # noqa: F401
+from app.schemas.base import Base, BaseCardTypeAllText
 
 
 class InsetTitleCard(BaseCardType):
@@ -85,18 +85,15 @@ class InsetTitleCard(BaseCardType):
     SW_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'star_wars'
     GRADIENT = REF_DIRECTORY.parent / 'overline' / 'small_gradient.png'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 20,
-        'max_line_count': 3,
-        'style': 'bottom',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((SW_REF_DIRECTORY / 'HelveticaNeue.ttc').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=SW_REF_DIRECTORY / 'HelveticaNeue.ttc',
+        font_color='white',
+        font_case='upper',
+        title_max_line_width=20,
+        title_max_line_count=3,
+        title_split_style='bottom',
+    )
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = 'crimson'
@@ -133,8 +130,8 @@ class InsetTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -341,8 +338,8 @@ def get_validator_model() -> type[Base]:
 
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
-        font_color: str = InsetTitleCard.TITLE_COLOR
-        font_file: FilePath = InsetTitleCard.TITLE_FONT # type: ignore
+        font_color: str = InsetTitleCard.CardConfig.font_color
+        font_file: FilePath = InsetTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0

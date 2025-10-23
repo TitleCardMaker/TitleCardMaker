@@ -1,15 +1,16 @@
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, ClassVar
 
 from pydantic import Field, FilePath
 
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 
 
 class WhiteBorderTitleCard(BaseCardType):
@@ -70,25 +71,21 @@ class WhiteBorderTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'white_border'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 30,
-        'max_line_count': 3,
-        'style': 'top',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Arial_Bold.ttf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Arial_Bold.ttf',
+        font_color='white',
+        title_max_line_width=30,
+        title_max_line_count=3,
+        title_split_style='top',
+    )
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_COLOR = TITLE_COLOR
+    EPISODE_TEXT_COLOR = CardConfig.font_color
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Arial.ttf'
 
     """Default stroke color"""
-    STROKE_COLOR: str = 'black'
+    STROKE_COLOR: ClassVar[str] = 'black'
 
     """White border frame image to overlay"""
     FRAME_IMAGE = REF_DIRECTORY / 'border.png'
@@ -128,8 +125,8 @@ class WhiteBorderTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -139,7 +136,7 @@ class WhiteBorderTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             border_color: str = 'white',
-            episode_text_color: str = TITLE_COLOR,
+            episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
             omit_gradient: bool = False,
             separator: str = '•',
@@ -317,13 +314,13 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     class CardType(BaseCardTypeCustomFontAllText):
-        font_color: str = WhiteBorderTitleCard.TITLE_COLOR
-        font_file: FilePath = WhiteBorderTitleCard.TITLE_FONT # type: ignore
+        font_color: str = WhiteBorderTitleCard.CardConfig.font_color
+        font_file: FilePath = WhiteBorderTitleCard.CardConfig.font_file
         omit_gradient: bool = False
         separator: str = '•'
         border_color: str = 'white'
         stroke_color: str = WhiteBorderTitleCard.STROKE_COLOR
-        episode_text_color: str = WhiteBorderTitleCard.TITLE_COLOR
+        episode_text_color: str = WhiteBorderTitleCard.EPISODE_TEXT_COLOR
         episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
 
     return CardType

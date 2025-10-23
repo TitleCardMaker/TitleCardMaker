@@ -91,6 +91,7 @@ class BannerTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'banner'
 
+    """Default configuration for this card type"""
     CardConfig = DefaultCardConfig(
         font_file=REF_DIRECTORY / 'Gill Sans Nova ExtraBold.ttf',
         font_color='white',

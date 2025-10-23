@@ -1,27 +1,25 @@
 from collections import namedtuple
 from pathlib import Path
 from re import match as re_match
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, ClassVar, Literal, Self
 
 from pydantic import (
     Field,
     FilePath,
     StringConstraints,
-    constr,
     field_validator,
     model_validator,
 )
 
-from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardModel
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Shadow,
 )
-
+from app.schemas.base import Base, BaseCardModel
 
 
 DarkenOption = Literal['all', 'box'] | bool
@@ -155,40 +153,44 @@ class LandscapeTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'landscape'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 15,
-        'max_line_count': 5,
-        'style': 'top',
-    }
-
-    """Default font and text color for episode title text"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Geometos.ttf').resolve())
-    TITLE_COLOR = 'white'
-
-    """Default characters to replace in the generic font"""
-    FONT_REPLACEMENTS = {}
-
-    """Default episode text format for this class"""
-    EPISODE_TEXT_FORMAT = ''
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Geometos.ttf',
+        font_color='white',
+        title_max_line_width=15,
+        title_max_line_count=5,
+        title_split_style='top',
+        episode_text_format='',
+    )
 
     BOUNDING_BOX_SPACING: Annotated[
-        int,
+        ClassVar[int],
         'Additional spacing between bounding box and title text'
     ] = 150
 
-    BOX_WIDTH: Annotated[int, 'Default box width (in pixels)'] = 10
+    BOX_WIDTH: Annotated[ClassVar[int], 'Default box width (in pixels)'] = 10
 
     DARKEN_COLOR: Annotated[
-        str,
+        ClassVar[str],
         'Color for darkening is black at 30% transparency'
     ] = '#00000030'
 
-    SHADOW_COLOR: Annotated[str, 'Color of the drop shadow'] = 'black'
+    DEFAULT_BOX_COLOR: Annotated[
+        ClassVar[str],
+        'Default color for the bounding box'
+    ] = CardConfig.font_color
 
-    BOX_BLUR_PROFILE: Annotated[str, 'Blur profile for the box'] = '0x12'
+    SHADOW_COLOR: Annotated[ClassVar[str], 'Color of the drop shadow'] = 'black'
 
-    ROUNDING_RADIUS: Annotated[int, 'Radius of the rounded corners'] = 0
+    BOX_BLUR_PROFILE: Annotated[
+        ClassVar[str],
+        'Blur profile for the box'
+    ] = '0x12'
+
+    ROUNDING_RADIUS: Annotated[
+        ClassVar[int],
+        'Radius of the rounded corners'
+    ] = 0
 
     __slots__ = (
         'add_bounding_box',
@@ -217,8 +219,8 @@ class LandscapeTitleCard(BaseCardType):
             source_file: Path,
             card_file: Path,
             title_text: str,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_size: float = 1.0,
@@ -228,9 +230,9 @@ class LandscapeTitleCard(BaseCardType):
             grayscale: bool = False,
             add_bounding_box: bool = True,
             blur_box: bool = False,
-            box_blur_profile: str = BOX_BLUR_PROFILE,
             box_adjustments: tuple[int, int, int, int] = (0, 0, 0, 0),
-            box_color: str = TITLE_COLOR,
+            box_blur_profile: str = BOX_BLUR_PROFILE,
+            box_color: str = DEFAULT_BOX_COLOR,
             box_width: int = BOX_WIDTH,
             darken: DarkenOption = 'box',
             darken_color: str = DARKEN_COLOR,
@@ -504,13 +506,13 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'
-    BoxAdjustments = constr(pattern=BoxAdjustmentRegex)
+    BoxAdjustments = Annotated[str, StringConstraints(pattern=BoxAdjustmentRegex)]
 
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
-        font_color: str = LandscapeTitleCard.TITLE_COLOR
-        font_file: FilePath = LandscapeTitleCard.TITLE_FONT # type: ignore
+        font_color: str = LandscapeTitleCard.CardConfig.font_color
+        font_file: FilePath = LandscapeTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0

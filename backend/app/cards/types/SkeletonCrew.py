@@ -4,15 +4,16 @@ from typing import Annotated, Any, Literal, Self
 
 from pydantic import Field, model_validator
 
-from app.logging.logger import log  # noqa: F401
-from app.schemas.base import Base, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
     CardDescription,
     Coordinate,
+    DefaultCardConfig,
     ImageMagickCommands,
     Extra,
 )
+from app.logging.logger import log  # noqa: F401
+from app.schemas.base import Base, BaseCardTypeAllText
 
 
 VerticalPosition = Literal['top', 'center', 'bottom', 'random']
@@ -25,6 +26,7 @@ class SkeletonCrewTitleCard(BaseCardType):
     and borders just like the shows logo and poster.
     """
 
+    """API Parameters"""
     API_DETAILS = CardDescription(
         name='Skeleton Crew',
         identifier='skeleton crew',
@@ -98,39 +100,36 @@ class SkeletonCrewTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'skeleton_crew'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 20,
-        'max_line_count': 4,
-        'style': 'top',
-    }
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'SkeletonCrew.otf',
+        font_color='white',
+        font_case='source',
+        font_replacements={
+            '_': '',
+            '~': '',
+            '@': 'at',
+            '*': '',
+            '{': '(',
+            '}': ')',
+            '&': 'and',
+        },
+        title_max_line_width=20,
+        title_max_line_count=4,
+        title_split_style='top',
+        episode_text_format='EPISODE {episode_number}',
+    )
 
-    """Characteristics of title font"""
-    TITLE_FONT = str(REF_DIRECTORY / 'SkeletonCrew.otf')
     TITLE_FONT_BOTTOM = REF_DIRECTORY / 'SkeletonCrew-Offset.otf'
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'source'
 
     """Characteristics of index text"""
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'SF-DistantGalaxy.ttf'
-    EPISODE_TEXT_FORMAT = 'EPISODE {episode_number}'
-
-    """Standard font replacements for the title font"""
-    FONT_REPLACEMENTS = {
-        '_': '',
-        '~': '',
-        '@': 'at',
-        '*': '',
-        '{': '(',
-        '}': ')',
-        '&': 'and',
-    }
 
     """Extras"""
     DEFAULT_EPISODE_TEXT_COLOR: str = 'transparent'
     DEFAULT_SEPARATOR_CHARACTER: str = '•'
     DEFAULT_STROKE_COLOR: str = 'transparent'
-    DEFAULT_OUTLINE_COLOR: str = TITLE_COLOR
+    DEFAULT_OUTLINE_COLOR: str = CardConfig.font_color
     DEFAULT_OUTLINE_WIDTH: float = 16
 
     __slots__ = (
@@ -165,7 +164,7 @@ class SkeletonCrewTitleCard(BaseCardType):
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
             # Font
-            font_color: str = TITLE_COLOR,
+            font_color: str = CardConfig.font_color,
             font_size: float = 1.0,
             font_stroke_width: float = 1.0,
             font_vertical_shift: int = 0,
@@ -239,7 +238,7 @@ class SkeletonCrewTitleCard(BaseCardType):
 
         # Get width of title main text
         main_text_width = [
-            f'-font "{self.TITLE_FONT}"',
+            f'-font "{self.CardConfig.font_file.resolve()}"',
             f'-pointsize {200 * self.font_size}',
             f'-annotate +0+0 "{title_main_text}"',
         ]
@@ -249,7 +248,7 @@ class SkeletonCrewTitleCard(BaseCardType):
 
         # Get width of title bottom text
         bottom_text_width_command = [
-            f'-font "{self.TITLE_FONT}"',
+            f'-font "{self.CardConfig.font_file.resolve()}"',
             f'-pointsize {200 * self.font_size}',
             f'-annotate +0+0 "{title_bottom_text}"',
         ]
@@ -501,18 +500,18 @@ class SkeletonCrewTitleCard(BaseCardType):
 
         return [
             # Add title text
-            f'-font "{self.TITLE_FONT}"',
+            f'-font "{self.CardConfig.font_file.resolve()}"',
             f'-gravity {gravity_prefix}',
             f'-pointsize {font_size}',
             f'-background transparent',
             f'-fill "{self.font_color}"',
             fr'\(',
-            f'-font "{self.TITLE_FONT}"',
+            f'-font "{self.CardConfig.font_file.resolve()}"',
             *stroke_commands,
             f'label:"{title_main_text}"',
         ] + ([
             # Conditionally add bottom title text if it exists
-            f'-font "{self.TITLE_FONT_BOTTOM}"',
+            f'-font "{self.TITLE_FONT_BOTTOM.resolve()}"',
             f'label:"{title_bottom_text}"',
             f'-append',
         ] if title_bottom_text else []) + [
@@ -625,7 +624,7 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeAllText):
-        font_color: str = SkeletonCrewTitleCard.TITLE_COLOR
+        font_color: str = SkeletonCrewTitleCard.CardConfig.font_color
         font_size: Annotated[float, Field(gt=0)] = 1.0
         font_vertical_shift: int = 0
         episode_text_color: str = 'transparent'

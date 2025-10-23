@@ -7,6 +7,7 @@ from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
@@ -53,24 +54,22 @@ class FadeTitleCard(BaseCardType):
 
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'fade'
-    FONT_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY
+    FONT_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'standard'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 13,
-        'max_line_count': 5,
-        'style': 'top',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((FONT_REF_DIRECTORY / 'Sequel-Neue.otf').resolve())
-    TITLE_COLOR = 'white'
-    FONT_REPLACEMENTS = {
-        '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...', '“': '"'
-    }
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=FONT_REF_DIRECTORY / 'Sequel-Neue.otf',
+        font_color='white',
+        font_replacements={
+            '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...', '“': '"'
+        },
+        title_max_line_width=13,
+        title_max_line_count=5,
+        title_split_style='top',
+        episode_text_format='EPISODE {episode_number}',
+    )
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_FORMAT = 'EPISODE {episode_number}'
     EPISODE_TEXT_COLOR = 'rgb(163, 163, 163)'
     EPISODE_TEXT_FONT = FONT_REF_DIRECTORY / 'Proxima Nova Semibold.otf'
 
@@ -102,8 +101,8 @@ class FadeTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -258,8 +257,8 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeCustomFontAllText):
-        font_color: str = FadeTitleCard.TITLE_COLOR
-        font_file: FilePath = FadeTitleCard.TITLE_FONT # type: ignore
+        font_color: str = FadeTitleCard.CardConfig.font_color
+        font_file: FilePath = FadeTitleCard.CardConfig.font_file
         logo_file: Path | None = None
         episode_text_color: str = FadeTitleCard.EPISODE_TEXT_COLOR
         episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0

@@ -1,18 +1,19 @@
 from pathlib import Path
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, ClassVar, Literal, Self
 
 from pydantic import Field, FilePath, model_validator
 
-from app.interfaces.magick import Dimensions
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     Coordinate,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Rectangle,
 )
+from app.interfaces.magick import Dimensions
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 
 LinePosition = Literal['top', 'bottom']
 
@@ -112,33 +113,35 @@ class OverlineTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'overline'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 30,
-        'max_line_count': 2,
-        'style': 'bottom',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'HelveticaNeueMedium.ttf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS = {}
-
-    """Characteristics of the episode text"""
-    EPISODE_TEXT_COLOR = TITLE_COLOR
-    EPISODE_TEXT_FONT = (
-        BaseCardType.BASE_REF_DIRECTORY / 'Proxima Nova Semibold.otf'
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'HelveticaNeueMedium.ttf',
+        font_color='white',
+        title_max_line_width=30,
+        title_max_line_count=2,
+        title_split_style='bottom',
     )
 
-    """How thick the line is (in pixels)"""
-    LINE_THICKNESS = 9
+    """Characteristics of the episode text"""
+    EPISODE_TEXT_COLOR = CardConfig.font_color
+    EPISODE_TEXT_FONT = (
+        BaseCardType.BASE_REF_DIRECTORY
+        / 'standard'
+        / 'Proxima Nova Semibold.otf'
+    )
+
+    LINE_THICKNESS: Annotated[
+        ClassVar[int],
+        'How thick the line is (in pixels)'
+    ] = 9
 
     """Gradient to overlay"""
     GRADIENT_IMAGE = REF_DIRECTORY / 'small_gradient.png'
 
     __slots__ = (
         'episode_text',
+        'episode_text_color',
+        'episode_text_font_size',
         'font_color',
         'font_file',
         'font_interline_spacing',
@@ -147,8 +150,6 @@ class OverlineTitleCard(BaseCardType):
         'font_size',
         'font_stroke_width',
         'font_vertical_shift',
-        'episode_text_color',
-        'episode_text_font_size',
         'hide_episode_text',
         'hide_line',
         'hide_season_text',
@@ -171,8 +172,8 @@ class OverlineTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -184,7 +185,7 @@ class OverlineTitleCard(BaseCardType):
             episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
             hide_line: bool = False,
-            line_color: str = TITLE_COLOR,
+            line_color: str = CardConfig.font_color,
             line_position: LinePosition = 'top',
             line_width: int = LINE_THICKNESS,
             omit_gradient: bool = False,
@@ -437,14 +438,17 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeCustomFontAllText):
-        font_color: str = OverlineTitleCard.TITLE_COLOR
-        font_file: FilePath = OverlineTitleCard.TITLE_FONT # type: ignore
+        font_color: str = OverlineTitleCard.CardConfig.font_color
+        font_file: FilePath = OverlineTitleCard.CardConfig.font_file
         episode_text_color: str | None = None
         episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
         hide_line: bool = False
         line_color: str | None = None
         line_position: LinePosition = 'top'
-        line_width: Annotated[int, Field(gt=0)] = OverlineTitleCard.LINE_THICKNESS
+        line_width: Annotated[
+            int,
+            Field(gt=0)
+        ] = OverlineTitleCard.LINE_THICKNESS
         omit_gradient: bool = False
         separator: str = '-'
 

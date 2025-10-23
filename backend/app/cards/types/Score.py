@@ -4,16 +4,16 @@ from typing import Annotated, Any, ClassVar, Literal, Self
 
 from pydantic import Field, FilePath, StringConstraints, model_validator
 
-from app.info.episode import EpisodeInfo
-from app.schemas.base import Base, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Shadow,
-    TextCase,
 )
+from app.info.episode import EpisodeInfo
+from app.schemas.base import Base, BaseCardTypeAllText
 
 
 LabelPlacement = Literal['above', 'below', 'random']
@@ -157,34 +157,19 @@ class ScoreTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'negative_space'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 20,
-        'max_line_count': 3,
-        'style': 'bottom',
-    }
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Futura.ttc',
+        font_color='white',
+        title_max_line_width=20,
+        title_max_line_count=3,
+        title_split_style='bottom',
+    )
 
-    class Config:
-        """Unified configuration for Score card type defaults"""
-        _ref = BaseCardType.BASE_REF_DIRECTORY / 'negative_space'
-        font_file: str = str((_ref / 'Futura.ttc').resolve())
-        font_color: str = 'white'
-        font_case: TextCase = 'upper'
-        font_replacements: dict[str, str] = {}
-        episode_text_format: str = 'EPISODE {episode_number}'
-        episode_text_color: str = 'white'
-        episode_text_font: str = str((_ref / 'Futura.ttc').resolve())
-        stroke_color: str = 'black'
-
-    # Backward compatibility class variables
-    TITLE_FONT: ClassVar[str] = Config.font_file
-    TITLE_COLOR: ClassVar[str] = Config.font_color
-    DEFAULT_FONT_CASE: ClassVar[TextCase] = Config.font_case
-    FONT_REPLACEMENTS: ClassVar[dict[str, str]] = Config.font_replacements
-    EPISODE_TEXT_FORMAT: ClassVar[str] = Config.episode_text_format
-    EPISODE_TEXT_COLOR: ClassVar[str] = Config.episode_text_color
-    EPISODE_TEXT_FONT: ClassVar[str] = Config.episode_text_font
-    STROKE_COLOR: ClassVar[str] = Config.stroke_color
+    """Characteristics of the episode text"""
+    EPISODE_TEXT_COLOR: ClassVar[str] = 'white'
+    EPISODE_TEXT_FONT: ClassVar[Path] = REF_DIRECTORY / 'Futura.ttc'
+    STROKE_COLOR: ClassVar[str] = 'black'
 
     """Path to the gradient image to overlay"""
     _GRADIENT_IMAGE = REF_DIRECTORY.parent / 'anime' / 'gradient.png'
@@ -243,8 +228,8 @@ class ScoreTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = Config.font_color,
-            font_file: str = Config.font_file,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -252,12 +237,12 @@ class ScoreTitleCard(BaseCardType):
             font_vertical_shift: int = 0,
             blur: bool = False,
             grayscale: bool = False,
-            episode_text_color: str = Config.episode_text_color,
+            episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
             episode_text_horizontal_offset: int = 0,
             episode_text_vertical_offset: int = 0,
-            season_text_color: str = Config.episode_text_color,
-            stroke_color: str = Config.stroke_color,
+            season_text_color: str = EPISODE_TEXT_COLOR,
+            stroke_color: str = STROKE_COLOR,
             title_text_horizontal_offset: int = 0,
             label_placement: LabelPlacement = 'above',
             omit_gradient: bool = False,
@@ -589,8 +574,8 @@ def get_validator_model() -> type[Base]:
 
     # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
-        font_color: str = ScoreTitleCard.Config.font_color
-        font_file: FilePath = ScoreTitleCard.Config.font_file # type: ignore
+        font_color: str = ScoreTitleCard.CardConfig.font_color
+        font_file: FilePath = ScoreTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
@@ -601,7 +586,7 @@ def get_validator_model() -> type[Base]:
         episode_text_horizontal_offset: int = 0
         episode_text_vertical_offset: int = 0
         season_text_color: ColorPair | None = None
-        stroke_color: str = ScoreTitleCard.Config.stroke_color
+        stroke_color: str = ScoreTitleCard.STROKE_COLOR
         title_text_horizontal_offset: int = 0
         label_placement: LabelPlacement = 'above'
         omit_gradient: bool = False

@@ -10,16 +10,17 @@ from pydantic import (
     model_validator,
 )
 
-from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     Coordinate,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Rectangle,
 )
+from app.logging.logger import log # noqa: F401
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 
 
 Position = Literal['left', 'right']
@@ -129,25 +130,23 @@ class NotificationTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'music'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 28,
-        'max_line_count': 4,
-        'style': 'bottom',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Gotham-Bold.otf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'source'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Gotham-Bold.otf',
+        font_color='white',
+        font_case='source',
+        title_max_line_width=28,
+        title_max_line_count=4,
+        title_split_style='bottom',
+        episode_text_format='Episode {episode_number}',
+    )
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_FORMAT = 'Episode {episode_number}'
-    EPISODE_TEXT_COLOR = TITLE_COLOR
+    EPISODE_TEXT_COLOR = CardConfig.font_color
+    EPISODE_TEXT_FONT = CardConfig.font_file
 
     """Implementation details"""
-    EDGE_COLOR = TITLE_COLOR
+    EDGE_COLOR = CardConfig.font_color
     EDGE_WIDTH = 5
     GLASS_COLOR = 'rgba(0,0,0,0.50)'
     _GLASS_BLUR_PROFILE = '0x12'
@@ -192,8 +191,8 @@ class NotificationTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -300,7 +299,7 @@ class NotificationTitleCard(BaseCardType):
             f'-kerning 1',
             f'-pointsize {40 * self.episode_text_font_size}',
             f'-fill "{self.episode_text_color}"',
-            f'-font "{self.TITLE_FONT}"',
+            f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
             f'-annotate {self._TEXT_X_OFFSET:+}{y:+}',
             f'"{text}"',
         ]
@@ -452,8 +451,8 @@ def get_validator_model() -> type[Base]:
     class CardModel(BaseCardTypeCustomFontAllText):
         season_text: str
         episode_text: str
-        font_color: str = NotificationTitleCard.TITLE_COLOR
-        font_file: FilePath = NotificationTitleCard.TITLE_FONT # type: ignore
+        font_color: str = NotificationTitleCard.CardConfig.font_color
+        font_file: FilePath = NotificationTitleCard.CardConfig.font_file
         box_adjustments: Annotated[
             str,
             StringConstraints(pattern=BoxAdjustmentRegex)

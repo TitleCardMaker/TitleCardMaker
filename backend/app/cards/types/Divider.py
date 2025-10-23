@@ -7,6 +7,7 @@ from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
@@ -98,21 +99,17 @@ class DividerTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'anime'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 18,
-        'max_line_count': 4,
-        'style': 'bottom',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Flanker Griffo.otf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'source'
-    FONT_REPLACEMENTS = {'♡': '', '☆': '', '✕': 'x'}
-
-    """Characteristics of the episode text"""
-    EPISODE_TEXT_FORMAT = 'Episode {episode_number}'
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Flanker Griffo.otf',
+        font_color='white',
+        font_case='source',
+        font_replacements={'♡': '', '☆': '', '✕': 'x'},
+        title_max_line_width=18,
+        title_max_line_count=4,
+        title_split_style='bottom',
+        episode_text_format='Episode {episode_number}',
+    )
 
     __slots__ = (
         'divider_color',
@@ -145,8 +142,8 @@ class DividerTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -156,7 +153,7 @@ class DividerTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             stroke_color: str = 'black',
-            divider_color: str = TITLE_COLOR,
+            divider_color: str = CardConfig.font_color,
             text_gravity: TextGravity | None = None,
             title_text_position: TitleTextPosition = 'left',
             text_position: TextPosition = 'lower right',
@@ -415,8 +412,8 @@ def get_validator_model() -> type[Base]:
     class CardModel(BaseCardTypeCustomFontAllText):
         season_text: str
         episode_text: str
-        font_color: str = DividerTitleCard.TITLE_COLOR
-        font_file: FilePath = DividerTitleCard.TITLE_FONT # type: ignore
+        font_color: str = DividerTitleCard.CardConfig.font_color
+        font_file: FilePath = DividerTitleCard.CardConfig.font_file
         stroke_color: str = 'black'
         divider_color: str | None = None
         text_gravity: TextGravity | None = None

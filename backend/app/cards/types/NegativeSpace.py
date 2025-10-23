@@ -1,17 +1,17 @@
 from pathlib import Path
 from random import random
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, ClassVar, Literal, Self
 
 from pydantic import Field, FilePath, StringConstraints, model_validator
 
-from app.schemas.base import Base, BaseCardModel
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
-
+from app.schemas.base import Base, BaseCardModel
 
 TextSide = Literal['left', 'right']
 
@@ -98,26 +98,22 @@ class NegativeSpaceTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'negative_space'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 14,
-        'max_line_count': 5,
-        'style': 'top',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Futura.ttc').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Futura.ttc',
+        font_color='white',
+        title_max_line_width=14,
+        title_max_line_count=5,
+        title_split_style='top',
+        episode_text_format='{episode_number}',
+    )
 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_FORMAT = '{episode_number}'
-    EPISODE_TEXT_COLOR = TITLE_COLOR
-    EPISODE_TEXT_FONT = TITLE_FONT
+    EPISODE_TEXT_COLOR = CardConfig.font_color
+    EPISODE_TEXT_FONT = CardConfig.font_file
 
     """Implementation Details"""
-    DEFAULT_TEXT_SIDE: TextSide = 'left'
+    DEFAULT_TEXT_SIDE: ClassVar[TextSide] = 'left'
 
     __slots__ = (
         'episode_text',
@@ -147,8 +143,8 @@ class NegativeSpaceTitleCard(BaseCardType):
             title_text: str,
             episode_text: str,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -399,8 +395,8 @@ def get_validator_model() -> type[Base]:
         title_text: str
         episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
-        font_color: str = NegativeSpaceTitleCard.TITLE_COLOR
-        font_file: FilePath = NegativeSpaceTitleCard.TITLE_FONT # type: ignore
+        font_color: str = NegativeSpaceTitleCard.CardConfig.font_color
+        font_file: FilePath = NegativeSpaceTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_size: Annotated[float, Field(gt=0)] = 1.0

@@ -3,14 +3,14 @@ from typing import Annotated, Any, Self
 
 from pydantic import Field, FilePath, model_validator
 
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
 )
-
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 
 
 class LogoTitleCard(BaseCardType):
@@ -142,22 +142,19 @@ class LogoTitleCard(BaseCardType):
         'Directory where all reference files used by this card are stored'
     ] = BaseCardType.BASE_REF_DIRECTORY / 'standard'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 32,
-        'max_line_count': 2,
-        'style': 'bottom',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Sequel-Neue.otf').resolve())
-    TITLE_COLOR = '#EBEBEB'
-    FONT_REPLACEMENTS = {
-        '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...'
-    }
-
-    """Whether this class uses Source Images at all"""
-    USES_SOURCE_IMAGES = False # Set as False; if required then caught by model
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Sequel-Neue.otf',
+        font_color='#EBEBEB',
+        font_case='upper',
+        font_replacements={
+            '[': '(', ']': ')', '(': '[', ')': ']', '―': '-', '…': '...'
+        },
+        title_max_line_width=32,
+        title_max_line_count=2,
+        title_split_style='bottom',
+        uses_source_images=False,
+    )
 
     """Default fonts and color for series count text"""
     SEASON_COUNT_FONT = REF_DIRECTORY / 'Proxima Nova Semibold.otf'
@@ -200,6 +197,7 @@ class LogoTitleCard(BaseCardType):
     def __init__(self, *,
             card_file: Path,
             title_text: str,
+            logo_file: Path,
             # Text
             season_text: str,
             episode_text: str,
@@ -207,8 +205,8 @@ class LogoTitleCard(BaseCardType):
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
             # Font
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -223,7 +221,6 @@ class LogoTitleCard(BaseCardType):
             blur_only_image: bool = False,
             episode_text_color: str = SERIES_COUNT_TEXT_COLOR,
             episode_text_vertical_shift: int = 0,
-            logo_file: Path = ...,
             logo_horizontal_shift: int = 0,
             logo_size: float = 1.0,
             logo_vertical_shift: int = 0,
@@ -500,8 +497,8 @@ def get_validator_model() -> type[Base]:
     class CardModel(BaseCardTypeCustomFontAllText):
         source_file: Path | None = None # type: ignore
         logo_file: FilePath
-        font_color: str = LogoTitleCard.TITLE_COLOR
-        font_file: Path = LogoTitleCard.TITLE_FONT # type: ignore
+        font_color: str = LogoTitleCard.CardConfig.font_color
+        font_file: FilePath = LogoTitleCard.CardConfig.font_file
         background: str = 'black'
         blur_only_image: bool = False
         episode_text_color: str = LogoTitleCard.SERIES_COUNT_TEXT_COLOR

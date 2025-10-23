@@ -119,6 +119,7 @@ class AnimeFadeTitleCard(BaseCardType):
     ANIME_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'anime'
     FADE_REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'fade'
 
+    """Default configuration for this card type"""
     CardConfig = DefaultCardConfig(
         font_file=ANIME_REF_DIRECTORY / 'Flanker Griffo.otf',
         font_color='white',

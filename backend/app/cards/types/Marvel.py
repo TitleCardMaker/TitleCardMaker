@@ -1,18 +1,19 @@
 from pathlib import Path
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, ClassVar, Literal
 
 from pydantic import Field, FilePath
 
-from app.interfaces.magick import Dimensions
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     Coordinate,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Rectangle,
 )
+from app.interfaces.magick import Dimensions
+from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 
 
 EpisodeTextLocation = Literal['compact', 'fixed']
@@ -121,34 +122,39 @@ class MarvelTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'marvel'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 25,
-        'max_line_count': 1,
-        'style': 'bottom',
-    }
-
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Qualion ExtraBold.ttf').resolve())
-    TITLE_COLOR = 'white'
-    DEFAULT_FONT_CASE = 'upper'
-    FONT_REPLACEMENTS = {}
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Qualion ExtraBold.ttf',
+        font_color='white',
+        font_case='upper',
+        title_max_line_width=25,
+        title_max_line_count=1,
+        title_split_style='bottom',
+    )
 
     """Characteristics of the episode text"""
     EPISODE_TEXT_COLOR = '#C9C9C9'
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Qualion ExtraBold.ttf'
 
-    """How thick the border is (in pixels)"""
-    DEFAULT_BORDER_SIZE = 55
+    DEFAULT_BORDER_SIZE: Annotated[
+        ClassVar[int],
+        'How thick the border is (in pixels)'
+    ] = 55
 
-    """Color of the border"""
-    DEFAULT_BORDER_COLOR = 'white'
+    DEFAULT_BORDER_COLOR: Annotated[
+        ClassVar[str],
+        'Color of the border'
+    ] = 'white'
 
-    """Color of the text box"""
-    DEFAULT_TEXT_BOX_COLOR = 'black'
+    DEFAULT_TEXT_BOX_COLOR: Annotated[
+        ClassVar[str],
+        'Color of the text box'
+    ] = 'black'
 
-    """Height of the text box (in pixels)"""
-    DEFAULT_TEXT_BOX_HEIGHT = 200
+    DEFAULT_TEXT_BOX_HEIGHT: Annotated[
+        ClassVar[int],
+        'Height of the text box (in pixels)'
+    ] = 200
 
     __slots__ = (
         'border_color',
@@ -184,8 +190,8 @@ class MarvelTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -506,8 +512,8 @@ def get_validator_model() -> type[Base]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeCustomFontAllText):
-        font_file: FilePath = MarvelTitleCard.TITLE_FONT # type: ignore
-        font_color: str = MarvelTitleCard.TITLE_COLOR
+        font_file: FilePath = MarvelTitleCard.CardConfig.font_file
+        font_color: str = MarvelTitleCard.CardConfig.font_color
         border_color: str = MarvelTitleCard.DEFAULT_BORDER_COLOR
         border_size: Annotated[
             int,

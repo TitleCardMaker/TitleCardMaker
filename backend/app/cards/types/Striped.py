@@ -12,16 +12,16 @@ from pydantic import (
     field_validator,
 )
 
-from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     Coordinate,
+    DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    SplitStyle,
 )
-from modules.Title import SplitCharacteristics
+from app.schemas.base import Base, BaseCardTypeAllText
 
 
 STRIPE_DOC_LINK = 'https://titlecardmaker.com/card_types/striped/#definition'
@@ -387,23 +387,19 @@ class StripedTitleCard(BaseCardType):
     """Directory where all reference files used by this card are stored"""
     REF_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'shape'
 
-    """Characteristics for title splitting by this class"""
-    TITLE_CHARACTERISTICS = {
-        'max_line_width': 35,
-        'max_line_count': 3,
-        'style': 'bottom',
-    }
+    """Default configuration for this card type"""
+    CardConfig = DefaultCardConfig(
+        font_file=REF_DIRECTORY / 'Golca Bold Italic.ttf',
+        font_color='black',
+        font_case='source',
+        title_max_line_width=35,
+        title_max_line_count=3,
+        title_split_style='bottom',
+    )
 
-    """Characteristics of the default title font"""
-    TITLE_FONT = str((REF_DIRECTORY / 'Golca Bold Italic.ttf').resolve())
-    TITLE_COLOR = 'black'
-    DEFAULT_FONT_CASE = 'source'
-    FONT_REPLACEMENTS = {}
- 
     """Characteristics of the episode text"""
-    EPISODE_TEXT_COLOR = 'crimson' # TITLE_COLOR
+    EPISODE_TEXT_COLOR = 'crimson'
     EPISODE_TEXT_FONT = REF_DIRECTORY / 'Golca Bold Italic.ttf'
-    EPISODE_TEXT_FORMAT = 'Episode {episode_number}'
     INDEX_TEXT_FONT = REF_DIRECTORY / 'Gotham-Medium.ttf'
 
     """Implementation details"""
@@ -452,8 +448,8 @@ class StripedTitleCard(BaseCardType):
             episode_text: str,
             hide_season_text: bool = False,
             hide_episode_text: bool = False,
-            font_color: str = TITLE_COLOR,
-            font_file: str = TITLE_FONT,
+            font_color: str = CardConfig.font_color,
+            font_file: str = str(CardConfig.font_file),
             font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
@@ -461,6 +457,7 @@ class StripedTitleCard(BaseCardType):
             font_vertical_shift: int = 0,
             blur: bool = False,
             grayscale: bool = False,
+            # Extras
             angle: float = DEFAULT_ANGLE,
             episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_font_size: float = 1.0,
@@ -794,8 +791,8 @@ def get_validator_model() -> type[Base]:
     class CardModel(BaseCardTypeAllText):
         season_text: str
         episode_text: str
-        font_color: str = StripedTitleCard.TITLE_COLOR
-        font_file: FilePath = StripedTitleCard.TITLE_FONT # type: ignore
+        font_color: str = StripedTitleCard.CardConfig.font_color
+        font_file: FilePath = StripedTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
