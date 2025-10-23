@@ -40,6 +40,7 @@ from app.exceptions import (
     UnknownCardType,
 )
 from app.info.episode import EpisodeInfo
+from app.interfaces.v2 import EmbyInterface, JellyfinInterface, PlexInterface
 from app.logging.logger import Logger
 from app.models.card import Card
 from app.models.loaded import Loaded
@@ -54,8 +55,8 @@ from app.schemas.episode import UpdateEpisode
 from app.schemas.font import DefaultFont
 from app.schemas.series import UpdateSeries
 from app.settings import settings
-from modules.FormatString import FormatString
-from modules.TieredSettings import TieredSettings
+from app.utils.fstring import FormatString
+from app.utils.tiered_settings import TieredSettings
 
 
 # Create sub router for all /cards API requests
@@ -127,7 +128,10 @@ def create_preview_card(
     if card.episode_text is None:
         try:
             card.episode_text = FormatString(
-                (card.episode_text_format or CardClass.EPISODE_TEXT_FORMAT),
+                (
+                    card.episode_text_format
+                    or CardClass.CardConfig.episode_text_format
+                ),
                 data=format_data | card.model_dump(),
             ).result
         except InvalidCardSettings as exc:
@@ -161,18 +165,20 @@ def create_preview_card(
 
     # Add card default font stuff
     if card_settings.get('font_file') is None:
-        card_settings['font_file'] = CardClass.TITLE_FONT
+        card_settings['font_file'] = CardClass.CardConfig.font_file
     if card_settings.get('font_color') is None:
-        card_settings['font_color'] = CardClass.TITLE_COLOR
+        card_settings['font_color'] = CardClass.CardConfig.font_color
 
     # Turn manually entered \n into newline
     card_settings['title_text'] = card_settings['title_text'].replace(r'\n', '\n')
 
     # Apply title text case function
     if card_settings.get('font_title_case') is None:
-        case_func = CardClass.CASE_FUNCTIONS[CardClass.DEFAULT_FONT_CASE]
-    else:
+        case_func = CardClass.CASE_FUNCTIONS[CardClass.CardConfig.font_case]
+    elif card_settings['font_title_case'] in CardClass.CASE_FUNCTIONS:
         case_func = CardClass.CASE_FUNCTIONS[card_settings['font_title_case']]
+    else:
+        case_func = CardClass.CASE_FUNCTIONS[CardClass.CardConfig.font_case]
     card_settings['title_text'] = case_func(card_settings['title_text'])
 
     # Delete output if it exists, then create Card
@@ -460,7 +466,10 @@ def load_series_title_cards_(
     # Load Title Cards into only the specified library
     if library_name and interface_id:
         interface = get_interface(interface_id, raise_exc=True)
-        if interface.INTERFACE_TYPE not in ('Emby', 'Jellyfin', 'Plex'):
+        if not isinstance(
+            interface,
+            (EmbyInterface, JellyfinInterface, PlexInterface)
+        ):
             raise HTTPException(
                 status_code=400,
                 detail='Can only load Cards into Emby, Jellyfin, or Plex'

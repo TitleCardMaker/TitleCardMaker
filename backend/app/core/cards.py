@@ -10,11 +10,13 @@ from sqlalchemy.exc import OperationalError, PendingRollbackError
 from sqlalchemy.orm import Query, Session, load_only
 from sqlalchemy.orm.session import object_session
 
+from app.cards.base import BaseCardType
+from app.cards.episode_ranges import SeasonTitleRanges
+from app.cards.loader import RemoteCardType, RemoteFile
+from app.cards.title import Title
+from app.cards.types import BUILTIN_CARD_TYPES
 from app.core.availability import expire_cache, get_remote_card_hash
-from app.core.cache import (
-    cache_result,
-    invalidate_card_cache,
-)
+from app.core.cache import cache_result, invalidate_card_cache
 from app.core.episodes import refresh_episode_data
 from app.core.sources import download_episode_source_images
 from app.core.templates import get_effective_templates
@@ -39,15 +41,9 @@ from app.schemas.font import DefaultFont
 from app.schemas.card import NewTitleCard, TitleCardReduced
 from app.schemas.card_type import LocalCardTypeModels
 from app.settings import settings
-from cards import BUILTIN_CARD_TYPES
-from modules.BaseCardType import BaseCardType
-from modules.CleanPath import CleanPath
-from modules.FormatString import FormatString
-from modules.RemoteCardType import RemoteCardType
-from modules.RemoteFile import RemoteFile
-from modules.SeasonTitleRanges import SeasonTitleRanges
-from modules.TieredSettings import TieredSettings
-from modules.Title import Title
+from app.utils.fstring import FormatString
+from app.utils.paths import CleanPath
+from app.utils.tiered_settings import TieredSettings
 
 
 def create_all_title_cards(*, log: Logger = log) -> None:
@@ -397,7 +393,7 @@ def validate_card_type_model(
         CardTypeModel = LocalCardTypeModels[card_settings['card_type']]
     # Remove card types
     elif hasattr(CardClass, 'CardModel'):
-        CardTypeModel = cast(type[Base], CardClass.CardModel)
+        CardTypeModel = cast(type[Base], CardClass.CardModel) # type: ignore
     else:
         raise HTTPException(
             status_code=400,
@@ -599,9 +595,9 @@ def resolve_card_settings(
 
     # Add card default font stuff
     if card_settings.get('font_file', None) is None:
-        card_settings['font_file'] = CardClass.TITLE_FONT
+        card_settings['font_file'] = CardClass.CardConfig.font_file
     if card_settings.get('font_color', None) is None:
-        card_settings['font_color'] = CardClass.TITLE_COLOR
+        card_settings['font_color'] = CardClass.CardConfig.font_color
 
     # Resolve auto color detection
     if (card_settings['font_color'] in ('{logo_color}', '{logo_color_no_white}')
@@ -611,14 +607,15 @@ def resolve_card_settings(
         if card_settings['font_color'] == '{logo_color}':
             card_settings['font_color'] = (
                 '{get_image_color(logo_file, '
-                + 'fallback=' + repr(CardClass.TITLE_COLOR) + ''
+                + 'fallback=' + repr(CardClass.CardConfig.font_color) + ''
                 + ')}'
             )
         elif card_settings['font_color'] == '{logo_color_no_white}':
             card_settings['font_color'] = (
                 '{get_image_color(logo_file, '
-                + 'fallback=' + repr(CardClass.TITLE_COLOR) + ', '
-                + 'white_threshold=210)}'
+                + 'fallback=' + repr(CardClass.CardConfig.font_color) + ', '
+                + 'white_threshold=210'
+                + ')}'
             )
 
         # Perform actual FormatString resolution
@@ -632,8 +629,8 @@ def resolve_card_settings(
         )
 
     # Apply Font pre-replacements
-    repl_in = list(CardClass.FONT_REPLACEMENTS.keys())
-    repl_out = list(CardClass.FONT_REPLACEMENTS.values())
+    repl_in = list(CardClass.CardConfig.font_replacements.keys())
+    repl_out = list(CardClass.CardConfig.font_replacements.values())
     if card_settings.get('font_replacements_in', []):
         repl_in = card_settings['font_replacements_in']
     if card_settings.get('font_replacements_out', []):
@@ -645,10 +642,11 @@ def resolve_card_settings(
     # Determine effective title text
     if card_settings.get('auto_split_title', True):
         card_settings['title_text'] = Title(card_settings['title']).split(
-            CardClass.get_title_split_characteristics(
-                # Make a copy of the characteristics to avoid modifying in-place
-                {**CardClass.TITLE_CHARACTERISTICS},
-                CardClass.TITLE_FONT,
+            *CardClass.get_title_split_characteristics(
+                CardClass.CardConfig.title_max_line_width,
+                CardClass.CardConfig.title_max_line_count,
+                CardClass.CardConfig.title_split_style,
+                CardClass.CardConfig.font_file,
                 card_settings
             )
         )
@@ -657,7 +655,7 @@ def resolve_card_settings(
 
     # Apply title text case function
     if card_settings.get('font_title_case') is None:
-        case_func = CardClass.CASE_FUNCTIONS[CardClass.DEFAULT_FONT_CASE]
+        case_func = CardClass.CASE_FUNCTIONS[CardClass.CardConfig.font_case]
     else:
         case_func = CardClass.CASE_FUNCTIONS[card_settings['font_title_case']]
     card_settings['title_text'] = case_func(card_settings['title_text'])
@@ -702,7 +700,7 @@ def resolve_card_settings(
     if card_settings.get('episode_text') is None:
         card_settings['episode_text'] = FormatString.new(
             card_settings.pop(
-                'episode_text_format', CardClass.EPISODE_TEXT_FORMAT,
+                'episode_text_format', CardClass.CardConfig.episode_text_format,
             ),
             data=card_settings,
             name='episode text format', series=series, episode=episode, log=log,
@@ -751,7 +749,7 @@ def resolve_card_settings(
             ).sanitize()
 
     # Exit if the source file does not exist
-    if (CardClass.USES_SOURCE_IMAGES
+    if (CardClass.CardConfig.uses_source_images
         and not card_settings['source_file'].exists()):
         log.debug((
             f'{episode} Card source image ({card_settings["source_file"]}) is '

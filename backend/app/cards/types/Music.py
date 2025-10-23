@@ -1026,18 +1026,23 @@ class MusicTitleCard(BaseCardType):
 
     @staticmethod
     def get_title_split_characteristics(
-            characteristics: SplitCharacteristics,
-            default_font_file: str,
+            max_line_width: int,
+            max_line_count: int,
+            split_style: SplitStyle,
+            default_font_file: str | Path,
             data: dict,
-        ) -> SplitCharacteristics:
+        ) -> tuple[int, int, SplitStyle]:
         """
         Get the title split characteristics for the card defined by the
         given card data. This modifies the max line width value based
         on the specified `player_width`.
 
         Args:
-            characteristics: Base split characteristics being modified
-                for this card.
+            max_line_width: Maximum width of one line of title text,
+                in characters.
+            max_line_count: Maximum number of lines a title can take up,
+                in total.
+            split_style: How to split the title into multiple lines.
             default_font_file: Default font file for font size
                 evaluation.
             data: Dictionary of card data to evaluate for any changes
@@ -1050,15 +1055,15 @@ class MusicTitleCard(BaseCardType):
 
         # Scale line width by player width
         if 'player_width' in data:
-            characteristics['max_line_width'] = int(
-                characteristics['max_line_width']
+            max_line_width = int(
+                max_line_width
                 * int(data['player_width'])
                 / MusicTitleCard.DEFAULT_PLAYER_WIDTH
             )
 
         # Apply defaults
         return BaseCardType.get_title_split_characteristics(
-            characteristics, default_font_file, data
+            max_line_width, max_line_count, split_style, default_font_file, data
         )
 
 

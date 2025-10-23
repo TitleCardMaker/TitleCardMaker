@@ -196,14 +196,23 @@ class Title:
         return '\n'.join(all_lines)
 
 
-    def split(self, split: SplitCharacteristics) -> str:
+    def split(self,
+            max_line_width: int,
+            max_line_count: int,
+            split_style: SplitStyle,
+        ) -> str:
         """
         Split this title's text into multiple lines. If the title cannot
         fit into the given parameters, line width might not be
         respected, but the maximum number of lines will be.
 
         Args:
-            split: Definition for how to split this title.
+            title_max_line_width: Maximum width of one line of title
+                text, in characters.
+            title_max_line_count: Maximum number of lines a title can
+                take up, in total.
+            title_split_style: How to split the title into multiple
+                lines.
 
         Returns:
             Split title text.
@@ -214,28 +223,24 @@ class Title:
             return self.full_title
 
         # Split title into two "even" width lines
-        if split['style'] == 'forced even':
+        if split_style == 'forced even':
             return self.__evenly_split()
 
         # If the title can fit on one line, is one line or one word, return
-        if split['max_line_count'] <= 1 or len(self) <= split['max_line_width']:
+        if max_line_count <= 1 or len(self) <= max_line_width:
             return self.full_title
 
         # Misformat ahead..
-        if len(self) > split['max_line_count'] * split['max_line_width']:
+        if len(self) > max_line_count * max_line_width:
             log.trace(f'Title {self} too long, potential misformat')
 
         # Split based on indicated style
-        if split['style'] == 'even':
+        if split_style == 'even':
             return self.__evenly_split()
-        if split['style'] == 'top':
-            return self.__top_split(
-                split['max_line_width'], split['max_line_count']
-            )
-        if split['style'] == 'bottom':
-            return self.__bottom_split(
-                split['max_line_width'], split['max_line_count']
-            )
+        if split_style == 'top':
+            return self.__top_split(max_line_width, max_line_count)
+        if split_style == 'bottom':
+            return self.__bottom_split(max_line_width, max_line_count)
 
         return self.full_title
 
