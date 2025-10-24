@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, TypeAlias
 
 from pydantic import BaseModel, Field
 
@@ -12,6 +12,13 @@ type ArtType = Literal[
     'season',
     'clearart',
     'logo',
+]
+type LanguageCode = Literal[
+    'ara', 'ces', 'dan', 'deu', 'ell', 'eng', 'fra', 'ita', 'kor', 'nld', 'pol',
+    'por', 'pt', 'rus', 'spa', 'swe', 'tur', 'zho', 'zhtw',
+]
+type SeasonOrder = Literal[ # Called season-type in TVDb API docs
+    'absolute', 'alternate', 'default', 'dvd', 'official', 'regional'
 ]
 type SourceName = Literal[
     'EIDR',

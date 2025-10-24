@@ -21,9 +21,11 @@ from app.interfaces.schemas.tvdb import (
     EpisodeBaseRecord,
     EpisodeExtendedResponse,
     EpisodeTranslationResponse,
+    LanguageCode,
     RemoteID,
     RemoteIDSearchResult,
     SearchResultResponse,
+    SeasonOrder,
     SeasonTranslationResponse,
     SeriesArtworkResponse,
     SeriesEpisodeResponse,
@@ -31,16 +33,6 @@ from app.interfaces.schemas.tvdb import (
 )
 from app.interfaces.testing import testing_override
 from app.logging.logger import Logger, log
-
-
-
-LanguageCode = Literal[
-    'ara', 'ces', 'dan', 'deu', 'ell', 'eng', 'fra', 'ita', 'kor', 'nld', 'pol',
-    'por', 'pt', 'rus', 'spa', 'swe', 'tur', 'zho', 'zhtw',
-]
-OrderType = Literal[ # Called season-type in TVDb API docs
-    'absolute', 'alternate', 'default', 'dvd', 'official', 'regional'
-]
 
 
 class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
@@ -68,11 +60,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         'logo': 23
     }
 
-    SERIES_IDS: Annotated[
-        ClassVar[tuple[str, ...]],
-        "Series ID's that can be set by TVDb"
-    ] = ('imdb_id', 'tmdb_id', 'tvdb_id')
-
     __ROOT_API_URL: Annotated[
         ClassVar[str],
         'Root URL of all API requests'
@@ -87,7 +74,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     def __init__(self,
             api_key: str,
-            episode_ordering: OrderType = 'default',
+            episode_ordering: SeasonOrder = 'default',
             include_movies: bool = False,
             minimum_source_width: int = 0,
             minimum_source_height: int = 0,
@@ -123,7 +110,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         self.minimum_source_height = minimum_source_height
         self.language_priority = language_priority
         self._interface_id = interface_id
-        self._order_type: OrderType = episode_ordering
+        self._order_type = episode_ordering
         self._include_movies = include_movies
 
         # Authenticate with TVDb, generate session token
@@ -178,7 +165,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         return auth.data.token
 
-    @testing_override(lambda log: None)
+    @testing_override(lambda *args, **kwargs: None)
     def __initialize_token(self, *, log: Logger = log) -> None:
         """
         Initialize the session token for communicating with TVDb. This
@@ -496,7 +483,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         """
 
         # If all possible ID's are defined
-        if series_info.has_ids(*self.SERIES_IDS):
+        if series_info.has_ids('imdb_id', 'tmdb_id', 'tvdb_id'):
             return None
 
         # Exit if the series cannot be found on TVDb
