@@ -55,11 +55,12 @@ def get_all_fonts(
     ) -> list[NamedFont]:
     """Get all defined Fonts."""
 
-    return (
-        db.query(Font)
+    return [
+        NamedFont.model_validate(font)
+        for font in db.query(Font)
             .order_by(Font.id if order == 'id' else Font.sort_name)
             .all()
-    )
+    ]
 
 
 @font_router.post('/font/new')
