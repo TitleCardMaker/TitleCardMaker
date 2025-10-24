@@ -28,6 +28,7 @@ async def log_internal_server_errors(
         console = Console(file=output)
         console.print(
             Traceback(
+                width=120, # Use a wider width
                 show_locals=True,
                 locals_max_length=32, # Display up to 32 local items
                 locals_max_string=1024,
