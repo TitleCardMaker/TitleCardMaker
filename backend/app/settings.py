@@ -68,34 +68,13 @@ class Settings(SerializationMixin):
 
     # Paths and directories
     _preferences_file: SerializationExclusion[Path | None] = None
-
-    card_directory: Path = (
-        Path('/config/cards') if IS_DOCKER else CONFIG_ROOT / 'cards'
-    )
-
-    source_directory: Path = (
-        Path('/config/source') if IS_DOCKER else CONFIG_ROOT / 'source'
-    )
-
-    asset_directory: SerializationExclusion[Path] = (
-        Path('/config/assets') if IS_DOCKER else CONFIG_ROOT / 'assets'
-    )
-
-    card_type_directory: SerializationExclusion[Path] = (
-        Path('/config/card_types') if IS_DOCKER else CONFIG_ROOT / 'card_types'
-    )
-
-    backup_directory: SerializationExclusion[Path] = (
-        Path('/config/backups') if IS_DOCKER else CONFIG_ROOT / 'backups'
-    )
-
-    log_directory: SerializationExclusion[Path] = (
-        Path('/config/logs') if IS_DOCKER else CONFIG_ROOT / 'logs'
-    )
-
-    temporary_directory: SerializationExclusion[Path] = (
-        BACKEND_ROOT / 'modules' / '.objects'
-    )
+    card_directory: Path = CONFIG_ROOT / 'cards'
+    source_directory: Path = CONFIG_ROOT / 'source'
+    asset_directory: SerializationExclusion[Path] = CONFIG_ROOT / 'assets'
+    card_type_directory: SerializationExclusion[Path] = CONFIG_ROOT / 'card_types'
+    backup_directory: SerializationExclusion[Path] = CONFIG_ROOT / 'backups'
+    log_directory: SerializationExclusion[Path] = CONFIG_ROOT / 'logs'
+    temporary_directory: SerializationExclusion[Path] = CONFIG_ROOT / '.objects'
 
     # Card properties
     card_width: int = 1920
