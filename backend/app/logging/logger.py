@@ -132,7 +132,7 @@ def _configure_logger(logger: Logger) -> Logger:
         dict(
             sink=sys.stdout,
             level=config.CONSOLE_LOG_LEVEL,
-            format='<level>[<bold>{level}</bold>] {message}</level>',
+            format='<level>[{level.name[0]}] {message}</level>',
             colorize=True,
             backtrace=True,
             diagnose=True,
@@ -165,15 +165,15 @@ def _configure_logger(logger: Logger) -> Logger:
             format='{message}',
             colorize=False,
             backtrace=False,
-            enqueue=config.LEGACY_MODE,
+            enqueue=False,
         ),
     ]
     levels = [
-        dict(name='TRACE', color='<dim><fg #6d6d6d>'),
+        dict(name='TRACE', color='<dim><fg #d0d0d0>'),
         dict(name='DEBUG', color='<dim><white>'),
         dict(name='INFO', color='<light-cyan>'),
         dict(name='WARNING', color='<yellow>'),
-        dict(name='ERROR', color='<fg 237,112,46>'),
+        dict(name='ERROR', color='<magenta>'),
         dict(name='CRITICAL', color='<red><bold>'),
     ]
 
