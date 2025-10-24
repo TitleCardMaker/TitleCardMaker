@@ -95,6 +95,7 @@ class SeriesInfo(DatabaseInfoContainer):
 
         # Parse arguments into attributes
         self.name = name
+        self.year = year
         self.emby_id = InterfaceID(emby_id, type_=str, libraries=True)
         self.imdb_id: str | None = None
         self.jellyfin_id = InterfaceID(jellyfin_id, type_=str, libraries=True)
