@@ -78,11 +78,21 @@ class SerializationMixin:
         underscore.
         """
 
-        def include(key: str) -> bool:
+        properties = {
+            name
+            for name, value in type(self).__dict__.items()
+            if isinstance(value, property)
+        }
+
+        def include(key: str, value: Any) -> bool:
             """Whether to include the given key in the serialization."""
 
-            # Exclude all private attributes
-            if key.startswith('_'):
+            # Exclude methods
+            if callable(value):
+                return False
+
+            # Exclude all private attributes and properties
+            if key.startswith('_') or key in properties:
                 return False
 
             # Check for excluded metadata
@@ -95,7 +105,8 @@ class SerializationMixin:
             return True
 
         return {
-            key: self.convert(value)
-            for key, value in self.__dict__.items()
-            if include(key)
+            key: self.convert(getattr(self, key))
+            for key in dir(self)
+            # for key, value in {**type(self).__dict__, **self.__dict__}.items()
+            if include(key, getattr(self, key))
         }
