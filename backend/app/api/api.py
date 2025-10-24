@@ -1,11 +1,10 @@
-from logging import Logger
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import MetaData, text
 from sqlalchemy.orm import Session
 
 from app.api.v2 import v2_router
 from app.dependencies import get_database, get_logger
+from app.logging.logger import Logger
 from app.settings import reset_settings, settings
 
 
@@ -61,8 +60,8 @@ def reset_database(
         # Do not delete the version table so migrations aren't triggered
         if table.name == 'alembic_version':
             continue
-        log.info(f'Deleting SQL Table "{table.name}"')
+        log.debug(f'Deleting SQL Table "{table.name}"')
         db.execute(table.delete())
     db.commit()
 
-    reset_settings()
+    reset_settings(log=log)
