@@ -13,10 +13,10 @@ from app.core.config import config
 # URL of the SQL Database - based on whether in Docker or not
 if config.IS_DOCKER:
     SQLALCHEMY_DATABASE_URL = 'sqlite:////config/db.sqlite'
-    YAML_DATABASE_URL = 'sqlite:////config/db_v1.sqlite'
+    BLUEPRINT_DATABASE_URL = 'sqlite:////config/.objects/.blueprints.sqlite'
 else:
     SQLALCHEMY_DATABASE_URL = 'sqlite:///../config/db.sqlite'
-    YAML_DATABASE_URL = 'sqlite:///../config/db_v1.sqlite'
+    BLUEPRINT_DATABASE_URL = 'sqlite:///../config/.objects/.blueprints.sqlite'
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
@@ -28,17 +28,12 @@ engine = create_engine(
     # Do not limit pool overflow since "new" connections are made inside queued
     # BackgroundTasks - see https://docs.sqlalchemy.org/en/20/errors.html for
     # reference
-    pool_size=5, max_overflow=-1,
+    pool_size=1 if config.TESTING_MODE else 5, max_overflow=-1,
 )
 
 # URL to the Blueprints SQL database
-if config.IS_DOCKER:
-    BLUEPRINT_SQL_DATABASE_URL = 'sqlite:////tcm/backend/modules/.objects/blueprints.db'
-else:
-    BLUEPRINT_SQL_DATABASE_URL = 'sqlite:///./modules/.objects/blueprints.db'
-
 blueprint_engine = create_engine(
-    BLUEPRINT_SQL_DATABASE_URL, connect_args={'check_same_thread': False},
+    BLUEPRINT_DATABASE_URL, connect_args={'check_same_thread': False},
 )
 
 # Session makers for connecting to each database
