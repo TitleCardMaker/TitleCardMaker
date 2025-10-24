@@ -16,8 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.db.query import get_connection, get_episode, get_series
 from app.db.pagination import Page
-from app.dependencies import *
-from app.dependencies import get_logger
+from app.dependencies import get_database, get_emby_interfaces, get_first_tmdb_interface, get_first_tvdb_interface, get_jellyfin_interfaces, get_logger, get_plex_interfaces, get_tmdb_interfaces, get_tvdb_interfaces, require_tmdb_interface
 from app.db.users import get_current_user
 from app.core.cards import delete_cards
 from app.core.sources import (
@@ -29,6 +28,13 @@ from app.core.sources import (
     resolve_source_settings,
 )
 from app.interfaces.base import InterfaceGroup
+from app.interfaces.v2 import (
+    EmbyInterface,
+    JellyfinInterface,
+    PlexInterface,
+    TMDbInterface,
+    TVDbInterface,
+)
 from app.interfaces.web import WebInterface
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
@@ -200,7 +206,7 @@ def get_all_episode_source_images(
         emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
         jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
         plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
-        tmdb_interface: TMDbInterface = Depends(require_tmdb_interface),
+        tmdb_interface: TMDbInterface | None = Depends(get_first_tmdb_interface),
         tvdb_interface: TVDbInterface | None = Depends(get_first_tvdb_interface),
         log: Logger = Depends(get_logger),
     ) -> list[ExternalSourceImage]:
@@ -221,15 +227,16 @@ def get_all_episode_source_images(
 
     # Get all Source Images from TMDb and TVDb
     images = []
-    try:
-        images += tmdb_interface.get_all_source_images(
-            episode.series.as_series_info,
-            episode.as_episode_info,
-            match_title=match_title,
-            log=log,
-        )
-    except HTTPException:
-        pass
+    if tmdb_interface:
+        try:
+            images.extend(tmdb_interface.get_all_source_images(
+                episode.series.as_series_info,
+                episode.as_episode_info,
+                match_title=match_title,
+                log=log,
+            ))
+        except HTTPException:
+            pass
 
     if tvdb_interface:
         tvdb_image = tvdb_interface.get_source_image(
@@ -520,11 +527,13 @@ async def set_episode_source_image(
 
             # Get Connection with this ID, raise 404 if DNE
             connection = get_connection(db, interface_id, raise_exc=True)
-
-            # Use server URL, de-proxied URL, and add the token as a param
-            url = connection.decrypted_url.removesuffix('/') \
-                + url.split('/api/v2/proxy/plex?url=', maxsplit=1)[1] \
-                + f'?X-Plex-Token={connection.decrypted_api_key}'
+            if connection.decrypted_url:
+                # Use server URL, de-proxied URL, and add the token as a param
+                url = (
+                    connection.decrypted_url.removesuffix('/')
+                    + url.split('/api/v2/proxy/plex?url=', maxsplit=1)[1]
+                    + f'?X-Plex-Token={connection.decrypted_api_key}'
+                )
 
         if not WebInterface.download_image(url, source_file, log=log):
             raise HTTPException(
