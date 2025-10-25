@@ -11,7 +11,7 @@ from app.core.backup import backup_data
 from app.core.cards import (
     clean_database,
     create_all_title_cards,
-    refresh_all_remote_card_types,
+    refresh_all_card_types,
 )
 from app.core.logs import clear_log_data
 from app.core.series import (
@@ -300,7 +300,7 @@ RecurringTasks: dict[TaskID, RecurringTask] = {
         internal=True,
     ),
     INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES: RecurringTask(
-        task_func=refresh_all_remote_card_types,
+        task_func=refresh_all_card_types,
         description='Refresh all non-built-in card types',
         task_id=INTERNAL_JOB_REFRESH_REMOTE_CARD_TYPES,
         default_cronstr='0 0 */3 * *',

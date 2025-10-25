@@ -217,7 +217,7 @@ def clean_database(*, log: Logger = log) -> None:
             db.commit()
 
 
-def refresh_all_remote_card_types(*, log: Logger = log) -> None:
+def refresh_all_card_types(*, log: Logger = log) -> None:
     """
     Schedule-able function to refresh all specified RemoteCardTypes.
 
@@ -269,7 +269,8 @@ def refresh_remote_card_types(
         # Skip blank identifiers, and builtin or local cards
         if (card_identifier is None
             or card_identifier in BUILTIN_CARD_TYPES
-            or card_identifier in settings.local_card_types):
+            or card_identifier in settings.local_card_types
+        ):
             continue
 
         # If not resetting, skip already loaded types

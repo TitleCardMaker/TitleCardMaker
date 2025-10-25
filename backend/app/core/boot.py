@@ -18,7 +18,7 @@ from starlette.staticfiles import StaticFiles
 from app.core.availability import get_latest_version
 from app.core.backup import backup_data, restore_backup
 from app.core.cache import get_cache_manager
-from app.core.cards import refresh_remote_card_types
+from app.core.cards import refresh_all_card_types
 from app.core.connection import initialize_connections
 from app.core.schedule import huey
 from app.core.settings import apply_card_type_blur_profiles
@@ -227,12 +227,10 @@ def initialize_app(app: FastAPI) -> None:
     perform_database_migrations(log=log)
     apply_card_type_blur_profiles()
     initialize_cache_system(log=log)
+    refresh_all_card_types(log=log)
 
     # Database operations
     with next(get_database()) as db:
-        # Refresh remote card types
-        refresh_remote_card_types(db, log=log)
-
         disable_authentication(db, log=log)
 
         try:
