@@ -53,9 +53,9 @@ class TintedFrameTitleCard(BaseCardType):
                 description='Font to use for the season and episode text',
                 tooltip=(
                     'This can be just a file name if the font file is in the '
-                    "Series' source directory, <v>{title_font}</v> to match "
-                    'the Font used for the title text, or a full path to the '
-                    'font file.'
+                    "Series' source directory, <v>{font_file}</v> to match the "
+                    'Font used for the title text, or a full path to the font '
+                    'file.'
                 ),
             ),
             Extra(
@@ -757,7 +757,7 @@ def get_validator_model() -> type[Base]:
         separator: str = '-'
         episode_text_color: str | None = None
         episode_text_font: (
-            Literal['{title_font}'] | str | Path
+            Literal['{font_file}'] | str | Path
         ) = TintedFrameTitleCard.EPISODE_TEXT_FONT
         episode_text_font_size: Annotated[float, Field(ge=0.0)] = 1.0
         episode_text_vertical_shift: Annotated[int, Field(ge=-1800, le=1800)] = 0
@@ -783,7 +783,8 @@ def get_validator_model() -> type[Base]:
         def validate_episode_text_font_file(self) -> Self:
             """Assign and validate the episode text font file."""
 
-            if (etf := self.episode_text_font) == '{title_font}':
+            # 
+            if (etf := self.episode_text_font) in ('{title_font}', '{font_file}'):
                 self.episode_text_font = self.font_file
             # Episode text font does not exist, search alongside source image
             elif not (etf := Path(etf)).exists():
@@ -812,7 +813,8 @@ def get_validator_model() -> type[Base]:
             middle = self.middle_element
             bottom = self.bottom_element
             if ((top == 'logo' or middle == 'logo' or bottom == 'logo')
-                and not self.logo_file.exists()):
+                and not self.logo_file.exists()
+            ):
                 raise ValueError(
                     f'Logo file does not exist ({self.logo_file})'
                 )
