@@ -10,10 +10,6 @@ from app.schemas.ids import EmbyID, IMDbID, JellyfinID, TMDbID, TVDbID, TVRageID
 from app.schemas.preferences import Style
 
 """
-Base classes
-"""
-
-"""
 Creation classes
 """
 class NewEpisode(Base):

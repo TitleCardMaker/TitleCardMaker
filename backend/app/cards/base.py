@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Annotated, Any, Callable, ClassVar, Literal
 
-from pydantic import BaseModel, BeforeValidator, Field, FilePath, StringConstraints
+from pydantic import BaseModel, BeforeValidator, Field, FilePath
 from titlecase import titlecase
 
 from app.cards.title import SplitCharacteristics
@@ -40,7 +40,7 @@ class Coordinate:
 
 
     def __add__(self,
-            other: 'Coordinate | tuple[float, float]',
+            other: 'Coordinate | tuple[float | int, float | int]',
         ) -> 'Coordinate':
         """
         Add the given coordinates to this object, returning a new
@@ -60,7 +60,7 @@ class Coordinate:
 
 
     def __sub__(self,
-            other: 'Coordinate | tuple[float, float]',
+            other: 'Coordinate | tuple[float | int, float | int]',
         ) -> 'Coordinate':
         """
         Subtract the given coordinates to this object, returning a new
@@ -80,7 +80,7 @@ class Coordinate:
 
 
     def __iadd__(self,
-            other: 'Coordinate | tuple[float, float]',
+            other: 'Coordinate | tuple[float | int, float | int]',
         ) -> 'Coordinate':
         """
         Add the given Coordinate to this one. This adds the x/y
@@ -315,12 +315,6 @@ class BaseCardType(ImageMaker, ABC):
         'Default card configuration class for this card type'
     ]
 
-    # """Default case string for all title text"""
-    # DEFAULT_FONT_CASE: ClassVar[TextCase] = 'upper'
-
-    # """Default font replacements"""
-    # FONT_REPLACEMENTS: ClassVar[dict[str, str]] = {}
-
     """Mapping of 'case' strings to format functions"""
     CASE_FUNCTIONS: ClassVar[dict[TextCase, Callable[[Any], str]]] = {
         'blank': lambda _: '',
@@ -329,14 +323,6 @@ class BaseCardType(ImageMaker, ABC):
         'title': titlecase,
         'upper': str.upper,
     }
-
-    # """Default episode text format string, can be overwritten by each class"""
-    # EPISODE_TEXT_FORMAT: ClassVar[str] = 'Episode {episode_number}'
-
-    # USES_SOURCE_IMAGES: Annotated[
-    #     ClassVar[bool],
-    #     'Whether this card type uses Source Images in card creation'
-    # ] = True
 
     """Standard size for all title cards"""
     WIDTH: ClassVar[int] = 3200
@@ -358,18 +344,6 @@ class BaseCardType(ImageMaker, ABC):
         'Characteristics for how to auto-split titles for this card type'
     ]
 
-    # TITLE_FONT: Annotated[
-    #     ClassVar[str],
-    #     'Default font to use for all title text on this card'
-    # ]
-
-    # TITLE_COLOR: Annotated[
-    #     ClassVar[str],
-    #     'Default font color to use for all title text on this card'
-    # ]
-
-
-    """Slots for standard style attributes"""
     __slots__ = ('valid', 'blur', 'grayscale')
 
 

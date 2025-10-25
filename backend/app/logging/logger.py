@@ -1,4 +1,3 @@
-from datetime import datetime
 import logging
 from random import choices as random_choices
 from string import hexdigits

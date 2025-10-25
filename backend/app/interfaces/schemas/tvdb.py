@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 

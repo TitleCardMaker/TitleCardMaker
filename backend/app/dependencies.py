@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from time import sleep
 from typing import Iterator, TypeVar
 
 from fastapi import HTTPException, Query, Request

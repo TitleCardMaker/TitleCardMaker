@@ -4,7 +4,12 @@ from random import uniform
 from re import match as re_match
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import FilePath, StringConstraints, constr, field_validator, model_validator
+from pydantic import (
+    FilePath,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 
 from app.schemas.base import Base, BaseCardTypeCustomFontAllText
 from app.cards.base import (

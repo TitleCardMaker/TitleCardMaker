@@ -21,9 +21,6 @@ from app.schemas.connection import ServerName
 from app.settings import settings
 from app.utils.paths import CleanPath
 
-# Import cache functions for invalidation
-from app.core.cache import invalidate_series_cache
-
 if TYPE_CHECKING:
     from sqlalchemy.event import Events
     from app.models.card import Card

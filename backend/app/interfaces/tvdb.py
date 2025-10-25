@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Annotated, Any, ClassVar, Literal
+from typing import Annotated, Any, ClassVar
 from urllib.parse import quote as url_quote, urlencode
 
 from fastapi import HTTPException
@@ -926,6 +926,10 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             )
         except ValidationError:
             log.exception(f'{series_info} returned invalid series data')
+            return {}
+
+        # No season data, return empty dictionary
+        if not series_data.seasons:
             return {}
 
         # Determine effective season type
