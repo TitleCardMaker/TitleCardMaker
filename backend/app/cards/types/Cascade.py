@@ -467,7 +467,7 @@ class CascadeTitleCard(BaseCardType):
 
         # Extras
         self.allow_kanji_episode_text = allow_kanji_episode_text
-        self.alt_text = alt_text
+        self.alt_text = self.image_magick.escape_chars(alt_text)
         self.alt_text_color = alt_text_color
         self.cascade_alphas = SequenceGenerator(cascade_alphas, (0, 100))
         self.cascade_count = cascade_count
@@ -720,7 +720,9 @@ class CascadeTitleCard(BaseCardType):
 
         # Truncate alt text if this and the index text are too wide
         alt_width, _ = self.image_magick.get_text_label_dimensions(
-            ['-background none'] + text_commands[:-1] + [f'label:"{self.alt_text}"'],
+            ['-background none']
+            + text_commands[:-1]
+            + [f'label:"{self.alt_text}"'],
             density=100,
         )
 
