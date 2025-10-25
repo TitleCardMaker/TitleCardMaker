@@ -203,10 +203,14 @@ def create_cards_for_sonarr_webhook(
 
         for _ in range(3):
             # Search for this Episode
-            episode = db.query(Episode)\
-                .filter(Episode.series_id==series.id,
-                        episode_info.filter_conditions(Episode))\
-                .first()
+            episode = (
+                db.query(Episode)
+                    .filter(
+                        Episode.series_id==series.id,
+                        episode_info.filter_conditions(Episode)
+                    )
+                    .first()
+            )
 
             # Episode exists, return it
             if episode:
