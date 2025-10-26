@@ -20,6 +20,42 @@ _loaded_files: Annotated[
 ] = set()
 
 
+class RemoteDirectory:
+    """
+    This class describes a RemoteDirectory. A RemoteDirectory is a
+    directory that is loaded from the TCM Card Types repository, and is
+    necessary to allow card types to utilize non-standard directories
+    that can be downloaded at runtime alongside CardType classes.
+    """
+
+    __slots__ = ('username', 'directory')
+
+
+    def __init__(self, username: str, directory: str) -> None:
+        """
+        Construct a new RemoteDirectory object.
+
+        Args:
+            username: Username containing the directory.
+            directory: Root directory to load files from.
+        """
+
+        self.username = username
+        self.directory = directory.removesuffix('/')
+
+
+    def __truediv__(self, filename: str) -> 'RemoteFile':
+        """
+        Return a new RemoteFile object for a file with the given name in
+        this object's directory.
+
+        >>> rd = RemoteDirectory('CollinHeist', 'files/fonts')
+        >>> rf = rd / 'font.ttf'
+        """
+
+        return RemoteFile(self.username, f'{self.directory}/{filename}')
+
+
 class RemoteFile:
     """
     This class describes a RemoteFile. A RemoteFile is a file that is
