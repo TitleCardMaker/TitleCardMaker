@@ -68,7 +68,7 @@ class DictionaryTitleCard(BaseCardType):
             ),
             Extra(
                 name='Definition Font Size',
-                identifier='definition_font_size',
+                identifier='definition_size',
                 description='Size adjustment for the definition text',
                 tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
                 default=1.0,
@@ -119,7 +119,9 @@ class DictionaryTitleCard(BaseCardType):
             Extra(
                 name='Separator Character',
                 identifier='separator',
-                description='Character to separate the title text from the season and episode text',
+                description=(
+                    'Character to separate the title from the index text'
+                ),
                 tooltip='Default is <v>, </v>.',
                 default=', ',
             ),
@@ -361,6 +363,62 @@ class DictionaryTitleCard(BaseCardType):
         return Dimensions(effective_width, word_height + label_height)
 
 
+    def _fit_definition_text(self, max_width: int | float) -> Dimensions:
+        """
+        Attempt to fit the definition text to the given maximum width.
+
+        Args:
+            max_width: Maximum width of the definition text, in pixels.
+
+        Returns:
+            Dimensions of the definition text.
+        """
+
+        # Get the starting dimensions of the unsplit definition text
+        definition_dimensions = self.image_magick.get_text_label_dimensions(
+            self.definition_text_commands,
+            density=100,
+        )
+
+        # If the definition text is too wide, split into multiple lines
+        # this loop will exit when the text is no longer too wide
+        lines = 1
+        while (
+            definition_dimensions.width > max_width - 35 - 35 # 35px margin on each side
+            and (lines := lines + 1) <= 24 # Do not apply user limit here
+        ):
+            # Split into specified number of lines
+            self.definition_text = self.image_magick.escape_chars(
+                '\n'.join(split_into_lines(self.definition_text, lines))
+            )
+
+            # Recalculate the dimensions of the definition text after each split
+            definition_dimensions = self.image_magick.get_text_label_dimensions(
+                self.definition_text_commands,
+                density=100,
+            )
+
+        # If we're above the maximum line width, find the number of
+        # lines which results in the best fit (closest to the maximum
+        # width) and then truncate the text to that number of lines.
+        if lines > self.definition_line_limit:
+            # Truncate final line with (...)
+            # TODO change to [...] when ImageMagick bug is fixed
+            text_lines = (
+                self.definition_text.splitlines()[:self.definition_line_limit]
+            )
+            text_lines[-1] = text_lines[-1].rsplit(' ', 1)[0] + ' (...)'
+            self.definition_text = self.image_magick.escape_chars(
+                '\n'.join(text_lines)
+            )
+            definition_dimensions = self.image_magick.get_text_label_dimensions(
+                self.definition_text_commands,
+                density=100,
+            )
+
+        return definition_dimensions
+
+
     @property
     def background_commands(self) -> ImageMagickCommands:
         """Subcommands to add the background to the image."""
@@ -369,40 +427,7 @@ class DictionaryTitleCard(BaseCardType):
         top_width, top_height = self.background_dimensions
 
         # Get the dimensions of the definition text
-        definition_dimensions = self.image_magick.get_text_label_dimensions(
-            self.definition_text_commands,
-            density=100,
-        )
-
-        # If the definition text is too wide, split into multiple lines
-        lines = 1
-        while (
-            definition_dimensions.width > top_width - 35 - 35 # 35px margin on each side
-            and (lines := lines + 1) <= 24 # Do not apply user limit here
-        ):
-            # Split into specified number of lines
-            self.definition_text = self.image_magick.escape_chars(
-                '\n'.join(split_into_lines(self.definition_text, lines))
-            )
-
-            # Recalculate the dimensions of the definition text
-            definition_dimensions = self.image_magick.get_text_label_dimensions(
-                self.definition_text_commands,
-                density=100,
-            )
-
-        # If we're above the line limit, truncate with [...]
-        if lines > self.definition_line_limit:
-            text_lines = self.definition_text.split('\n')[:self.definition_line_limit]
-            text_lines[-1] = text_lines[-1][:-4] + ' (...)'
-            self.definition_text = self.image_magick.escape_chars(
-                '\n'.join(text_lines)
-            )
-            # Recalculate the dimensions of the definition text
-            definition_dimensions = self.image_magick.get_text_label_dimensions(
-                self.definition_text_commands,
-                density=100,
-            )
+        definition_dimensions = self._fit_definition_text(top_width)
 
         width = 35 + top_width + 35 # 35px padding on each side
         height = (
@@ -496,8 +521,9 @@ class DictionaryTitleCard(BaseCardType):
                 f'-font "{file.resolve()}"',
                 f'-fill "{self.definition_color}"',
                 f'-pointsize {45 * self.definition_size:.1f}',
-                f'-interline-spacing 5',
+                # Reset carry over font characteristics
                 f'+interline-spacing',
+                f'+interword-spacing',
                 f'+kerning',
                 fr'label:"{text}"',
                 f'-trim',
