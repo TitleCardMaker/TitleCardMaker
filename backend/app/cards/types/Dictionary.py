@@ -371,7 +371,8 @@ class DictionaryTitleCard(BaseCardType):
             max_width: Maximum width of the definition text, in pixels.
 
         Returns:
-            Dimensions of the definition text.
+            Dimensions of the definition text after it has been split
+            into multiple lines.
         """
 
         # Get the starting dimensions of the unsplit definition text
