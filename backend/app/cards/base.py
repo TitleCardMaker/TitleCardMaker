@@ -8,6 +8,7 @@ from titlecase import titlecase
 
 from app.logging.logger import log
 from app.magick.base import Dimensions, ImageMaker, ImageMagickCommands
+from app.schemas.base import Base
 from app.schemas.card import CardTypeDescription, Extra
 
 CardDescription = CardTypeDescription
@@ -712,6 +713,47 @@ class BaseCardType(ImageMaker, ABC):
         intermediate files.
         """
         raise NotImplementedError
+
+
+def create_card_cli(
+        dname: str,
+        card_type: type[BaseCardType],
+        validator_model: type[Base],
+    ) -> None:
+
+    # Exit if not running in main module
+    if dname != '__main__':
+        return None
+
+    def parse_unknown_args(args: list[str]) -> dict[str, Any]:
+        """
+        Parse unknown arguments into a dictionary of keyword arguments.
+
+        >>> parse_unknown_args(['--font_color', 'red', '--grayscale'])
+        {'font_color': 'red', 'grayscale': True}
+        """
+
+        kwargs, key = {}, None
+
+        for arg in args:
+            if arg.startswith('--'):
+                key = arg.lstrip('--').replace('-', '_')
+                kwargs[key] = True
+            elif key:
+                kwargs[key] = arg
+                key = None
+
+        return kwargs
+
+    # Parse arguments into keyword arguments
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    _, unknown = parser.parse_known_args()
+    kwargs = parse_unknown_args(unknown)
+
+    card = card_type(**validator_model(**kwargs).model_dump())
+    card.create()
+    card.image_magick.print_command_history()
 
 
 __all__ = [
