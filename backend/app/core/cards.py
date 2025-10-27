@@ -21,7 +21,7 @@ from app.core.sources import download_episode_source_images
 from app.core.templates import get_effective_templates
 from app.core.translate import translate_episode
 from app.db.query import get_font, get_media_interface
-from app.dependencies import get_database
+from app.dependencies import get_database, get_first_tmdb_interface
 from app.exceptions import (
     InvalidCardSettings,
     InvalidFormatString,
@@ -37,7 +37,7 @@ from app.models.series import Library, Series
 from app.models.template import Template
 from app.schemas.base import BaseCardModel
 from app.schemas.font import DefaultFont
-from app.schemas.card import NewTitleCard, TitleCardReduced
+from app.schemas.card import NewTitleCard
 from app.schemas.card_type import LocalCardTypeModels
 from app.settings import settings
 from app.utils.fstring import FormatString
@@ -459,15 +459,17 @@ def create_card(
     return None
 
 
-def resolve_card_settings(
+def _merge_card_settings(
         episode: Episode,
         library: Library | None = None,
         *,
         log: Logger = log,
-    ) -> dict:
+    ) -> tuple[dict, type[BaseCardType]]:
     """
-    Resolve the Title Card settings for the given Episode. This evalutes
-    all global, Series, and Template overrides.
+    Merge all settings for the given Episode. This does a tiered merge
+    of global, Series, and Episode settings, and returns the final
+    settings dictionary. Extras and the pre-resolution data enrichment
+    hook are also applied. This does not resolve any format strings.
 
     Args:
         episode: Episode whose Card settings are being resolved.
@@ -475,11 +477,10 @@ def resolve_card_settings(
         log: Logger for all log messages.
 
     Returns:
-        The resolved Card settings as a dictionary.
+        A tuple of the resolved Card settings (as a dictionary) and the
+        CardClass for the given Episode.
 
     Raises:
-        HTTPException (404): A specified Template or Font is missing.
-        MissingSourceImage: The required Source Image is missing.
         UnknownCardType: The indicated card type is unknown/invalid.
             Most likely this is a remote card type which needs to be
             downloaded.
@@ -507,7 +508,7 @@ def resolve_card_settings(
         series.card_type,
         episode_template_dict.get('card_type'),
         episode.card_type,
-    )
+    ) or settings.default_card_type
 
     # Get effective Font for this Series and Episode
     global_font_dict, series_font_dict, episode_font_dict = {}, {}, {}
@@ -575,6 +576,56 @@ def resolve_card_settings(
     TieredSettings(card_settings, card_extras)
     card_settings['extras'] = card_extras | episode.translations
 
+    # Get the effective card class
+    CardClass = settings.get_card_type_class(
+        card_settings['card_type'], log=log
+    )
+    if CardClass is None:
+        raise UnknownCardType(card_settings['card_type'])
+
+    # Call pre-resolution data enrichment hook
+    enriched_data = CardClass.enrich_card_data(
+        series_info=series.as_series_info,
+        episode_info=episode.as_episode_info,
+        tmdb_interface=get_first_tmdb_interface(None),
+        log=log,
+        **card_extras,
+    )
+    TieredSettings(card_settings, enriched_data)
+
+    return card_settings, CardClass
+
+
+def resolve_card_settings(
+        episode: Episode,
+        library: Library | None = None,
+        *,
+        log: Logger = log,
+    ) -> dict:
+    """
+    Resolve the Title Card settings for the given Episode. This evalutes
+    all global, Series, and Template overrides.
+
+    Args:
+        episode: Episode whose Card settings are being resolved.
+        library: Library associated with this Card.
+        log: Logger for all log messages.
+
+    Returns:
+        The resolved Card settings as a dictionary.
+
+    Raises:
+        HTTPException (404): A specified Template or Font is missing.
+        MissingSourceImage: The required Source Image is missing.
+        UnknownCardType: The indicated card type is unknown/invalid.
+            Most likely this is a remote card type which needs to be
+            downloaded.
+    """
+
+    # Get effective Template(s) for this Series and Episode
+    series = episode.series
+    card_settings, CardClass = _merge_card_settings(episode, library, log=log)
+
     # Resolve logo file format string if indicated
     logo_file = Path(card_settings['logo_file'])
     filename = FormatString.new(
@@ -585,13 +636,6 @@ def resolve_card_settings(
     )
     card_settings['logo_file'] = series.source_directory \
         / f'{filename}{logo_file.suffix}'
-
-    # Get the effective card class
-    CardClass = settings.get_card_type_class(
-        card_settings['card_type'], log=log
-    )
-    if CardClass is None:
-        raise UnknownCardType(card_settings['card_type'])
 
     # Add card default font stuff
     if card_settings.get('font_file', None) is None:
@@ -736,8 +780,8 @@ def resolve_card_settings(
         )
     else:
         card_settings['source_file'] = CleanPath(
-            settings.source_directory \
-                / series.path_safe_name \
+            settings.source_directory
+                / series.path_safe_name
                 / FormatString.new(
                     card_settings['source_file'],
                     data=card_settings,
@@ -759,8 +803,7 @@ def resolve_card_settings(
 
     # Get card folder
     if card_settings.get('directory') is None:
-        series_directory = Path(settings.card_directory) \
-            / series.path_safe_name
+        series_directory = Path(settings.card_directory) / series.path_safe_name
     else:
         series_directory = Path(card_settings['directory'][:254])
 
@@ -774,13 +817,17 @@ def resolve_card_settings(
         # Add library-specific identifier to filename if indicated
         if library is not None and settings.library_unique_cards:
             filename += f' [{library["interface"]} {library["name"]}]'
-        card_settings['card_file'] = series_directory \
-            / settings.get_folder_format(episode_info) \
-            / filename
+        card_settings['card_file'] = (
+            series_directory
+                / settings.get_folder_format(episode_info)
+                / filename
+            )
     else:
-        card_settings['card_file'] = series_directory \
-            / settings.get_folder_format(episode_info) \
-            / CleanPath.sanitize_name(card_settings['card_file'])
+        card_settings['card_file'] = (
+            series_directory
+                / settings.get_folder_format(episode_info)
+                / CleanPath.sanitize_name(card_settings['card_file'])
+        )
 
     # Add extension if needed
     card_file_name = card_settings['card_file'].name

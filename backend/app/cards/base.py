@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Annotated, Any, Callable, ClassVar, Literal
+from typing import TYPE_CHECKING, Annotated, Any, Callable, ClassVar, Literal
 
 from pydantic import BaseModel, BeforeValidator, Field, FilePath
 from titlecase import titlecase
@@ -10,6 +10,10 @@ from app.logging.logger import log
 from app.magick.base import Dimensions, ImageMaker, ImageMagickCommands
 from app.schemas.base import BaseCardModel
 from app.schemas.card import CardTypeDescription, Extra
+
+if TYPE_CHECKING:
+    from app.info.episode import EpisodeInfo
+    from app.info.series import SeriesInfo
 
 CardDescription = CardTypeDescription
 type SplitStyle = Literal['top', 'bottom', 'even', 'forced even']
@@ -393,44 +397,6 @@ class BaseCardType(ImageMaker, ABC):
                 f'{ClsName}.CardConfig must be a DefaultCardConfig object'
             )
 
-        # try:
-        #     SplitCharacteristics(cls.TITLE_CHARACTERISTICS) # type: ignore
-        # except Exception:
-        #     raise TypeError(
-        #         f'{ClsName}.TITLE_CHARACTERISTICS must be a '
-        #         f'SplitCharacteristics dictionary'
-        #     )
-
-        # if not isinstance(cls.DEFAULT_FONT_CASE, str):
-        #     raise TypeError(f'{ClsName}.DEFAULT_FONT_CASE must be a string')
-        # if cls.DEFAULT_FONT_CASE not in (
-        #     'blank', 'lower', 'source', 'title', 'upper'
-        # ):
-        #     raise TypeError(
-        #         f'{ClsName}.DEFAULT_FONT_CASE must be "blank", "lower", '
-        #         f'"source", "title", or "upper"'
-        #     )
-
-        # if not isinstance(cls.TITLE_FONT, str):
-        #     raise TypeError(f'{ClsName}.TITLE_FONT must be a string')
-
-        # if not isinstance(cls.TITLE_COLOR, str):
-        #     raise TypeError(f'{ClsName}.TITLE_COLOR must be a string')
-
-        # if not isinstance(cls.FONT_REPLACEMENTS, dict):
-        #     raise TypeError(
-        #         f'{ClsName}.FONT_REPLACEMENTS must be a dictionary'
-        #     )
-
-        # # Validate font replacements
-        # if not all(
-        #     isinstance(k, str) and isinstance(v, str)
-        #     for k, v in cls.FONT_REPLACEMENTS.items()
-        # ):
-        #     raise TypeError(
-        #         f'All keys/values of {ClsName}.FONT_REPLACEMENTS must strings'
-        #     )
-
         # Register card type descriptions and blur profiles into global lists
         from app.core.card_registry import (
             CARD_CLASSES, DEFAULT_BLUR_PROFILES, LocalCards
@@ -450,6 +416,33 @@ class BaseCardType(ImageMaker, ABC):
         )
 
         return f'<{self.__class__.__name__} {attributes}>'
+
+
+    @staticmethod
+    def enrich_card_data(
+            series_info: 'SeriesInfo',
+            episode_info: 'EpisodeInfo',
+            **kwargs: Any,
+        ) -> dict[str, Any]:
+        """
+        Optional hook to fetch additional data before setting
+        resolution. This method can be overridden by card types to query
+        external APIs (like TMDb) and add custom data that will be
+        available during settings resolution and format string
+        evaluation.
+
+        Args:
+            series_info: SeriesInfo for the series being processed.
+            episode_info: EpisodeInfo for the episode being processed.
+            kwargs: Additional optional parameters.
+
+        Returns:
+            Dictionary of additional data to merge into card_settings.
+            This data will be available for use in format strings and
+            settings resolution. Returns an empty dictionary by default.
+        """
+
+        return {}
 
 
     @staticmethod
