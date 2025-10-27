@@ -36,7 +36,7 @@ from app.models.font import Font
 from app.models.loaded import Loaded
 from app.models.series import Library, Series
 from app.models.template import Template
-from app.schemas.base import Base, BaseCardModel
+from app.schemas.base import BaseCardModel
 from app.schemas.font import DefaultFont
 from app.schemas.card import NewTitleCard, TitleCardReduced
 from app.schemas.card_type import LocalCardTypeModels
@@ -291,7 +291,7 @@ def refresh_remote_card_types(
             settings.remote_card_types[card_identifier] =card_type.card_class
 
 
-def _card_type_model_to_json(model: Base) -> dict:
+def _card_type_model_to_json(model: BaseCardModel) -> dict:
     """
     Convert the given Pydantic card type model to JSON (dict) for
     comparison and storing in the Card.model_json Column.
@@ -318,7 +318,7 @@ def _card_type_model_to_json(model: Base) -> dict:
 def add_card_to_database(
         db: Session,
         card_model: NewTitleCard,
-        CardTypeModel: Base,
+        CardTypeModel: BaseCardModel,
         card_file: Path,
         library: Library | None,
         *,
@@ -362,7 +362,7 @@ def validate_card_type_model(
         card_settings: dict,
         *,
         log: Logger = log,
-    ) -> tuple[type[BaseCardType], Base]:
+    ) -> tuple[type[BaseCardType], BaseCardModel]:
     """
     Validate the given Card settings into the associated Pydantic model
     and BaseCardType class.
@@ -394,7 +394,7 @@ def validate_card_type_model(
         CardTypeModel = LocalCardTypeModels[card_settings['card_type']]
     # Remove card types
     elif hasattr(CardClass, 'CardModel'):
-        CardTypeModel = cast(type[Base], CardClass.CardModel) # type: ignore
+        CardTypeModel = cast(type[BaseCardModel], CardClass.CardModel) # type: ignore
     else:
         raise HTTPException(
             status_code=400,

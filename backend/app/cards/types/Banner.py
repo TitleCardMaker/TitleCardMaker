@@ -3,7 +3,7 @@ from typing import Annotated, Any, Self
 
 from pydantic import Field, FilePath, model_validator
 
-from app.schemas.base import Base, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
@@ -373,10 +373,9 @@ class BannerTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
         font_color: str = BannerTitleCard.CardConfig.font_color
         font_file: FilePath = BannerTitleCard.CardConfig.font_file

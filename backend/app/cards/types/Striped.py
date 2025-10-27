@@ -21,7 +21,7 @@ from app.cards.base import (
     ImageMagickCommands,
     SplitStyle,
 )
-from app.schemas.base import Base, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText
 
 
 STRIPE_DOC_LINK = 'https://titlecardmaker.com/card_types/striped/#definition'
@@ -779,7 +779,7 @@ class StripedTitleCard(BaseCardType):
         self.image_magick.delete_intermediate_images(mask)
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     # Regex to match all supported types of polygon definitions

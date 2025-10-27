@@ -25,7 +25,7 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
 )
-from app.schemas.base import Base, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText
 
 
 _DEG_TO_RAD = PI / 180.0
@@ -1252,10 +1252,9 @@ class ShapeTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
         season_text: str
         episode_text: str

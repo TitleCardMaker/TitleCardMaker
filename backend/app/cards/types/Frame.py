@@ -3,7 +3,7 @@ from typing import Any, Literal
 
 from pydantic import FilePath
 
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
@@ -301,7 +301,7 @@ class FrameTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeCustomFontAllText):

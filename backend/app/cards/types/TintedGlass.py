@@ -18,7 +18,7 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
 )
-from app.schemas.base import Base, BaseCardTypeCustomFontNoText
+from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontNoText
 
 
 BoxCoordinates = namedtuple('BoxCoordinates', ('x0', 'y0', 'x1', 'y1'))
@@ -420,7 +420,7 @@ class TintedGlassTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'

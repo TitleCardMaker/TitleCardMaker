@@ -11,7 +11,7 @@ from app.cards.base import (
     ImageMagickCommands,
     Shadow,
 )
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
 LogoPosition = Literal['omit', 'top left', 'top right', 'bottom right']
 
@@ -575,10 +575,9 @@ class AnimeTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontAllText):
         font_color: str = AnimeTitleCard.CardConfig.font_color
         font_file: FilePath = AnimeTitleCard.CardConfig.font_file

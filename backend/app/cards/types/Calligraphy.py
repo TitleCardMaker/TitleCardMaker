@@ -5,7 +5,7 @@ from typing import Annotated, Any, Self
 from pydantic import Field, FilePath, model_validator
 
 from app.info.episode import EpisodeInfo
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
@@ -482,7 +482,7 @@ class CalligraphyTitleCard(BaseCardType):
         self.image_magick.run(command)
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeCustomFontAllText):

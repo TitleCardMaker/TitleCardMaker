@@ -5,7 +5,7 @@ from pydantic import FilePath
 
 from app.cards.base import BaseCardType, CardTypeDescription, DefaultCardConfig
 from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardModel
+from app.schemas.base import BaseCardModel, BaseCardModel
 
 
 
@@ -96,7 +96,7 @@ class TextlessTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardModel):

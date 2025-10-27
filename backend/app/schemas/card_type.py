@@ -19,7 +19,7 @@ class Extra(Base):
     card_type: str | None = None
     default: Any | None = None
 
-LocalCardTypeModels: dict[str, type[Base] | type[BaseCardModel]] = {
+LocalCardTypeModels: dict[str, type[BaseCardModel]] = {
     'anime': Anime.get_validator_model(),
     'anime fade': AnimeFade.get_validator_model(),
     'banner': Banner.get_validator_model(),

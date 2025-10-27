@@ -8,7 +8,7 @@ from titlecase import titlecase
 
 from app.logging.logger import log
 from app.magick.base import Dimensions, ImageMaker, ImageMagickCommands
-from app.schemas.base import Base
+from app.schemas.base import BaseCardModel
 from app.schemas.card import CardTypeDescription, Extra
 
 CardDescription = CardTypeDescription
@@ -718,7 +718,7 @@ class BaseCardType(ImageMaker, ABC):
 def create_card_cli(
         dname: str,
         card_type: type[BaseCardType],
-        validator_model: type[Base],
+        validator_model: type[BaseCardModel],
     ) -> None:
 
     # Exit if not running in main module

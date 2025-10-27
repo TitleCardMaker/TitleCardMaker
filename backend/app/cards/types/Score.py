@@ -13,7 +13,7 @@ from app.cards.base import (
     Shadow,
 )
 from app.info.episode import EpisodeInfo
-from app.schemas.base import Base, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText
 
 
 LabelPlacement = Literal['above', 'below', 'random']
@@ -570,7 +570,7 @@ class ScoreTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     ColorPair = Annotated[

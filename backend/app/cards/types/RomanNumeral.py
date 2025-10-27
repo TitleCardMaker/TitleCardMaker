@@ -13,7 +13,7 @@ from app.cards.base import (
     ImageMagickCommands,
 )
 from app.logging.logger import log
-from app.schemas.base import Base, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText
 
 
 class Offset:
@@ -717,7 +717,7 @@ class RomanNumeralTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeAllText):

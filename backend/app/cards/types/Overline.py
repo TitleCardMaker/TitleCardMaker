@@ -13,7 +13,7 @@ from app.cards.base import (
     Rectangle,
 )
 from app.interfaces.magick import Dimensions
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
 LinePosition = Literal['top', 'bottom']
 
@@ -434,7 +434,7 @@ class OverlineTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeCustomFontAllText):

@@ -19,7 +19,7 @@ from app.cards.base import (
     ImageMagickCommands,
     Shadow,
 )
-from app.schemas.base import Base, BaseCardModel
+from app.schemas.base import BaseCardModel, BaseCardModel
 
 
 DarkenOption = Literal['all', 'box'] | bool
@@ -502,7 +502,7 @@ class LandscapeTitleCard(BaseCardType):
         return None
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'

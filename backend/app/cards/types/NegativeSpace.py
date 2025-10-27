@@ -11,7 +11,7 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
 )
-from app.schemas.base import Base, BaseCardModel
+from app.schemas.base import BaseCardModel, BaseCardModel
 
 TextSide = Literal['left', 'right']
 
@@ -387,7 +387,7 @@ class NegativeSpaceTitleCard(BaseCardType):
         )
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     # pyright: reportInvalidTypeForm=false

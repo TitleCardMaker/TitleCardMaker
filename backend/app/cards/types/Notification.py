@@ -20,7 +20,7 @@ from app.cards.base import (
     Rectangle,
 )
 from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
 
 Position = Literal['left', 'right']
@@ -444,7 +444,7 @@ class NotificationTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'

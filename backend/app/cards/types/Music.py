@@ -24,7 +24,7 @@ from app.cards.base import (
     SplitStyle,
 )
 from app.info.episode import EpisodeInfo
-from app.schemas.base import Base, BaseCardTypeCustomFontAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.utils.fstring import FormatString
 
 
@@ -1100,13 +1100,12 @@ class MusicTitleCard(BaseCardType):
         self.image_magick.delete_intermediate_images(*self.__cleanup)
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     # Regex for individually coloring the controls
     ControlColorRegex = r'^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$'
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontAllText):
         font_file: FilePath = MusicTitleCard.CardConfig.font_file # type: ignore
         font_color: str = MusicTitleCard.CardConfig.font_color

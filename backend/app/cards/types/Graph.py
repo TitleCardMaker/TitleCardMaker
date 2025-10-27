@@ -15,7 +15,7 @@ from app.cards.base import (
     Line,
 )
 from app.logging.logger import log # noqa: F401
-from app.schemas.base import Base, BaseCardModel
+from app.schemas.base import BaseCardModel, BaseCardModel
 
 
 TextPosition = Literal[
@@ -635,7 +635,7 @@ class GraphTitleCard(BaseCardType):
         ])
 
 
-def get_validator_model() -> type[Base]:
+def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     # Regex to match the episode text formatted as a fraction
