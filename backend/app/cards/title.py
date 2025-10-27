@@ -279,9 +279,54 @@ class Title:
         return any(title == self.match_title for title in matching_titles)
 
 
-def split_into_lines(text: str, num_lines: int) -> list[str]:
+# def split_into_lines(text: str, num_lines: int) -> list[str]:
+#     """
+#     Split a string into `num_lines` roughly equal-length lines.
+
+#     Args:
+#         text: The text to split into lines.
+#         num_lines: The number of lines to split the text into.
+
+#     Returns:
+#         A list of strings, each representing a line of the text.
+#     """
+
+#     if not (words := text.split()):
+#         return [''] * num_lines
+
+#     # Approximate target length per line
+#     total_len = len(text)
+#     target_len = total_len // num_lines
+
+#     lines: list[str] = []
+#     current_line: list[str] = []
+#     current_len = 0
+
+#     for word in words:
+#         log.error(f'{current_len = } len({word}) = {len(word)} {len(current_line) = } {target_len = } {len(lines) = }')
+#         if (current_len + len(word) + len(current_line) > target_len
+#             and len(lines) < num_lines - 1):
+#             lines.append(' '.join(current_line))
+#             current_line = [word]
+#             current_len = len(word)
+#         else:
+#             current_line.append(word)
+#             current_len += len(word)
+
+#     lines.append(' '.join(current_line))
+
+#     return lines
+
+
+def split_into_lines(text: str, /, num_lines: int) -> list[str]:
     """
-    Split a string into `num_lines` roughly equal-length lines.
+    Split the given text into `num_lines` lines, preserving word
+    boundaries and balancing line lengths as evenly as possible
+    (minimizes the maximum line length). Returns a list of length
+    `num_lines`, with extra empty lines appended if needed.
+
+    The runtime of this algorithm is O(n^2 * k), and so is suitable for
+    relatively short strings.
 
     Args:
         text: The text to split into lines.
@@ -291,27 +336,100 @@ def split_into_lines(text: str, num_lines: int) -> list[str]:
         A list of strings, each representing a line of the text.
     """
 
-    if not (words := text.split()):
+    # Quick handling of trivial cases
+    words = text.split()
+    n = len(words)
+    if n == 0:
         return [''] * num_lines
+    if num_lines >= n:
+        # put one word per line until we run out, then empty lines
+        lines = [w for w in words] + [''] * (num_lines - n)
+        return lines
 
-    # Approximate target length per line
-    total_len = len(text)
-    target_len = total_len // num_lines
+    # Precompute prefix sums of word lengths
+    # prefix[i] = sum of len(words[0:i])  (prefix[0] = 0)
+    prefix = [0] * (n + 1)
+    for i in range(n):
+        prefix[i + 1] = prefix[i] + len(words[i])
 
-    lines: list[str] = []
-    current_line: list[str] = []
-    current_len = 0
+    def cost(i: int, j: int) -> int:
+        """
+        Calculate the cost of joining the words from `i` to `j`
+        inclusively.
 
-    for word in words:
-        if (current_len + len(word) + len(current_line) > target_len
-            and len(lines) < num_lines - 1):
-            lines.append(' '.join(current_line))
-            current_line = [word]
-            current_len = len(word)
+        Returns:
+            The cost of joining the words from `i` to `j` inclusive.
+        """
+
+        # words i..j-1 inclusive
+        if i >= j:
+            return 0
+        words_len = prefix[j] - prefix[i]
+        spaces = (j - i - 1) if (j - i - 1) > 0 else 0
+        return words_len + spaces
+
+    # DP tables:
+    # dp[k][i] = minimal possible maximum line length when partitioning
+    # first i words into k lines
+    # back[k][i] = index where the last partition (k-th) starts
+    K = num_lines
+    dp = [[float('inf')] * (n + 1) for _ in range(K + 1)]
+    back = [[0] * (n + 1) for _ in range(K + 1)]
+
+    # Base: partitioning into 1 line
+    for i in range(1, n + 1):
+        dp[1][i] = cost(0, i)
+        back[1][i] = 0
+
+    # Fill DP for k = 2..K
+    for k in range(2, K + 1):
+        # we need at least k words to create k non-empty partitions, but
+        # we allow earlier partitions empty by design
+        for i in range(1, n + 1):
+            # try placing the last cut at position j where previous k-1
+            # partitions cover words[0:j] and last partition covers
+            # words[j:i]
+            best_val = float('inf')
+            best_j = 0
+            # j from k-1 .. i-1 (ensure at least k-1 words for first k-1
+            # parts, and last part non-empty)
+            start_j = k - 1
+            if start_j < 0:
+                start_j = 0
+            for j in range(start_j, i):
+                val = max(dp[k - 1][j], cost(j, i))
+                if val < best_val:
+                    best_val = val
+                    best_j = j
+            dp[k][i] = best_val
+            back[k][i] = best_j
+
+    # Reconstruct partitions from back table
+    parts = []
+    k = K
+    i = n
+    while k > 0:
+        j = back[k][i]
+        parts.append((j, i))  # words[j:i]
+        i = j
+        k -= 1
+    parts.reverse()
+
+    # Build lines and if we have fewer than num_lines non-empty
+    # partitions (possible if text shorter), pad
+    lines = []
+    for (a, b) in parts:
+        if a >= b:
+            lines.append('')  # empty partition
         else:
-            current_line.append(word)
-            current_len += len(word)
+            lines.append(' '.join(words[a:b]))
 
-    lines.append(' '.join(current_line))
+    # If we somehow produced fewer/more lines, adjust to exactly num_lines
+    if len(lines) < num_lines:
+        lines += [''] * (num_lines - len(lines))
+    elif len(lines) > num_lines:
+        # merge trailing extra lines into the last line (shouldn't normally happen)
+        merged = ' '.join([ln for ln in lines[num_lines - 1:] if ln])
+        lines = lines[: num_lines - 1] + [merged]
 
     return lines
