@@ -1,13 +1,9 @@
 from functools import lru_cache
-from typing import Literal, TypedDict
+from typing import Literal
 
 from app.logging.logger import log
 
 type SplitStyle = Literal['top', 'bottom', 'even', 'forced even']
-class SplitCharacteristics(TypedDict):
-    max_line_width: int
-    max_line_count: int
-    style: SplitStyle
 
 
 class Title:
@@ -281,3 +277,41 @@ class Title:
         matching_titles = map(_get_title, titles)
 
         return any(title == self.match_title for title in matching_titles)
+
+
+def split_into_lines(text: str, num_lines: int) -> list[str]:
+    """
+    Split a string into `num_lines` roughly equal-length lines.
+
+    Args:
+        text: The text to split into lines.
+        num_lines: The number of lines to split the text into.
+
+    Returns:
+        A list of strings, each representing a line of the text.
+    """
+
+    if not (words := text.split()):
+        return [''] * num_lines
+
+    # Approximate target length per line
+    total_len = len(text)
+    target_len = total_len // num_lines
+
+    lines: list[str] = []
+    current_line: list[str] = []
+    current_len = 0
+
+    for word in words:
+        if (current_len + len(word) + len(current_line) > target_len
+            and len(lines) < num_lines - 1):
+            lines.append(' '.join(current_line))
+            current_line = [word]
+            current_len = len(word)
+        else:
+            current_line.append(word)
+            current_len += len(word)
+
+    lines.append(' '.join(current_line))
+
+    return lines
