@@ -27,6 +27,7 @@ LocalCardTypeModels: dict[str, type[Base] | type[BaseCardModel]] = {
     'cascade': Cascade.get_validator_model(),
     'comic book': ComicBook.get_validator_model(),
     'cutout': Cutout.get_validator_model(),
+    'dictionary': Dictionary.get_validator_model(),
     'divider': Divider.get_validator_model(),
     'fade': Fade.get_validator_model(),
     'formula 1': FormulaOne.get_validator_model(),
