@@ -740,8 +740,9 @@ class ShapeTitleCard(BaseCardType):
     def __left_shape_translation(self) -> Coordinate:
         """
         The coordinate to translate to the starting position of all left
-        shapes. This is one of the following positions (based on the
+        shapes. This is one of the following `o` positions (based on the
         text position).
+        ```
         ┌──────────────────────────────────────────────────┐
         │ - - -                                      - - - │
         │ - - -                                      - - - │
@@ -755,6 +756,7 @@ class ShapeTitleCard(BaseCardType):
         │ - - -                                      - - - │
         │ o - -                                      - - - │
         └──────────────────────────────────────────────────┘
+        ```
         """
 
         x = self.shape_inset
@@ -771,8 +773,9 @@ class ShapeTitleCard(BaseCardType):
     def __right_shape_translation(self) -> Coordinate:
         """
         The coordinate to translate to the starting position of all
-        right shapes. This is one of the following positions (based on
-        the text position).
+        right shapes. This is one of the following `o` positions (based
+        on the text position).
+        ```
         ┌──────────────────────────────────────────────────┐
         │ - - -                                      - - - │
         │ - - -                                      - - - │
@@ -786,6 +789,7 @@ class ShapeTitleCard(BaseCardType):
         │ - - -                                      - - - │
         │ - - -                                      o - - │
         └──────────────────────────────────────────────────┘
+        ```
         """
 
         x = self.WIDTH - self.shape_inset
@@ -914,11 +918,13 @@ class ShapeTitleCard(BaseCardType):
     @property
     def __left_square(self) -> ImageMagickCommands:
         """
+        ```
            ┌──────┐
            │      │
         [text]    │
            │      │
            └──────┘
+        ```
         """
 
         return [
@@ -945,11 +951,13 @@ class ShapeTitleCard(BaseCardType):
     @property
     def __right_square(self) -> ImageMagickCommands:
         """
+        ```
         ┌──────┐
         │      │
         │   [text]
         │      │
         └──────┘
+        ```
         """
 
         return [
@@ -976,13 +984,15 @@ class ShapeTitleCard(BaseCardType):
     @property
     def __left_down_triangle(self) -> ImageMagickCommands:
         """
+        ```
         The text is centered around h/3.
                l
-          \----+----/
-           \  h|   /
-            \  | [text]
-             \ | /
+          ╲----+----╱
+           ╲  h|   ╱
+            ╲  | [text]
+             ╲ | ╱
                +
+        ```
         """
 
         # Height of the triangle
@@ -1022,13 +1032,15 @@ class ShapeTitleCard(BaseCardType):
     @property
     def __right_down_triangle(self) -> ImageMagickCommands:
         """
+        ```
         The text is centered around h/3.
                l
-          \----+----/
-           \   |h  /
-        [text] |  / 2l
-             \ | /
+          ╲----+----╱
+           ╲   |h  ╱
+        [text] |  ╱ 2l
+             ╲ | ╱
                +
+        ```
         """
 
         # Height of the triangle
@@ -1068,13 +1080,15 @@ class ShapeTitleCard(BaseCardType):
     @property
     def __left_up_triangle(self) -> ImageMagickCommands:
         """
+        ```
         The text is centered around h/3.
               +
-            / | \
-        2l / h|  [text]
-          /   |   \
-         /----+----\
+            ╱ | ╲
+        2l ╱ h| [text]
+          ╱   |   ╲
+         ╱----+----╲
              l
+        ```
         """
 
         # Height of the triangle
@@ -1115,12 +1129,14 @@ class ShapeTitleCard(BaseCardType):
     def __right_up_triangle(self) -> ImageMagickCommands:
         """
         The text is centered around h/3.
+        ```
                 +
-              / | \
-        [text] h|  \ 2l
-            /   |   \
-           /----+----\
+              ╱ | ╲
+        [text] h|  ╲ 2l
+            ╱   |   ╲
+           ╱----+----╲
                 l
+        ```
         """
 
         # Height of the triangle
