@@ -2,12 +2,11 @@ from pathlib import Path
 from time import sleep
 from typing import Any, cast
 
-from app.schemas.schedule import Hours
 from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy import and_, func, or_
 from sqlalchemy.exc import OperationalError, PendingRollbackError
-from sqlalchemy.orm import Query, Session, load_only
+from sqlalchemy.orm import Query, Session
 from sqlalchemy.orm.session import object_session
 
 from app.cards.base import BaseCardType
@@ -16,7 +15,7 @@ from app.cards.loader import RemoteCardType, RemoteFile
 from app.cards.title import Title
 from app.cards.types import BUILTIN_CARD_TYPES
 from app.core.availability import expire_cache, get_remote_card_hash
-from app.core.cache import cache_result, invalidate_card_cache
+from app.core.cache import invalidate_card_cache
 from app.core.episodes import refresh_episode_data
 from app.core.sources import download_episode_source_images
 from app.core.templates import get_effective_templates
@@ -1067,61 +1066,3 @@ def delete_cards(
         db.commit()
 
     return deleted
-
-
-@cache_result(ttl=Hours(12), key_prefix='series')
-def get_series_cards(db: Session, series_id: int) -> list[Card]:
-    """
-    # TODO: Document function.
-    """
-
-    return (
-        db.query(Card)
-            .filter_by(series_id=series_id)
-            .join(Episode)
-            .order_by(
-                Episode.season_number,
-                Episode.episode_number,
-                Episode.absolute_number,
-            )
-            .all()
-    )
-
-
-@cache_result(ttl=Hours(12), key_prefix='series')
-def get_series_reduced_cards_with_cache(
-        db: Session,
-        series_id: int,
-    ) -> list[TitleCardReduced]:
-    """
-    # TODO: Document function.
-    """
-
-    # Get from database with reduced fields
-    cards = (
-        db.query(Card)
-            .options(
-                load_only(
-                    Card.id,
-                    Card.episode_id,
-                    Card.card_file,
-                    Card.filesize,
-                    Card.library_name,
-                )
-            )
-            .filter_by(series_id=series_id)
-            .join(Episode, Episode.id == Card.episode_id)
-            .order_by(
-                Episode.season_number,
-                Episode.episode_number,
-                Episode.absolute_number,
-                Card.library_name,
-            )
-            .all()
-    )
-
-    # Convert to reduced format
-    return [
-        TitleCardReduced.model_validate(card)
-        for card in cards
-    ]

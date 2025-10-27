@@ -2,9 +2,8 @@ from datetime import datetime
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi_pagination.ext.sqlalchemy import paginate
-from fastapi_pagination import paginate as paginate_sequence
 from sqlalchemy import not_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 
 from app.db.query import (
     get_card,
@@ -22,8 +21,6 @@ from app.core.cards import (
     get_watched_statuses,
     resolve_card_settings,
     validate_card_type_model,
-    get_series_cards,
-    get_series_reduced_cards_with_cache,
 )
 from app.core.config import INTERNAL_ASSET_DIRECTORY
 from app.core.episodes import update_episode_config
@@ -43,6 +40,7 @@ from app.info.episode import EpisodeInfo
 from app.interfaces.v2 import EmbyInterface, JellyfinInterface, PlexInterface
 from app.logging.logger import Logger
 from app.models.card import Card
+from app.models.episode import Episode
 from app.models.loaded import Loaded
 from app.schemas.card import (
     CardActions,
@@ -165,7 +163,7 @@ def create_preview_card(
 
     # Add card default font stuff
     if card_settings.get('font_file') is None:
-        card_settings['font_file'] = CardClass.CardConfig.font_file
+        card_settings['font_file'] = str(CardClass.CardConfig.font_file)
     if card_settings.get('font_color') is None:
         card_settings['font_color'] = CardClass.CardConfig.font_color
 
@@ -379,7 +377,16 @@ def get_series_cards_(
     - series_id: ID of the Series to get the cards of.
     """
 
-    return paginate_sequence(get_series_cards(db, series_id))
+    return paginate(
+        db.query(Card)
+            .filter_by(series_id=series_id)
+            .join(Episode, Card.episode_id==Episode.id)
+            .order_by(
+                Episode.season_number,
+                Episode.episode_number,
+                Episode.absolute_number,
+            )
+    )
 
 
 @card_router.get('/series/{series_id}/reduced', tags=['Series'])
@@ -395,7 +402,26 @@ def get_series_cards_reduced_models(
     - series_id: ID of the Series to get the cards of.
     """
 
-    return paginate_sequence(get_series_reduced_cards_with_cache(db, series_id))
+    return paginate(
+        db.query(Card)
+            .options(
+                load_only(
+                    Card.id,
+                    Card.episode_id,
+                    Card.card_file,
+                    Card.filesize,
+                    Card.library_name,
+                )
+            )
+            .filter_by(series_id=series_id)
+            .join(Episode, Episode.id == Card.episode_id)
+            .order_by(
+                Episode.season_number,
+                Episode.episode_number,
+                Episode.absolute_number,
+                Card.library_name,
+            )
+    )
 
 
 @card_router.put('/series/{series_id}/load/all', deprecated=True)
