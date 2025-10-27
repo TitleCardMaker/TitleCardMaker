@@ -372,7 +372,7 @@ class MusicTitleCard(BaseCardType):
 
 
     @staticmethod
-    def season_text_formatter(episode_info: EpisodeInfo) -> str:
+    def SEASON_TEXT_FORMATTER(episode_info: EpisodeInfo) -> str:
         """
         Fallback season title formatter.
 

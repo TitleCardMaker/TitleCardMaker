@@ -36,7 +36,7 @@ from app.models.font import Font
 from app.models.loaded import Loaded
 from app.models.series import Library, Series
 from app.models.template import Template
-from app.schemas.base import Base
+from app.schemas.base import Base, BaseCardModel
 from app.schemas.font import DefaultFont
 from app.schemas.card import NewTitleCard, TitleCardReduced
 from app.schemas.card_type import LocalCardTypeModels
@@ -421,7 +421,7 @@ def create_card(
         db: Session,
         card_model: NewTitleCard,
         CardClass: type[BaseCardType],
-        CardTypeModel: Base,
+        CardTypeModel: BaseCardModel,
         library: Library | None,
         *,
         log: Logger = log,
@@ -677,7 +677,7 @@ def resolve_card_settings(
     episode_info = episode.as_episode_info
     season_title_ranges = SeasonTitleRanges(
         card_settings.get('season_titles', {}),
-        fallback=getattr(CardClass, 'season_text_formatter', None),
+        fallback=getattr(CardClass, 'SEASON_TEXT_FORMATTER', None),
         log=log,
     )
     card_settings['season_title'] = season_title_ranges.get_season_text(
@@ -871,13 +871,15 @@ def create_episode_card(
     elif library:
         # Look for Card associated with this library OR no library (if
         # the library was just added to the Series)
-        existing_card = db.query(Card)\
-            .filter(Card.episode_id==episode.id,
-                    or_(and_(Card.interface_id==library['interface_id'],
-                             Card.library_name==library['name']),
-                        and_(Card.interface_id.is_(None),
-                             Card.library_name.is_(None))))\
-            .first()
+        existing_card = (
+            db.query(Card)
+                .filter(Card.episode_id==episode.id,
+                        or_(and_(Card.interface_id==library['interface_id'],
+                                 Card.library_name==library['name']),
+                            and_(Card.interface_id.is_(None),
+                                 Card.library_name.is_(None))))
+                .first()
+        )
 
     # No existing Card, begin creation
     if not existing_card:
