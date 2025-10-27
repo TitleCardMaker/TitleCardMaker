@@ -428,9 +428,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     INTERFACE_TYPE = 'TMDb'
 
-    """Series ID's that can be set by TMDb"""
-    SERIES_IDS = ('imdb_id', 'tmdb_id', 'tvdb_id', 'tvrage_id')
-
     """Language codes"""
     LANGUAGES = {
         'ar': 'Arabic',
@@ -588,10 +585,10 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Create API object, validate key (if not in testing mode)
         try:
-            if config.TESTING_MODE:
-                self.api: None = None
-            else:
-                self.api: TMDbAPIs = DecoratedAPI(TMDbAPIs(api_key, self.session))
+            self.api = cast(
+                TMDbAPIs,
+                DecoratedAPI(TMDbAPIs(api_key, self.session))
+            )
         except Unauthorized as exc:
             log.error('TMDb API key is invalid')
             raise HTTPException(
@@ -651,7 +648,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         """
 
         # If all possible ID's are defined
-        if series_info.has_ids(*self.SERIES_IDS):
+        if series_info.has_ids('imdb_id', 'tmdb_id', 'tvdb_id', 'tvrage_id'):
             return None
 
         # Try and find by TMDb ID first
@@ -946,10 +943,10 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                     raise NotFound
 
                 # Actual match, return "movie"
-                log.trace(
+                log.trace((
                     f'Matched {episode_info} of "{series_info}" to TMDb Movie '
                     f'{movie}'
-                )
+                ))
                 return movie
             except exception_group:
                 return None
@@ -1383,6 +1380,33 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         return None
 
+
+    @catch_and_log('Error getting episode description', default=None)
+    def get_episode_description(self,
+            series_info: SeriesInfo,
+            episode_info: EpisodeInfo,
+            *,
+            log: Logger = log,
+        ) -> str | None:
+        """
+        Get the episode description for the given entry.
+
+        Args:
+            series_info: SeriesInfo for the entry.
+            episode_info: EpisodeInfo for the entry.
+            log: Logger for all log messages.
+
+        Returns:
+            The episode description, None if it cannot be found.
+        """
+
+        # Get episode
+        episode = self.__find_episode(series_info, episode_info, log=log)
+        if episode is None:
+            log.debug(f'{series_info} {episode_info} not found - skipping')
+            return None
+
+        return str(episode.overview)
 
     @testing_override(TestingTMDBInterface.get_series_logo)
     @catch_and_log('Error getting series logo', default=None)
