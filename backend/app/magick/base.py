@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Annotated, ClassVar
 
-from app.core.config import config
 from app.interfaces.magick import Dimensions, ImageMagickInterface
 
 type ImageMagickCommands = list[str]
@@ -26,12 +25,6 @@ class ImageMaker(ABC):
     """Directory for all temporary images created during image creation"""
     TEMP_DIR = Path(__file__).parent / '.objects'
 
-    """
-    Valid file extensions for input images - ImageMagick supports more
-    than just these types, but these are the most common across all
-    OS's.
-    """
-    VALID_IMAGE_EXTENSIONS = config.VALID_IMAGE_EXTENSIONS
 
     __slots__ = ('card_dimensions', 'quality', 'image_magick')
 

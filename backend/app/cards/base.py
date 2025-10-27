@@ -6,7 +6,6 @@ from typing import Annotated, Any, Callable, ClassVar, Literal
 from pydantic import BaseModel, BeforeValidator, Field, FilePath
 from titlecase import titlecase
 
-from app.cards.title import SplitCharacteristics
 from app.logging.logger import log
 from app.magick.base import Dimensions, ImageMaker, ImageMagickCommands
 from app.schemas.card import CardTypeDescription, Extra
@@ -337,11 +336,6 @@ class BaseCardType(ImageMaker, ABC):
     API_DETAILS: Annotated[
         ClassVar[CardTypeDescription],
         'Front-end description of this card type and its customization'
-    ]
-
-    TITLE_CHARACTERISTICS: Annotated[
-        ClassVar[SplitCharacteristics],
-        'Characteristics for how to auto-split titles for this card type'
     ]
 
     __slots__ = ('valid', 'blur', 'grayscale')

@@ -732,8 +732,8 @@ class StripedTitleCard(BaseCardType):
                 to the split characteristics.
 
         Returns:
-            SplitCharacteristics object which defines how to split
-            titles.
+            Returns a tuple of the new max line width, max line count,
+            and split style.
         """
 
         if 'text_position' in data:

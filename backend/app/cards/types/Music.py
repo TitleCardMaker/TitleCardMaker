@@ -1051,8 +1051,8 @@ class MusicTitleCard(BaseCardType):
                 to the split characteristics.
 
         Returns:
-            SplitCharacteristics object which defines how to split
-            titles.
+            Tuple of the new max line width, max line count, and split
+            style.
         """
 
         # Scale line width by player width
