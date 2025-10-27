@@ -1,8 +1,10 @@
 from pathlib import Path
 from re import compile as re_compile
-from typing import Annotated, Any, ClassVar, Self
+from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Self
 
 from app.cards.title import split_into_lines
+from app.logging.logger import Logger, log
+from app.utils.fstring import FormatString
 from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.cards.base import (
@@ -16,6 +18,11 @@ from app.cards.base import (
     create_card_cli,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeAllText
+
+if TYPE_CHECKING:
+    from app.info.episode import EpisodeInfo
+    from app.info.series import SeriesInfo
+    from app.interfaces.tmdb import TMDbInterface
 
 
 class DictionaryTitleCard(BaseCardType):
@@ -35,112 +42,109 @@ class DictionaryTitleCard(BaseCardType):
         supports_custom_seasons=True,
         supported_extras=[
             Extra(
-                name='Episode Text Color',
-                identifier='episode_text_color',
-                description='Color of the season and episode text',
-                tooltip=(
-                    'Either a single color or two space-separated colors to '
-                    'separately color the text and number (in that order). '
-                    'Default is to match the Font color.'
-                ),
+                name='Background Color',
+                identifier='background_color',
+                description='Color of the background rectangle',
+                tooltip='Default is <c>rgba(12,12,12,0.8)</c>.',
+                default='rgba(12,12,12,0.8)',
             ),
             Extra(
-                name='Episode Text Font Size',
-                identifier='episode_text_font_size',
-                description='Size adjustment for the season and episode text',
+                name='Definition Text',
+                identifier='definition_text',
+                description='Text to display as the definition',
+                tooltip=(
+                    'Extended text to diplay below the word and label text. '
+                    'The default is <v>{episode_description}</v>, which means '
+                    'the episode description will be pulled from TMDb (if '
+                    'available).'
+                ),
+                default='{episode_description}',
+            ),
+            Extra(
+                name='Definition Color',
+                identifier='definition_color',
+                description='Color of the definition text',
+                tooltip='Default is to match the Font color.',
+            ),
+            Extra(
+                name='Definition Font Size',
+                identifier='definition_font_size',
+                description='Size adjustment for the definition text',
                 tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
                 default=1.0,
             ),
             Extra(
-                name='Episode Text Horizontal Shift',
-                identifier='episode_text_horizontal_offset',
+                name='Definition Line Limit',
+                identifier='definition_line_limit',
                 description=(
-                    'Additional horizontal shift to apply to the episode text.'
-                ),
-                tooltip='Default is <v>0</v>. Unit is pixels.',
-                default=0,
-            ),
-            Extra(
-                name='Episode Text Vertical Shift',
-                identifier='episode_text_vertical_offset',
-                description=(
-                    'Additional vertical shift to apply to the episode text.'
-                ),
-                tooltip='Default is <v>0</v>. Unit is pixels.',
-                default=0,
-            ),
-            Extra(
-                name='Season Text Color',
-                identifier='season_text_color',
-                description='Color of the season text',
-                tooltip=(
-                    'Either a single color or two space-separated colors to '
-                    'separately color the text and number (in that order). '
-                    'Defaults to the episode text color.'
-                )
-            ),
-            Extra(
-                name='Stroke Color',
-                identifier='stroke_color',
-                description='Color of the shadow/stroke',
-                tooltip='Defaults to <c>black</c>.',
-                default='black',
-            ),
-            Extra(
-                name='Title Text Horizontal Shift',
-                identifier='title_text_horizontal_offset',
-                description=(
-                    'Additional horizontal shift to apply to the title text.'
-                ),
-                tooltip='Default is <v>0</v>. Unit is pixels.',
-                default=0,
-            ),
-            Extra(
-                name='Label Placement',
-                identifier='label_placement',
-                description=(
-                    'Where to position the season/episode label relative to '
-                    'the number'
+                    'Maximum number of lines to display for the definition text'
                 ),
                 tooltip=(
-                    'Either <v>above</v>, <v>below</v> or <v>random</v> to '
-                    'randomly select a placement. Default is <v>above</v>.'
+                    'Number between <v>1</v> and <v>24</v>. Descriptions '
+                    'longer than this many lines will be truncated. Default is '
+                    '<v>4</v>.'
                 ),
-                default='above',
+                default=4,
             ),
             Extra(
-                name='Text Placement',
-                identifier='placement',
-                description='Position of all text',
+                name='Italicize Definition Toggle',
+                identifier='italicize_definition',
+                description='Whether to italicize the definition text',
                 tooltip=(
-                    'Either <v>top</v>, <v>bottom</v>, or <v>random</v> to '
-                    'randomly select a placement. Default is <v>bottom</v>.'
-                ),
-                default='bottom',
-            ),
-            Extra(
-                name='Variation',
-                identifier='variation',
-                description='Which variation of text arrangement to use',
-                tooltip=(
-                    'Either <v>left</v> to have the season and episode text on '
-                    'the left side of the image; <v>right</v> to have it on '
-                    'the right; <v>surround</v> to have the text on either side;'
-                    ' or <v>random</v> to randomly select a variation. Default '
-                    'is <v>surround</v>.'
-                ),
-                default='surround',
-            ),
-            Extra(
-                name='Remove Gradient',
-                identifier='omit_gradient',
-                description='Whether to omit the gradient overlay',
-                tooltip=(
-                    'Either <v>True</v> or <v>False</v>. If <v>True</v>, text '
-                    'may appear less legible on brighter images. Default is '
+                    'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
                 default='False',
+            ),
+            Extra(
+                name='Quote Definition Toggle',
+                identifier='quote_definition',
+                description='Whether to add quotes around the definition text',
+                tooltip=(
+                    'Either <v>True</v> or <v>False</v>. Default is <v>True</v>.'
+                ),
+                default='True',
+            ),
+            Extra(
+                name='Position',
+                identifier='position',
+                description='Position of the definition text',
+                tooltip=(
+                    'X and Y coordinates to position the bottom left corner of '
+                    'the text container. Default is <v>+100+100</v> - i.e. 100 '
+                    'pixels from the left and 100 pixels from the bottom.'
+                ),
+                default='+100+100',
+            ),
+            Extra(
+                name='Separator Character',
+                identifier='separator',
+                description='Character to separate the title text from the season and episode text',
+                tooltip='Default is <v>, </v>.',
+                default=', ',
+            ),
+            Extra(
+                name='Word Text',
+                identifier='word_text',
+                description='Text to display as the word',
+                tooltip=(
+                    'Default is the series name in lowercase - i.e. '
+                    '<v>{series_name.lower()}</v>.'
+                ),
+                default='{series_name.lower()}',
+            ),
+            Extra(
+                name='Word Text Color',
+                identifier='word_color',
+                description='Color of the word text',
+                tooltip='Default is to match the Font color.',
+            ),
+            Extra(
+                name='Word Text Font Size',
+                identifier='word_font_size',
+                description='Size adjustment for the word text',
+                tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
+                default=1.0,
             ),
         ],
         description=[
@@ -150,20 +154,22 @@ class DictionaryTitleCard(BaseCardType):
 
     """Directory where all reference files used by this card are stored"""
     NEGATIVE_SPACE_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY /'negative_space'
-    DICTIONARY_DIRECTORY = BaseCardType.BASE_REF_DIRECTORY / 'dictionary'
+    DICTIONARY_DIR = BaseCardType.BASE_REF_DIRECTORY / 'dictionary'
 
     """Default configuration for this card type"""
     CardConfig = DefaultCardConfig(
-        font_file=DICTIONARY_DIRECTORY / 'Mencken-Std-Text-Extra-Bold.otf',
+        font_file=DICTIONARY_DIR / 'Mencken-Std-Text-Extra-Bold.otf',
         font_color='white',
         font_case='lower',
         title_max_line_width=30,
         title_max_line_count=1,
         title_split_style='bottom',
+        episode_text_format=': {episode_number}',
     )
 
-    BACKGROUND_COLOR: ClassVar[str] = 'black'
-    DEFINITION_FONT: ClassVar[Path] = DICTIONARY_DIRECTORY / 'Georgia.ttf'
+    BACKGROUND_COLOR: ClassVar[str] = 'rgba(12,12,12,0.8)'
+    DEFINITION_FONT: ClassVar[Path] = DICTIONARY_DIR / 'Georgia.ttf'
+    DEFINITION_ITALIC_FONT: ClassVar[Path] = DICTIONARY_DIR / 'Georgia Italic.ttf'
     WORD_FONT: ClassVar[Path] = NEGATIVE_SPACE_DIRECTORY / 'Futura.ttc'
     POSITION_REGEX = re_compile(r'([-+]\d+.?\d*)([-+]\d+.?\d*)')
 
@@ -177,16 +183,17 @@ class DictionaryTitleCard(BaseCardType):
         'episode_text',
         'font_file',
         'font_color',
-        'font_interline_spacing',
         'font_interword_spacing',
         'font_kerning',
         'font_size',
-        'font_vertical_shift',
         'hide_episode_text',
         'hide_season_text',
+        'italicize_definition',
         '__label_dimensions',
         'output_file',
         'position',
+        'quote_definition',
+        '__reference',
         'season_text',
         'separator',
         'source_file',
@@ -195,9 +202,25 @@ class DictionaryTitleCard(BaseCardType):
         '__word_dimensions',
         'word_size',
         'word_text',
-
-        '__reference',
     )
+
+
+    @staticmethod
+    def SEASON_TEXT_FORMATTER(episode_info: 'EpisodeInfo') -> str:
+        """
+        Fallback season title formatter.
+
+        Args:
+            episode_info: Info of the Episode whose season text is being
+                determined.
+
+        Returns:
+            'Specials' if the season number is 0; otherwise the cardinal
+            version of the season number. If that's not possible, then
+            just 'Season {x}'.
+        """
+
+        return '{season_number}'
 
 
     def __init__(self, *,
@@ -212,11 +235,9 @@ class DictionaryTitleCard(BaseCardType):
             # Font
             font_color: str = CardConfig.font_color,
             font_file: str = str(CardConfig.font_file),
-            font_interline_spacing: int = 0,
             font_interword_spacing: int = 0,
             font_kerning: float = 1.0,
             font_size: float = 1.0,
-            font_vertical_shift: int = 0,
             # Builtins
             blur: bool = False,
             grayscale: bool = False,
@@ -226,8 +247,10 @@ class DictionaryTitleCard(BaseCardType):
             definition_color: str = CardConfig.font_color,
             definition_size: float = 1.0,
             definition_line_limit: int = 4,
+            italicize_definition: bool = False,
             position: str = '+100+100',
-            separator: str = '-',
+            quote_definition: bool = True,
+            separator: str = ', ',
             word_text: str = '',
             word_size: float = 1.0,
             word_color: str = CardConfig.font_color,
@@ -251,11 +274,9 @@ class DictionaryTitleCard(BaseCardType):
         # Font/card customizations
         self.font_color = font_color
         self.font_file = font_file
-        self.font_interline_spacing = font_interline_spacing
-        self.font_interword_spacing = 0 + font_interword_spacing
-        self.font_kerning = 1.0 * font_kerning
+        self.font_interword_spacing = font_interword_spacing
+        self.font_kerning = font_kerning
         self.font_size = font_size
-        self.font_vertical_shift = 0 + font_vertical_shift
 
         # Extras
         self.background_color = background_color
@@ -263,7 +284,9 @@ class DictionaryTitleCard(BaseCardType):
         self.definition_line_limit = definition_line_limit
         self.definition_size = definition_size
         self.definition_text = self.image_magick.escape_chars(definition_text)
+        self.italicize_definition = italicize_definition
         self.position = position
+        self.quote_definition = quote_definition
         self.separator = separator
         self.word_text = self.image_magick.escape_chars(word_text)
         self.word_color = word_color
@@ -277,6 +300,46 @@ class DictionaryTitleCard(BaseCardType):
         if (match := self.POSITION_REGEX.match(position)):
             x, y = match.groups()
         self.__reference = Coordinate(float(x), float(y))
+
+
+    @staticmethod
+    def enrich_card_data(
+            series_info: 'SeriesInfo',
+            episode_info: 'EpisodeInfo',
+            *,
+            episode_description: str = '{episode_description}',
+            tmdb_interface: 'TMDbInterface | None' = None,
+            log: Logger = log,
+            **kwargs: Any,
+        ) -> dict[str, Any]:
+        """
+        Enrich the card data with an episode description from TMDb.
+
+        Args:
+            series_info: SeriesInfo for the series being processed.
+            episode_info: EpisodeInfo for the episode being processed.
+            episode_description: The value of the episode description
+                extra.
+            tmdb_interface: TMDbInterface if available, None otherwise.
+            **kwargs: Additional optional parameters.
+
+        Returns:
+            Dictionary of additional data to merge into card_settings.
+        """
+
+        description = ''
+
+        # If the episode description is a format string, query
+        if ('{' in episode_description
+            and '}' in episode_description
+            and 'episode_description' in episode_description
+            and tmdb_interface # TMDb is required to query description
+        ):
+            description = tmdb_interface.get_episode_description(
+                series_info, episode_info, log=log
+            ) or '' # Coerce None to an empty string
+
+        return {'episode_description': description}
 
 
     @property
@@ -314,8 +377,8 @@ class DictionaryTitleCard(BaseCardType):
         # If the definition text is too wide, split into multiple lines
         lines = 1
         while (
-            definition_dimensions.width > top_width - 40 # 40px margin
-            and (lines := lines + 1) <= 50 # Do not apply limit here
+            definition_dimensions.width > top_width - 35 - 35 # 35px margin on each side
+            and (lines := lines + 1) <= 24 # Do not apply user limit here
         ):
             # Split into specified number of lines
             self.definition_text = self.image_magick.escape_chars(
@@ -327,12 +390,11 @@ class DictionaryTitleCard(BaseCardType):
                 self.definition_text_commands,
                 density=100,
             )
-            print(f'Split into {lines} lines')
 
         # If we're above the line limit, truncate with [...]
         if lines > self.definition_line_limit:
             text_lines = self.definition_text.split('\n')[:self.definition_line_limit]
-            text_lines[-1] = text_lines[-1][:-4] + ' [...]' # ImageMagick bug breaks this currently
+            text_lines[-1] = text_lines[-1][:-4] + ' (...)'
             self.definition_text = self.image_magick.escape_chars(
                 '\n'.join(text_lines)
             )
@@ -390,10 +452,9 @@ class DictionaryTitleCard(BaseCardType):
         label_text = ' '.join(
             text
             for text in [
-                self.title_text,
-                self.separator,
-                self.season_text,
-                self.episode_text
+                self.title_text + self.separator,
+                '' if self.hide_season_text else self.season_text,
+                '' if self.hide_episode_text else self.episode_text,
             ]
             if text
         )
@@ -417,15 +478,28 @@ class DictionaryTitleCard(BaseCardType):
     def definition_text_commands(self) -> ImageMagickCommands:
         """Subcommands to add the title text to the image."""
 
+        if not self.definition_text:
+            return []
+
+        file = self.DEFINITION_FONT
+        if self.italicize_definition:
+            file = self.DEFINITION_ITALIC_FONT
+
+        text = self.definition_text
+        if self.quote_definition:
+            text = fr'\"{self.definition_text}\"'
+
         return [
             fr'\(',
                 f'-background none',
                 f'-gravity west',
-                f'-font "{self.DEFINITION_FONT}"',
+                f'-font "{file.resolve()}"',
                 f'-fill "{self.definition_color}"',
                 f'-pointsize {45 * self.definition_size:.1f}',
                 f'-interline-spacing 5',
-                f'label:"{self.definition_text}"',
+                f'+interline-spacing',
+                f'+kerning',
+                fr'label:"{text}"',
                 f'-trim',
             fr'\)',
         ]
@@ -473,24 +547,26 @@ def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     class CardModel(BaseCardTypeAllText):
+        season_text: str
+        episode_text: str
         font_color: str = DictionaryTitleCard.CardConfig.font_color
         font_file: FilePath = DictionaryTitleCard.CardConfig.font_file
-        font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
         font_size: Annotated[float, Field(gt=0)] = 1.0
-        font_vertical_shift: int = 0
         background_color: str = DictionaryTitleCard.BACKGROUND_COLOR
-        definition_text: str = '{series_name}'
+        italicize_definition: bool = True
+        quote_definition: bool = True
+        definition_text: str = '{episode_description}'
         definition_color: str | None = None
-        definition_line_limit: Annotated[int, Field(ge=1, le=12)] = 4
+        definition_line_limit: Annotated[int, Field(ge=1, le=24)] = 4
         definition_size: Annotated[float, Field(gt=0)] = 1.0
         position: Annotated[
             str,
             StringConstraints(pattern=DictionaryTitleCard.POSITION_REGEX.pattern)
         ] = '+100+100'
-        separator: str = '-'
-        word_text: str = '{series_name}'
+        separator: str = ', '
+        word_text: str = '{series_name.lower()}'
         word_color: str | None = None
 
         @model_validator(mode='after')
@@ -501,6 +577,26 @@ def get_validator_model() -> type[BaseCardModel]:
             if self.word_color is None:
                 self.word_color = self.font_color
             return self
+
+        @model_validator(mode='before')
+        @classmethod
+        def validate_default_format_strings(cls, data: Any) -> Any:
+            """Apply"""
+
+            # Parse format strings in word and definition text
+            if isinstance(data, dict):
+                if ((word_text := data.get('word_text', '{series_name.lower()}'))
+                    and isinstance(word_text, str)
+                ):
+                    data['word_text'] = FormatString(word_text, data=data).result
+                if ((definition_text := data.get('definition_text', '{episode_description}'))
+                    and isinstance(definition_text, str)
+                ):
+                    data['definition_text'] = FormatString(
+                        definition_text, data=data
+                    ).result
+
+            return data
 
     return CardModel
 
