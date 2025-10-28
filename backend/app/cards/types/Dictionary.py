@@ -437,7 +437,7 @@ class DictionaryTitleCard(BaseCardType):
             35 + top_height + 35 + definition_dimensions.height
             # Remove part of the word height so the background stops in
             # the middle of the word
-            - (self.__word_dimensions.height * 0.6)
+            - (self.__word_dimensions.height * 0.35)
         )
 
         return [
