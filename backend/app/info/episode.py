@@ -144,7 +144,7 @@ class EpisodeInfo(DatabaseInfoContainer):
         return f'S{self.season_number:02}E{self.episode_number:02}'
 
 
-    def __eq__(self, other: 'EpisodeInfo | PlexEpisode') -> bool:
+    def __eq__(self, other: 'EpisodeInfo | PlexEpisode | object') -> bool:
         """
         Returns whether the given episode info object corresponds to the
         same entry. This comparison prioritizes ID matches, and gives
@@ -196,9 +196,7 @@ class EpisodeInfo(DatabaseInfoContainer):
 
         # Verify the comparison is another EpisodeInfo object
         if not isinstance(other, EpisodeInfo):
-            raise TypeError(
-                'Can only compare equality between EpisodeInfo objects'
-            )
+            return False
 
         # ID matches are immediate equality
         for id_attr in (
