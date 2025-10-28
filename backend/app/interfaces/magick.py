@@ -376,8 +376,10 @@ class ImageMagickInterface:
         maximum value of the text is utilized, while 'sum' will add each
         value. For example, if the given text command produces text like:
 
-            Top Line Text
-            Bottom Text
+        ```
+        Top Line Text
+        Bottom Text
+        ```
 
         Specifying width='sum', will add the widths of the two lines
         (not very meaningful), width='max' will return the maximum width
@@ -569,11 +571,12 @@ class ImageMagickInterface:
             f'-background none',
             *commands,
             f'-matte',
-            fr'\( -size {dimensions.width}x{dimensions.height}',
-            f'xc:none',
-            f'-draw "roundrectangle',
-            f'0,0 {dimensions.width:.0f},{dimensions.height:.0f}',
-            f'{radius:.0f},{radius:.0f}"',
+            fr'\(',
+                f'-size {dimensions.width}x{dimensions.height}',
+                f'xc:none',
+                f'-draw "roundrectangle',
+                f'0,0 {dimensions.width:.0f},{dimensions.height:.0f}',
+                f'{radius:.0f},{radius:.0f}"',
             fr'\)',
             f'-compose DstIn',
             f'-composite',

@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import (
+    Field,
     FilePath,
-    PositiveInt,
     StringConstraints,
     conint,
     constr,
@@ -19,7 +19,7 @@ from app.schemas.base import (
     InterfaceType,
     UNSPECIFIED,
 )
-from modules.FormatString import FormatString
+from app.utils.fstring import FormatString
 
 
 """
@@ -111,8 +111,8 @@ class UpdatePreferences(Base):
     card_directory: Path = UNSPECIFIED
     source_directory: Path = UNSPECIFIED
     completely_delete_series: bool = UNSPECIFIED
-    card_width: PositiveInt = UNSPECIFIED
-    card_height: PositiveInt = UNSPECIFIED
+    card_width: Annotated[int, Field(ge=1)] = UNSPECIFIED
+    card_height: Annotated[int, Field(ge=1)] = UNSPECIFIED
     card_filename_format: str = UNSPECIFIED
     card_extension: CardExtension = UNSPECIFIED
     imagemagick_executable: FilePath | None = UNSPECIFIED
@@ -134,8 +134,8 @@ class UpdatePreferences(Base):
     default_fonts: dict[str, int] = UNSPECIFIED
     default_blur_profiles: dict[str, BlurProfile] = UNSPECIFIED
     global_extras: dict[str, dict[str, str]] = UNSPECIFIED
-    home_page_size: PositiveInt = UNSPECIFIED
-    episode_data_page_size: PositiveInt = UNSPECIFIED
+    home_page_size: Annotated[int, Field(ge=1)] = UNSPECIFIED
+    episode_data_page_size: Annotated[int, Field(ge=1)] = UNSPECIFIED
     source_preview_page_dimensions: PageSizeDimensions = UNSPECIFIED
     title_card_preview_page_dimensions: PageSizeDimensions = UNSPECIFIED
     stylize_unmonitored_posters: bool = UNSPECIFIED
@@ -201,8 +201,8 @@ class Preferences(Base):
     card_directory: Path
     source_directory: Path
     completely_delete_series: bool
-    card_width: PositiveInt
-    card_height: PositiveInt
+    card_width: Annotated[int, Field(ge=1)]
+    card_height: Annotated[int, Field(ge=1)]
     card_filename_format: str
     card_extension: str
     card_quality: int
@@ -225,8 +225,8 @@ class Preferences(Base):
     default_fonts: dict[str, int]
     default_blur_profiles: dict[str, BlurProfile]
     global_extras: dict[str, dict[str, str]]
-    home_page_size: PositiveInt
-    episode_data_page_size: PositiveInt
+    home_page_size: Annotated[int, Field(ge=1)]
+    episode_data_page_size: Annotated[int, Field(ge=1)]
     source_preview_page_dimensions: PageSizeDimensions
     title_card_preview_page_dimensions: PageSizeDimensions
     stylize_unmonitored_posters: bool

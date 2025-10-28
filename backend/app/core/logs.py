@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
-from logging import Logger
 
 from app.dependencies import get_log_database
-from app.logging.logger import log
+from app.logging.logger import Logger, log
 from app.logging.models import Log
 from app.settings import settings
 

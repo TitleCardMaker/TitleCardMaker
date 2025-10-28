@@ -1,6 +1,5 @@
 import asyncio
 from io import StringIO
-from pathlib import Path
 from sys import exit as sys_exit
 from typing import Annotated
 
@@ -19,7 +18,7 @@ from starlette.staticfiles import StaticFiles
 from app.core.availability import get_latest_version
 from app.core.backup import backup_data, restore_backup
 from app.core.cache import get_cache_manager
-from app.core.cards import refresh_remote_card_types
+from app.core.cards import refresh_all_card_types
 from app.core.connection import initialize_connections
 from app.core.schedule import huey
 from app.core.settings import apply_card_type_blur_profiles
@@ -29,7 +28,7 @@ from app.logging.database import logs_engine, LOGS_DATABASE_URL
 from app.logging.logger import contextualize, log as logger, Logger
 from app.models.user import User
 from app.settings import BACKEND_ROOT, FRONTEND_ROOT, settings
-from modules.BackgroundTasks import TracebackSuppressedPackages
+from app.utils.tasks import TracebackSuppressedPackages
 
 
 APP_ROOT = BACKEND_ROOT / 'app'
@@ -228,12 +227,10 @@ def initialize_app(app: FastAPI) -> None:
     perform_database_migrations(log=log)
     apply_card_type_blur_profiles()
     initialize_cache_system(log=log)
+    refresh_all_card_types(log=log)
 
     # Database operations
     with next(get_database()) as db:
-        # Refresh remote card types
-        refresh_remote_card_types(db, log=log)
-
         disable_authentication(db, log=log)
 
         try:

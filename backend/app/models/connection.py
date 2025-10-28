@@ -1,4 +1,4 @@
-from typing import Any, Optional, TypedDict, TYPE_CHECKING
+from typing import Any, TypedDict, TYPE_CHECKING
 
 from sqlalchemy import String, JSON
 from sqlalchemy.ext.mutable import MutableList
@@ -43,10 +43,10 @@ class Connection(Base):
     name: Mapped[str]
     api_key: Mapped[str]
 
-    url: Mapped[Optional[str]]
+    url: Mapped[str | None]
     use_ssl: Mapped[bool] = mapped_column(default=True)
 
-    username: Mapped[Optional[str]]
+    username: Mapped[str | None]
     filesize_limit: Mapped[str] = mapped_column(default='5 Megabytes')
     integrate_with_kometa: Mapped[bool] = mapped_column(default=False)
     downloaded_only: Mapped[bool] = mapped_column(default=True)
@@ -56,7 +56,7 @@ class Connection(Base):
         nullable=False
     )
 
-    minimum_dimensions: Mapped[Optional[str]]
+    minimum_dimensions: Mapped[str | None]
     skip_localized: Mapped[bool] = mapped_column(default=True)
     language_priority: Mapped[list[str]] = mapped_column(
         MutableList.as_mutable(JSON),
@@ -107,21 +107,21 @@ class Connection(Base):
 
 
     @property
-    def decrypted_url(self) -> Optional[str]:
+    def decrypted_url(self) -> str | None:
         """Decrypted URL of this Connection"""
 
         return decrypt(self.url) if self.url else None
 
 
     @property
-    def decrypted_api_key(self) -> Optional[str]:
+    def decrypted_api_key(self) -> str | None:
         """Decrypted API key of this Connection"""
 
         return decrypt(self.api_key) if self.api_key else None
 
 
     @property
-    def filesize_limit_value(self) -> Optional[int]:
+    def filesize_limit_value(self) -> int | None:
         """
         The filesize limit of this Connection - in Bytes (or None).
         """
@@ -141,7 +141,7 @@ class Connection(Base):
 
 
     @property
-    def minimum_width(self) -> Optional[int]:
+    def minimum_width(self) -> int | None:
         """
         The minimum width dimension of this Connection (in pixels).
         """
@@ -154,7 +154,7 @@ class Connection(Base):
 
 
     @property
-    def minimum_height(self) -> Optional[int]:
+    def minimum_height(self) -> int | None:
         """
         The minimum width dimension of this Connection (in pixels).
         """

@@ -8,7 +8,7 @@ from app.schemas.base import (
     BaseCardTypeCustomFontNoText, # noqa: F401
     DictKey,
 )
-from cards import *
+from app.cards.types import *
 
 
 class Extra(Base):
@@ -19,7 +19,7 @@ class Extra(Base):
     card_type: str | None = None
     default: Any | None = None
 
-LocalCardTypeModels: dict[str, type[Base] | type[BaseCardModel]] = {
+LocalCardTypeModels: dict[str, type[BaseCardModel]] = {
     'anime': Anime.get_validator_model(),
     'anime fade': AnimeFade.get_validator_model(),
     'banner': Banner.get_validator_model(),
@@ -27,6 +27,7 @@ LocalCardTypeModels: dict[str, type[Base] | type[BaseCardModel]] = {
     'cascade': Cascade.get_validator_model(),
     'comic book': ComicBook.get_validator_model(),
     'cutout': Cutout.get_validator_model(),
+    'dictionary': Dictionary.get_validator_model(),
     'divider': Divider.get_validator_model(),
     'fade': Fade.get_validator_model(),
     'formula 1': FormulaOne.get_validator_model(),

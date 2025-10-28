@@ -2,7 +2,6 @@ from pathlib import Path
 from time import sleep
 from typing import Any, Callable
 
-from app.schemas.schedule import Hours
 from fastapi import BackgroundTasks, HTTPException
 from PIL import Image, UnidentifiedImageError
 from requests import get
@@ -536,6 +535,10 @@ def delete_series(
     if settings.completely_delete_series:
         _delete_folder(series.source_directory, log=log)
 
+    # If all Cards have been deleted, delete the card directory
+    if not any(series.card_directory.iterdir()):
+        series.card_directory.rmdir()
+
     # Delete Series; all child objects are deleted on cascade
     log.info(f'Deleting {series}')
     db.delete(series)
@@ -543,10 +546,6 @@ def delete_series(
     # Commit if indicated
     if commit_changes:
         db.commit()
-
-    # Invalidate series cache since we deleted a series
-    invalidate_series_cache(series.id)
-    log.debug(f'Invalidated series, card, and episode cache after deleting {series}')
 
 
 def load_series_title_cards(
@@ -660,7 +659,7 @@ def load_series_title_cards(
             ))
         except InvalidRequestError:
             log.warning(
-                f'Error creating Loaded asset for {loaded_episode} {card}'
+                f'Error creating Loaded asset for {loaded_episode} {loaded_card}'
             )
             continue
 

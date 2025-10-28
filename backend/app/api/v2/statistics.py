@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import PositiveInt
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -154,7 +153,7 @@ def get_snapshots(
             default_factory=lambda: datetime.now() - timedelta(days=14)
         ),
         end: datetime | None = Query(default=None),
-        slice_: PositiveInt = Query(alias='slice', default=1),
+        slice_: int = Query(alias='slice', default=1, ge=1),
         db: Session = Depends(get_database),
     ) -> list[Snapshot]:
     """

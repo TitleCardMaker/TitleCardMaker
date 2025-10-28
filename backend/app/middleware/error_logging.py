@@ -7,13 +7,13 @@ from rich.console import Console
 from rich.traceback import Traceback
 
 from app.logging.logger import log
-import modules.BackgroundTasks
+import app.utils.tasks
 
 
 async def log_internal_server_errors(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[Response]],
-) -> Response:
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
     """
     Middleware to log "enhanced" tracebacks for all uncaught exceptions
     (e.g. internal server errors). This middleware MUST be the last one
@@ -28,12 +28,13 @@ async def log_internal_server_errors(
         console = Console(file=output)
         console.print(
             Traceback(
+                width=120, # Use a wider width
                 show_locals=True,
-                locals_max_length=512,
-                locals_max_string=512,
-                extra_lines=2,
+                locals_max_length=32, # Display up to 32 local items
+                locals_max_string=1024,
+                extra_lines=2, # Display two lines around the error line
                 indent_guides=False,
-                suppress=modules.BackgroundTasks.TracebackSuppressedPackages,
+                suppress=app.utils.tasks.TracebackSuppressedPackages,
             )
         )
         # Try and use contextual logger if attached to Request state

@@ -1,4 +1,4 @@
-from typing import Literal, Optional, TypedDict, TYPE_CHECKING
+from typing import Literal, TypedDict, TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, JSON, String
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
@@ -59,8 +59,8 @@ class Sync(Base):
     excluded_tags: Mapped[list[str]] = mapped_column(JSON, default=[])
     required_libraries: Mapped[list[str]] = mapped_column(JSON, default=[])
     excluded_libraries: Mapped[list[str]] = mapped_column(JSON, default=[])
-    required_series_type: Mapped[Optional[str]]
-    excluded_series_type: Mapped[Optional[str]]
+    required_series_type: Mapped[str | None]
+    excluded_series_type: Mapped[str | None]
 
     downloaded_only: Mapped[bool] = mapped_column(default=False)
     monitored_only: Mapped[bool] = mapped_column(default=False)

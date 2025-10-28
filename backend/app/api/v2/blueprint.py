@@ -46,7 +46,7 @@ from app.schemas.blueprint import (
 from app.schemas.series import Series
 from app.settings import settings
 from app.logging.logger import Logger
-from modules.TemporaryZip import TemporaryZip
+from app.utils.tzip import TemporaryZip
 
 
 # Create sub router for all /blueprints API requests
@@ -80,7 +80,6 @@ def export_series_blueprint(
     export.
     """
 
-    # Query for this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
     # Get raw Episode data
@@ -181,11 +180,13 @@ async def export_series_blueprint_as_zip(
     )
 
     # Get all non-Specials Cards for this Series
-    cards = db.query(Card)\
-        .join(EpisodeModel)\
-        .filter(Card.series_id==series_id, EpisodeModel.season_number>0)\
-        .order_by(EpisodeModel.season_number, EpisodeModel.episode_number)\
-        .all()
+    cards = (
+        db.query(Card)
+            .join(EpisodeModel)
+            .filter(Card.series_id==series_id, EpisodeModel.season_number>0)
+            .order_by(EpisodeModel.season_number, EpisodeModel.episode_number)
+            .all()
+    )
 
     # Filter out Cards which are stylized or DNE
     filtered_cards = [
@@ -255,7 +256,6 @@ def blacklist_blueprint(
     - blueprint_id: Unique ID of the Blueprint.
     """
 
-    # Add to blacklist, commit changes
     settings.blacklisted_blueprints.add(blueprint_id)
     settings.commit(log=log)
 
@@ -292,7 +292,7 @@ def query_all_blueprints_(
         include_blacklisted: bool = Query(default=False),
         include_imported: bool = Query(default=False),
         include_missing_series: bool = Query(default=True),
-    ) -> Page[RemoteBlueprint]: # pyright: ignore[reportInvalidTypeForm]
+    ) -> Page[RemoteBlueprint]: # type: ignore
     """
     Query for all available Blueprints for all Series. Blacklisted
     Blueprints are excluded from the return.

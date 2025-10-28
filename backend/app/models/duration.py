@@ -16,7 +16,7 @@ class TaskDuration(Base):
     duration: Mapped[float] # Duration in seconds
 
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         hours = self.duration // 3600
         minutes = (self.duration % 3600) // 60
         seconds = self.duration % 60
@@ -31,4 +31,5 @@ class TaskDuration(Base):
         duration_str = " ".join(parts[:2])
 
         end_time = self.end_time.strftime('%Y-%m-%d %H:%M')
+
         return f'Task[{self.task_name}] taking {duration_str} ending {end_time}'

@@ -1,5 +1,3 @@
-from logging import Logger
-
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -10,6 +8,7 @@ from app.core.auth import (
 )
 from app.dependencies import get_database, get_logger
 from app.db.users import authenticate_user, get_current_user, get_user
+from app.logging.logger import Logger
 from app.models.user import User as UserModel
 from app.schemas.auth import (
     CreateUserSchema,

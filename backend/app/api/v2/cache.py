@@ -1,18 +1,13 @@
-"""
-Cache management API endpoints for monitoring and controlling the caching system.
-"""
-
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 
 from app.db.users import get_current_user
-from app.dependencies import get_database, get_logger
+from app.dependencies import get_logger
 from app.logging.logger import Logger
 from app.core.cache import (
-    get_cache_stats,
     clear_all_caches,
+    get_cache_manager,
+    get_cache_stats,
     invalidate_cache_pattern,
-    get_cache_manager
 )
 
 # Create sub router for all /cache API requests
@@ -25,7 +20,6 @@ cache_router = APIRouter(
 
 @cache_router.get('/stats')
 def get_cache_statistics(
-    db: Session = Depends(get_database),
     log: Logger = Depends(get_logger),
 ) -> dict:
     """
@@ -47,7 +41,6 @@ def get_cache_statistics(
 @cache_router.delete('/clear')
 def clear_cache_endpoint(
     cache_type: str | None = Query(default=None, description="Optional specific cache type to clear"),
-    db: Session = Depends(get_database),
     log: Logger = Depends(get_logger),
 ) -> dict:
     """
@@ -85,7 +78,6 @@ def clear_cache_endpoint(
 @cache_router.delete('/invalidate')
 def invalidate_cache_pattern_endpoint(
     pattern: str = Query(..., description="Pattern to match for invalidation"),
-    db: Session = Depends(get_database),
     log: Logger = Depends(get_logger),
 ) -> dict:
     """
@@ -112,7 +104,6 @@ def invalidate_cache_pattern_endpoint(
 
 @cache_router.get('/health')
 def cache_health_check(
-    db: Session = Depends(get_database),
     log: Logger = Depends(get_logger),
 ) -> dict:
     """

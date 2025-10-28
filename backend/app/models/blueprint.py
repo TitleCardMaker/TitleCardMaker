@@ -1,6 +1,5 @@
 # pylint: disable=no-self-argument
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import Column, ForeignKey, Table, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -35,9 +34,9 @@ class BlueprintSeries(BlueprintBase):
     name: Mapped[str]
     year: Mapped[int]
     path_name: Mapped[str]
-    imdb_id: Mapped[Optional[str]]
-    tmdb_id: Mapped[Optional[int]]
-    tvdb_id: Mapped[Optional[int]]
+    imdb_id: Mapped[str | None]
+    tmdb_id: Mapped[int | None]
+    tvdb_id: Mapped[int | None]
     blueprints: Mapped[list['Blueprint']] = relationship(
         back_populates='series',
     )

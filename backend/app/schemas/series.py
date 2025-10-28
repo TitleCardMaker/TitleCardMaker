@@ -1,13 +1,9 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
 # pyright: reportInvalidTypeForm=false, reportAssignmentType=false, reportIncompatibleVariableOverride=false
 from datetime import datetime
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import (
-    Field,
-    NonNegativeInt,
-    validator
-)
+from pydantic import Field, validator
 
 from app.models.template import OPERATIONS, ARGUMENT_KEYS
 from app.schemas.base import (
@@ -90,7 +86,7 @@ class BaseTemplate(BaseConfig):
 
 class BaseSeries(BaseConfig):
     name: MinimumLengthString
-    year: NonNegativeInt
+    year: Annotated[int, Field(ge=0)]
     status: Status = 'monitored'
     template_ids: list[int] | None = None
     match_titles: bool = True
@@ -180,7 +176,7 @@ class UpdateTemplate(BaseUpdate):
     filters: list[Condition] = UNSPECIFIED
 
 class UpdateSeries(BaseUpdate):
-    year: NonNegativeInt = UNSPECIFIED
+    year: Annotated[int, Field(ge=0)] = UNSPECIFIED
     directory: str | None = UNSPECIFIED
     template_ids: list[int] | None = UNSPECIFIED
     font_id: int | None = UNSPECIFIED

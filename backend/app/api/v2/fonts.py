@@ -12,7 +12,7 @@ from fastapi import (
 from sqlalchemy.orm import Session
 from unidecode import unidecode
 
-from app.core.font import delete_font_files
+from app.core.font import delete_font_files, get_missing_characters
 from app.db.query import get_font
 from app.dependencies import get_database, get_logger
 from app.db.users import get_current_user
@@ -26,7 +26,6 @@ from app.schemas.font import (
     UpdateNamedFont
 )
 from app.settings import settings
-from modules.FontValidator import FontValidator
 
 
 """Common character replacements to try when querying replacements"""
@@ -56,11 +55,12 @@ def get_all_fonts(
     ) -> list[NamedFont]:
     """Get all defined Fonts."""
 
-    return (
-        db.query(Font)
+    return [
+        NamedFont.model_validate(font)
+        for font in db.query(Font)
             .order_by(Font.id if order == 'id' else Font.sort_name)
             .all()
-    )
+    ]
 
 
 @font_router.post('/font/new')
@@ -326,9 +326,7 @@ def get_suggested_font_replacements(
     letters = (title_letters | set(printable)) - set(whitespace)
 
     # Query FontValidator for this Font
-    validator = FontValidator(font.file)
-    missing = validator.get_missing_characters(letters)
-    if missing:
+    if (missing := get_missing_characters(font.file, letters)):
         log.debug(f'Identified missing characters: {" ".join(missing)}')
 
     # Attempt to find replacements for all missing characters

@@ -6,9 +6,9 @@ from starlette.datastructures import MutableHeaders
 
 
 async def convert_cookie_to_oath2_headers(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[Response]],
-) -> Response:
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
     """
     Middleware for all HTTP requests that converts `request`'s
     `tcm_token` Cookie into the required OAuth2 `Authorization: Bearer

@@ -132,7 +132,7 @@ def get_image_source_priority(
 
 @settings_router.get('/background-tasks')
 def get_pending_background_tasks() -> list[tuple[str, str | None]]:
-    from modules.BackgroundTasks import task_queue
+    from app.utils.tasks import task_queue
 
     return [
         (

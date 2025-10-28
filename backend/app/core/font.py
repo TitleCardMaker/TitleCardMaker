@@ -1,5 +1,10 @@
+from pathlib import Path
+from typing import Iterable
+from string import whitespace
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from fontTools.ttLib import TTFont
 
 from app.logging.logger import Logger, log
 from app.models.episode import Episode
@@ -99,3 +104,45 @@ def delete_font_files(font: Font, *, log: Logger = log) -> None:
             ) from exc
 
     return None 
+
+
+def get_missing_characters(file: Path, chars: Iterable[str]) -> set[str]:
+    """
+    Get the subset of all characters in the given iterable that are not
+    contained in the given font file.
+
+    Args:
+        file: Path to the font file to check.
+        chars: Iterable of characters to check.
+
+    Returns:
+        Set of characters that are not contained in the font.
+    """
+
+    font = TTFont(file)
+
+    def contains(char: str, /) -> bool:
+        """Check if the given character is contained in the font."""
+
+        # All whitespace is valid
+        if char in whitespace:
+            return True
+
+        # Check all tables
+        ord_char = ord(char)
+        for table in font['cmap'].tables: # type: ignore
+            # Check character is in cmap
+            if ord_char not in table.cmap:
+                return False
+
+            # Check glyph has boundaires (i.e. is not blank)
+            try:
+                glyph = font['glyf'][table.cmap[ord_char]] # type: ignore
+                if not hasattr(glyph, 'xMin'):
+                    return False
+            except KeyError:
+                continue
+
+        return True
+
+    return set(char for char in chars if not contains(char))

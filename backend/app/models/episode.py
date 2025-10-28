@@ -14,7 +14,7 @@ from app.models.template import EpisodeTemplates, Template
 from app.schemas.connection import ServerName
 from app.schemas.preferences import Style
 from app.settings import settings
-from modules.TieredSettings import TieredSettings
+from app.utils.tiered_settings import TieredSettings
 
 if TYPE_CHECKING:
     from app.interfaces.base import WatchedStatus
@@ -139,11 +139,18 @@ class Episode(Base):
         # Reset existing assocations
         self.templates = []
         for index, template in enumerate(templates):
-            existing = object_session(template).query(EpisodeTemplates)\
-                .filter_by(episode_id=self.id,
-                           template_id=template.id,
-                           order=index)\
-                .first()
+            if (db := object_session(template)) is None:
+                raise ValueError('No available Session to query')
+
+            existing = (
+                db.query(EpisodeTemplates)
+                    .filter_by(
+                        episode_id=self.id,
+                        template_id=template.id,
+                        order=index
+                    )
+                    .first()
+            )
             if existing:
                 self.templates.append(existing)
             else:
@@ -153,7 +160,9 @@ class Episode(Base):
                     order=index,
                 ))
 
-        log.debug(f'Episode[{self.id}].template_ids = {[t.id for t in templates]}')
+        log.debug(
+            f'Episode[{self.id}].template_ids = {[t.id for t in templates]}'
+        )
 
 
     @property
@@ -174,6 +183,7 @@ class Episode(Base):
 
 
     def __repr__(self) -> str:
+
         return (
             f'{self.series.full_name} '
             f'S{self.season_number:02}E{self.episode_number:02}'

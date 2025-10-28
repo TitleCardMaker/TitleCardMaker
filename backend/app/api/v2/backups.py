@@ -1,4 +1,5 @@
 from signal import SIGINT, raise_signal
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.core.backup import (
@@ -14,7 +15,7 @@ from app.dependencies import get_logger
 from app.logging.logger import ACTIVE_WEBSOCKETS, Logger
 from app.schemas.preferences import SystemBackup
 from app.settings import settings
-from modules.BackgroundTasks import task_queue
+from app.utils.tasks import task_queue
 
 
 # Create sub router for all /backups API requests

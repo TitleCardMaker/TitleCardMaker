@@ -34,7 +34,7 @@ from app.schemas.base import UNSPECIFIED
 from app.schemas.episode import UpdateEpisode
 from app.schemas.schedule import Hours
 from app.settings import settings
-from modules.TieredSettings import TieredSettings
+from app.utils.tiered_settings import TieredSettings
 
 
 def set_episode_ids(
@@ -404,27 +404,29 @@ def get_series_episodes_simplified_with_cache(
         List of simplified episode data dictionaries
     """
     # Get from database with simplified fields
-    episodes = db.query(Episode)\
-        .options(
-            load_only(
-                Episode.id,
-                Episode.season_number,
-                Episode.episode_number,
-                Episode.absolute_number,
-                Episode.title,
-                Episode.match_title,
-                Episode.auto_split_title,
-                Episode.season_text,
-                Episode.episode_text,
-                Episode.hide_season_text,
-                Episode.hide_episode_text,
-                Episode.extras,
-                Episode.translations,
+    episodes = (
+        db.query(Episode)
+            .options(
+                load_only(
+                    Episode.id,
+                    Episode.season_number,
+                    Episode.episode_number,
+                    Episode.absolute_number,
+                    Episode.title,
+                    Episode.match_title,
+                    Episode.auto_split_title,
+                    Episode.season_text,
+                    Episode.episode_text,
+                    Episode.hide_season_text,
+                    Episode.hide_episode_text,
+                    Episode.extras,
+                    Episode.translations,
+                )
             )
-        )\
-        .filter_by(series_id=series_id)\
-        .order_by(Episode.season_number, Episode.episode_number)\
-        .all()
+            .filter_by(series_id=series_id)\
+            .order_by(Episode.season_number, Episode.episode_number)
+            .all()
+    )
 
     # Convert to simplified format
     simplified_episodes = [

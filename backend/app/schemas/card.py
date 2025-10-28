@@ -88,7 +88,7 @@ class PreviewTitleCard(Base):
 
     @field_validator('*', mode='before')
     @classmethod
-    def validate_arguments(cls, value: str) -> str:
+    def validate_arguments(cls, value: str) -> str | None:
         return None if value == '' else value
 
 class NewTitleCard(Base):

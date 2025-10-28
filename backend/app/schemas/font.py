@@ -1,13 +1,8 @@
 # pyright: reportInvalidTypeForm=false
 from pathlib import Path
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
-from pydantic import ( # pylint: disable=no-name-in-module
-    NonNegativeFloat,
-    PositiveFloat,
-    model_validator,
-    validator,
-)
+from pydantic import Field, model_validator, validator
 
 from app.schemas.base import Base, MinimumLengthString, UNSPECIFIED
 
@@ -33,7 +28,7 @@ class BaseFont(Base):
     interword_spacing: int = 0
     kerning: float = 1.0
     line_split_modifier: int = 0
-    size: NonNegativeFloat = 1.0
+    size: Annotated[float, Field(ge=0.0)] = 1.0
     stroke_width: float = 1.0
     title_case: TitleCase | None = None
     vertical_shift: int = 0
@@ -67,7 +62,7 @@ class PreviewFont(Base):
     kerning: float | None = None
     interline_spacing: int | None = None
     interword_spacing: int | None = None
-    size: PositiveFloat | None = None
+    size: Annotated[float, Field(ge=0.0)] | None = None
     stroke_width: float | None = None
     vertical_shift: int | None = None
 
@@ -83,7 +78,7 @@ class UpdateNamedFont(Base):
     line_split_modifier: int = UNSPECIFIED
     replacements_in: list[str] = UNSPECIFIED
     replacements_out: list[str] = UNSPECIFIED
-    size: PositiveFloat = UNSPECIFIED
+    size: Annotated[float, Field(ge=0.0)] = UNSPECIFIED
     stroke_width: float = UNSPECIFIED
     title_case: TitleCase | None = UNSPECIFIED
     vertical_shift: int = UNSPECIFIED

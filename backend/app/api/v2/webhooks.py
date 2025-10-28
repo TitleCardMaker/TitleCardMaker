@@ -14,7 +14,7 @@ from fastapi import (
 from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.cards import create_episode_cards, delete_cards
@@ -203,10 +203,14 @@ def create_cards_for_sonarr_webhook(
 
         for _ in range(3):
             # Search for this Episode
-            episode = db.query(Episode)\
-                .filter(Episode.series_id==series.id,
-                        episode_info.filter_conditions(Episode))\
-                .first()
+            episode = (
+                db.query(Episode)
+                    .filter(
+                        Episode.series_id==series.id,
+                        episode_info.filter_conditions(Episode)
+                    )
+                    .first()
+            )
 
             # Episode exists, return it
             if episode:

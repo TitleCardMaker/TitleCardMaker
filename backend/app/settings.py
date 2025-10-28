@@ -1,5 +1,5 @@
 from datetime import datetime
-from json import dump as json_dump, load as json_load
+from json import dump as json_dump, dumps as json_dumps, load as json_load
 from pathlib import Path
 from pickle import Unpickler
 from typing import Annotated, Any, Literal
@@ -9,11 +9,11 @@ from app.info.episode import EpisodeInfo
 from app.interfaces.magick import ImageMagickInterface
 from app.logging.logger import Logger, log
 from app.schemas.preferences import CardExtension, Style
-from modules.BaseCardType import BaseCardType
-from modules.FormatString import FormatString
-from modules.RemoteCardType import RemoteCardType
-from modules.serialization import SerializationExclusion, SerializationMixin
-from modules.TitleCard import TitleCard
+from app.cards.types import BUILTIN_CARD_TYPES
+from app.cards.base import BaseCardType
+from app.utils.fstring import FormatString
+from app.cards.loader import RemoteCardType
+from app.utils.serialization import SerializationExclusion, SerializationMixin
 
 
 MediaSource = Literal['Emby', 'Jellyfin', 'Plex']
@@ -68,38 +68,17 @@ class Settings(SerializationMixin):
 
     # Paths and directories
     _preferences_file: SerializationExclusion[Path | None] = None
-
-    card_directory: Path = (
-        Path('/config/cards') if IS_DOCKER else CONFIG_ROOT / 'cards'
-    )
-
-    source_directory: Path = (
-        Path('/config/source') if IS_DOCKER else CONFIG_ROOT / 'source'
-    )
-
-    asset_directory: SerializationExclusion[Path] = (
-        Path('/config/assets') if IS_DOCKER else CONFIG_ROOT / 'assets'
-    )
-
-    card_type_directory: SerializationExclusion[Path] = (
-        Path('/config/card_types') if IS_DOCKER else CONFIG_ROOT / 'card_types'
-    )
-
-    backup_directory: SerializationExclusion[Path] = (
-        Path('/config/backups') if IS_DOCKER else CONFIG_ROOT / 'backups'
-    )
-
-    log_directory: SerializationExclusion[Path] = (
-        Path('/config/logs') if IS_DOCKER else CONFIG_ROOT / 'logs'
-    )
-
-    temporary_directory: SerializationExclusion[Path] = (
-        BACKEND_ROOT / 'modules' / '.objects'
-    )
+    card_directory: Path = CONFIG_ROOT / 'cards'
+    source_directory: Path = CONFIG_ROOT / 'source'
+    asset_directory: SerializationExclusion[Path] = CONFIG_ROOT / 'assets'
+    card_type_directory: SerializationExclusion[Path] = CONFIG_ROOT / 'card_types'
+    backup_directory: SerializationExclusion[Path] = CONFIG_ROOT / 'backups'
+    log_directory: SerializationExclusion[Path] = CONFIG_ROOT / 'logs'
+    temporary_directory: SerializationExclusion[Path] = CONFIG_ROOT / '.objects'
 
     # Card properties
-    card_width: int = TitleCard.DEFAULT_WIDTH
-    card_height: int = TitleCard.DEFAULT_HEIGHT
+    card_width: int = 1920
+    card_height: int = 1080
     card_quality: int = 95
     card_filename_format: str = (
         '{series_full_name} - S{season_number:02}E{episode_number:02}'
@@ -302,6 +281,10 @@ class Settings(SerializationMixin):
             try:
                 data = self._serialize()
                 with self._preferences_file.open('w') as f:
+                    log.trace((
+                        f'Saving global settings:\n'
+                        f'{json_dumps(data, indent=2, sort_keys=True)}'
+                    ))
                     json_dump(data, f, indent=2, sort_keys=True)
             except Exception as e:
                 log.exception(f'Error occurred while saving JSON settings: {e}')
@@ -311,7 +294,10 @@ class Settings(SerializationMixin):
         """Update multiple values at once and commit changes."""
 
         for name, value in update_kwargs.items():
-            if hasattr(self, name) and value != '_UnspecifiedValue':
+            if (hasattr(self, name)
+                and value != '_UnspecifiedValue'
+                and getattr(self, name) != value
+            ):
                 setattr(self, name, value)
                 log.debug(f'Settings.{name} = {value}')
         self.commit(log=log)
@@ -335,8 +321,8 @@ class Settings(SerializationMixin):
         ) -> type[BaseCardType] | None:
         """Get the CardType class for the given card type identifier."""
 
-        if identifier in TitleCard.CARD_TYPES:
-            return TitleCard.CARD_TYPES[identifier]
+        if identifier in BUILTIN_CARD_TYPES:
+            return BUILTIN_CARD_TYPES[identifier]
         if identifier in self.remote_card_types:
             return self.remote_card_types[identifier]
         if identifier in self.local_card_types:
@@ -375,16 +361,16 @@ class Settings(SerializationMixin):
 
         for prefix, use_magick in (('magick', True), ('', False)):
             interface = ImageMagickInterface(
-                container=self.config.V1_IMAGEMAGICK_CONTAINER,
+                container=self.config.IMAGEMAGICK_CONTAINER,
                 use_magick_prefix=use_magick,
                 executable=self.imagemagick_executable,
             )
             if interface.validate_interface():
                 self.use_magick_prefix = use_magick
-                log.debug(
+                log.debug((
                     f'Using "{prefix}" ImageMagick command prefix in '
                     + ('the primary thread' if use_magick else 'all threads')
-                )
+                ))
                 return
             interface.print_command_history(log=log)
 
@@ -454,8 +440,13 @@ class Settings(SerializationMixin):
 settings: Annotated[Settings, 'Global settings instance'] = Settings()
 
 
-def reset_settings() -> Settings:
-    """Reset the settings to their default values."""
+def reset_settings(*, log: Logger = log) -> Settings:
+    """
+    Reset the settings to their default values.
+
+    Args:
+        log: Logger to use for logging.
+    """
 
     global settings
 
@@ -466,25 +457,28 @@ def reset_settings() -> Settings:
     # Get the default values from the class definition
     default_settings = Settings()
 
+    # Get a set of all @property attributes, as these cannot be set
+    properties = {
+        name
+        for name, value in Settings.__dict__.items()
+        if isinstance(value, property)
+    }
+
     # Reset all attributes to their default values
-    for attr_name, attr_value in default_settings.__dict__.items():
+    # Cannot use __dict__ as most attributes are class attributes and
+    # not present in __dict__ until assigned to the instance 
+    for attr_name in dir(default_settings):
+        if attr_name.startswith('_') or attr_name in properties:
+            continue
+
+        # Skip callable attributes (methods) - only copy data attributes
+        if callable((attr_value := getattr(default_settings, attr_name))):
+            continue
         if not attr_name.startswith('_') and hasattr(settings, attr_name):
             setattr(settings, attr_name, attr_value)
 
     # Commit the reset settings
-    settings.commit()
+    settings.commit(log=log)
     settings.__init__()
 
     return settings
-
-
-TQDM_KWARGS = {
-    # Progress bar format string
-    'bar_format': (
-        '{desc:.50s} {percentage:2.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
-    ),
-    # Progress bars should disappear when finished
-    'leave': False,
-    # Progress bars can not be used if no TTY is present
-    'disable': None,
-}

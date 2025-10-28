@@ -276,7 +276,7 @@ def get_server_libraries(
     for interface_id, interface in emby_interfaces:
         libraries += [
             MediaServerLibrary(
-                interface=interface.INTERFACE_TYPE, # pylint: disable=protected-access
+                interface=interface.INTERFACE_TYPE,
                 interface_id=interface_id,
                 name=library
             ) for library in interface.get_libraries()
@@ -349,8 +349,9 @@ def get_available_series(
     ) -> list[ReturnAvailableSeriesSchema]:
     """Get all the available Series base data."""
 
-    return (
-        db.query( # type: ignore
+    return [
+        ReturnAvailableSeriesSchema.model_validate(series)
+        for series in db.query(
                 Series.id,
                 Series.name,
                 Series.year,
@@ -359,7 +360,7 @@ def get_available_series(
             )
             .order_by(Series.sort_name, Series.year)
             .all()
-    )
+    ]
 
 
 @availablility_router.get('/templates', tags=['Templates'])

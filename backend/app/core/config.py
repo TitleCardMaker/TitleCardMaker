@@ -12,7 +12,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from tzlocal import get_localzone
 
-from modules.Version import Version
+from app.utils.version import Version
 
 """
 Application root directories
@@ -153,8 +153,7 @@ class AppConfig(BaseSettings):
         'URL to the card type repository'
     ] = Field(
         default=(
-            'https://raw.githubusercontent.com/CollinHeist/'
-            'TitleCardMaker-CardTypes/'
+            'https://raw.githubusercontent.com/TitleCardMaker/CardTypes/'
             + ('web-ui-develop' if CURRENT_VERSION.is_develop else 'web-ui')
         ),
     )
@@ -163,51 +162,11 @@ class AppConfig(BaseSettings):
     def CARD_TYPE_URL(self) -> str:
         return self.CARD_TYPE_REPOSITORY.removesuffix('/') + '/cards.json'
 
-    # Version 1 settings
-    LEGACY_MODE: Annotated[
-        bool,
-        'Whether to enable the legacy TitleCardMaker'
-    ] = Field(default=False)
 
-    V1_PREFERENCE_FILE: Annotated[
-        Path,
-        'Path to the global preferences.yml file'
-    ] = Field(default=CONFIG_ROOT / 'preferences.yml')
-
-    V1_CARD_QUALITY: Annotated[
-        int,
-        'Image compression quality to utilize'
-    ] = Field(default=92)
-
-    V1_IMAGEMAGICK_CONTAINER: Annotated[
+    IMAGEMAGICK_CONTAINER: Annotated[
         str | None,
         'Docker container to execute ImageMagick commands within'
     ] = Field(default=None)
-
-    V1_RUNTIME: Annotated[
-        str | None,
-        'When to first run the TitleCardMaker (in 24-hour time)'
-    ] = Field(default=None)
-
-    V1_FREQUENCY: Annotated[
-        str,
-        'How often to run the TitleCardMaker'
-    ] = Field(default='12h')
-
-    V1_MISSING_FILE: Annotated[
-        Path,
-        'File to write the list of missing assets to'
-    ] = Field(default=CONFIG_ROOT / 'missing.yml')
-
-    V1_TAUTULLI_LIST: Annotated[
-        Path | None,
-        'File to monitor for Tautulli-driven episode watch-status updates'
-    ] = Field(default=None)
-
-    V1_TAUTULLI_FREQUENCY: Annotated[
-        str,
-        'How often to check the Tautulli update list'
-    ] = Field(default='4m')
 
 
     def localize(self, date: datetime, /) -> datetime:

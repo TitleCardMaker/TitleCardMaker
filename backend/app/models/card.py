@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, JSON, func
 from sqlalchemy.ext.mutable import MutableDict
@@ -29,7 +29,7 @@ class Card(Base):
     id: Mapped[int] = mapped_column(
         primary_key=True, index=True, autoincrement=True,
     )
-    interface_id: Mapped[Optional[int]] = mapped_column(ForeignKey('connection.id'))
+    interface_id: Mapped[int | None] = mapped_column(ForeignKey('connection.id'))
     series_id: Mapped[int] = mapped_column(ForeignKey('series.id'))
     episode_id: Mapped[int] = mapped_column(ForeignKey('episode.id'))
 
@@ -48,7 +48,7 @@ class Card(Base):
     card_file: Mapped[str]
     source_file: Mapped[str]
     filesize: Mapped[int]
-    library_name: Mapped[Optional[str]]
+    library_name: Mapped[str | None]
 
     card_type: Mapped[str]
     model_json: Mapped[dict] = mapped_column(

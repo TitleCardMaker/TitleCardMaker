@@ -10,7 +10,7 @@ from app.core.config import CONFIG_ROOT, config as app_config
 from app.schemas.preferences import DatabaseBackup, SettingsBackup, SystemBackup
 from app.settings import settings
 from app.logging.logger import Logger, log
-from modules.Version import Version
+from app.utils.version import Version
 
 
 class DataBackup(NamedTuple): # pylint: disable=missing-class-docstring

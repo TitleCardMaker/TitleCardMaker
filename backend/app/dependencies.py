@@ -15,7 +15,7 @@ from app.db.interfaces import (
     TMDbInterfaces,
     TVDbInterfaces,
 )
-from app.db.database import BlueprintSessionMaker, SessionLocal, YamlSessionLocal
+from app.db.database import BlueprintSessionMaker, SessionLocal
 from app.interfaces.base import Interface, InterfaceGroup
 from app.interfaces.v2 import (
     AnyInterface,
@@ -33,10 +33,12 @@ from app.settings import settings
 
 
 """Where to download the Blueprint SQL Database from"""
-BLUEPRINT_DATABASE_URL =\
+BLUEPRINT_DATABASE_URL = (
     'https://github.com/CollinHeist/TCM-Blueprints-v2/raw/master/blueprints.db'
+)
+
 """Where to read/write the Blueprint SQL database file"""
-BLUEPRINT_DATABASE_FILE = settings.temporary_directory / 'blueprints.db'
+BLUEPRINT_DATABASE_FILE = settings.temporary_directory / '.blueprints.sqlite'
 
 
 def get_database() -> Iterator[Session]:
@@ -59,16 +61,6 @@ def get_log_database() -> Iterator[Session]:
         db.close()
 
 
-def get_yaml_database() -> Iterator[Session]:
-    """Yield a Session to the YAML database."""
-
-    db = YamlSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 def download_blueprint_database(*, log: Logger = log) -> None:
     """
     Download the Blueprint SQL database from the GitHub repository and
@@ -85,8 +77,11 @@ def download_blueprint_database(*, log: Logger = log) -> None:
     """
 
     # If no file was found, raise
+    log.trace(f'Downloading Blueprint database from "{BLUEPRINT_DATABASE_URL}"')
     if (response := get(BLUEPRINT_DATABASE_URL, timeout=30)).status_code == 404:
-        log.error(f'No blueprint database file found at "{BLUEPRINT_DATABASE_URL}"')
+        log.error(
+            f'No blueprint database file found at "{BLUEPRINT_DATABASE_URL}"'
+        )
         raise HTTPException(
             status_code=404,
             detail=f'No Blueprint database file found',
@@ -96,7 +91,7 @@ def download_blueprint_database(*, log: Logger = log) -> None:
     if not response.ok:
         raise HTTPException(
             status_code=response.status_code,
-            detail=f'Error downloading Blueprint database',
+            detail='Error downloading Blueprint database',
         )
 
     # Write database to file
@@ -106,10 +101,10 @@ def download_blueprint_database(*, log: Logger = log) -> None:
 
 _db_expiration = datetime.now()
 def get_blueprint_database(
-    request: Request,
-    allow_refresh: bool = Query(default=True),
-    force_refresh: bool = Query(default=False),
-) -> Iterator[Session]:
+        request: Request,
+        allow_refresh: bool = Query(default=True),
+        force_refresh: bool = Query(default=False),
+    ) -> Iterator[Session]:
     """
     Dependency to get a Session to the Blueprint SQLite database.
 
@@ -129,8 +124,9 @@ def get_blueprint_database(
     global _db_expiration # pylint: disable=global-statement
     if (force_refresh
         or not BLUEPRINT_DATABASE_FILE.exists()
-        or (allow_refresh and _db_expiration <= datetime.now())):
-        download_blueprint_database()
+        or (allow_refresh and _db_expiration <= datetime.now())
+    ):
+        download_blueprint_database(log=log)
         log.debug(f'Downloaded Blueprint database')
         _db_expiration = datetime.now() + timedelta(hours=2)
 
@@ -167,10 +163,10 @@ def get_logger(request: Request) -> Logger:
 
 _InterfaceType = TypeVar('_InterfaceType', bound=Interface)
 def _require_interface(
-    interface_group: InterfaceGroup[int, _InterfaceType],
-    interface_id: int | None,
-    name: str,
-) -> _InterfaceType:
+        interface_group: InterfaceGroup[int, _InterfaceType],
+        interface_id: int | None,
+        name: str,
+    ) -> _InterfaceType:
     """
     Dependency to get the interface with the given ID from the given
     `InterfaceGroup`.

@@ -1,6 +1,6 @@
 from pathlib import Path
 from re import sub as re_sub, IGNORECASE
-from typing import Any, Iterable, Optional, TYPE_CHECKING
+from typing import Any, Iterable, TYPE_CHECKING
 
 from sqlalchemy import JSON, String, event
 from sqlalchemy.ext.mutable import MutableList
@@ -11,7 +11,6 @@ from app.logging.logger import log # noqa: F401
 from app.schemas.blueprint import BlueprintFont
 from app.schemas.font import TitleCase
 from app.settings import settings
-
 
 if TYPE_CHECKING:
     from sqlalchemy.event import Events
@@ -36,8 +35,8 @@ class Font(Base):
 
     name: Mapped[str]
     sort_name: Mapped[str] = mapped_column(index=True)
-    color: Mapped[Optional[str]]
-    file_name: Mapped[Optional[str]]
+    color: Mapped[str | None]
+    file_name: Mapped[str | None]
     interline_spacing: Mapped[int] = mapped_column(default=0)
     interword_spacing: Mapped[int] = mapped_column(default=0)
     kerning: Mapped[float] = mapped_column(default=1.0)
@@ -51,7 +50,7 @@ class Font(Base):
     )
     size: Mapped[float] = mapped_column(default=1.0)
     stroke_width: Mapped[float] = mapped_column(default=1.0)
-    title_case: Mapped[Optional[TitleCase]] = mapped_column(String,default=None)
+    title_case: Mapped[TitleCase | None] = mapped_column(String,default=None)
     vertical_shift: Mapped[int] = mapped_column(default=0)
     line_split_modifier: Mapped[int] = mapped_column(default=0)
 
@@ -61,7 +60,7 @@ class Font(Base):
 
 
     @property
-    def file(self) -> Optional[Path]:
+    def file(self) -> Path | None:
         """
         Get the name of this Font's file, if indicated.  None if this
         Font has no file, or if the file does not exist.

@@ -4,14 +4,13 @@ from pathlib import Path
 from typing import Annotated, Literal, Self
 
 from pydantic import (
+    BaseModel,
+    BeforeValidator,
     Field,
     FilePath,
-    PositiveFloat,
     StringConstraints,
     model_validator,
 )
-from pydantic.functional_validators import BeforeValidator
-from pydantic.main import BaseModel
 
 
 # Default value to use for arguments in Update objects that accept None
@@ -82,7 +81,7 @@ class BaseCardTypeCustomFontAllText(BaseCardTypeAllText):
     font_interline_spacing: int = 0
     font_interword_spacing: int = 0
     font_kerning: float = 1.0
-    font_size: PositiveFloat = 1.0
+    font_size: Annotated[float, Field(ge=0.0)] = 1.0
     font_stroke_width: float = 1.0
     font_vertical_shift: int = 0
 
@@ -96,6 +95,6 @@ class BaseCardTypeCustomFontNoText(BaseCardModel):
     font_interline_spacing: int = 0
     font_interword_spacing: int = 0
     font_kerning: float = 1.0
-    font_size: PositiveFloat = 1.0
+    font_size: Annotated[float, Field(ge=0.0)] = 1.0
     font_stroke_width: float = 1.0
     font_vertical_shift: int = 0

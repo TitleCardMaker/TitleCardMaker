@@ -13,7 +13,6 @@ from app.core.templates import get_available_templates
 from app.db.query import get_series
 from app.db.users import get_current_user
 from app.dependencies import get_database
-from app.logging.logger import log
 from app.models.connection import Connection
 from app.models.user import User
 from app.settings import settings

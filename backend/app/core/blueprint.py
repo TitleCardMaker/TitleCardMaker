@@ -20,7 +20,7 @@ from app.schemas.episode import UpdateEpisode
 from app.schemas.font import NewNamedFont
 from app.schemas.series import NewTemplate, UpdateSeries
 from app.settings import settings
-from modules.TieredSettings import TieredSettings
+from app.utils.tiered_settings import TieredSettings
 
 
 """
@@ -239,10 +239,10 @@ def import_blueprint(
         for other_font in db.query(Font).all():
             if other_font.equals(font):
                 font_map[font_id] = other_font
-                log.info(
+                log.info((
                     f'Matched Blueprint Font[{font_id}] to existing Font '
                     f'{other_font}'
-                )
+                ))
                 break
         if font_map.get(font_id) is not None:
             continue
@@ -271,7 +271,7 @@ def import_blueprint(
         log.info(f'Created Named Font "{new_font.name}"')
 
         # Download Font file if provided
-        if font_content:
+        if font_content and font.file:
             font_directory = settings.asset_directory / 'fonts'
             file_path: Path = font_directory / str(new_font.id) / font.file
             file_path.parent.mkdir(exist_ok=True, parents=True)
@@ -292,17 +292,17 @@ def import_blueprint(
         for other_template in db.query(Template).all():
             if other_template.equals(template):
                 template_map[template_id] = other_template
-                log.info(
+                log.info((
                     f'Matched Blueprint Template[{template_id}] to existing '
                     f'Template {other_template}'
-                )
+                ))
                 break
         if template_map.get(template_id) is not None:
             continue
 
         # Update Font ID from Font map if indicated
         if getattr(template, 'font_id', None) is not None:
-            template.font_id = font_map[template.font_id].id
+            template.font_id = font_map[template.font_id].id # type: ignore
 
         # Create new Template model, add to database and store in map
         new_template = Template(

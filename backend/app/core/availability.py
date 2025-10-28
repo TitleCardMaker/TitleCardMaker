@@ -8,8 +8,7 @@ from app.core.config import config
 from app.logging.logger import log, Logger
 from app.settings import settings
 from app.schemas.card import LocalCardType, RemoteCardType
-from modules.Version import Version
-
+from app.utils.version import Version
 
 def get_latest_version(
         raise_exc: bool = True,

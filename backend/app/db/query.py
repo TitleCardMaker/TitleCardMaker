@@ -1,4 +1,4 @@
-from typing import Literal, TypeVar, Union, overload
+from typing import Any, Literal, TypeVar, Union, overload
 
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -359,18 +359,22 @@ def get_template(
 
 @overload
 def get_all_templates(
-        db: Session, obj_dict: dict | list[int], *, raise_exc: Literal[True],
+        db: Session, obj_dict: dict[str, Any] | list[int],
+        *,
+        raise_exc: Literal[True] = True,
     ) -> list[Template]: ...
 
 @overload
 def get_all_templates(
-        db: Session, obj_dict: dict | list[int], *, raise_exc: Literal[False],
+        db: Session, obj_dict: dict[str, Any] | list[int],
+        *,
+        raise_exc: Literal[False],
     ) -> list[Template | None]:
     ...
 
 def get_all_templates(
         db: Session,
-        obj_dict: dict | list[int],
+        obj_dict: dict[str, Any] | list[int],
         *,
         raise_exc: bool = True,
     ) -> list[Template] | list[Template | None]:

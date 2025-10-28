@@ -1,10 +1,17 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    HTTPException,
+    Query,
+)
+from fastapi.responses import FileResponse
 from fastapi_pagination.ext.sqlalchemy import paginate
-from fastapi_pagination import paginate as paginate_sequence
 from sqlalchemy import not_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 
 from app.db.query import (
     get_card,
@@ -22,8 +29,6 @@ from app.core.cards import (
     get_watched_statuses,
     resolve_card_settings,
     validate_card_type_model,
-    get_series_cards,
-    get_series_reduced_cards_with_cache,
 )
 from app.core.config import INTERNAL_ASSET_DIRECTORY
 from app.core.episodes import update_episode_config
@@ -40,8 +45,10 @@ from app.exceptions import (
     UnknownCardType,
 )
 from app.info.episode import EpisodeInfo
+from app.interfaces.v2 import EmbyInterface, JellyfinInterface, PlexInterface
 from app.logging.logger import Logger
 from app.models.card import Card
+from app.models.episode import Episode
 from app.models.loaded import Loaded
 from app.schemas.card import (
     CardActions,
@@ -54,8 +61,9 @@ from app.schemas.episode import UpdateEpisode
 from app.schemas.font import DefaultFont
 from app.schemas.series import UpdateSeries
 from app.settings import settings
-from modules.FormatString import FormatString
-from modules.TieredSettings import TieredSettings
+from app.utils.fstring import FormatString
+from app.utils.tiered_settings import TieredSettings
+from app.utils.tzip import TemporaryZip
 
 
 # Create sub router for all /cards API requests
@@ -127,7 +135,10 @@ def create_preview_card(
     if card.episode_text is None:
         try:
             card.episode_text = FormatString(
-                (card.episode_text_format or CardClass.EPISODE_TEXT_FORMAT),
+                (
+                    card.episode_text_format
+                    or CardClass.CardConfig.episode_text_format
+                ),
                 data=format_data | card.model_dump(),
             ).result
         except InvalidCardSettings as exc:
@@ -161,18 +172,20 @@ def create_preview_card(
 
     # Add card default font stuff
     if card_settings.get('font_file') is None:
-        card_settings['font_file'] = CardClass.TITLE_FONT
+        card_settings['font_file'] = str(CardClass.CardConfig.font_file)
     if card_settings.get('font_color') is None:
-        card_settings['font_color'] = CardClass.TITLE_COLOR
+        card_settings['font_color'] = CardClass.CardConfig.font_color
 
     # Turn manually entered \n into newline
     card_settings['title_text'] = card_settings['title_text'].replace(r'\n', '\n')
 
     # Apply title text case function
     if card_settings.get('font_title_case') is None:
-        case_func = CardClass.CASE_FUNCTIONS[CardClass.DEFAULT_FONT_CASE]
-    else:
+        case_func = CardClass.CASE_FUNCTIONS[CardClass.CardConfig.font_case]
+    elif card_settings['font_title_case'] in CardClass.CASE_FUNCTIONS:
         case_func = CardClass.CASE_FUNCTIONS[card_settings['font_title_case']]
+    else:
+        case_func = CardClass.CASE_FUNCTIONS[CardClass.CardConfig.font_case]
     card_settings['title_text'] = case_func(card_settings['title_text'])
 
     # Delete output if it exists, then create Card
@@ -365,7 +378,7 @@ def create_cards_for_series(
 def get_series_cards_(
         series_id: int,
         db: Session = Depends(get_database),
-    ) -> Page[TitleCard]:
+    ) -> Page[TitleCard]: # type: ignore
     """
     Get all Title Cards for the given Series. Cards are returned in the
     order of their release (e.g. season number, episode number).
@@ -373,7 +386,16 @@ def get_series_cards_(
     - series_id: ID of the Series to get the cards of.
     """
 
-    return paginate_sequence(get_series_cards(db, series_id))
+    return paginate(
+        db.query(Card)
+            .filter_by(series_id=series_id)
+            .join(Episode, Card.episode_id==Episode.id)
+            .order_by(
+                Episode.season_number,
+                Episode.episode_number,
+                Episode.absolute_number,
+            )
+    )
 
 
 @card_router.get('/series/{series_id}/reduced', tags=['Series'])
@@ -389,7 +411,105 @@ def get_series_cards_reduced_models(
     - series_id: ID of the Series to get the cards of.
     """
 
-    return paginate_sequence(get_series_reduced_cards_with_cache(db, series_id))
+    return paginate(
+        db.query(Card)
+            .options(
+                load_only(
+                    Card.id,
+                    Card.episode_id,
+                    Card.card_file,
+                    Card.filesize,
+                    Card.library_name,
+                )
+            )
+            .filter_by(series_id=series_id)
+            .join(Episode, Episode.id == Card.episode_id)
+            .order_by(
+                Episode.season_number,
+                Episode.episode_number,
+                Episode.absolute_number,
+                Card.library_name,
+            )
+    )
+
+
+@card_router.get('/series/{series_id}/download', tags=['Series'])
+def download_series_title_cards_zip(
+        background_tasks: BackgroundTasks,
+        series_id: int,
+        season_number: int | None = Query(default=None),
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+    ) -> FileResponse:
+    """
+    Download all Title Cards for the given Series as a zip file. Cards
+    are organized in the zip file by season folders.
+
+    - series_id: ID of the Series to download the cards of.
+    - season_number: Optional season number to filter cards by. If
+    provided, only cards for this season are included.
+    """
+
+    # Get this Series, raise 404 if DNE
+    series = get_series(db, series_id, raise_exc=True)
+
+    # Build query for Cards
+    card_query = (
+        db.query(Card)
+            .filter_by(series_id=series_id)
+            .join(Episode, Card.episode_id == Episode.id)
+    )
+
+    # Filter by season number if provided
+    if season_number is not None:
+        card_query = card_query.filter(Episode.season_number == season_number)
+
+    # Order cards by episode order
+    cards = card_query.order_by(
+        Episode.season_number,
+        Episode.episode_number,
+        Episode.absolute_number,
+    ).all()
+
+    # Check if any cards exist
+    if not cards:
+        raise HTTPException(
+            status_code=404,
+            detail='No Title Cards found for this Series'
+        )
+
+    # Create temporary zip directory
+    tzip = TemporaryZip(settings.temporary_directory, background_tasks)
+
+    # Track if any files were added
+    files_added = 0
+
+    # Add each card file to the zip
+    for card in cards:
+        # Skip if card file doesn't exist
+        if not (card_path := card.file).exists():
+            log.warning(f'Card file does not exist: {card.card_file}')
+            continue
+
+        tzip.add_file(card_path, log=log)
+        files_added += 1
+
+    # Check if any files were actually added
+    if files_added == 0:
+        raise HTTPException(
+            status_code=404,
+            detail='No Title Card files exist on disk'
+        )
+
+    log.info(f'Creating zip with {files_added} Title Cards for {series}')
+
+    # Create and return the zip file
+    zip_path = tzip.zip(log=log)
+    return FileResponse(
+        zip_path,
+        media_type='application/zip',
+        filename=f'{series.path_safe_name} Title Cards.zip'
+    )
 
 
 @card_router.put('/series/{series_id}/load/all', deprecated=True)
@@ -460,7 +580,10 @@ def load_series_title_cards_(
     # Load Title Cards into only the specified library
     if library_name and interface_id:
         interface = get_interface(interface_id, raise_exc=True)
-        if interface.INTERFACE_TYPE not in ('Emby', 'Jellyfin', 'Plex'):
+        if not isinstance(
+            interface,
+            (EmbyInterface, JellyfinInterface, PlexInterface)
+        ):
             raise HTTPException(
                 status_code=400,
                 detail='Can only load Cards into Emby, Jellyfin, or Plex'

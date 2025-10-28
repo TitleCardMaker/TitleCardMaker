@@ -2,25 +2,26 @@ from pathlib import Path
 from time import sleep
 from typing import Any, cast
 
-from app.schemas.schedule import Hours
 from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy import and_, func, or_
 from sqlalchemy.exc import OperationalError, PendingRollbackError
-from sqlalchemy.orm import Query, Session, load_only
+from sqlalchemy.orm import Query, Session
 from sqlalchemy.orm.session import object_session
 
+from app.cards.base import BaseCardType
+from app.cards.episode_ranges import SeasonTitleRanges
+from app.cards.loader import RemoteCardType, RemoteFile
+from app.cards.title import Title
+from app.cards.types import BUILTIN_CARD_TYPES
 from app.core.availability import expire_cache, get_remote_card_hash
-from app.core.cache import (
-    cache_result,
-    invalidate_card_cache,
-)
+from app.core.cache import invalidate_card_cache
 from app.core.episodes import refresh_episode_data
 from app.core.sources import download_episode_source_images
 from app.core.templates import get_effective_templates
 from app.core.translate import translate_episode
 from app.db.query import get_font, get_media_interface
-from app.dependencies import get_database
+from app.dependencies import get_database, get_first_tmdb_interface
 from app.exceptions import (
     InvalidCardSettings,
     InvalidFormatString,
@@ -34,20 +35,14 @@ from app.models.font import Font
 from app.models.loaded import Loaded
 from app.models.series import Library, Series
 from app.models.template import Template
-from app.schemas.base import Base
+from app.schemas.base import BaseCardModel
 from app.schemas.font import DefaultFont
-from app.schemas.card import NewTitleCard, TitleCardReduced
+from app.schemas.card import NewTitleCard
 from app.schemas.card_type import LocalCardTypeModels
 from app.settings import settings
-from modules.BaseCardType import BaseCardType
-from modules.CleanPath import CleanPath
-from modules.FormatString import FormatString
-from modules.RemoteCardType import RemoteCardType
-from modules.RemoteFile import RemoteFile
-from modules.SeasonTitleRanges import SeasonTitleRanges
-from modules.TieredSettings import TieredSettings
-from modules.Title import Title
-from modules.TitleCard import TitleCard as TitleCardCreator
+from app.utils.fstring import FormatString
+from app.utils.paths import CleanPath
+from app.utils.tiered_settings import TieredSettings
 
 
 def create_all_title_cards(*, log: Logger = log) -> None:
@@ -221,7 +216,7 @@ def clean_database(*, log: Logger = log) -> None:
             db.commit()
 
 
-def refresh_all_remote_card_types(*, log: Logger = log) -> None:
+def refresh_all_card_types(*, log: Logger = log) -> None:
     """
     Schedule-able function to refresh all specified RemoteCardTypes.
 
@@ -272,8 +267,9 @@ def refresh_remote_card_types(
     for card_identifier in card_identifiers:
         # Skip blank identifiers, and builtin or local cards
         if (card_identifier is None
-            or card_identifier in TitleCardCreator.CARD_TYPES
-            or card_identifier in settings.local_card_types):
+            or card_identifier in BUILTIN_CARD_TYPES
+            or card_identifier in settings.local_card_types
+        ):
             continue
 
         # If not resetting, skip already loaded types
@@ -294,7 +290,7 @@ def refresh_remote_card_types(
             settings.remote_card_types[card_identifier] =card_type.card_class
 
 
-def _card_type_model_to_json(model: Base) -> dict:
+def _card_type_model_to_json(model: BaseCardModel) -> dict:
     """
     Convert the given Pydantic card type model to JSON (dict) for
     comparison and storing in the Card.model_json Column.
@@ -321,7 +317,7 @@ def _card_type_model_to_json(model: Base) -> dict:
 def add_card_to_database(
         db: Session,
         card_model: NewTitleCard,
-        CardTypeModel: Base,
+        CardTypeModel: BaseCardModel,
         card_file: Path,
         library: Library | None,
         *,
@@ -365,7 +361,7 @@ def validate_card_type_model(
         card_settings: dict,
         *,
         log: Logger = log,
-    ) -> tuple[type[BaseCardType], Base]:
+    ) -> tuple[type[BaseCardType], BaseCardModel]:
     """
     Validate the given Card settings into the associated Pydantic model
     and BaseCardType class.
@@ -397,7 +393,7 @@ def validate_card_type_model(
         CardTypeModel = LocalCardTypeModels[card_settings['card_type']]
     # Remove card types
     elif hasattr(CardClass, 'CardModel'):
-        CardTypeModel = cast(type[Base], CardClass.CardModel)
+        CardTypeModel = cast(type[BaseCardModel], CardClass.CardModel) # type: ignore
     else:
         raise HTTPException(
             status_code=400,
@@ -424,7 +420,7 @@ def create_card(
         db: Session,
         card_model: NewTitleCard,
         CardClass: type[BaseCardType],
-        CardTypeModel: Base,
+        CardTypeModel: BaseCardModel,
         library: Library | None,
         *,
         log: Logger = log,
@@ -463,15 +459,17 @@ def create_card(
     return None
 
 
-def resolve_card_settings(
+def _merge_card_settings(
         episode: Episode,
         library: Library | None = None,
         *,
         log: Logger = log,
-    ) -> dict:
+    ) -> tuple[dict, type[BaseCardType]]:
     """
-    Resolve the Title Card settings for the given Episode. This evalutes
-    all global, Series, and Template overrides.
+    Merge all settings for the given Episode. This does a tiered merge
+    of global, Series, and Episode settings, and returns the final
+    settings dictionary. Extras and the pre-resolution data enrichment
+    hook are also applied. This does not resolve any format strings.
 
     Args:
         episode: Episode whose Card settings are being resolved.
@@ -479,11 +477,10 @@ def resolve_card_settings(
         log: Logger for all log messages.
 
     Returns:
-        The resolved Card settings as a dictionary.
+        A tuple of the resolved Card settings (as a dictionary) and the
+        CardClass for the given Episode.
 
     Raises:
-        HTTPException (404): A specified Template or Font is missing.
-        MissingSourceImage: The required Source Image is missing.
         UnknownCardType: The indicated card type is unknown/invalid.
             Most likely this is a remote card type which needs to be
             downloaded.
@@ -511,7 +508,7 @@ def resolve_card_settings(
         series.card_type,
         episode_template_dict.get('card_type'),
         episode.card_type,
-    )
+    ) or settings.default_card_type
 
     # Get effective Font for this Series and Episode
     global_font_dict, series_font_dict, episode_font_dict = {}, {}, {}
@@ -579,6 +576,56 @@ def resolve_card_settings(
     TieredSettings(card_settings, card_extras)
     card_settings['extras'] = card_extras | episode.translations
 
+    # Get the effective card class
+    CardClass = settings.get_card_type_class(
+        card_settings['card_type'], log=log
+    )
+    if CardClass is None:
+        raise UnknownCardType(card_settings['card_type'])
+
+    # Call pre-resolution data enrichment hook
+    enriched_data = CardClass.enrich_card_data(
+        series_info=series.as_series_info,
+        episode_info=episode.as_episode_info,
+        tmdb_interface=get_first_tmdb_interface(None),
+        log=log,
+        **card_extras,
+    )
+    TieredSettings(card_settings, enriched_data)
+
+    return card_settings, CardClass
+
+
+def resolve_card_settings(
+        episode: Episode,
+        library: Library | None = None,
+        *,
+        log: Logger = log,
+    ) -> dict:
+    """
+    Resolve the Title Card settings for the given Episode. This evalutes
+    all global, Series, and Template overrides.
+
+    Args:
+        episode: Episode whose Card settings are being resolved.
+        library: Library associated with this Card.
+        log: Logger for all log messages.
+
+    Returns:
+        The resolved Card settings as a dictionary.
+
+    Raises:
+        HTTPException (404): A specified Template or Font is missing.
+        MissingSourceImage: The required Source Image is missing.
+        UnknownCardType: The indicated card type is unknown/invalid.
+            Most likely this is a remote card type which needs to be
+            downloaded.
+    """
+
+    # Get effective Template(s) for this Series and Episode
+    series = episode.series
+    card_settings, CardClass = _merge_card_settings(episode, library, log=log)
+
     # Resolve logo file format string if indicated
     logo_file = Path(card_settings['logo_file'])
     filename = FormatString.new(
@@ -590,18 +637,11 @@ def resolve_card_settings(
     card_settings['logo_file'] = series.source_directory \
         / f'{filename}{logo_file.suffix}'
 
-    # Get the effective card class
-    CardClass = settings.get_card_type_class(
-        card_settings['card_type'], log=log
-    )
-    if CardClass is None:
-        raise UnknownCardType(card_settings['card_type'])
-
     # Add card default font stuff
     if card_settings.get('font_file', None) is None:
-        card_settings['font_file'] = CardClass.TITLE_FONT
+        card_settings['font_file'] = CardClass.CardConfig.font_file
     if card_settings.get('font_color', None) is None:
-        card_settings['font_color'] = CardClass.TITLE_COLOR
+        card_settings['font_color'] = CardClass.CardConfig.font_color
 
     # Resolve auto color detection
     if (card_settings['font_color'] in ('{logo_color}', '{logo_color_no_white}')
@@ -611,14 +651,15 @@ def resolve_card_settings(
         if card_settings['font_color'] == '{logo_color}':
             card_settings['font_color'] = (
                 '{get_image_color(logo_file, '
-                + 'fallback=' + repr(CardClass.TITLE_COLOR) + ''
+                + 'fallback=' + repr(CardClass.CardConfig.font_color) + ''
                 + ')}'
             )
         elif card_settings['font_color'] == '{logo_color_no_white}':
             card_settings['font_color'] = (
                 '{get_image_color(logo_file, '
-                + 'fallback=' + repr(CardClass.TITLE_COLOR) + ', '
-                + 'white_threshold=210)}'
+                + 'fallback=' + repr(CardClass.CardConfig.font_color) + ', '
+                + 'white_threshold=210'
+                + ')}'
             )
 
         # Perform actual FormatString resolution
@@ -632,8 +673,8 @@ def resolve_card_settings(
         )
 
     # Apply Font pre-replacements
-    repl_in = list(CardClass.FONT_REPLACEMENTS.keys())
-    repl_out = list(CardClass.FONT_REPLACEMENTS.values())
+    repl_in = list(CardClass.CardConfig.font_replacements.keys())
+    repl_out = list(CardClass.CardConfig.font_replacements.values())
     if card_settings.get('font_replacements_in', []):
         repl_in = card_settings['font_replacements_in']
     if card_settings.get('font_replacements_out', []):
@@ -645,10 +686,11 @@ def resolve_card_settings(
     # Determine effective title text
     if card_settings.get('auto_split_title', True):
         card_settings['title_text'] = Title(card_settings['title']).split(
-            CardClass.get_title_split_characteristics(
-                # Make a copy of the characteristics to avoid modifying in-place
-                {**CardClass.TITLE_CHARACTERISTICS},
-                CardClass.TITLE_FONT,
+            *CardClass.get_title_split_characteristics(
+                CardClass.CardConfig.title_max_line_width,
+                CardClass.CardConfig.title_max_line_count,
+                CardClass.CardConfig.title_split_style,
+                CardClass.CardConfig.font_file,
                 card_settings
             )
         )
@@ -657,7 +699,7 @@ def resolve_card_settings(
 
     # Apply title text case function
     if card_settings.get('font_title_case') is None:
-        case_func = CardClass.CASE_FUNCTIONS[CardClass.DEFAULT_FONT_CASE]
+        case_func = CardClass.CASE_FUNCTIONS[CardClass.CardConfig.font_case]
     else:
         case_func = CardClass.CASE_FUNCTIONS[card_settings['font_title_case']]
     card_settings['title_text'] = case_func(card_settings['title_text'])
@@ -678,7 +720,7 @@ def resolve_card_settings(
     episode_info = episode.as_episode_info
     season_title_ranges = SeasonTitleRanges(
         card_settings.get('season_titles', {}),
-        fallback=getattr(CardClass, 'season_text_formatter', None),
+        fallback=getattr(CardClass, 'SEASON_TEXT_FORMATTER', None),
         log=log,
     )
     card_settings['season_title'] = season_title_ranges.get_season_text(
@@ -702,7 +744,7 @@ def resolve_card_settings(
     if card_settings.get('episode_text') is None:
         card_settings['episode_text'] = FormatString.new(
             card_settings.pop(
-                'episode_text_format', CardClass.EPISODE_TEXT_FORMAT,
+                'episode_text_format', CardClass.CardConfig.episode_text_format,
             ),
             data=card_settings,
             name='episode text format', series=series, episode=episode, log=log,
@@ -738,8 +780,8 @@ def resolve_card_settings(
         )
     else:
         card_settings['source_file'] = CleanPath(
-            settings.source_directory \
-                / series.path_safe_name \
+            settings.source_directory
+                / series.path_safe_name
                 / FormatString.new(
                     card_settings['source_file'],
                     data=card_settings,
@@ -751,18 +793,17 @@ def resolve_card_settings(
             ).sanitize()
 
     # Exit if the source file does not exist
-    if (CardClass.USES_SOURCE_IMAGES
+    if (CardClass.CardConfig.uses_source_images
         and not card_settings['source_file'].exists()):
-        log.debug(
+        log.debug((
             f'{episode} Card source image ({card_settings["source_file"]}) is '
             f'missing'
-        )
+        ))
         raise MissingSourceImage
 
     # Get card folder
     if card_settings.get('directory') is None:
-        series_directory = Path(settings.card_directory) \
-            / series.path_safe_name
+        series_directory = Path(settings.card_directory) / series.path_safe_name
     else:
         series_directory = Path(card_settings['directory'][:254])
 
@@ -776,13 +817,17 @@ def resolve_card_settings(
         # Add library-specific identifier to filename if indicated
         if library is not None and settings.library_unique_cards:
             filename += f' [{library["interface"]} {library["name"]}]'
-        card_settings['card_file'] = series_directory \
-            / settings.get_folder_format(episode_info) \
-            / filename
+        card_settings['card_file'] = (
+            series_directory
+                / settings.get_folder_format(episode_info)
+                / filename
+            )
     else:
-        card_settings['card_file'] = series_directory \
-            / settings.get_folder_format(episode_info) \
-            / CleanPath.sanitize_name(card_settings['card_file'])
+        card_settings['card_file'] = (
+            series_directory
+                / settings.get_folder_format(episode_info)
+                / CleanPath.sanitize_name(card_settings['card_file'])
+        )
 
     # Add extension if needed
     card_file_name = card_settings['card_file'].name
@@ -872,13 +917,15 @@ def create_episode_card(
     elif library:
         # Look for Card associated with this library OR no library (if
         # the library was just added to the Series)
-        existing_card = db.query(Card)\
-            .filter(Card.episode_id==episode.id,
-                    or_(and_(Card.interface_id==library['interface_id'],
-                             Card.library_name==library['name']),
-                        and_(Card.interface_id.is_(None),
-                             Card.library_name.is_(None))))\
-            .first()
+        existing_card = (
+            db.query(Card)
+                .filter(Card.episode_id==episode.id,
+                        or_(and_(Card.interface_id==library['interface_id'],
+                                 Card.library_name==library['name']),
+                            and_(Card.interface_id.is_(None),
+                                 Card.library_name.is_(None))))
+                .first()
+        )
 
     # No existing Card, begin creation
     if not existing_card:
@@ -907,10 +954,10 @@ def create_episode_card(
         )
         different = True
     elif card.source_file != existing_card.source_file:
-        log.trace(
+        log.trace((
             f'{episode}.source_file = {existing_card.source_file} -> '
             f'{card.source_file}'
-        )
+        ))
         different = True
     else:
         for attr in existing_card.model_json:
@@ -922,10 +969,10 @@ def create_episode_card(
             for attr, new_val in new_model_json.items():
                 if (not attr.endswith('_rotation_angle')
                     and str(new_val) != str(_get_existing(attr))):
-                    log.trace(
+                    log.trace((
                         f'{episode}.{attr} = {_get_existing(attr)!r} -> '
                         f'{new_val!r}'
-                    )
+                    ))
                     different = True
                     break
 
@@ -1066,61 +1113,3 @@ def delete_cards(
         db.commit()
 
     return deleted
-
-
-@cache_result(ttl=Hours(12), key_prefix='series')
-def get_series_cards(db: Session, series_id: int) -> list[Card]:
-    """
-    # TODO: Document function.
-    """
-
-    return (
-        db.query(Card)
-            .filter_by(series_id=series_id)
-            .join(Episode)
-            .order_by(
-                Episode.season_number,
-                Episode.episode_number,
-                Episode.absolute_number,
-            )
-            .all()
-    )
-
-
-@cache_result(ttl=Hours(12), key_prefix='series')
-def get_series_reduced_cards_with_cache(
-        db: Session,
-        series_id: int,
-    ) -> list[TitleCardReduced]:
-    """
-    # TODO: Document function.
-    """
-
-    # Get from database with reduced fields
-    cards = (
-        db.query(Card)
-            .options(
-                load_only(
-                    Card.id,
-                    Card.episode_id,
-                    Card.card_file,
-                    Card.filesize,
-                    Card.library_name,
-                )
-            )
-            .filter_by(series_id=series_id)
-            .join(Episode, Episode.id == Card.episode_id)
-            .order_by(
-                Episode.season_number,
-                Episode.episode_number,
-                Episode.absolute_number,
-                Card.library_name,
-            )
-            .all()
-    )
-
-    # Convert to reduced format
-    return [
-        TitleCardReduced.model_validate(card)
-        for card in cards
-    ]

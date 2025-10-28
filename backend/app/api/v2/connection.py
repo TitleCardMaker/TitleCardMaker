@@ -2,13 +2,34 @@ from typing import Literal
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
-from app.db.query import get_connection
-from app.dependencies import *
-from app.db.users import get_current_user
 from app.core.backup import backup_data
 from app.core.cards import delete_cards
 from app.core.connection import add_connection, update_connection
+from app.db.query import get_connection
+from app.db.users import get_current_user
+from app.dependencies import (
+    InterfaceGroup,
+    get_database,
+    get_emby_interfaces,
+    get_jellyfin_interfaces,
+    get_logger,
+    get_plex_interfaces,
+    get_sonarr_interfaces,
+    get_tmdb_interfaces,
+    get_tvdb_interfaces,
+)
+from app.interfaces.v2 import (
+    EmbyInterface,
+    JellyfinInterface,
+    PlexInterface,
+    SonarrInterface,
+    TautulliInterface,
+    TMDbInterface,
+    TVDbInterface,
+)
+from app.logging.logger import Logger
 from app.models.card import Card
 from app.models.connection import Connection
 from app.models.episode import Episode
@@ -40,10 +61,7 @@ from app.schemas.connection import (
     UpdateTMDb,
     UpdateTVDb,
 )
-from app.logging.logger import Logger
 from app.settings import settings
-from app.interfaces.sonarr import SonarrInterface
-from app.interfaces.tautulli import TautulliInterface
 
 
 # Create sub router for all /connection API requests
@@ -387,7 +405,9 @@ def update_jellyfin_connection(
         interface_id: int,
         update_object: UpdateJellyfin = Body(...),
         db: Session = Depends(get_database),
-        jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
+        jellyfin_interfaces: InterfaceGroup[
+            int, JellyfinInterface
+        ] = Depends(get_jellyfin_interfaces),
         log: Logger = Depends(get_logger),
     ) -> JellyfinConnection:
     """
@@ -399,7 +419,7 @@ def update_jellyfin_connection(
 
     return update_connection(
         db, interface_id, jellyfin_interfaces, update_object, log=log
-    ) # type: ignore
+    )
 
 
 @connection_router.patch('/plex/{interface_id}')
@@ -694,7 +714,7 @@ def add_tautulli_integration(
 
     TautulliInterface(
         tcm_url=tautulli_connection.tcm_url,
-        tautulli_url=tautulli_connection.url,
+        tautulli_url=str(tautulli_connection.url),
         api_key=tautulli_connection.api_key.get_secret_value(),
         plex_interface_id=plex_interface_id,
         use_ssl=tautulli_connection.use_ssl,

@@ -3,14 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from re import sub as regex_replace, IGNORECASE
 from string import ascii_letters, digits
-from typing import (
-    Any,
-    Iterator,
-    Literal,
-    Optional,
-    TypedDict,
-    TYPE_CHECKING,
-)
+from typing import Any, Iterator, Literal, TypedDict, TYPE_CHECKING
 
 from sqlalchemy import ColumnElement, ForeignKey, JSON, String, event, func
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
@@ -26,10 +19,7 @@ from app.logging.logger import Logger, log
 from app.models.template import SeriesTemplates, Template
 from app.schemas.connection import ServerName
 from app.settings import settings
-from modules.CleanPath import CleanPath
-
-# Import cache functions for invalidation
-from app.core.cache import invalidate_series_cache
+from app.utils.paths import CleanPath
 
 if TYPE_CHECKING:
     from sqlalchemy.event import Events
@@ -140,14 +130,14 @@ class Series(Base):
     card_filename_format: Mapped[str | None]
     sync_specials: Mapped[bool | None]
     skip_localized_images: Mapped[bool | None]
-    translations: Mapped[Optional[list[dict[str, str]]]] = mapped_column(
+    translations: Mapped[list[dict[str, str]] | None] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=None
     )
     match_titles: Mapped[bool] = mapped_column(default=True)
     auto_split_title: Mapped[bool] = mapped_column(default=True)
     use_per_season_assets: Mapped[bool] = mapped_column(default=False)
-    image_source_priority: Mapped[Optional[list[int]]] = mapped_column(
+    image_source_priority: Mapped[list[int] | None] = mapped_column(
         MutableList.as_mutable(JSON), # type: ignore
         default=None,
     )
@@ -175,7 +165,7 @@ class Series(Base):
     # Card arguments
     card_type: Mapped[str | None]
     hide_season_text: Mapped[bool | None]
-    season_titles: Mapped[Optional[dict[str, str]]] = mapped_column(
+    season_titles: Mapped[dict[str, str] | None] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
         default=None,
     )
@@ -183,7 +173,7 @@ class Series(Base):
     episode_text_format: Mapped[str | None]
     unwatched_style: Mapped[str | None]
     watched_style: Mapped[str | None]
-    extras: Mapped[Optional[dict[str, str]]] = mapped_column(
+    extras: Mapped[dict[str, str] | None] = mapped_column(
         MutableDict.as_mutable(JSON), # type: ignore
         default=None,
     )
@@ -933,47 +923,3 @@ def set_series_full_name(
     """
 
     target.full_name = f'{target.name} ({value})'
-
-
-@event.listens_for(Series, 'after_update')
-def invalidate_series_cache_on_update(mapper, connection, target: Series) -> None:
-    """
-    Invalidate cache when a Series is updated.
-    
-    This event handler automatically invalidates all cache entries related to a Series
-    whenever any of its attributes are modified. This ensures that cached data
-    remains consistent with the database state.
-    
-    The invalidation covers:
-    - Series data cache
-    - Series cards cache  
-    - Series episodes cache
-    - Series episodes simplified cache
-    - Series episodes overview cache
-    - Pattern-based cache entries
-    """
-    try:
-        invalidated_count = invalidate_series_cache(target.id)
-        log.debug(f'Invalidated {invalidated_count} cache entries after updating Series {target.id}')
-    except Exception as e:
-        log.error(f'Error invalidating cache for Series {target.id}: {e}')
-
-
-@event.listens_for(Series, 'after_delete')
-def invalidate_series_cache_on_delete(mapper, connection, target: Series) -> None:
-    """
-    Invalidate cache when a Series is deleted.
-    
-    This event handler automatically invalidates all cache entries related to a Series
-    when it is deleted from the database. This ensures that no stale cached data
-    remains after deletion.
-    
-    The invalidation covers the same cache entries as the update handler.
-    """
-    try:
-        # Get the series ID before the object is deleted
-        series_id = target.id
-        invalidated_count = invalidate_series_cache(series_id)
-        log.debug(f'Invalidated {invalidated_count} cache entries after deleting Series {series_id}')
-    except Exception as e:
-        log.error(f'Error invalidating cache for deleted Series: {e}')

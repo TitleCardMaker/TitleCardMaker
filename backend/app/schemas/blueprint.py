@@ -3,11 +3,10 @@
 from datetime import datetime
 from json import loads
 from re import sub as re_sub, IGNORECASE
-from typing import Any, Self
+from typing import Annotated, Any, Self
 
 from pydantic import (
     Field,
-    PositiveInt,
     computed_field,
     field_validator,
     model_validator,
@@ -17,7 +16,7 @@ from pydantic import (
 from app.schemas.base import Base
 from app.schemas.font import TitleCase
 from app.schemas.series import Condition, SeasonTitleRange, Translation
-from modules.CleanPath import CleanPath
+from app.utils.paths import CleanPath
 
 """
 Base classes
@@ -173,7 +172,7 @@ class RemoteBlueprintSeries(Base):
     imdb_id: str | None
     tmdb_id: int | None
     tvdb_id: int | None
-    blueprint_count: PositiveInt = 1
+    blueprint_count: Annotated[int, Field(ge=1)] = 1
 
 class RemoteBlueprint(Base):
     id: int
