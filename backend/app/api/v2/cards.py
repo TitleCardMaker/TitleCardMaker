@@ -1,6 +1,14 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    HTTPException,
+    Query,
+)
+from fastapi.responses import FileResponse
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import not_
 from sqlalchemy.orm import Session, load_only
@@ -55,6 +63,7 @@ from app.schemas.series import UpdateSeries
 from app.settings import settings
 from app.utils.fstring import FormatString
 from app.utils.tiered_settings import TieredSettings
+from app.utils.tzip import TemporaryZip
 
 
 # Create sub router for all /cards API requests
@@ -421,6 +430,85 @@ def get_series_cards_reduced_models(
                 Episode.absolute_number,
                 Card.library_name,
             )
+    )
+
+
+@card_router.get('/series/{series_id}/download', tags=['Series'])
+def download_series_title_cards_zip(
+        background_tasks: BackgroundTasks,
+        series_id: int,
+        season_number: int | None = Query(default=None),
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+    ) -> FileResponse:
+    """
+    Download all Title Cards for the given Series as a zip file. Cards
+    are organized in the zip file by season folders.
+
+    - series_id: ID of the Series to download the cards of.
+    - season_number: Optional season number to filter cards by. If
+    provided, only cards for this season are included.
+    """
+
+    # Get this Series, raise 404 if DNE
+    series = get_series(db, series_id, raise_exc=True)
+
+    # Build query for Cards
+    card_query = (
+        db.query(Card)
+            .filter_by(series_id=series_id)
+            .join(Episode, Card.episode_id == Episode.id)
+    )
+
+    # Filter by season number if provided
+    if season_number is not None:
+        card_query = card_query.filter(Episode.season_number == season_number)
+
+    # Order cards by episode order
+    cards = card_query.order_by(
+        Episode.season_number,
+        Episode.episode_number,
+        Episode.absolute_number,
+    ).all()
+
+    # Check if any cards exist
+    if not cards:
+        raise HTTPException(
+            status_code=404,
+            detail='No Title Cards found for this Series'
+        )
+
+    # Create temporary zip directory
+    tzip = TemporaryZip(settings.temporary_directory, background_tasks)
+
+    # Track if any files were added
+    files_added = 0
+
+    # Add each card file to the zip
+    for card in cards:
+        # Skip if card file doesn't exist
+        if not (card_path := card.file).exists():
+            log.warning(f'Card file does not exist: {card.card_file}')
+            continue
+
+        tzip.add_file(card_path, log=log)
+        files_added += 1
+
+    # Check if any files were actually added
+    if files_added == 0:
+        raise HTTPException(
+            status_code=404,
+            detail='No Title Card files exist on disk'
+        )
+
+    log.info(f'Creating zip with {files_added} Title Cards for {series}')
+
+    # Create and return the zip file
+    zip_path = tzip.zip(log=log)
+    return FileResponse(
+        zip_path,
+        media_type='application/zip',
+        filename=f'{series.path_safe_name} Title Cards.zip'
     )
 
 

@@ -2769,6 +2769,31 @@ function showCardUpload() {
 }
 
 /**
+ * Submit an API request to download all Title Cards for this Series as a zip
+ * file.
+ */
+function downloadSeriesTitleCards() {
+  const $button = $('.segment[data-tab="files"] .button[onclick*="downloadSeriesTitleCards"]');
+  $button.toggleClass('loading', true);
+
+  $.ajax({
+    type: 'GET',
+    url: '/api/v2/cards/series/{{ series.id }}/download',
+    xhrFields: {responseType: 'blob'},
+    /**
+     * Title Cards zip downloaded successfully, trigger browser download.
+     * @param {Blob} zipBlob Blob of the zip file for this Series' Title Cards.
+     */
+    success: zipBlob => {
+      downloadFileBlob(`${series_full_name} Title Cards.zip`, zipBlob);
+      showInfoToast('Downloaded Title Cards');
+    },
+    error: response => showErrorToast({title: 'Error Downloading Title Cards', response}),
+    complete: () => $button.toggleClass('loading', false),
+  });
+}
+
+/**
  * Submit an API request to upload the source images to this Series' source
  * directory.
  */

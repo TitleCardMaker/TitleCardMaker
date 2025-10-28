@@ -302,7 +302,7 @@ def import_blueprint(
 
         # Update Font ID from Font map if indicated
         if getattr(template, 'font_id', None) is not None:
-            template.font_id = font_map[template.font_id].id
+            template.font_id = font_map[template.font_id].id # type: ignore
 
         # Create new Template model, add to database and store in map
         new_template = Template(
