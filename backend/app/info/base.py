@@ -169,7 +169,7 @@ class InterfaceID:
                 pass
 
 
-    def __eq__(self, other: str | 'InterfaceID') -> bool:
+    def __eq__(self, other: 'str | InterfaceID') -> bool:
         """
         Evaluate the equality of two InterfaceID objects.
 
@@ -202,7 +202,7 @@ class InterfaceID:
         return any(other[iid] == id_ for iid, id_ in self._ids.items())
 
 
-    def __gt__(self, other: str | 'InterfaceID') -> bool:
+    def __gt__(self, other: 'str | InterfaceID') -> bool:
         """
         Evaluate whether this object contains more information than is
         available in the comparison ID.
@@ -241,7 +241,7 @@ class InterfaceID:
         return any(key not in other._ids for key in self._ids)
 
 
-    def __lt__(self, other: str | 'InterfaceID') -> bool:
+    def __lt__(self, other: 'str | InterfaceID') -> bool:
         """
         Evaluate whether this object contains less information than is
         available in the comparison ID.
@@ -316,7 +316,7 @@ class InterfaceID:
         )
 
 
-    def __add__(self, other: str | 'InterfaceID') -> 'InterfaceID':
+    def __add__(self, other: 'str | InterfaceID') -> 'InterfaceID':
         """
         Add this object to the given object, returning the combination
         of their IDs. This objects IDs take priority in any interface
@@ -405,7 +405,7 @@ class DatabaseInfoContainer(ABC):
         raise NotImplementedError(f'All DatabaseInfoContainers must define this')
 
 
-    def __eq__(self, other: 'DatabaseInfoContainer') -> bool:
+    def __eq__(self, other: 'DatabaseInfoContainer | object') -> bool:
         """
         Compare the equality of two like objects. This compares all
         `_id` attributes of the objects.
@@ -423,9 +423,7 @@ class DatabaseInfoContainer(ABC):
 
         # Verify class comparison
         if not isinstance(other, self.__class__):
-            raise TypeError(
-                f'Can only compare like {self.__class__.__name__} objects'
-            )
+            return False
 
         return any(
             getattr(self, attr, None) is not None
