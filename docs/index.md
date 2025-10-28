@@ -83,6 +83,11 @@ TitleCardMaker:
         <img class="no-lightbox" src="./card_types/assets/cutout.webp" loading="lazy">
       </a>
     </figure>
+    <figure data-label="Dictionary">
+      <a data-label="Dictionary" href="./card_types/dictionary">
+        <img class="no-lightbox" src="./card_types/assets/dictionary.webp" loading="lazy">
+      </a>
+    </figure>
     <figure data-label="Divider">
       <a data-label="Divider" href="./card_types/divider">
         <img class="no-lightbox" src="./card_types/assets/divider.webp" loading="lazy">
