@@ -294,7 +294,10 @@ class Settings(SerializationMixin):
         """Update multiple values at once and commit changes."""
 
         for name, value in update_kwargs.items():
-            if hasattr(self, name) and value != '_UnspecifiedValue':
+            if (hasattr(self, name)
+                and value != '_UnspecifiedValue'
+                and getattr(self, name) != value
+            ):
                 setattr(self, name, value)
                 log.debug(f'Settings.{name} = {value}')
         self.commit(log=log)
