@@ -92,9 +92,9 @@ class DictionaryTitleCard(BaseCardType):
                 description='Whether to italicize the definition text',
                 tooltip=(
                     'Either <v>True</v> or <v>False</v>. Default is '
-                    '<v>False</v>.'
+                    '<v>True</v>.'
                 ),
-                default='False',
+                default='True',
             ),
             Extra(
                 name='Quote Definition Toggle',
@@ -143,14 +143,14 @@ class DictionaryTitleCard(BaseCardType):
             ),
             Extra(
                 name='Word Text Font Size',
-                identifier='word_font_size',
+                identifier='word_size',
                 description='Size adjustment for the word text',
                 tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
                 default=1.0,
             ),
         ],
         description=[
-            ''
+            'Not yet written', # TODO
         ]
     )
 
@@ -595,6 +595,7 @@ def get_validator_model() -> type[BaseCardModel]:
         separator: str = ', '
         word_text: str = '{series_name.lower()}'
         word_color: str | None = None
+        word_size: Annotated[float, Field(gt=0)] = 1.0
 
         @model_validator(mode='after')
         def assign_unassigned_color(self) -> Self:
