@@ -153,8 +153,7 @@ class AppConfig(BaseSettings):
         'URL to the card type repository'
     ] = Field(
         default=(
-            'https://raw.githubusercontent.com/CollinHeist/'
-            'TitleCardMaker-CardTypes/'
+            'https://raw.githubusercontent.com/TitleCardMaker/CardTypes/'
             + ('web-ui-develop' if CURRENT_VERSION.is_develop else 'web-ui')
         ),
     )
