@@ -14,7 +14,7 @@ from fastapi import (
 from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.cards import create_episode_cards, delete_cards
