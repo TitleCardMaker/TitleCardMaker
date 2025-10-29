@@ -15,7 +15,7 @@ import {
 /** @type {EpisodeDataSourceToggle} Which data sources are enabled*/
 const episodeDataSources = {{ episode_data_sources | tojson }};
 /** @type {number} The ID of the global episode data source */
-const globalEpisodeDataSource = {{ preferences.episode_data_source }};
+const globalEpisodeDataSource = {{ preferences.episode_data_source | tojson }};
 /** @type {AnyConnection[]} All globally defined and enabled Connections */
 const allConnections = {{ all_connections | tojson }};
 /** @type {number} Minimum interval between calls to add a new series */
@@ -357,6 +357,9 @@ function initializeLibraryDropdowns() {
       $('.dropdown[data-value="libraries"]').dropdown({
         placeholder: 'None',
         values: libraries.map(({interface, interface_id, name}) => {
+          if (!allConnections || allConnections.length === 0) {
+            return {}
+          }
           const serverName = allConnections.filter(connection => connection.id === interface_id)[0].name || interface;
           return {
             name: name,
