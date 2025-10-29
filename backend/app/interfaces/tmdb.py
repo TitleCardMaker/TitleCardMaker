@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Callable, cast
+from typing import TYPE_CHECKING, Any, Callable, cast
 
 from fastapi import HTTPException
 from tmdbapis import (
@@ -585,10 +585,13 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Create API object, validate key (if not in testing mode)
         try:
-            self.api = cast(
-                TMDbAPIs,
-                DecoratedAPI(TMDbAPIs(api_key, self.session))
-            )
+            if not config.TESTING_MODE:
+                self.api = cast(
+                    TMDbAPIs,
+                    DecoratedAPI(TMDbAPIs(api_key, self.session))
+                )
+            elif not TYPE_CHECKING:
+                self.api = None
         except Unauthorized as exc:
             log.error('TMDb API key is invalid')
             raise HTTPException(
