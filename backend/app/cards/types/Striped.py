@@ -566,11 +566,13 @@ class StripedTitleCard(BaseCardType):
         )
 
         x = 55
-        y = 50 \
-            + self.font_interline_spacing \
-            + height \
-            - 25 \
+        y = (
+            50
+            + self.font_interline_spacing
+            + height
+            - 25
             + self.episode_text_vertical_shift
+        )
 
         return [
             f'-font "{self.EPISODE_TEXT_FONT}"',
@@ -690,7 +692,7 @@ class StripedTitleCard(BaseCardType):
 
         mask = self.image_magick.get_random_filename(self.source_file)
 
-        command = ' '.join([
+        self.image_magick.run([
             f'convert',
             f'-size {self.WIDTH}x{self.HEIGHT}',
             # Alpha mask composition, non-polygons must be white
@@ -702,7 +704,6 @@ class StripedTitleCard(BaseCardType):
             *[polygon.draw() for polygon in self._create_polygons()],
             f'" "{mask.resolve()}"',
         ])
-        self.image_magick.run(command)
 
         return mask
 
@@ -794,7 +795,6 @@ def get_validator_model() -> type[BaseCardModel]:
         StringConstraints(**kwargs, pattern=r'^(\d+-\d+,?)+\+?$'),
     ]
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
         season_text: str
         episode_text: str
@@ -850,10 +850,10 @@ def get_validator_model() -> type[BaseCardModel]:
                 # Verify lower bound is below upper
                 lower, upper = tuple(map(int, range_.split('-', maxsplit=1)))
                 if not lower <= upper:
-                    raise ValueError(
+                    raise ValueError((
                         f'Lower bound of size boundary ({lower}) must be below '
                         f'upper bound ({upper})'
-                    )
+                    ))
 
             return value
 
