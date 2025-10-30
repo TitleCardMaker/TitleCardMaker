@@ -44,12 +44,12 @@ MediaInterface = EmbyInterface | JellyfinInterface | PlexInterface
 
 
 def _get_obj(
-    db: Session,
-    model: _ObjectType,
-    model_name: str,
-    object_id: int | None,
-    raise_exc: bool = True
-) -> _ObjectType | None:
+        db: Session,
+        model: _ObjectType,
+        model_name: str,
+        object_id: int | None,
+        raise_exc: bool = True
+    ) -> _ObjectType | None:
     """
     Get the Object from the database with the given ID.
 
@@ -93,25 +93,25 @@ def _get_obj(
 
 @overload
 def get_blueprint(
-    db: Session, blueprint_id: None, *, raise_exc: bool = True
-) -> None: ...
+        db: Session, blueprint_id: None, *, raise_exc: bool = True
+    ) -> None: ...
 
 @overload
 def get_blueprint(
-    db: Session, blueprint_id: int, *, raise_exc: Literal[True] = True
-) -> Blueprint: ...
+        db: Session, blueprint_id: int, *, raise_exc: Literal[True] = True
+    ) -> Blueprint: ...
 
 @overload
 def get_blueprint(
-    db: Session, blueprint_id: int, *, raise_exc: Literal[False]
-) -> Blueprint | None: ...
+        db: Session, blueprint_id: int, *, raise_exc: Literal[False]
+    ) -> Blueprint | None: ...
 
 def get_blueprint(
-    db: Session,
-    blueprint_id: int | None,
-    *,
-    raise_exc: bool = True
-) -> Blueprint | None:
+        db: Session,
+        blueprint_id: int | None,
+        *,
+        raise_exc: bool = True
+    ) -> Blueprint | None:
     """
     Get the Blueprint with the given ID from the given Database.
 
@@ -123,20 +123,20 @@ def get_blueprint(
 
 @overload
 def get_blueprint_set(
-    db: Session, set_id: int, *, raise_exc: Literal[True] = True
-) -> BlueprintSet: ...
+        db: Session, set_id: int, *, raise_exc: Literal[True] = True
+    ) -> BlueprintSet: ...
 
 @overload
 def get_blueprint_set(
-    db: Session, set_id: int, *, raise_exc: Literal[False] = False
-) -> BlueprintSet | None: ...
+        db: Session, set_id: int, *, raise_exc: Literal[False] = False
+    ) -> BlueprintSet | None: ...
 
 def get_blueprint_set(
-    db: Session,
-    set_id: int | None,
-    *,
-    raise_exc: bool = True
-) -> BlueprintSet | None:
+        db: Session,
+        set_id: int | None,
+        *,
+        raise_exc: bool = True
+    ) -> BlueprintSet | None:
     """
     Get the BlueprintSet with the given ID from the given Database.
 
@@ -148,20 +148,20 @@ def get_blueprint_set(
 
 @overload
 def get_card(
-    db: Session, card_id: int, *, raise_exc: Literal[True] = True,
-) -> Card: ...
+        db: Session, card_id: int, *, raise_exc: Literal[True] = True,
+    ) -> Card: ...
 
 @overload
 def get_card(
-    db: Session, card_id: int, *, raise_exc: Literal[False] = False,
-) -> Card | None: ...
+        db: Session, card_id: int, *, raise_exc: Literal[False] = False,
+    ) -> Card | None: ...
 
 def get_card(
-    db: Session,
-    card_id: int | None,
-    *,
-    raise_exc: bool = True
-) -> Card | None:
+        db: Session,
+        card_id: int | None,
+        *,
+        raise_exc: bool = True
+    ) -> Card | None:
     """
     Get the Card with the given ID from the given Database.
 
@@ -173,21 +173,21 @@ def get_card(
 
 @overload
 def get_connection(
-    db: Session, connection_id: int, /, *, raise_exc: Literal[True] = True,
-) -> Connection: ...
+        db: Session, connection_id: int, /, *, raise_exc: Literal[True] = True,
+    ) -> Connection: ...
 
 @overload
 def get_connection(
-    db: Session, connection_id: int, /,*, raise_exc: bool,
-) -> Connection | None: ...
+        db: Session, connection_id: int, /,*, raise_exc: bool,
+    ) -> Connection | None: ...
 
 def get_connection(
-    db: Session,
-    connection_id: int | None,
-    /,
-    *,
-    raise_exc: bool = True,
-) -> Connection | None:
+        db: Session,
+        connection_id: int | None,
+        /,
+        *,
+        raise_exc: bool = True,
+    ) -> Connection | None:
     """
     Get the Connection with the given ID from the given Database.
 

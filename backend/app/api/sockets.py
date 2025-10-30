@@ -14,9 +14,9 @@ router = APIRouter(tags=['WebSockets'])
 
 @router.websocket('/ws/logs')
 async def open_log_websocket(
-    websocket: WebSocket,
-    timeout: int = Query(default=600, min=1),
-) -> None:
+        websocket: WebSocket,
+        timeout: int = Query(default=600, min=1),
+    ) -> None:
     """
     Open a websocket for all live log messages.
 

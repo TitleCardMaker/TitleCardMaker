@@ -450,16 +450,18 @@ def import_blueprint_and_series(
 
     # Query for this Blueprint's Series
     series_info = blueprint.series.as_series_info
-    series = db.query(SeriesModel)\
-        .filter(series_info.filter_conditions(SeriesModel))\
-        .first()
+    series = (
+        db.query(SeriesModel)
+            .filter(series_info.filter_conditions(SeriesModel))
+            .first()
+    )
 
     # Series does not exist, create and add to database
     if not series:
-        log.debug(
+        log.debug((
             f'Blueprint Series {blueprint.series.as_series_info} not found '
             f'- adding to database'
-        )
+        ))
         series = add_series(
             blueprint.series.as_new_series, background_tasks, db, log=log,
         )

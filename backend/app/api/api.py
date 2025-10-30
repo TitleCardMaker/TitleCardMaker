@@ -15,9 +15,9 @@ api_router.include_router(v2_router)
 
 @api_router.get('/healthcheck')
 def health_check(
-    db: Session = Depends(get_database),
-    log: Logger = Depends(get_logger),
-) -> None:
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+    ) -> None:
     """
     Check the health of the TCM server by attempting to perform a dummy
     database operation; raising an HTTPException (500) if a connection
@@ -36,9 +36,9 @@ def health_check(
 
 @api_router.post('/reset')
 def reset_database(
-    db: Session = Depends(get_database),
-    log: Logger = Depends(get_logger),
-) -> None:
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+    ) -> None:
     """
     Reset the entire database and system state. This DOES NOT clear any
     files, and requires the appropriate environment variable to be set

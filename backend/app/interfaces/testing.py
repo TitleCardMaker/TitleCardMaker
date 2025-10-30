@@ -9,9 +9,9 @@ Return = TypeVar('Return')
 
 
 def testing_override(
-    testing_function: Callable[..., Any],
-    /,
-) -> Callable[[Callable[Params, Return]], Callable[Params, Return]]:
+        testing_function: Callable[..., Any],
+        /,
+    ) -> Callable[[Callable[Params, Return]], Callable[Params, Return]]:
     """
     Decorator factory that replaces the decorated function with the
     given testing function if the global testing mode is enabled in

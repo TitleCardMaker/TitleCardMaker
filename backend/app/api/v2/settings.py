@@ -44,10 +44,10 @@ def get_current_version() -> str:
 
 @settings_router.patch('/update')
 def update_global_settings(
-    update_preferences: UpdatePreferences = Body(...),
-    db: Session = Depends(get_database),
-    log: Logger = Depends(get_logger),
-) -> Preferences:
+        update_preferences: UpdatePreferences = Body(...),
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+    ) -> Preferences:
     """
     Update all global settings.
 
@@ -85,8 +85,8 @@ def update_global_settings(
 
 @settings_router.get('/episode-data-source')
 def get_global_episode_data_source(
-    db: Session = Depends(get_database),
-) -> list[EpisodeDataSourceToggle]:
+        db: Session = Depends(get_database),
+    ) -> list[EpisodeDataSourceToggle]:
     """Get the list of Episode data sources."""
 
     return get_episode_data_sources(db)
@@ -94,9 +94,9 @@ def get_global_episode_data_source(
 
 @settings_router.get('/image-source-priority')
 def get_image_source_priority(
-    db: Session = Depends(get_database),
-    log: Logger = Depends(get_logger),
-) -> list[ImageSourceToggle]:
+        db: Session = Depends(get_database),
+        log: Logger = Depends(get_logger),
+    ) -> list[ImageSourceToggle]:
     """Get the global image source priority."""
 
     # Add all selected Connections
@@ -128,16 +128,3 @@ def get_image_source_priority(
             })
 
     return sources
-
-
-@settings_router.get('/background-tasks')
-def get_pending_background_tasks() -> list[tuple[str, str | None]]:
-    from app.utils.tasks import task_queue
-
-    return [
-        (
-            task[1].__name__,
-            task[1].__doc__,
-        )
-        for task in task_queue
-    ]

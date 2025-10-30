@@ -23,17 +23,17 @@ class Version:
     (False, False, True)
     """
 
-    PRIMARY_REGEX = re_compile(
+    PRIMARY_REGEX = re_compile((
         r'^v(?P<version>\d+)\.(?P<sub_version>\d+)\.(?P<sub_sub_version>\d+)'
         r'(?:-(?P<branch>\D+)(?P<branch_iteration>\d+))?$'
-    )
+    ))
     PRIMARY_DEFAULTS = {'branch': 'master', 'branch_iteration': 0}
 
-    WEB_UI_REGEX = re_compile(
+    WEB_UI_REGEX = re_compile((
         r'^.*-alpha\.(?P<version>\d+)\.(?P<sub_version>\d+)'
         r'(\.(?P<sub_sub_version>\d+))?(?:-(?P<branch>\D+)'
         r'(?P<branch_iteration>\d+))?$'
-    )
+    ))
     WEB_UI_DEFAULTS = {
         'branch': 'master', 'sub_sub_version': 0, 'branch_iteration': 0
     }

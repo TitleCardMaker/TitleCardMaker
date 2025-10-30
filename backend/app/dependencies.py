@@ -374,8 +374,8 @@ def get_tmdb_interfaces() -> InterfaceGroup[int, TMDbInterface]:
 
 
 def get_first_tmdb_interface(
-    interface_id: int | None = Query(default=None),
-) -> TMDbInterface | None:
+        interface_id: int | None = Query(default=None),
+    ) -> TMDbInterface | None:
     """
     Dependency to get the `TMDbInterface` with the given ID. This adds
     `interface_id` as a Query parameter. If the parameter is omitted,
@@ -402,8 +402,8 @@ def get_first_tmdb_interface(
 
 
 def require_tmdb_interface(
-    interface_id: int | None = Query(default=None)
-) -> TMDbInterface:
+        interface_id: int | None = Query(default=None)
+    ) -> TMDbInterface:
     """
     Dependency to get the `TMDbInterface` with the given ID. This adds
     `interface_id` as a Query parameter. If the parameter is omitted,
@@ -442,8 +442,8 @@ def get_tvdb_interfaces() -> InterfaceGroup[int, TVDbInterface]:
 
 
 def get_first_tvdb_interface(
-    tvdb_interface_id: int | None = Query(default=None)
-) -> TVDbInterface | None:
+        tvdb_interface_id: int | None = Query(default=None)
+    ) -> TVDbInterface | None:
     """
     Dependency to get the `TVDbInterface` with the given ID. This adds
     `tvdb_interface_id` as a Query parameter. If the parameter is
@@ -470,8 +470,8 @@ def get_first_tvdb_interface(
 
 
 def require_tvdb_interface(
-    tvdb_interface_id: int | None = Query(default=None)
-) -> TVDbInterface:
+        tvdb_interface_id: int | None = Query(default=None)
+    ) -> TVDbInterface:
     """
     Dependency to get the `TVDbInterface` with the given ID. This adds
     `tvdb_interface_id` as a Query parameter. If the parameter is

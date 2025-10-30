@@ -28,8 +28,8 @@ backup_router = APIRouter(
 
 @backup_router.get('/all')
 def get_available_system_backups(
-    log: Logger = Depends(get_logger),
-) -> list[SystemBackup]:
+        log: Logger = Depends(get_logger),
+    ) -> list[SystemBackup]:
     """Get a list detailing all the available system backups."""
 
     return list_available_backups(log=log)
@@ -44,10 +44,10 @@ def perform_backup(log: Logger = Depends(get_logger)) -> None:
 
 @backup_router.post('/restore/{folder}')
 async def restore_from_backup(
-    folder: str,
-    bypass: bool = Query(default=False),
-    log: Logger = Depends(get_logger),
-) -> None:
+        folder: str,
+        bypass: bool = Query(default=False),
+        log: Logger = Depends(get_logger),
+    ) -> None:
     """
 
     - bypass: Whether to bypass the "lock" if there are currently any
@@ -56,12 +56,12 @@ async def restore_from_backup(
 
     if task_queue or engine.pool.checkedout() > 0: # type: ignore
         if bypass:
-            log.warning(
+            log.warning((
                 'Restoring from backup while there are pending operations - '
                 'performing backup to prevent data loss'
-            )
+            ))
             log.trace(f'TaskQueue: {task_queue}\nPool: {engine.pool}')
-            backup_data(settings.config.CURRENT_VERSION, log=log)
+            _ = backup_data(settings.config.CURRENT_VERSION, log=log)
         else:
             raise HTTPException(
                 status_code=400,
@@ -97,9 +97,9 @@ def delete_outdated_backups(log: Logger = Depends(get_logger)) -> None:
 
 @backup_router.delete('/backup/{folder}')
 def delete_backup_folder(
-    folder: str,
-    log: Logger = Depends(get_logger),
-) -> None:
+        folder: str,
+        log: Logger = Depends(get_logger),
+    ) -> None:
     """
     Delete the backup data located in the given folder.
 
