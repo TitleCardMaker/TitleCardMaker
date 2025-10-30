@@ -1,7 +1,7 @@
 from datetime import datetime
 from json import dumps, JSONEncoder
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, ParamSpec, TypeVar, overload
 
 from num2words import num2words
 from titlecase import titlecase
@@ -23,7 +23,39 @@ JSONEncoder.original_default = JSONEncoder.default # type: ignore
 JSONEncoder.default = wrapped_default # type: ignore
 
 
-_MAX_ROMAN_NUMERAL = 3999
+P = ParamSpec('P')
+R = TypeVar('R')
+
+__BUILTIN_FUNCTIONS: dict[str, Callable[..., str]] = {}
+
+def register_builtin(
+        *,
+        names: list[str] | None = None,
+    ) -> Callable[[Callable[P, str]], Callable[P, str]]:
+    """
+    Decorator to register a function into the builtin function mapping.
+    Can be used as a decorator with/without arguments, i.e.
+
+    >>> @register_builtin()
+    ... def foo(): ...
+    >>> @register_builtin(names=["foo", "bar"])
+    ... def foo(): ...
+    """
+
+    def decorator(func: Callable[P, str]) -> Callable[P, str]:
+        register_names = names or [func.__name__]
+        for name in register_names:
+            log.trace(f'Registered [{name}] = {func}')
+            __BUILTIN_FUNCTIONS[name] = func
+        return func
+
+    return decorator
+
+"""
+Builtin functions to register for all FormatStrings.
+"""
+
+@register_builtin()
 def to_roman_numeral(number: int, /) -> str:
     """
     Convert the given number to a roman numeral string.
@@ -40,6 +72,7 @@ def to_roman_numeral(number: int, /) -> str:
     """
 
     # Verify number can be converted
+    _MAX_ROMAN_NUMERAL = 3999
     if not 1 <= number <= _MAX_ROMAN_NUMERAL:
         raise InvalidFormatString(
             f'Number {number} cannot be converted to a roman numeral'
@@ -58,7 +91,35 @@ def to_roman_numeral(number: int, /) -> str:
 
     return f'{thousands}{hundreds}{tens}{ones}'
 
+@register_builtin()
+def to_lowercase(text: str, /) -> str:
+    """
+    Convert the given text to lowercase.
 
+    Args:
+        text: Text to convert to lowercase.
+
+    Returns:
+        Lowercase text.
+    """
+
+    return text.lower()
+
+@register_builtin()
+def to_uppercase(text: str, /) -> str:
+    """
+    Convert the given text to uppercase.
+
+    Args:
+        text: Text to convert to uppercase.
+
+    Returns:
+        Uppercase text.
+    """
+
+    return text.upper()
+
+@register_builtin()
 def to_cardinal(number: int, /, lang: str = 'en') -> str:
     """
     Convert the given number to its cardinal spelling in the given
@@ -78,7 +139,7 @@ def to_cardinal(number: int, /, lang: str = 'en') -> str:
 
     return num2words(number, to='cardinal', lang=lang)
 
-
+@register_builtin()
 def to_ordinal(number: int, /, lang: str = 'en') -> str:
     """
     Convert the given number to its ordinal spelling in the given
@@ -98,7 +159,7 @@ def to_ordinal(number: int, /, lang: str = 'en') -> str:
 
     return num2words(number, to='ordinal', lang=lang)
 
-
+@register_builtin()
 def to_short_ordinal(number: int, /, lang: str = 'en') -> str:
     """
     Convert the given number to a shorthand ordinal spelling in the
@@ -118,7 +179,7 @@ def to_short_ordinal(number: int, /, lang: str = 'en') -> str:
 
     return num2words(number, lang=lang, to='ordinal_num')
 
-
+@register_builtin()
 def format_date(date: datetime, fmt: str, /) -> str:
     """
     Format the given date with the given format string. This is just a
@@ -135,7 +196,7 @@ def format_date(date: datetime, fmt: str, /) -> str:
 
     return date.strftime(fmt)
 
-
+@register_builtin()
 def get_image_color(
         image: Path,
         /,
@@ -172,16 +233,9 @@ def get_image_color(
 
     return color_codes[index]
 
+titlecase = register_builtin()(titlecase)
 
-__BUILTIN_FUNCTIONS: dict[str, Callable[..., str]] = {
-    'format_date': format_date,
-    'get_image_color': get_image_color,
-    'titlecase': titlecase,
-    'to_roman_numeral': to_roman_numeral,
-    'to_cardinal': to_cardinal,
-    'to_ordinal': to_ordinal,
-    'to_short_ordinal': to_short_ordinal,
-}
+
 __BUILTIN_VARIABLES: dict[str, str] = {
     'NEWLINE': '\n',
     'BACKSLASH': '\\'
