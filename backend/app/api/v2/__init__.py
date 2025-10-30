@@ -4,7 +4,6 @@ from .auth import auth_router
 from .availability import availablility_router
 from .backups import backup_router
 from .blueprint import blueprint_router
-from .cache import cache_router
 from .cards import card_router
 from .connection import connection_router
 from .episodes import episodes_router
@@ -32,7 +31,6 @@ for sub_router in [
     availablility_router,
     backup_router,
     blueprint_router,
-    cache_router,
     card_router,
     connection_router,
     episodes_router,
