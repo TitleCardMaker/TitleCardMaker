@@ -116,11 +116,10 @@ async def process_plex_webhook(
 
     # Parse Webhook from payload
     try:
-        form = cast(
-            dict[str, bytes],
-            await wait_for(request.form(), timeout=timeout)
-        )
-        webhook = PlexWebhook.model_validate(form.get('payload', b''))
+        form = await wait_for(request.form(), timeout=timeout)
+        if not isinstance(payload := form.get('payload'), str):
+            raise ValidationError('Expected JSON payload')
+        webhook = PlexWebhook.model_validate_json(payload)
     except ValidationError as exc:
         log.exception('Webhook format is invalid')
         raise HTTPException(
