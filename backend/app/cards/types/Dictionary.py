@@ -150,7 +150,12 @@ class DictionaryTitleCard(BaseCardType):
             ),
         ],
         description=[
-            'Not yet written', # TODO
+            'Card type designed to resemble a dictionary entry/definition. '
+            'These cards feature a background rectangle, a "word" which '
+            'defaults to the series name in lowercase, a "label" which is the '
+            'episode title, and a "definition" which is the episode'
+            'description.', 'This card is designed to automatically pull '
+            'the episode description from TMDb, if possible.'
         ]
     )
 
