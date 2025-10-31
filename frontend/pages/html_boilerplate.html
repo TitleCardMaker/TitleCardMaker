@@ -1,6 +1,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- Prevent theme flash: Apply theme immediately before page renders -->
+<script>
+  (function() {
+    try {
+      const isDark = (localStorage.getItem('site-theme') || 'dark') === 'dark';
+
+      // Apply theme immediately using inline styles (before CSS loads)
+      if (isDark) {
+        document.documentElement.style.setProperty('--background', 'linear-gradient(to bottom right, rgb(29,29,29), rgb(40,40,40))');
+
+        // Update theme-color meta tag for mobile browsers
+        let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeColorMeta) {
+          themeColorMeta.content = '#1b1c1d';
+        }
+      } else {
+        document.documentElement.style.setProperty('--background', 'linear-gradient(to bottom right, #f5f7fa, #d9d9d9)');
+
+        // Update theme-color meta tag for mobile browsers
+        let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeColorMeta) {
+          themeColorMeta.content = '#f5f7fa';
+        }
+      }
+    } catch(e) {
+      // Fallback to dark theme if localStorage fails
+      document.body.style.backgroundImage = 'linear-gradient(to bottom right, rgb(29,29,29), rgb(40,40,40))';
+      document.body.className = 'dark';
+    }
+  })();
+</script>
+
 <!-- Favicon -->
 <link rel="apple-touch-icon" sizes="180x180" href="/public/favicon/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon/favicon-32x32.png">
@@ -10,14 +42,17 @@
 <!-- JQuery -->
 <script type="text/javascript" src="/js/dist/jquery.min.js"></script>
 
+<!-- Theme -->
+<script type="text/javascript" src="/js/theme.js?v={{ preferences.config.CURRENT_VERSION }}"></script>
+
 <!-- Formantic UI -->
+ <script>console.log('Formantic UI');</script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.css">
 <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.js"></script>
 
 <!-- JS Files -->
 <script type="text/javascript" src="/js/loadStaticContent.js?v={{ preferences.config.CURRENT_VERSION }}&websocket={{ preferences.display_live_messages }}"></script>
 <script type="text/javascript" src="/js/loadCardTypes.js?v={{ preferences.config.CURRENT_VERSION }}"></script>
-<script type="text/javascript" src="/js/theme.js?v={{ preferences.config.CURRENT_VERSION }}"></script>
 <script type="text/javascript" src="/js/helper.js?v={{ preferences.config.CURRENT_VERSION }}"></script>
 <script type="text/javascript" src="/js/tablesort.js?v={{ preferences.config.CURRENT_VERSION }}"></script>
 <script type="text/javascript">

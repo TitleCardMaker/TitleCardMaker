@@ -8,14 +8,24 @@ function refreshTheme() {
   const inverted = (siteTheme === 'dark');
   $('#main-content .ui:not(.uninvertible)').toggleClass('inverted', inverted);
   $('.modal:not(.basic):not(.uninvertible), .modal:not(.basic):not(.uninvertible) >* .ui:not(.uninvertible), .accordion:not(.uninvertible), .accordion:not(.uninvertible) >* .ui:not(.uninvertible)').toggleClass('inverted', inverted);
+  
+  // Update theme-color meta tag for mobile browsers
+  let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (!themeColorMeta) {
+    themeColorMeta = document.createElement('meta');
+    themeColorMeta.name = 'theme-color';
+    document.head.appendChild(themeColorMeta);
+  }
+
   if (inverted) {
-    $('body')[0].style.setProperty('background-image', 'linear-gradient(to bottom right, rgb(29,29,29), rgb(40,40,40))');
-    document.querySelector('body').classList.add('dark');
+    // Set <html> background image
+    document.documentElement.style.setProperty('background', 'linear-gradient(to bottom right, rgb(29,29,29), rgb(40,40,40))')
     document.querySelector('#theme-toggle i').className = 'moon outline icon';
+    themeColorMeta.content = '#1b1c1d';
   } else {
-    $('body')[0].style.setProperty('background-image', 'linear-gradient(to bottom right, var(--background-color-light), #d9d9d9)');
-    document.querySelector('body').classList.remove('dark');
+    document.documentElement.style.setProperty('background', 'linear-gradient(to bottom right, var(--background-color-light), #d9d9d9)');
     document.querySelector('#theme-toggle i').className = 'sun outline icon';
+    themeColorMeta.content = '#f5f7fa';
   }
 }
 
