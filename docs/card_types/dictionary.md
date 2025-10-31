@@ -131,8 +131,8 @@ The text itself can be adjusted with the _Defintion Text_ extra.
     If left as the default (or any [Format String](../user_guide/variables.md)
     which includes the variable `{episode_description}`, e.g.
     `{episode_description.lower()}`), then TCM will automatically search
-    [TMDb](../user_guide/connections.md#simple-themoviedatabasetmdb-themoviedatabase)
-    for an Episode description/overview.
+    [TMDb](../user_guide/connections.md#themoviedatabase) for an Episode
+    description/overview.
 
     This can be disabled by either setting this Extra to the text you wish to
     display _or_ disabling the text altogether by specifying `""`.
