@@ -122,6 +122,7 @@ async def process_plex_webhook(
         )
         webhook = PlexWebhook.model_validate(form.get('payload', b''))
     except ValidationError as exc:
+        log.exception('Webhook format is invalid')
         raise HTTPException(
             status_code=422,
             detail='Webhook format is invalid'
