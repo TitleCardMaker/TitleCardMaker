@@ -10,13 +10,12 @@ description: >
 # Dictionary Card Type
 
 This card design was created by [CollinHeist](https://github.com/CollinHeist),
-and the design was inspired by
-[this](https://www.everymanjack.com/products/28-8oz-3-in-1-all-over-wash?variant=43908560388258)
-shampoo bottle I saw at the grocery store.
+and was inspired by the text annotations in
+[this video](https://www.youtube.com/watch?v=gcS1HIci4hQ) by _Any Austin_.
 
-Cards of this style resemble a game score (hence the name), and feature a
-prominent centered title, with the season and episode text in the corners of the
-image. All text can be re-positioned and colored with extras.
+Cards of this design are intended to resemble a dictionary definition - and so
+most extras resolve around manipulating the "word" (series name), "label"
+(title), and "definition" (Episode description).
 
 <figure markdown="span" style="max-width: 70%">
   ![Example Dictionary Card](./assets/dictionary.webp)
@@ -34,7 +33,7 @@ extra.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="20"
+        data-starting-point="27.07"
         data-left-label="rgba(212,212,212,0.3)"
         data-right-label="rgba(12,12,12,0.8)">
         <img src="../assets/dictionary/background_color.webp"/>
@@ -51,7 +50,7 @@ extra. If unspecified, this defaults to matching the color of the title text.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="20"
+        data-starting-point="27.07"
         data-left-label="skyblue"
         data-right-label="white">
         <img src="../assets/dictionary/definition_color.webp"/>
@@ -100,7 +99,7 @@ setting the _Quote Definition Toggle_ extra to `False`.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="20"
+        data-starting-point="27.07"
         data-left-label="False"
         data-right-label="True">
         <img src="../assets/dictionary/quote_toggle.webp"/>
@@ -116,7 +115,7 @@ size of the text, and values less than `#!yaml 1.0` will decrease it.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="20"
+        data-starting-point="27.07"
         data-left-label="0.8"
         data-right-label="1.0">
         <img src="../assets/dictionary/definition_size.webp"/>
@@ -127,12 +126,23 @@ size of the text, and values less than `#!yaml 1.0` will decrease it.
 
 The text itself can be adjusted with the _Defintion Text_ extra.
 
+!!! tip "Automatically Pull Episode Descriptions"
+
+    If left as the default (or any [Format String](../user_guide/variables.md)
+    which includes the variable `{episode_description}`, e.g.
+    `{episode_description.lower()}`), then TCM will automatically search
+    [TMDb](../user_guide/connections.md#simple-themoviedatabasetmdb-themoviedatabase)
+    for an Episode description/overview.
+
+    This can be disabled by either setting this Extra to the text you wish to
+    display _or_ disabling the text altogether by specifying `""`.
+
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="20"
-        data-left-label="{episode_description}"
-        data-right-label="example text">
+        data-starting-point="27.07"
+        data-left-label="example text"
+        data-right-label="{episode_description}">
         <img src="../assets/dictionary/definition_text.webp"/>
         <img src="../assets/dictionary.webp"/>
     </div>
@@ -148,7 +158,7 @@ partially obscure the content.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="20"
+        data-starting-point="27.07"
         data-left-label="+100+600"
         data-right-label="+100+100">
         <img src="../assets/dictionary/position.webp"/>
@@ -164,7 +174,7 @@ completely, specify `""`.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="20"
+        data-starting-point="27.07"
         data-left-label=" -"
         data-right-label=",">
         <img src="../assets/dictionary/separator.webp"/>
@@ -181,7 +191,7 @@ unspecified, this color defaults to matching the color of the title text.
 ??? example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="20"
+        data-starting-point="27.07"
         data-left-label="skyblue"
         data-right-label="white">
         <img src="../assets/dictionary/word_color.webp"/>
