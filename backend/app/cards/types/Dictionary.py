@@ -56,7 +56,7 @@ class DictionaryTitleCard(BaseCardType):
                     'Extended text to diplay below the word and label text. '
                     'The default is <v>{episode_description}</v>, which means '
                     'the episode description will be pulled from TMDb (if '
-                    'available).'
+                    'available). Disable this by specifying <v>""</v>.'
                 ),
                 default='{episode_description}',
             ),
