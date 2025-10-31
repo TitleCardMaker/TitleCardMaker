@@ -244,7 +244,7 @@ effects.
 !!! example "Example"
 
     <div class="image-compare example-card"
-        data-starting-point="42.9"
+        data-starting-point="26.2"
         data-left-label="Mask Image"
         data-right-label="Resulting Title Card">
         <img src="../assets/dictionary/mask-raw.webp"/>
