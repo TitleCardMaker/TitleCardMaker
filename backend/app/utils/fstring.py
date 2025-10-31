@@ -45,7 +45,6 @@ def register_builtin(
     def decorator(func: Callable[P, str]) -> Callable[P, str]:
         register_names = names or [func.__name__]
         for name in register_names:
-            log.trace(f'Registered [{name}] = {func}')
             __BUILTIN_FUNCTIONS[name] = func
         return func
 
