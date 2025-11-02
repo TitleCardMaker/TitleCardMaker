@@ -498,6 +498,18 @@ class DatabaseInfoContainer(ABC):
     @overload
     def has_id(self,
             id_: Literal[
+                'emby_id', 'emby',
+                'jellyfin_id', 'jellyfin',
+            ],
+            /,
+            interface_id: int,
+            library_name: str,
+        ) -> bool:
+        ...
+
+    @overload
+    def has_id(self,
+            id_: Literal[
                 'imdb_id', 'imdb',
                 'tmdb_id', 'tmdb',
                 'tvdb_id', 'tvdb',

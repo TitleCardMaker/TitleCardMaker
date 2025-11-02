@@ -272,10 +272,10 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 return id_
 
             # No item found, ID must be invalid - reset and re-query
-            log.trace(
+            log.trace((
                 f'Emby ID ({id_}) has been dynamically re-assigned. Querying '
                 f'for new one..'
-            )
+            ))
             del series_info.emby_id[self._interface_id, library_name]
 
         # Get ID of this library

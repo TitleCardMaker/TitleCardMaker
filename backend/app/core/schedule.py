@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Annotated, Callable, Literal
+from typing import Annotated, Callable, Literal, Protocol
 
 from croniter import croniter
 from huey import crontab, SqliteHuey
@@ -121,6 +121,10 @@ def is_task_running(task_id: TaskID, /) -> bool:
     return huey.is_locked(task_id) or _task_running_state.get(task_id, False)
 
 
+class TaskFunction(Protocol):
+    def __call__(self, *, log: Logger) -> None:
+        ...
+
 class RecurringTask:
     """
     A class that combines the creation of wrapped core Task functions
@@ -134,11 +138,11 @@ class RecurringTask:
     3. Storing all the Task metadata.
     """
 
-    task_func: Callable[[Logger | None], None]
+    task_func: TaskFunction
     description: str
     task_id: TaskID
     default_cronstr: str
-    cron: crontab
+    cron: Callable[[datetime], bool]
     error_message: str
     priority: int
     expires: timedelta
@@ -148,7 +152,7 @@ class RecurringTask:
 
 
     def __init__(self,
-        task_func: Callable[[Logger | None], None],
+        task_func: TaskFunction,
         description: str,
         task_id: TaskID,
         default_cronstr: str,
@@ -204,10 +208,10 @@ class RecurringTask:
 
             # Exit if the task is already running
             if _task_running_state.get(self.task_id, False):
-                log_.info(
-                    f'Task[{self.task_id}] finished execution - Task is already '
-                    f'running'
-                )
+                log_.info((
+                    f'Task[{self.task_id}] finished execution - Task is '
+                    f'already running'
+                ))
                 return None
 
             # Mark task as running, log start time
@@ -366,7 +370,7 @@ def get_task_details(db: Session, task_id: TaskID, /) -> TaskDetails:
         RecurringTasks[task_id].default_cronstr
     )
 
-    next_run: datetime = croniter(crontab).get_next(
+    next_run: datetime = croniter(crontab).get_next( # type: ignore
         datetime,
         datetime.now(tz=settings.config.TIMEZONE),
     )

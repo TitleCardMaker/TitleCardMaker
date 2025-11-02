@@ -204,9 +204,11 @@ def run_sync(
     existing_series: set[Series] = set()
     for series_info, lib_or_dir in all_series:
         # Look for existing Series
-        existing = db.query(Series)\
-            .filter(series_info.filter_conditions(Series))\
-            .first()
+        existing = (
+            db.query(Series)
+                .filter(series_info.filter_conditions(Series))
+                .first()
+        )
 
         # Determine this Series' libraries
         if sync.interface == 'Sonarr':
