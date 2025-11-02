@@ -324,7 +324,11 @@ def download_series_poster(
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         # Download
-        pb = poster if isinstance(poster, bytes) else get(poster, timeout=30).content
+        pb = (
+            poster
+            if isinstance(poster, bytes)
+            else get(poster, timeout=30).content
+        )
 
         # Assume corruption if poster is smaller than 1kB
         if not pb or len(pb) < 1024:
@@ -921,7 +925,7 @@ def add_series(
     series = Series(**new_series.model_dump(exclude={'template_ids'}))
     db.add(series)
     db.commit()
-    log.info(f'Added {series} to Database')
+    log.info(f'Added {series} to database')
 
     # Assign Templates
     series.assign_templates(templates, log=log)
