@@ -174,9 +174,12 @@
                   <label>Default Card Type</label>
                   <div id="default-card-type" class="ui long compact search selection dropdown">
                     <span class="text"></span>
-                    <input name="default_card_type" type="hidden" value="{{preferences.default_card_type.lower()}}">
+                    <input name="default_card_type" type="hidden" value="{{ preferences.default_card_type.lower() }}">
                     <i class="dropdown icon"></i>
                     <div class="down menu"><!-- Added asynchronously --></div>
+                  </div>
+                  <div id="view-all-card-types" class="ui blue tertiary icon button">
+                    <i class="question circle outline icon"></i>
                   </div>
                   <p class="help">
                     Default type of Title Cards.
@@ -199,15 +202,6 @@
                     Purely visual to make selecting types easier.
                   </p>
                 </div>
-              </div>
-
-              <!-- View all card types button -->
-              <div class="field">
-                <button id="view-all-card-types" class="ui primary button" type="button">
-                  <i class="list icon"></i>
-                  View All Card Types
-                </button>
-                <p class="help">View details of all available card types in one place.</p>
               </div>
 
               <!-- Card preview -->
@@ -285,7 +279,7 @@
                       <div class="item" data-value="blur grayscale unique">Blurred Grayscale Unique</div>
                     </div>
                   </div>
-                  <div data-value="style-button" class="ui primary tertiary icon button">
+                  <div data-value="style-button" class="ui blue tertiary icon button">
                     <i class="question circle outline icon"></i>
                   </div>
                   <p class="help">
@@ -317,7 +311,7 @@
                       <div class="item" data-value="blur grayscale unique">Blurred Grayscale Unique</div>
                     </div>
                   </div>
-                  <div data-value="style-button" class="ui primary tertiary icon button">
+                  <div data-value="style-button" class="ui blue tertiary icon button">
                     <i class="question circle outline icon"></i>
                   </div>
                   <p class="help">
