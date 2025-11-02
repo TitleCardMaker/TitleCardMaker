@@ -198,18 +198,28 @@ class EpisodeInfo(DatabaseInfoContainer):
         if not isinstance(other, EpisodeInfo):
             return False
 
-        # ID matches are immediate equality
-        for id_attr in (
-                'emby_id',
-                'imdb_id',
-                'jellyfin_id',
-                'tmdb_id',
-                'tvdb_id',
-                'tvrage_id'
-            ):
-            if (getattr(self, id_attr) is not None
-                and getattr(self, id_attr) == getattr(other, id_attr)):
-                return True
+        # Count how many IDs match and contradict
+        id_matches, id_mismatches = 0, 0
+        for this_id, other_id in [
+            (self.emby_id, other.emby_id),
+            (self.imdb_id, other.imdb_id),
+            (self.jellyfin_id, other.jellyfin_id),
+            (self.tmdb_id, other.tmdb_id),
+            (self.tvdb_id, other.tvdb_id),
+            (self.tvrage_id, other.tvrage_id),
+        ]:
+            if this_id is not None and this_id == other_id:
+                id_matches += 1
+            elif (this_id is not None and other_id is not None
+                and this_id != other_id):
+                id_mismatches += 1
+
+        # More than one ID match is equality, more than one mismatch is
+        # an inequality
+        if id_matches > 1:
+            return True
+        if id_mismatches > 1:
+            return False
 
         # Require title match for index equality
         return (
@@ -222,7 +232,6 @@ class EpisodeInfo(DatabaseInfoContainer):
                     # Both have absolute numbers that match
                     (
                         self.absolute_number is not None
-                        and other.absolute_number is not None
                         and self.absolute_number == other.absolute_number
                     )
                     # One has absolute number that matches the others episode

@@ -138,7 +138,7 @@ class InterfaceID:
             ID of the given interface. None if there is no ID.
         """
 
-        if self._libraries:
+        if self._libraries and isinstance(connection_id, tuple):
             connection_id, library = connection_id
             return self._ids.get(connection_id, {}).get(library)
 
@@ -497,10 +497,7 @@ class DatabaseInfoContainer(ABC):
 
     @overload
     def has_id(self,
-            id_: Literal[
-                'emby_id', 'emby',
-                'jellyfin_id', 'jellyfin',
-            ],
+            id_: Literal['emby_id', 'emby', 'jellyfin_id', 'jellyfin'],
             /,
             interface_id: int,
             library_name: str,

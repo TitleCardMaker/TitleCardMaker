@@ -793,7 +793,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # UID provided, use directly
         if len(episode_and_cards[0]) == 3:
             matched = episode_and_cards # type: ignore
-        # Match each episode 
+        # Match each episode
         else:
             for emby_ep in self.__get_episodes(library_name, series_info, log=log):
                 # Create EpisodeInfo object for this episode
@@ -827,34 +827,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 log.exception(
                     f'Unable to upload {image.resolve()} to {series_info}'
                 )
-        # for emby_ep in self.__get_episodes(library_name, series_info, log=log):
-        #     # Create EpisodeInfo object for this episode
-        #     emby_info = EpisodeInfo.from_emby_info(
-        #         emby_ep, self._interface_id, library_name
-        #     )
-        #     emby_id = emby_info.emby_id[self._interface_id, library_name]
-
-        #     # Iterate through all the given episodes/cards, upload to match
-        #     for episode, card, *uid in episode_and_cards:
-        #         if episode.as_episode_info == emby_info:
-        #             # Shrink image if necessary, skip if cannot be compressed
-        #             if (image := self.compress_image(card.card_file, log=log)) is None:
-        #                 continue
-
-        #             # Submit POST request for image upload on Base64 encoded image
-        #             card_base64 = b64encode(image.read_bytes())
-        #             try:
-        #                 self.session.session.post(
-        #                     url=f'{self.url}/Items/{emby_id}/Images/Primary',
-        #                     headers={'Content-Type': 'image/jpeg'},
-        #                     params=self.__params,
-        #                     data=card_base64,
-        #                 )
-        #                 loaded.append((episode, card))
-        #             except Exception:
-        #                 log.exception(f'Unable to upload {image.resolve()} to '
-        #                               f'{series_info}')
-        #             break
 
         # Log load operations to user
         if loaded:
