@@ -200,6 +200,67 @@
                   </p>
                 </div>
               </div>
+
+              <!-- View all card types button -->
+              <div class="field">
+                <button id="view-all-card-types" class="ui primary button" type="button">
+                  <i class="list icon"></i>
+                  View All Card Types
+                </button>
+                <p class="help">View details of all available card types in one place.</p>
+              </div>
+
+              <!-- Card preview -->
+              <div class="ui horizontal raised card" id="card-type-preview">
+                <div class="image">
+                  <img alt="Preview Title Card">
+                </div>
+                <div class="content">
+                  <div class="header" data-label="name">CARD TYPE</div>
+                  <div class="meta">
+                    <span class="date" data-label="creators">by Collin Heist</span>
+                    <br>
+                    <div class="ui divided horizontal list">
+                      <div class="item" data-label="supports_custom_fonts">
+                        <div class="content">
+                          <div class="header">Custom Fonts</div>
+                          <div class="description">
+                            <i class="red times icon"></i>
+                            Not Supported
+                          </div>
+                        </div>
+                      </div>
+                      <div class="item" data-label="supports_custom_seasons">
+                        <div class="content">
+                          <div class="header">Custom Season Titles</div>
+                          <div class="description">
+                            <i class="green check icon"></i>
+                            Supported
+                          </div>
+                        </div>
+                      </div>
+                      <div class="item" data-label="supported_extras">
+                        <div class="content">
+                          <div class="header">Extras</div>
+                          <div class="description">
+                            <i class="options icon" id="extras-icon" style="cursor: pointer;"></i>
+                            <strong>0</strong> Available
+                          </div>
+                          <div class="ui flowing popup" id="extras-popup">
+                            <div class="header">Available Extras</div>
+                            <div class="ui small list content" id="extras-list">
+                              <!-- Populated dynamically -->
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="description" data-label="description">
+                    <p>DESCRIPTION(S)</p>
+                  </div>
+                </div>
+              </div>
               
               <div class="two fields">
                 <div class="field">
@@ -276,24 +337,6 @@
                   <div class="menu"><!-- Added asynchronously --></div>
                 </div>
                 <p class="help">Templates to apply to all Series when not directly specified.</p>
-              </div>
-
-              <!-- Card preview -->
-              <div class="ui horizontal raised card">
-                <div class="image">
-                  <img alt="Preview Title Card" id="title-card-image" src="">
-                </div>
-                <div class="content">
-                  <div id="title-card-name" class="header">CARD TYPE</div>
-                  <div class="meta">
-                    <span id="title-card-creators" class="author">AUTHOR(S)</span>
-                    <br><span id="title-card-font-support"><i class="times icon"></i>Custom Fonts</span>
-                    <br><span id="title-card-season-support"><i class="check icon"></i>Custom Season Titles</span>
-                  </div>
-                  <div id="title-card-description" class="description">
-                    <p>DESCRIPTION(S)</p>
-                  </div>
-                </div>
               </div>
 
               <div class="ui visible info message">
@@ -687,6 +730,29 @@
               <img src="/public/styles/unique blur grayscale.jpg">
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All card types modal -->
+    <div id="all-card-types-modal" class="ui large scrolling modal">
+      <i class="close icon"></i>
+      <div class="header">
+        <i class="images icon"></i>
+        Available Card Types
+      </div>
+      <div class="content">
+        <div class="ui fluid icon input" style="margin-bottom: 1em;">
+          <input type="text" id="card-type-filter" placeholder="Filter card types by name...">
+          <i class="search icon"></i>
+        </div>
+        <div id="card-types-content">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="actions">
+        <div class="ui button" onclick="$('#all-card-types-modal').modal('hide');">
+          Close
         </div>
       </div>
     </div>

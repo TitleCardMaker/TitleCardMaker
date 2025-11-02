@@ -134,6 +134,12 @@ function getImageSourcePriority() {
   });  
 }
 
+/**
+ * Initialize the card type dropdowns. This loads the default card type dropdown
+ * and the excluded card types dropdown. It also updates the preview title card
+ * with the default card type.
+ * @returns {Promise<CardTypeDescription[]>} List of all card types.
+ */
 async function initCardTypeDropdowns() {
   // Load filtered types into default card type dropdown
   const allCards = await loadCardTypes({
@@ -152,7 +158,7 @@ async function initCardTypeDropdowns() {
     showExcluded: false,
     dropdownArgs: {
       onChange: (value, text, $selectedItem) => {
-        $('#title-card-image')
+        $('#card-type-preview img')
           .fadeTo(250, 0, () => updatePreviewTitleCard(allCards, value))
           .fadeTo(250, 1);
       }
@@ -246,24 +252,194 @@ function initializeBlurProfiles(allCardTypes) {
   });
 }
 
-/*
+/**
  * Update the preview title card for the given type. This updates all
  * elements of the preview card.
+ * 
+ * @param {CardTypeDescription[]} allCards List of all card types.
+ * @param {string} previewCardType Identifier of the card type to preview.
  */
 function updatePreviewTitleCard(allCards, previewCardType) {
-  for (let {name, identifier, example, creators, supports_custom_fonts,
-            supports_custom_seasons, description} of allCards) {
-    if (identifier == previewCardType) {
+  const supportedHtml = '<i class="green check icon"></i> Supported';
+  const notSupportedHtml = '<i class="red times icon"></i> Not Supported';
+  
+  for (let cardType of allCards) {
+    if (cardType.identifier == previewCardType) {
+      const previewCard = document.getElementById('card-type-preview');
       // Update all attributes of the title card element for the given card
-      $('#title-card-image')[0].src = example; 
-      $('#title-card-name')[0].innerText = name;//`${name} Title Card`;
-      $('#title-card-creators')[0].innerText = creators.join(', ');
-      $('#title-card-font-support')[0].firstChild.className = supports_custom_fonts ? 'green check icon' : 'red times icon';
-      $('#title-card-season-support')[0].firstChild.className = supports_custom_seasons ? 'green check icon' : 'red times icon';
-      $('#title-card-description')[0].innerHTML = '<p>' + description.join('</p><p>') + '</p>';
+      previewCard.querySelector('img').src = cardType.example; 
+      previewCard.querySelector('[data-label="name"]').innerText = cardType.name;
+      previewCard.querySelector('[data-label="creators"]').innerText = 'by ' + cardType.creators.join(', ');
+      previewCard.querySelector('[data-label="supports_custom_fonts"] .description').innerHTML = cardType.supports_custom_fonts ? supportedHtml : notSupportedHtml;
+      previewCard.querySelector('[data-label="supports_custom_seasons"] .description').innerHTML = cardType.supports_custom_seasons ? supportedHtml : notSupportedHtml;
+      const extrasElement = previewCard.querySelector('[data-label="supported_extras"]');
+      const extrasCount = cardType.supported_extras ? cardType.supported_extras.length : 0;
+      extrasElement.querySelector('strong').innerText = extrasCount;
+      
+      // Update extras popup content
+      const extrasList = document.getElementById('extras-list');
+      if (extrasCount > 0 && cardType.supported_extras) {
+        extrasList.innerHTML = cardType.supported_extras.map(extra => 
+          `<div class="item"><div class="content">${extra.name}</div></div>`
+        ).join('');
+      } else {
+        extrasList.innerHTML = '<div class="item"><div class="content">No extras available</div></div>';
+      }
+      
+      previewCard.querySelector('[data-label="description"]').innerHTML = '<p>' + cardType.description.join('</p><p>') + '</p>';
       break;
     }
   }
+}
+
+/** @type {CardTypeDescription[]} */
+let allCardTypesForModal = [];
+
+/**
+ * Populate the all card types modal with details of all available card types.
+ * Groups card types by source (builtin, local, remote) and displays them
+ * in a scrollable list.
+ * 
+ * @param {CardTypeDescription[]} allCards List of all card types.
+ * @param {string} filterText Optional filter text to filter by card type name.
+ */
+function populateAllCardTypesModal(allCards, filterText = '') {
+  const contentDiv = document.getElementById('card-types-content');
+  if (!contentDiv || !allCards || allCards.length === 0) {
+    contentDiv.innerHTML = '<div class="ui message">No card types available.</div>';
+    return;
+  }
+
+  // Store the full list for filtering
+  allCardTypesForModal = allCards;
+
+  const supportedHtml = '<i class="green check icon"></i> Supported';
+  const notSupportedHtml = '<i class="red times icon"></i> Not Supported';
+
+  // Filter card types by name if filter text is provided
+  let filteredCards = allCards;
+  if (filterText && filterText.trim() !== '') {
+    const filterLower = filterText.toLowerCase().trim();
+    filteredCards = allCards.filter(card => 
+      card.name.toLowerCase().includes(filterLower) ||
+      card.identifier.toLowerCase().includes(filterLower) ||
+      card.creators.some(creator => creator.toLowerCase().includes(filterLower))
+    );
+  }
+
+  // Group card types by source
+  const builtinCards = filteredCards.filter(card => card.source === 'builtin');
+  const localCards = filteredCards.filter(card => card.source === 'local');
+  const remoteCards = filteredCards.filter(card => card.source === 'remote');
+
+  let html = '';
+
+  // Helper function to create card type card HTML
+  const createCardTypeHTML = (cardType) => {
+    return `
+      <div class="ui horizontal raised fluid card" style="margin: 1em 0;">
+        <div class="image" style="max-width: 300px;">
+          <img src="${cardType.example}" alt="${cardType.name} example" style="object-fit: contain;">
+        </div>
+        <div class="content" style="flex: 1;">
+          <div class="header">${cardType.name}</div>
+          <div class="meta">
+            <span class="date">by ${cardType.creators.join(', ')}</span>
+            <br>
+            <div class="ui divided horizontal list" style="margin-top: 1em;">
+              <div class="item">
+                <div class="content">
+                  <div class="header">Custom Fonts</div>
+                  <div class="description">
+                    ${cardType.supports_custom_fonts ? supportedHtml : notSupportedHtml}
+                  </div>
+                </div>
+              </div>
+              <div class="item">
+                <div class="content">
+                  <div class="header">Custom Season Titles</div>
+                  <div class="description">
+                    ${cardType.supports_custom_seasons ? supportedHtml : notSupportedHtml}
+                  </div>
+                </div>
+              </div>
+              <div class="item">
+                <div class="content">
+                  <div class="header">Extras</div>
+                  <div class="description">
+                    <i class="options icon"></i>
+                    <strong>${cardType.supported_extras ? cardType.supported_extras.length : 0}</strong> Available
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="description" style="margin-top: 1em;">
+            ${cardType.description.map(desc => `<p>${desc}</p>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  // Show message if no results match filter
+  if (filteredCards.length === 0) {
+    html = `<div class="ui message">
+      <i class="info circle icon"></i>
+      No card types found matching "${filterText}"
+    </div>`;
+  } else {
+    // Build-in card types section
+    if (builtinCards.length > 0) {
+      html += `
+        <h2 class="ui dividing header">
+          <i class="building icon"></i>
+          <div class="content">
+            Built-in Card Types
+            <div class="sub header">${builtinCards.length} card type${builtinCards.length !== 1 ? 's' : ''}</div>
+          </div>
+        </h2>
+        <div class="ui segment">
+          ${builtinCards.map(createCardTypeHTML).join('')}
+        </div>
+      `;
+    }
+
+    // Local card types section
+    if (localCards.length > 0) {
+      html += `
+        <h2 class="ui dividing header" style="margin-top: 2em;">
+          <i class="folder icon"></i>
+          <div class="content">
+            Local Card Types
+            <div class="sub header">${localCards.length} card type${localCards.length !== 1 ? 's' : ''}</div>
+          </div>
+        </h2>
+        <div class="ui segment">
+          ${localCards.map(createCardTypeHTML).join('')}
+        </div>
+      `;
+    }
+
+    // Remote card types section
+    if (remoteCards.length > 0) {
+      html += `
+        <h2 class="ui dividing header" style="margin-top: 2em;">
+          <i class="cloud download icon"></i>
+          <div class="content">
+            Remote Card Types
+            <div class="sub header">${remoteCards.length} card type${remoteCards.length !== 1 ? 's' : ''}</div>
+          </div>
+        </h2>
+        <div class="ui segment">
+          ${remoteCards.map(createCardTypeHTML).join('')}
+        </div>
+      `;
+    }
+  }
+
+  contentDiv.innerHTML = html;
+  refreshTheme();
 }
 
 /**
@@ -443,6 +619,13 @@ async function initAll() {
   refreshTheme();
   $('.ui.accordion').accordion();
 
+  // Initialize extras popup
+  $('#extras-icon').popup({
+    popup: $('#extras-popup'),
+    on: 'click',
+    position: 'top center',
+  });
+
   // Show extension warning based on starting extension
   let currentExtension = $('#card-extension-input').val();
   $('#card-extension-warning').toggleClass(
@@ -452,6 +635,12 @@ async function initAll() {
   // Launch style modal when helper buttons are clicked
   $('#style-modal')
     .modal('attach events', '.button[data-value="style-button"]', 'show')
+    .modal('setting', 'transition', 'fade up')
+    .modal({blurring: true});
+
+  // Launch all card types modal
+  $('#all-card-types-modal')
+    .modal('attach events', '#view-all-card-types', 'show')
     .modal('setting', 'transition', 'fade up')
     .modal({blurring: true});
 
@@ -509,11 +698,20 @@ async function initAll() {
       updateGlobalSettings();
     });
 
+  /** @type {CardTypeDescription[]} */
   let allCards = [];
   (async () => {
+    /** @type {CardTypeDescription[]} */
     allCards = await initCardTypeDropdowns();
     updatePreviewTitleCard(allCards, '{{preferences.default_card_type}}');
     initializeGlobalFonts(allCards);
     initializeBlurProfiles(allCards);
+    populateAllCardTypesModal(allCards, '');
+
+    // Add filter functionality
+    $('#card-type-filter').on('input', function() {
+      const filterText = $(this).val();
+      populateAllCardTypesModal(allCardTypesForModal, filterText);
+    });
   })()
 }
