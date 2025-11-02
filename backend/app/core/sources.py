@@ -239,9 +239,13 @@ def download_series_logo(
             if logo:
                 break
 
-            logo = interface.get_series_logo(
-                library, series.as_series_info, log=log
-            )
+            try:
+                logo = interface.get_series_logo(
+                    library, series.as_series_info, log=log
+                )
+            except Exception:
+                log.exception('Error downloading logo')
+                continue
 
         # If no logo was returned, move on to next image source
         if logo is None:
