@@ -59,6 +59,13 @@ function reloadPreview(watchStatus, templateElementId, cardElement, imgElement) 
     : $(`#${templateElementId} input[name="unwatched_style"]`).val() || '{{preferences.default_unwatched_style}}'
   ;
 
+  const extras = {};
+  $(`#${templateElementId} section[aria-label="extras"] input`).each(function() {
+    if ($(this).val() !== '') {
+      extras[$(this).attr('name')] = $(this).val();
+    }
+  });
+
   // Generate preview card data
   /** @type {PreviewTitleCard} */
   const previewCard = {
@@ -74,20 +81,7 @@ function reloadPreview(watchStatus, templateElementId, cardElement, imgElement) 
     watched: watchStatus === 'wached',
     style: style,
     font_id: $(`#${templateElementId} input[name="font_id"]`).val() || null,
-    extra_keys: parseList(
-        $(`#${templateElementId} section[aria-label="extras"] input`).map(function() {
-          if ($(this).val() !== '') { 
-            return $(this).attr('name'); 
-          }
-        }).get()
-      ),
-    extra_values: parseList(
-      $(`#${templateElementId} section[aria-label="extras"] input`).map(function() {
-          if ($(this).val() !== '') {
-            return $(this).val(); 
-          }
-        }).get(),
-      ),
+    extras: extras,
   };
 
   // Submit API request
@@ -161,6 +155,14 @@ function showDeleteModal(templateId) {
  * @param {number} templateId - ID of the Template being updated.
  */
 function updateTemplate(templateId) {
+
+  const extras = {};
+  $(`#template-id${templateId} section[aria-label="extras"] input`).each(function() {
+    if ($(this).val() !== '') {
+      extras[$(this).attr('name')] = $(this).val();
+    }
+  });
+
   const data = {
     name: $(`#template-id${templateId} input[name="name"]`).val(),
     filters: parseList(
@@ -199,20 +201,7 @@ function updateTemplate(templateId) {
           };
         }).filter(({data_key}) => data_key !== '')
       ),
-    extra_keys: parseList(
-        $(`#template-id${templateId} section[aria-label="extras"] input`).map(function() {
-          if ($(this).val() !== '') { 
-            return $(this).attr('name'); 
-          }
-        }).get()
-      ),
-    extra_values: parseList(
-        $(`#template-id${templateId} section[aria-label="extras"] input`).map(function() {
-          if ($(this).val() !== '') {
-            return $(this).val(); 
-          }
-        }).get(),
-      ),
+    extras: extras,
   }
 
   $.ajax({
