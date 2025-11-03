@@ -1000,7 +1000,9 @@ async function getEpisodeData(page=1) {
   const url = simplified_data_table ? '/api/v2/episodes/series/{{ series.id }}/simplified' : '/api/v2/episodes/series/{{ series.id }}';
   /** @type {Page<Episode>} */
   const episodeData = await fetch(`${url}?size={{ preferences.episode_data_page_size }}&page=${page}`).then(resp => resp.json());
-  if (episodeData === null || episodeData.items.length === 0) { return; }
+  if (episodeData === null || episodeData.items.length === 0) {
+    episodeTable.replaceChildren(...[]);
+  }
 
   // Different HTML for each togglable boolean icon
   function getIcon(value, triState=true) {
