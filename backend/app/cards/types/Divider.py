@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import Any, Literal, Self
+from typing import Annotated, Any, ClassVar, Literal, Self
 
-from pydantic import FilePath, model_validator
+from pydantic import Field, FilePath, model_validator
 
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.cards.base import (
@@ -86,7 +86,17 @@ class DividerTitleCard(BaseCardType):
                 identifier='divider_color',
                 description='Color of the divider bar between text',
                 tooltip='Default is to match the Font color.',
-            )
+            ),
+            Extra(
+                name='Divider Width',
+                identifier='divider_width',
+                description='Width of the divider bar',
+                tooltip=(
+                    'Value greater than <v>0</v>. Default is <v>7</v>. Unit is '
+                    'pixels.'
+                ),
+                default='7',
+            ),
         ],
         description=[
             'A simple title card featuring the title and index text separated '
@@ -111,8 +121,11 @@ class DividerTitleCard(BaseCardType):
         episode_text_format='Episode {episode_number}',
     )
 
+    DEFAULT_DIVIDER_WIDTH: ClassVar[int] = 7
+
     __slots__ = (
         'divider_color',
+        'divider_width',
         'episode_text',
         'font_color',
         'font_file',
@@ -153,7 +166,9 @@ class DividerTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             stroke_color: str = 'black',
+            # Extras
             divider_color: str = CardConfig.font_color,
+            divider_width: int = DEFAULT_DIVIDER_WIDTH,
             text_gravity: TextGravity | None = None,
             title_text_position: TitleTextPosition = 'left',
             text_position: TextPosition = 'lower right',
@@ -302,7 +317,7 @@ class DividerTitleCard(BaseCardType):
 
         return [
             fr'\(',
-                f'-size 7x{divider_height-25}',
+                f'-size {self.divider_width}x{divider_height + 25}',
                 f'xc:"{color}"',
             fr'\)',
             f'+size',
@@ -422,6 +437,10 @@ def get_validator_model() -> type[BaseCardModel]:
         font_file: FilePath = DividerTitleCard.CardConfig.font_file
         stroke_color: str = 'black'
         divider_color: str | None = None
+        divider_width: Annotated[
+            int,
+            Field(ge=0)
+        ] = DividerTitleCard.DEFAULT_DIVIDER_WIDTH
         text_gravity: TextGravity | None = None
         title_text_position: TitleTextPosition = 'left'
         text_position: TextPosition = 'lower right'
