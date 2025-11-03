@@ -545,6 +545,7 @@ function initAll() {
   serializeAllFilters(false); // This queries all Series
   getAllStatistics();
   $('.ui.dropdown').dropdown();
+  $('.ui.checkbox').checkbox();
 }
 
 const sortStates = {
