@@ -346,8 +346,8 @@ def get_existing_series_source_images(
     """
 
     return paginate(
-        db.query(EpisodeModel)\
-            .filter_by(series_id=series_id)\
+        db.query(EpisodeModel)
+            .filter(EpisodeModel.series_id == series_id)
             .order_by(
                 EpisodeModel.season_number,
                 EpisodeModel.episode_number,
