@@ -211,7 +211,7 @@ def download_series_logo(
     image_source_priority = TieredSettings.resolve_singular_setting(
         settings.image_source_priority,
         series.image_source_priority,
-    )
+    ) or []
 
     # Go through all image sources
     logo = None

@@ -934,10 +934,12 @@ def add_series(
     # Create source directory if DNE
     series.source_directory.mkdir(parents=True, exist_ok=True)
 
-    # Set Series ID's, download poster and logo
-    set_series_database_ids(series, db, log=log)
-    download_series_poster(db, series, log=log)
-    download_series_logo(series, log=log)
+    try:
+        set_series_database_ids(series, db, log=log)
+        download_series_poster(db, series, log=log)
+        download_series_logo(series, log=log)
+    except HTTPException:
+        log.warning(f'{series} - skipping processing')
 
     # Refresh card types in case new remote type was specified
     refresh_remote_card_types(db, reset=False, log=log)
