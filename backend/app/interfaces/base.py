@@ -1,7 +1,15 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
-from typing import Annotated, Any, ClassVar, Generic, Literal, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Any,
+    ClassVar,
+    Generic,
+    Literal,
+    TypeVar,
+)
 
 from PIL import Image
 
@@ -10,13 +18,15 @@ from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
 from app.logging.logger import Logger, log
 
+if TYPE_CHECKING:
+    from app.models.card import Card
+    from app.models.episode import Episode
+
 
 """Type definitions"""
 type InterfaceType = Literal[
     'Emby', 'Jellyfin', 'Plex', 'Sonarr', 'Tautulli', 'TMDb', 'TVDb'
 ]
-_Card = TypeVar('_Card')
-_Episode = TypeVar('_Episode')
 SourceImage = str | bytes | None
 
 
@@ -330,7 +340,7 @@ class MediaServer(ABC):
     def update_watched_statuses(self,
             library_name: str,
             series_info: SeriesInfo,
-            episodes: list[_Episode],
+            episodes: list['Episode'],
             *,
             log: Logger = log,
         ) -> bool:
@@ -343,12 +353,12 @@ class MediaServer(ABC):
             library_name: str,
             series_info: SeriesInfo,
             episode_and_cards: (
-                list[tuple[_Episode, _Card]]
-                | list[tuple[_Episode, _Card, Any]]
+                list[tuple['Episode', 'Card']]
+                | list[tuple['Episode', 'Card', str]]
             ),
             *,
             log: Logger = log,
-        ) -> list[tuple[_Episode, _Card]]:
+        ) -> list[tuple['Episode', 'Card']]:
         """
         Abstract method to load title cards within this MediaServer.
         """
