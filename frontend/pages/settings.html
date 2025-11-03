@@ -484,7 +484,7 @@
                     <i class="dropdown icon"></i>
                     <div class="default text">{{preferences.card_extension}}</div>
                     <div id="card-extension-choices" class="menu">
-                      {% for extension in preferences.VALID_IMAGE_EXTENSIONS %}
+                      {% for extension in ['.jpg', '.jpeg', '.jxl', '.png', '.tiff', '.gif', '.webp'] %}
                       <div class="item" data-value="{{extension}}">{{extension}}</div>
                       {% endfor %}
                     </div>
