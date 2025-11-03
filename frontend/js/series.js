@@ -2060,7 +2060,7 @@ function browseSourceImages(episodeId, cardElementId, episodeIds) {
         const color = {'Emby': 'green', 'Jellyfin': 'purple', 'Plex': 'yellow', 'TMDb': 'blue'}[interface_type];
 
         // Return image
-        return `<a class="ui image" data-url="${url}" onclick="selectTmdbImage(${episodeId}, '${url || data}')">`
+        return `<a class="ui image" data-url="${url || data}" onclick="selectTmdbImage(${episodeId}, '${url || data}')">`
           + `<div class="ui ${color} ${location} ribbon right icon label">`
           + (interface_type == 'TMDb' ? `${width}x${height}` : interface_type)
           + `<i class="spinner loading icon" style="display: none"></i></div><img src="${url || data}"/></a>`;
