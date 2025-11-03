@@ -58,7 +58,7 @@ class DividerTitleCard(BaseCardType):
                 default='black',
             ),
             Extra(
-                name='Title Text Position',
+                name='Title Text Side',
                 identifier='title_text_position',
                 description=(
                     'Which side the title text should be positioned relative '
