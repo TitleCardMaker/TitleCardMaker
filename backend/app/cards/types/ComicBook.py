@@ -11,7 +11,6 @@ from pydantic import (
     model_validator,
 )
 
-from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
@@ -20,6 +19,7 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
 )
+from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
 
 class SvgRectangle:
@@ -136,20 +136,56 @@ class ComicBookTitleCard(BaseCardType):
                 default='left',
             ),
             Extra(
-                name='Title Textbox Fill Color',
+                name='Index Text Box Fill Color',
+                identifier='episode_text_box_fill_color',
+                description='Fill color of the text box for the episode text',
+                tooltip='Default is to match the Title Text Box Fill Color.',
+            ),
+            Extra(
+                name='Title Text Box Fill Color',
                 identifier='text_box_fill_color',
                 description='Fill color of the text box for the title text',
                 tooltip='Default is <c>white</c>.',
                 default='white',
             ),
             Extra(
-                name='Episode Textbox Fill Color',
-                identifier='episode_text_box_fill_color',
-                description='Fill color of the text box for the episode text',
-                tooltip='Default is to match the Title Textbox Fill Color.',
+                name='Index Text Rotation Angle',
+                identifier='index_text_rotation_angle',
+                description='Rotation of the index text',
+                tooltip=(
+                    'Can be any number, or specified like <v>random[lower, '
+                    'upper]</v> for a random angle between <v>lower</v> and '
+                    '<v>upper</v> to be chosen. Positive angles are tilted '
+                    'down, negative tilted up. Default is <v>-4.0</v>. Unit is '
+                    'degrees.'
+                ),
+                default=-4.0,
             ),
             Extra(
-                name='Title Textbox Edge Color',
+                name='Index Banner Vertical Shift',
+                identifier='index_banner_shift',
+                description=(
+                    'Additional vertical shift to apply to the index text banner'
+                ),
+                tooltip=(
+                    'Negative values shift the banner up, positive values '
+                    'shift the banner down. Default is <v>0</v>. Unit is '
+                    'pixels.'
+                ),
+                default=0,
+            ),
+            Extra(
+                name='Hide Index Banner',
+                identifier='hide_index_banner',
+                description='Whether to hide the index text banner',
+                tooltip=(
+                    'Either <v>True</v> or <v>False</v>. Default is '
+                    '<v>False</v>.'
+                ),
+                default='False',
+            ),
+            Extra(
+                name='Text Box Edge Color',
                 identifier='text_box_edge_color',
                 description='Edge color of all text boxes',
                 tooltip='Default is to match the Font color.',
@@ -168,45 +204,10 @@ class ComicBookTitleCard(BaseCardType):
                 default=-4.0,
             ),
             Extra(
-                name='Index Text Rotation Angle',
-                identifier='index_text_rotation_angle',
-                description='Rotation of the index text',
-                tooltip=(
-                    'Can be any number, or specified like <v>random[lower, '
-                    'upper]</v> for a random angle between <v>lower</v> and '
-                    '<v>upper</v> to be chosen. Positive angles are tilted '
-                    'down, negative tilted up. Default is <v>-4.0</v>. Unit is '
-                    'degrees.'
-                ),
-                default=-4.0,
-            ),
-            Extra(
-                name='Banner Fill Color',
-                identifier='banner_fill_color',
-                description=(
-                    'Fill color for both the title and episode text banners'
-                ),
-                tooltip='Default is <c>rgba(235,73,69,0.6)</c>.',
-                default='rgba(235,73,69,0.6)',
-            ),
-            Extra(
                 name='Title Banner Vertical Shift',
                 identifier='title_banner_shift',
                 description=(
                     'Additional vertical shift to apply to the title text banner'
-                ),
-                tooltip=(
-                    'Negative values shift the banner up, positive values '
-                    'shift the banner down. Default is <v>0</v>. Unit is '
-                    'pixels.'
-                ),
-                default=0,
-            ),
-            Extra(
-                name='Index Banner Vertical Shift',
-                identifier='index_banner_shift',
-                description=(
-                    'Additional vertical shift to apply to the index text banner'
                 ),
                 tooltip=(
                     'Negative values shift the banner up, positive values '
@@ -226,14 +227,13 @@ class ComicBookTitleCard(BaseCardType):
                 default='False',
             ),
             Extra(
-                name='Hide Index Banner',
-                identifier='hide_index_banner',
-                description='Whether to hide the index text banner',
-                tooltip=(
-                    'Either <v>True</v> or <v>False</v>. Default is '
-                    '<v>False</v>.'
+                name='Banner Fill Color',
+                identifier='banner_fill_color',
+                description=(
+                    'Fill color for both the title and episode text banners'
                 ),
-                default='False',
+                tooltip='Default is <c>rgba(235,73,69,0.6)</c>.',
+                default='rgba(235,73,69,0.6)',
             ),
         ],
         description=[
@@ -249,7 +249,6 @@ class ComicBookTitleCard(BaseCardType):
     CardConfig = DefaultCardConfig(
         font_file=REF_DIRECTORY / 'cc-wild-words-bold-italic.ttf',
         font_color='black',
-        font_case='upper',
         font_replacements={'é': 'e', 'É': 'E'},
         title_max_line_width=32,
         title_max_line_count=2,
@@ -650,9 +649,7 @@ def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
     RandomAngleRegex = r'random\[([+-]?\d+.?\d*),\s*([+-]?\d+.?\d*)\]'
-    RandomAngle = Annotated[str, StringConstraints(pattern=RandomAngleRegex)]
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontAllText):
         font_color: str = ComicBookTitleCard.CardConfig.font_color
         font_file: FilePath = ComicBookTitleCard.CardConfig.font_file
@@ -661,8 +658,12 @@ def get_validator_model() -> type[BaseCardModel]:
         text_box_fill_color: str = 'white'
         episode_text_box_fill_color: str | None = None
         text_box_edge_color: str | None = None
-        title_text_rotation_angle: float | RandomAngle = -4.0
-        index_text_rotation_angle: float | RandomAngle = -4.0
+        title_text_rotation_angle: (
+            float | Annotated[str, StringConstraints(pattern=RandomAngleRegex)]
+        ) = -4.0
+        index_text_rotation_angle: (
+            float | Annotated[str, StringConstraints(pattern=RandomAngleRegex)]
+        ) = -4.0
         banner_fill_color: str = ComicBookTitleCard.BANNER_FILL_COLOR
         title_banner_shift: int = 0
         index_banner_shift: int = 0
