@@ -165,11 +165,11 @@ class DividerTitleCard(BaseCardType):
             font_vertical_shift: int = 0,
             blur: bool = False,
             grayscale: bool = False,
-            stroke_color: str = 'black',
             # Extras
             divider_color: str = CardConfig.font_color,
             divider_width: int = DEFAULT_DIVIDER_WIDTH,
             text_gravity: TextGravity | None = None,
+            stroke_color: str = 'black',
             title_text_position: TitleTextPosition = 'left',
             text_position: TextPosition = 'lower right',
             **unused: Any,
@@ -192,7 +192,7 @@ class DividerTitleCard(BaseCardType):
         # Font/card customizations
         self.font_color = font_color
         self.font_file = font_file
-        self.font_interline_spacing = font_interline_spacing
+        self.font_interline_spacing = -20 + font_interline_spacing
         self.font_interword_spacing = font_interword_spacing
         self.font_kerning = font_kerning
         self.font_size = font_size
@@ -201,6 +201,7 @@ class DividerTitleCard(BaseCardType):
 
         # Optional extras
         self.divider_color = divider_color
+        self.divider_width = divider_width
         self.stroke_color = stroke_color
         self.text_gravity = text_gravity
         self.title_text_position = title_text_position
@@ -263,35 +264,27 @@ class DividerTitleCard(BaseCardType):
         """
 
         # No need for divider if either text is hidden, return 0
-        if (len(self.title_text) == 0
-            or (self.hide_season_text and self.hide_episode_text)):
+        if (not self.title_text
+            or self.hide_season_text
+            or self.hide_episode_text):
             return 0
 
-        index_text_line_count = (
-            1 if self.hide_episode_text or self.hide_season_text else 2
-        )
-
+        # Kerning and interword spacing do not affect the text height
         return max(
-            # Height of the index text
-            self.image_magick.get_text_dimensions(
+            self.image_magick.get_text_label_dimensions(
                 [
                     f'-font "{self.font_file}"',
                     f'-interline-spacing {self.font_interline_spacing}',
                     *self.index_text_command,
-                ],
-                interline_spacing=self.font_interline_spacing,
-                line_count=index_text_line_count,
+                ]
             )[1],
-            # Height of the title text
-            self.image_magick.get_text_dimensions(
+            self.image_magick.get_text_label_dimensions(
                 [
                     f'-font "{self.font_file}"',
                     f'-interline-spacing {self.font_interline_spacing}',
                     *self.title_text_command,
-                ],
-                interline_spacing=self.font_interline_spacing,
-                line_count=len(self.title_text.splitlines()),
-            )[1]
+                ]
+            )[1],
         )
 
 
@@ -366,7 +359,6 @@ class DividerTitleCard(BaseCardType):
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
-        interline_spacing = -20 + self.font_interline_spacing
         kerning = -0.5 * self.font_kerning
         stroke_width = 8 * self.font_stroke_width
 
@@ -393,7 +385,7 @@ class DividerTitleCard(BaseCardType):
             f'-font "{self.font_file}"',
             f'-kerning {kerning}',
             f'-strokewidth {stroke_width}',
-            f'-interline-spacing {interline_spacing}',
+            f'-interline-spacing {self.font_interline_spacing}',
             f'-interword-spacing {self.font_interword_spacing}',
             fr'\(',
                 f'-stroke "{self.stroke_color}"',
