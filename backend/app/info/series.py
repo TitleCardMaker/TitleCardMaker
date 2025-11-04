@@ -10,6 +10,10 @@ from app.utils.paths import CleanPath
 
 if TYPE_CHECKING:
     from app.models.series import Series
+    from app.interfaces.schemas.emby import ItemDetails as EmbyItemDetails
+    from app.interfaces.schemas.jellyfin import (
+        ItemDetails as JellyfinItemDetails,
+    )
 
 
 # pylint: disable=missing-class-docstring
@@ -96,10 +100,10 @@ class SeriesInfo(DatabaseInfoContainer):
         # Parse arguments into attributes
         self.name = name
         self.year = year
-        self.emby_id = InterfaceID(emby_id, type_=str, libraries=True)
+        self.emby_id = InterfaceID(emby_id)
         self.imdb_id: str | None = None
-        self.jellyfin_id = InterfaceID(jellyfin_id, type_=str, libraries=True)
-        self.sonarr_id = InterfaceID(sonarr_id, type_=int, libraries=False)
+        self.jellyfin_id = InterfaceID(jellyfin_id)
+        self.sonarr_id = InterfaceID(sonarr_id)
         self.tmdb_id: int | None = None
         self.tvdb_id: int | None = None
         self.tvrage_id: int | None = None
@@ -183,7 +187,8 @@ class SeriesInfo(DatabaseInfoContainer):
     @classmethod
     def from_emby_info(
             cls,
-            info: dict,
+            info: 'EmbyItemDetails',
+            /,
             interface_id: int,
             library_name: str,
         ) -> 'SeriesInfo':
@@ -203,20 +208,20 @@ class SeriesInfo(DatabaseInfoContainer):
         """
 
         return cls(
-            info['Name'],
-            datetime.strptime(info['PremiereDate'], cls.AIRDATE_FORMAT).year,
-            emby_id=f'{interface_id}:{library_name}:{info["Id"]}',
-            imdb_id=info.get('ProviderIds', {}).get('Imdb'),
-            tmdb_id=info.get('ProviderIds', {}).get('Tmdb'),
-            tvdb_id=info.get('ProviderIds', {}).get('Tvdb'),
-            tvrage_id=info.get('ProviderIds', {}).get('TvRage'),
+            info.name,
+            None if info.premiere_date is None else info.premiere_date.year,
+            emby_id=f'{interface_id}:{library_name}:{info.id}',
+            imdb_id=info.provider_ids.get('Imdb'),
+            tmdb_id=info.provider_ids.get('Tmdb'), # type: ignore
+            tvdb_id=info.provider_ids.get('Tvdb'), # type: ignore
+            tvrage_id=info.provider_ids.get('TvRage'), # type: ignore
         )
 
 
     @classmethod
     def from_jellyfin_info(
             cls,
-            info: dict,
+            info: 'JellyfinItemDetails',
             interface_id: int,
             library_name: str,
         ) -> 'SeriesInfo':
@@ -236,13 +241,13 @@ class SeriesInfo(DatabaseInfoContainer):
         """
 
         return cls(
-            info['Name'],
-            datetime.strptime(info['PremiereDate'], cls.AIRDATE_FORMAT).year,
-            jellyfin_id=f'{interface_id}:{library_name}:{info["Id"]}',
-            imdb_id=info.get('ProviderIds', {}).get('Imdb'),
-            tmdb_id=info.get('ProviderIds', {}).get('Tmdb'),
-            tvdb_id=info.get('ProviderIds', {}).get('Tvdb'),
-            tvrage_id=info.get('ProviderIds', {}).get('TvRage'),
+            info.name,
+            None if info.premiere_date is None else info.premiere_date.year,
+            jellyfin_id=f'{interface_id}:{library_name}:{info.id}',
+            imdb_id=info.provider_ids.get('Imdb'),
+            tmdb_id=info.provider_ids.get('Tmdb'), # type: ignore
+            tvdb_id=info.provider_ids.get('Tvdb'), # type: ignore
+            tvrage_id=info.provider_ids.get('TvRage'), # type: ignore
         )
 
 
@@ -272,16 +277,6 @@ class SeriesInfo(DatabaseInfoContainer):
                 series_info.set_tvdb_id(int(guid.id[len('tvdb://'):]))
 
         return series_info
-
-
-    @property
-    def characteristics(self) -> SeriesCharacteristics:
-        """Characteristics of this info to be used in Card creation."""
-
-        return {
-            'series_name': self.name,
-            'series_year': self.year,
-        }
 
 
     @property

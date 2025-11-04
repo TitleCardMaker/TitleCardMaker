@@ -1,13 +1,16 @@
+from base64 import b64encode
 from datetime import datetime, timedelta
 from io import BytesIO
 from pathlib import Path
 from random import choices as random_choices
 from string import hexdigits
-from typing import Any, TypedDict
+from typing import Any, Literal, TypeVar, TypedDict, get_args, get_origin, overload
+from urllib.parse import urljoin
 
 from PIL import Image
 from re import IGNORECASE, compile as re_compile
-from requests import get, Session
+from pydantic import BaseModel, ValidationError
+from requests import Response, get, Session
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 import urllib3
 
@@ -341,3 +344,218 @@ class WebInterface:
             return False
 
         return True
+
+
+ModelType = TypeVar('ModelType', bound=BaseModel)
+
+
+class WebSession:
+    def __init__(self,
+            base_url: str,
+            *,
+            verify_ssl: bool = True,
+            base_parameters: dict[str, Any] = {},
+            timeout: int = 15,
+        ) -> None:
+        """
+        Construct a new instance of a WebSession. This creates a new
+        session for the given base URL and parameters.
+
+        Args:
+            base_url: Base URL to use for all requests.
+            verify_ssl: Whether to verify SSL connections with this
+                session.
+            base_parameters: Base parameters to use for all requests.
+        """
+
+        self.session = Session()
+        self.session.verify = verify_ssl
+
+        self._base_url = base_url.removesuffix('/') + '/'
+        self._timeout = timeout
+        self._base_parameters = base_parameters
+
+
+    def _request(self,
+            method: Literal['GET', 'POST', 'PUT', 'DELETE'],
+            endpoint: str,
+            parameters: dict[str, Any] = {},
+            data: Any | None = None,
+            headers: dict[str, str] | None = None,
+        ) -> Response:
+        """
+        Submit a request to the given endpoint with the given
+        parameters.
+
+        Args:
+            method: Method to submit the request with.
+            endpoint: Endpoint to submit the request to.
+            parameters: Parameters to pass to the request. These will
+                be merged with the base parameters for this session.
+
+        Returns:
+            The response from the request.
+        """
+
+        url = urljoin(self._base_url, endpoint)
+
+        return self.session.request(
+            method,
+            url,
+            params=self._base_parameters | parameters,
+            data=data,
+            headers=headers,
+            timeout=self._timeout,
+        )
+
+
+    @overload
+    def get(self,
+            endpoint: str,
+            *,
+            parameters: dict[str, Any] = {},
+            response_model: type[ModelType],
+        ) -> ModelType | None: ...
+
+    @overload
+    def get(self,
+            endpoint: str,
+            *,
+            parameters: dict[str, Any] = {},
+            response_model: type[list[ModelType]],
+        ) -> list[ModelType] | None: ...
+
+    def get(self,
+            endpoint: str,
+            *,
+            parameters: dict[str, Any] = {},
+            response_model: (
+                type[ModelType]
+                | type[list[ModelType]]
+                | None
+            ) = None,
+        ) -> ModelType | list[ModelType] | None:
+        """
+        Submit a GET request to the given endpoint with the given
+        parameters.
+
+        Args:
+            endpoint: Endpoint to submit the GET request to.
+            parameters: Parameters to pass to the GET request. These
+                will be merged with the base parameters for this
+                session.
+            response_model: Model to validate the response against. If
+                None, the response will be returned as a JSON object. If
+                a list is provided, each item will be validated against
+                the model.
+
+        Returns:
+            The validated response. None if the response could not be
+            validated or if the response model was not provided.
+        """
+
+        response = self._request('GET', endpoint, parameters=parameters)
+
+        if response_model is None:
+            try:
+                return response.json()
+            except Exception:
+                log.exception('Unable to parse response as JSON')
+                return None
+
+        # If the response model was provided as a list - i.e. list[...]
+        # then parse each item against the model
+        if get_origin(response_model) in (list, list.__class__):
+            submodel: ModelType = get_args(response_model)[0]
+            try:
+                return [
+                    submodel.model_validate(item) for item in response.json()
+                ]
+            except ValidationError:
+                log.exception(
+                    'Unable to parse response as list of response models'
+                )
+                return None
+
+        try:
+            return response_model.model_validate_json(response.text)
+        except ValidationError:
+            log.exception('Unable to parse response as JSON model')
+            log.trace(response.text)
+            try:
+                return response_model.model_validate(response.json())
+            except ValidationError:
+                log.exception('Unable to parse response as model')
+                return None
+
+        return None
+
+
+    def get_raw(self,
+            endpoint: str,
+            *,
+            parameters: dict[str, Any] = {},
+        ) -> bytes | None:
+        """
+        Submit a GET request to the given endpoint with the given
+        parameters, and return the raw response content.
+
+        Args:
+            endpoint: Endpoint to submit the GET request to.
+            parameters: Parameters to pass to the GET request. These
+                will be merged with the base parameters for this
+                session.
+
+        Returns:
+            The raw response content. None if the response could not be
+            returned as bytes.
+        """
+
+        response = self._request('GET', endpoint, parameters=parameters)
+
+        if response.ok and isinstance(response.content, bytes):
+            return response.content
+
+        return None
+
+
+    def post_base64_image(self,
+            endpoint: str,
+            image: bytes,
+            *,
+            parameters: dict[str, Any] = {},
+            headers: dict[str, str] = {'Content-Type': 'image/jpeg'},
+        ) -> None:
+        """
+        Submit a POST request to the given endpoint with the given
+        parameters, and the given image as a Base64 encoded string.
+
+        Args:
+            endpoint: Endpoint to submit the POST request to.
+            image: The image to submit as a Base64 encoded string.
+            parameters: Parameters to pass to the POST request. These
+                will be merged with the base parameters for this session.
+            headers: Headers to pass to the POST request.
+        """
+
+        _ = self._request(
+            'POST',
+            endpoint,
+            parameters=parameters,
+            data=b64encode(image),
+            headers=headers,
+        )
+
+
+    def delete(self, endpoint: str, *, parameters: dict[str, Any] = {}) -> None:
+        """
+        Submit a DELETE request to the given endpoint with the given
+        parameters.
+
+        Args:
+            endpoint: Endpoint to submit the DELETE request to.
+            parameters: Parameters to pass to the DELETE request. These
+                will be merged with the base parameters for this session.
+        """
+
+        self._request('DELETE', endpoint, parameters=parameters)

@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Literal, TypeVar, overload
 
@@ -7,6 +6,7 @@ from app.logging.logger import Logger, log
 
 type ConnectionID = int | tuple[int, str]
 DatabaseID = TypeVar('DatabaseID', str, int)
+IDType = TypeVar('IDType', str, int)
 
 
 class InterfaceID:
@@ -20,17 +20,17 @@ class InterfaceID:
     This can be viewed as a dictionary that maps interface IDs (keys) to
     actual IDs (values). For example:
 
-    >>> iid = InterfaceID('0:123,1:234', type_=int)
+    >>> iid = InterfaceID('0:123,1:234')
     >>> print(repr(iid))
-    '<InterfaceID {0: 123, 1: 234}>'
+    '<InterfaceID {'0': '123', '1': '234'}>'
 
     These IDs can then be set/got via the interface IDs:
 
-    >>> print(iid[0])
-    123
-    >>> iid[2] = 999
-    >>> print(iid[2])
-    999
+    >>> print(iid.get_id(0))
+    '123'
+    >>> iid.set_id(999, 2)
+    >>> print(iid.get_id(2))
+    '999'
 
     IDs can also be compared with `<` and `>` for evaluating which
     contains more or less information. For example:
@@ -47,131 +47,135 @@ class InterfaceID:
     providing ID-related functionality.
     """
 
-    INTER_ID_KEY = ':'
-    INTER_INTERFACE_KEY = ','
 
-    # """Regex to match library sub ID components"""
-    # LIBRARY_SUB_ID_REGEX = re_compile(r'^(\d+):(.+):(.*)$', IGNORECASE)
-
-    __slots__ = ('_type', '_ids', '_libraries')
+    __slots__ = ('_id_map', )
 
 
     def __init__(self,
-            /,
             id_: str | None = None,
-            *,
-            type_: Callable[[str], DatabaseID] = str,
-            libraries: bool = False,
+            /,
         ) -> None:
         """
-        Construct a new InterfaceID object from the given ID string.
+        Construct a new InterfaceID object from the given ID string. If
+        the provided ID string has a library identifier, these are
+        parsed as part of the ID key.
+
+        >>> id = InterfaceID('0:123,1:234')
+        >>> print(id)
+        '<InterfaceID {'0': '123', '1': '234'}>'
+
+        >>> id = InterfaceID('0:TV:123,0:Anime:987')
+        >>> print(id)
+        '<InterfaceID {'0:TV': '123', '0:Anime': '987'}>'
 
         Args:
             id_: ID string to parse for interface ID pairs.
-            type_: Callable for converting the type of each ID.
             libraries: Whether these types of IDs allow per-library ID
                 specification (in addition to per-interface).
         """
 
-        self._type = type_
-        self._libraries = libraries
-        self._ids: dict[int, dict[str, DatabaseID]] | dict[int, DatabaseID] = {}
+        # Mapping of key to ID. For library-accessed IDs, the key is
+        # the interface ID and library name separated by a colon. For
+        # non-library-accessed IDs, the key is the interface ID.
+        # For example {'0': 'abc'} or {'0:TV': 'abc'}
+        self._id_map: dict[str, str] = {}
 
         if not id_:
             return None
 
-        for sub_id in id_.split(self.INTER_INTERFACE_KEY):
-            id_vals = sub_id.split(self.INTER_ID_KEY)
-            interface_id = int(id_vals[0])
-            id_value = type_(id_vals[-1])
-            if libraries:
-                library = id_vals[1]
-                if interface_id in self._ids:
-                    self._ids[interface_id][library] = id_value
-                else:
-                    self._ids[interface_id] = {library: id_value}
-            else:
-                self._ids[interface_id] = id_value
+        # Populate the ID map
+        for sub_id in id_.split(','): # ['0:123', '1:234']
+            # ['0', '123'] or ['1', 'TV', '123']
+            id_vals = sub_id.rsplit(':', maxsplit=1)
+            self._id_map[id_vals[0]] = id_vals[1]
 
         return None
 
 
-    def __setitem__(self,
-            connection_id: ConnectionID,
-            id_: DatabaseID,
-            /,
-        ) -> None:
+    def set_id(self,
+        value: Any,
+        /,
+        interface_id: int,
+        library_name: str | None = None,
+    ) -> None:
         """
-        Set the ID for the given interface to the given value. This
-        performs any assigned type conversions if this object was
-        initialized with a type.
+        Set the ID for the given interface to the given value.
 
         Args:
-            connection_id: ID of the interface whose ID this is.
-            id_: ID to set.
+            value: Value to set the ID to.
+            interface_id: ID of the interface whose ID is being set.
+            library_name: Name of the library containing the ID being
+                set.
         """
 
-        # Apply type conversion
-        typed_id = id_ if self._type is None else self._type(id_)
-
-        if self._libraries and isinstance(connection_id, tuple):
-            connection_id, library = connection_id
-            if connection_id in self._ids:
-                self._ids[connection_id][library] = typed_id
-            else:
-                self._ids[connection_id] = {library: typed_id}
+        if library_name:
+            key = f'{interface_id}:{library_name}'
         else:
-            self._ids[connection_id] = typed_id
+            key = str(interface_id)
+
+        self._id_map[key] = str(value)
 
 
-    def __getitem__(self,
-            connection_id: ConnectionID,
+    def get_id(self,
+            interface_id: int,
+            library_name: str | None = None,
             /,
-        ) -> DatabaseID | None:
+        ) -> str | None:
         """
-        Get the ID for the given interface.
+        Get the ID for the given connection ID and library name.
 
         Args:
-            connection_id: ID of the interface whose ID to get.
+            interface_id: ID of the interface whose ID to get.
+            library_name: Name of the library containing the ID.
 
         Returns:
             ID of the given interface. None if there is no ID.
         """
 
-        if self._libraries and isinstance(connection_id, tuple):
-            connection_id, library = connection_id
-            return self._ids.get(connection_id, {}).get(library)
+        if library_name:
+            return self._id_map.get(f'{interface_id}:{library_name}')
 
-        return self._ids.get(connection_id)
+        return self._id_map.get(str(interface_id))
 
 
-    def __delitem__(self, connection_id: ConnectionID, /) -> None:
+    def delete_id(self,
+            connection_id: int,
+            library_name: str | None = None,
+            /,
+        ) -> None:
         """
         Delete the ID for the given interface location.
 
-        >>> del iid[1, 'TV Shows'] # Delete library-accessed InterfaceID
-        >>> del iid[2]             # Delete non-library-accessed IDs
+        >>> id = InterfaceID('0:123,1:234')
+        >>> id.delete_id(0)
+        >>> print(id)
+        '<InterfaceID {'1': '234'}>'
+
+        >>> id = InterfaceID('0:TV:123,0:Anime:987', libraries=True)
+        >>> id.delete_id(0, 'Anime')
+        >>> print(id)
+        '<InterfaceID {'0:TV': '123'}>'
 
         Args:
             connection_id: ID of the interface to reset.
+            library_name: Name of the library containing the ID being
+                deleted.
         """
 
-        if self._libraries and isinstance(connection_id, tuple):
-            connection_id, library = connection_id
-            try:
-                del self._ids[connection_id][library]
-            except KeyError:
-                pass
-        elif isinstance(connection_id, int):
-            try:
-                del self._ids[connection_id]
-            except KeyError:
-                pass
+        if library_name:
+            key = f'{connection_id}:{library_name}'
+        else:
+            key = str(connection_id)
+
+        try:
+            del self._id_map[key]
+        except KeyError:
+            pass
 
 
-    def __eq__(self, other: 'str | InterfaceID') -> bool:
+    def equals(self, other: 'InterfaceID', /) -> bool:
         """
-        Evaluate the equality of two InterfaceID objects.
+        Compare the equality of two InterfaceID objects.
 
         Args:
             other: InterfaceID to compare against.
@@ -181,103 +185,61 @@ class InterfaceID:
             match. False otherwise.
         """
 
-        # If string, convert to InterfaceID and compare
-        if isinstance(other, str):
-            return self == InterfaceID(
-                other, type_=self._type, libraries=self._libraries
-            )
-
-        # Verify class comparison
-        if not isinstance(other, self.__class__):
-            raise TypeError(f'Can only compare like InterfaceID objects')
-
-        # Per-library IDs, compare each interface and library field
-        if self._libraries:
-            return any(
-                other[iid, library] == id_
-                for iid, sub_id in self._ids.items()
-                for library, id_ in sub_id.items()
-            )
-
-        return any(other[iid] == id_ for iid, id_ in self._ids.items())
+        return any(
+            id_ == other._id_map.get(iid)
+            for iid, id_ in self._id_map.items()
+        )
 
 
-    def __gt__(self, other: 'str | InterfaceID') -> bool:
+    def gt(self, other: 'InterfaceID | str', /) -> bool:
         """
-        Evaluate whether this object contains more information than is
-        available in the comparison ID.
+        Compare the inequality of two InterfaceID objects.
 
         >>> id0 = InterfaceID('0:123,1:234,2:345')
         >>> id1 = InterfaceID('0:123')
-        >>> id0 > id1
+        >>> id0.gt(id1)
         True
-        >>> id0 > '0:123,1:234,2:999'
+        >>> id0.gt('0:123,1:234,2:999') # Has same ID keys, not more
         False
 
+        Args:
+            other: InterfaceID to compare against.
+
         Returns:
-            True if this object defines an ID for an interface which is
-            not defined in `other`. False otherwise.
+            True if this object contains more information than the other.
+            False otherwise.
         """
 
-        # If a string, convert to InterfaceID and compare
         if isinstance(other, str):
-            return self > InterfaceID(
-                other, type_=self._type, libraries=self._libraries
-            )
-
-        # Per-library IDs, use nested comparison
-        if self._libraries:
-            return (
-                # If this object has any interfaces not present in other
-                any(key not in other._ids for key in self._ids)
-                # or this object has any libraries not present in other
-                or any(
-                    library not in other._ids[iid]
-                    for iid, libraries in self._ids.items()
-                    for library in libraries
-                )
-            )
-
-        return any(key not in other._ids for key in self._ids)
+            other = InterfaceID(other)
+        for key in self._id_map:
+            log.warning(f'  {key} in {other._id_map}          //   {key in other._id_map}')
+        return any(key not in other._id_map for key in self._id_map)
 
 
-    def __lt__(self, other: 'str | InterfaceID') -> bool:
+    def lt(self, other: 'InterfaceID | str', /) -> bool:
         """
-        Evaluate whether this object contains less information than is
-        available in the comparison ID.
+        Compare the inequality of two InterfaceID objects.
 
         >>> id0 = InterfaceID('0:123,1:234,2:345')
         >>> id1 = InterfaceID('0:123')
-        >>> id1 < id0
+        >>> id1.lt(id0)
         True
-        >>> id0 > '0:123,1:234,2:999'
+        >>> id0.lt('0:123,1:234,2:999') # Has same ID keys, not less
         False
 
+        Args:
+            other: InterfaceID to compare against.
+
         Returns:
-            True if this object is missing an ID for an interface which
-            is defined in `other`. False otherwise.
+            True if this object contains less information than the other.
+            False otherwise.
         """
 
-        # If a string, convert to InterfaceID and compare
         if isinstance(other, str):
-            return self < InterfaceID(
-                other, type_=self._type, libraries=self._libraries
-            )
+            other = InterfaceID(other)
 
-        # Per-library IDs, use nested comparison
-        if self._libraries:
-            return (
-                # If this object has any interfaces not present in other
-                any(key not in self._ids for key in other._ids)
-                # or this object has any libraries not present in other
-                or any(
-                    library not in self._ids[iid]
-                    for iid, libraries in other._ids.items()
-                    for library in libraries
-                )
-            )
-
-        return any(key not in self._ids for key in other._ids)
+        return any(key not in self._id_map for key in other._id_map)
 
 
     def __bool__(self) -> bool:
@@ -288,95 +250,102 @@ class InterfaceID:
             True if there is at least one mapped ID, False otherwise.
         """
 
-        return len(self._ids) > 0
+        return len(self._id_map) > 0
 
 
     def __repr__(self) -> str:
         """Get an unambiguous representation of this object."""
 
-        return f'<InterfaceID {self._ids}>'
+        return f'<InterfaceID {self._id_map}>'
 
 
     def __str__(self) -> str:
         """
         Get a string representation of this object. This is a string
         that can be used to initialize an exact InterfaceID object.
+
+        >>> id = InterfaceID('0:123,1:234')
+        >>> print(str(id))
+        '0:123,1:234'
+
+        >>> id = InterfaceID('0:TV:123,0:Anime:987', libraries=True)
+        >>> print(str(id))
+        '0:TV:123,0:Anime:987'
         """
 
-        if self._libraries:
-            return self.INTER_INTERFACE_KEY.join(
-                f'{key}{self.INTER_ID_KEY}{library}{self.INTER_ID_KEY}{id_}'
-                for key, library_dict in self._ids.items()
-                for library, id_ in library_dict.items()
-            )
-
-        return self.INTER_INTERFACE_KEY.join(
-            f'{key}{self.INTER_ID_KEY}{value}'
-            for key, value in self._ids.items()
-        )
+        return ','.join(f'{key}:{id_}' for key, id_ in self._id_map.items())
 
 
-    def __add__(self, other: 'str | InterfaceID') -> 'InterfaceID':
+    def add_id(self, interface_id: 'str | InterfaceID', /) -> 'InterfaceID':
         """
         Add this object to the given object, returning the combination
-        of their IDs. This objects IDs take priority in any interface
+        of their IDs. This object's IDs take priority in any interface
         ID conflicts.
 
         >>> id0 = InterfaceID('0:123,1:234')
         >>> id1 = InterfaceID('1:999,2:987')
         >>> str(id0 + id1) # id0's 1:234 takes priority of id1's 1:999
         '0:123,1:234,2:987'
+
+        Args:
+            interface_id: InterfaceID to add to this object. This can
+                also be the string representation of an InterfaceID.
+
+        Returns:
+            A new InterfaceID object with the combined IDs of this
+            object and the given object.
         """
 
-        if not isinstance(other, (str, InterfaceID)):
-            raise TypeError('Can only add IDs from a str or InterfaceID')
+        if isinstance(interface_id, str):
+            interface_id = InterfaceID(interface_id)
 
-        # Convert other to an InterfaceID if provided as a string
-        if isinstance(other, str):
-            other = InterfaceID(
-                other, type_=self._type, libraries=self._libraries
-            )
-
-        # Create new object for storing finalized attributes in 
-        return_id = InterfaceID(
-            str(self), type_=self._type, libraries=self._libraries
-        )
-        for interface_id, sub_id in other._ids.items():
-            if self._libraries:
-                for library, id_ in sub_id.items():
-                    if return_id[interface_id, library] is None:
-                        return_id[interface_id, library] = id_
-            else:
-                if return_id[interface_id] is None:
-                    return_id[interface_id] = sub_id
+        return_id = InterfaceID()
+        return_id._id_map.update(interface_id._id_map)
+        return_id._id_map.update(self._id_map)
 
         return return_id
 
 
-    def delete_interface_id(self, connection_id: ConnectionID, /) -> bool:
+    def delete_interface_id(self, connection_id: int, /) -> bool:
         """
         Delete all the IDs associated with the given connection ID.
+
+        >>> id = InterfaceID('0:123,1:234,2:345')
+        >>> id.delete_interface_id(1)
+        True
+        >>> str(id)
+        '0:123,2:345'
+
+        >>> id = InterfaceID('0:TV:123,0:Anime:987,1:TV:555')
+        >>> id.delete_interface_id(0)
+        True
+        >>> str(id)
+        '1:TV:555'
 
         Args:
             connection_id: ID of the Connection whose IDs are being
                 deleted.
 
         Returns:
-            Whether this object was modified.
+            Whether any IDs were deleted.
         """
 
-        # Connection has IDs, delete
-        if connection_id in self._ids:
-            del self._ids[connection_id]
-            return True
+        changed = False
+        for key in self._id_map:
+            if key == str(connection_id):
+                del self._id_map[key]
+                changed = True
+            elif key.startswith(f'{connection_id}:'):
+                del self._id_map[key]
+                changed = True
 
-        return False
+        return changed
 
 
     def reset(self) -> None:
         """Reset this object."""
 
-        self._ids = {}
+        self._id_map = {}
 
 
 type IdName = Literal[
@@ -416,21 +385,27 @@ class DatabaseInfoContainer(ABC):
         Returns:
             True if any of the `_id` attributes of these objects are
             equal (and not None). False otherwise.
-
-        Raises:
-            TypeError if `other` is not of the same class as `self`.
         """
 
         # Verify class comparison
         if not isinstance(other, self.__class__):
             return False
 
-        return any(
-            getattr(self, attr, None) is not None
-            and getattr(self, attr, None) == getattr(other, attr, None)
-            for attr in self.__slots__
-            if attr.endswith('_id')
-        )
+        for attr in self.__slots__:
+            if not attr.endswith('_id'):
+                continue
+
+            if (attr_val := getattr(self, attr)) is None:
+                continue
+
+            if isinstance(attr_val, InterfaceID):
+                if attr_val.equals(getattr(other, attr)):
+                    return True
+            else:
+                if attr_val == getattr(other, attr):
+                    return True
+
+        return False
 
 
     def _update_attribute(self,
@@ -488,7 +463,7 @@ class DatabaseInfoContainer(ABC):
 
     @overload
     def has_id(self,
-            id_: Literal['sonarr_id', 'sonarr'],
+            id_: Literal['sonarr', 'sonarr_id'],
             /,
             interface_id: int,
             library_name: None = None
@@ -497,7 +472,7 @@ class DatabaseInfoContainer(ABC):
 
     @overload
     def has_id(self,
-            id_: Literal['emby_id', 'emby', 'jellyfin_id', 'jellyfin'],
+            id_: Literal['emby', 'emby_id', 'jellyfin', 'jellyfin_id'],
             /,
             interface_id: int,
             library_name: str,
@@ -507,10 +482,10 @@ class DatabaseInfoContainer(ABC):
     @overload
     def has_id(self,
             id_: Literal[
-                'imdb_id', 'imdb',
-                'tmdb_id', 'tmdb',
-                'tvdb_id', 'tvdb',
-                'tvrage_id', 'tvrage',
+                'imdb', 'imdb_id',
+                'tmdb', 'tmdb_id',
+                'tvdb', 'tvdb_id',
+                'tvrage', 'tvrage_id',
             ],
             /,
             interface_id: None = None,
@@ -543,16 +518,13 @@ class DatabaseInfoContainer(ABC):
             is not provided.
         """
 
-        id_name = id_ if id_.endswith('_id') else f'{id_}_id'
+        id_name = id_.removesuffix('_id') + '_id'
 
         if isinstance((val := getattr(self, id_name)), InterfaceID):
             if interface_id is None:
-                raise ValueError(f'InterfaceID objects require an interface_id')
+                raise ValueError('InterfaceID objects require an interface_id')
 
-            if library_name:
-                return val[interface_id, library_name] is not None
-
-            return val[interface_id] is not None
+            return val.get_id(interface_id, library_name) is not None
 
         return val is not None
 
@@ -629,16 +601,16 @@ class DatabaseInfoContainer(ABC):
                 continue
 
             # If this is an InterfaceID, combine
-            if isinstance(getattr(self, attr), InterfaceID):
-                if getattr(other, attr) > getattr(self, attr):
-                    log.debug((
+            if isinstance((attr_val := getattr(self, attr)), InterfaceID):
+                if attr_val.lt(getattr(other, attr)):
+                    log.trace((
                         f'Merging {attr} <-- {getattr(self, attr)!r} + '
                         f'{getattr(other, attr)!r}'
                     ))
                     setattr(
                         self,
                         attr,
-                        getattr(self, attr) + getattr(other, attr)
+                        attr_val.add_id(getattr(other, attr))
                     )
             # Regular ID, copy if this info is missing
             elif not getattr(self, attr) and getattr(other, attr):

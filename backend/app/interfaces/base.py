@@ -195,7 +195,7 @@ class EpisodeDataSource(ABC):
 
     @abstractmethod
     def set_episode_ids(self,
-            library_name: str | None,
+            library_name: str,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
             *,

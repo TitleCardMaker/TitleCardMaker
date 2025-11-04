@@ -11,6 +11,10 @@ from app.info.base import DatabaseInfoContainer, InterfaceID
 from app.logging.logger import Logger, log
 
 if TYPE_CHECKING:
+    from app.interfaces.schemas.emby import EpisodeDetails
+    from app.interfaces.schemas.jellyfin import (
+        ItemDetails as JellyfinItemDetails
+    )
     from app.models.episode import Episode
 
 # pylint: disable=missing-class-docstring
@@ -113,10 +117,10 @@ class EpisodeInfo(DatabaseInfoContainer):
         self.absolute_number = None if absolute_number is None else int(absolute_number)
         self.airdate = airdate
 
-        self.emby_id = InterfaceID(emby_id, type_=int, libraries=True)
+        self.emby_id = InterfaceID(emby_id)
         self.imdb_id: str | None = None
-        self.jellyfin_id = InterfaceID(jellyfin_id, type_=str, libraries=True)
-        self.plex_id = InterfaceID(plex_id, type_=int, libraries=True)
+        self.jellyfin_id = InterfaceID(jellyfin_id)
+        self.plex_id = InterfaceID(plex_id)
         self.tmdb_id: int | None = None
         self.tvdb_id: int | None = None
         self.tvrage_id: int | None = None
@@ -208,6 +212,10 @@ class EpisodeInfo(DatabaseInfoContainer):
             (self.tvdb_id, other.tvdb_id),
             (self.tvrage_id, other.tvrage_id),
         ]:
+            if (isinstance(this_id, InterfaceID)
+                and isinstance(other_id, InterfaceID)):
+                if this_id.equals(other_id):
+                    id_matches += 1
             if this_id is not None and this_id == other_id:
                 id_matches += 1
             elif (this_id is not None and other_id is not None
@@ -217,6 +225,10 @@ class EpisodeInfo(DatabaseInfoContainer):
         # More than one ID match is equality, more than one mismatch is
         # an inequality
         if id_matches > 1:
+            return True
+        if (id_matches == 1
+            and self.season_number == other.season_number
+            and self.episode_number == other.episode_number):
             return True
         if id_mismatches > 1:
             return False
@@ -256,7 +268,8 @@ class EpisodeInfo(DatabaseInfoContainer):
     @classmethod
     def from_emby_info(
             cls,
-            info: EmbyEpisodeDict,
+            info: 'EpisodeDetails',
+            /,
             interface_id: int,
             library_name: str,
         ) -> 'EpisodeInfo':
@@ -271,51 +284,41 @@ class EpisodeInfo(DatabaseInfoContainer):
                 Series.
 
         Returns:
-            EpisodeInfo object defining the given data.
+            EpisodeInfo object defining the given data. None if the
+            data does not have index information.
         """
 
-        # Parse airdate
-        airdate = None
-        try:
-            airdate = datetime.strptime(
-                info['PremiereDate'], '%Y-%m-%dT%H:%M:%S.%f000000Z'
-            )
-        except KeyError:
-            log.debug('Cannot parse episode airdate')
-        except Exception:
-            log.exception('Cannot parse airdate')
-            log.debug(f'Episode data: {info}')
-
-        # TMDb movies might have an ID formatted as {id}-{name} or ../{name}/{id}
-        if (tmdb_id := info['ProviderIds'].get('Tmdb')) is not None:
-            if '-' in (tmdb_id_str := str(tmdb_id)):
+        # TMDb movies might have an ID formatted as
+        # {id}-{name} or ../{name}/{id}
+        if (tmdb_id := info.provider_ids.get('Tmdb')) is not None:
+            if '-' in tmdb_id:
                 try:
-                    tmdb_id = int(tmdb_id_str.split('-', maxsplit=1)[0])
+                    tmdb_id = int(tmdb_id.split('-', maxsplit=1)[0])
                 except ValueError:
                     pass
-            elif '/' in tmdb_id_str:
+            elif '/' in tmdb_id:
                 try:
-                    tmdb_id = int(tmdb_id_str.rsplit('/', maxsplit=1)[-1])
+                    tmdb_id = int(tmdb_id.rsplit('/', maxsplit=1)[-1])
                 except ValueError:
                     pass
 
         return cls(
-            info['Name'],
-            info['ParentIndexNumber'],
-            info['IndexNumber'],
-            emby_id=f'{interface_id}:{library_name}:{info["Id"]}',
-            imdb_id=info['ProviderIds'].get('Imdb'),
-            tmdb_id=tmdb_id,
-            tvdb_id=info['ProviderIds'].get('Tvdb'),
-            tvrage_id=info['ProviderIds'].get('TvRage'),
-            airdate=airdate,
+            info.name,
+            info.parent_index_number,
+            info.index_number,
+            emby_id=f'{interface_id}:{library_name}:{info.id}',
+            imdb_id=info.provider_ids.get('Imdb'),
+            tmdb_id=info.provider_ids.get('Tmdb'), # type: ignore
+            tvdb_id=info.provider_ids.get('Tvdb'), # type: ignore
+            tvrage_id=info.provider_ids.get('TvRage'), # type: ignore
+            airdate=info.premiere_date,
         )
 
 
     @classmethod
     def from_jellyfin_info(
             cls,
-            info: EmbyEpisodeDict,
+            info: 'JellyfinItemDetails',
             interface_id: int,
             library_name: str,
             *,
