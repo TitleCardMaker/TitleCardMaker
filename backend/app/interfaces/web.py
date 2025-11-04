@@ -40,6 +40,7 @@ class WebInterface:
         b'<html><head><title>',
         b'<Code>AccessDenied</Code>',
         b'<!DOCTYPE html>',
+        b'"errors"',
     )
 
 
