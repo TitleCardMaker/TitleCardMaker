@@ -474,7 +474,7 @@ class WebSession:
                 return [
                     submodel.model_validate(item) for item in response.json()
                 ]
-            except ValidationError:
+            except (ValidationError, JSONDecodeError):
                 log.exception(
                     'Unable to parse response as list of response models'
                 )
@@ -487,7 +487,7 @@ class WebSession:
             log.trace(response.text)
             try:
                 return response_model.model_validate(response.json())
-            except ValidationError:
+            except (ValidationError, JSONDecodeError):
                 log.exception('Unable to parse response as model')
                 return None
 
