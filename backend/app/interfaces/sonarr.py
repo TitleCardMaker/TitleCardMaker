@@ -250,7 +250,7 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
             # Apply filters
             if ((monitored_only and not show['monitored'])
                 or (downloaded_only
-                    and show.get('statistics', {}).get('sizeOnDisk', 0) == 0)
+                    and show.get('statistics', {}).get('sizeOnDisk', 0) < 100)
                 or (excluded_tags
                     and any(tag in excluded_tag_ids for tag in show['tags']))
                 or (required_tags
@@ -509,10 +509,10 @@ class SonarrInterface(EpisodeDataSource, WebInterface, SyncInterface, Interface)
 
         # If any episodes had TVDb ID's of 0, then warn user to refresh series
         if has_bad_ids:
-            log.warning(
+            log.warning((
                 f'Series "{series_info}" has no TVDb episode ID data - Refresh '
                 f'& Scan in Sonarr'
-            )
+            ))
 
         return all_episode_info
 
