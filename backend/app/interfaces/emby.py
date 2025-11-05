@@ -468,7 +468,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             return None
 
         # Remove existing Emby ID if one exists
-        log.info(f'{series = !r} {series_info = !r}')
         if series_info.emby_id.get_id(self._interface_id, library_name):
             series_info.emby_id.delete_id(self._interface_id, library_name)
 

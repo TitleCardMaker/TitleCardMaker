@@ -14,7 +14,6 @@ from sqlalchemy.orm import (
     load_only,
 )
 
-from app.core.cache import invalidate_series_cache
 from app.core.cards import (
     create_episode_cards,
     get_watched_statuses,
@@ -953,10 +952,6 @@ def add_series(
             )
         else:
             refresh_episode_data(db, series, background_tasks=None, log=log)
-
-    # Invalidate series cache since we added a new series
-    invalidate_series_cache(series.id)
-    log.debug(f'Invalidated series, card, and episode cache after adding {series}')
 
     return series
 

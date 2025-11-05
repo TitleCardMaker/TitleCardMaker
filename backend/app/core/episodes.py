@@ -4,10 +4,6 @@ from pathlib import Path
 from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session, load_only
 
-from app.core.cache import (
-    cache_result,
-    invalidate_series_cache,
-)
 from app.db.query import (
     get_all_templates,
     get_font,
@@ -144,7 +140,9 @@ def get_all_episode_data(
 
     # Raise 409 if cannot communicate with the Series' Episode data source
     if (interface := get_interface(interface_id, raise_exc=False)) is None:
-        log.error('Unable to communicate with Episode Data Source')
+        log.error(
+            f'Unable to communicate with Episode Data Source ([{interface_id}])'
+        )
         if raise_exc:
             raise HTTPException(
                 status_code=409,
@@ -279,17 +277,12 @@ def refresh_episode_data(
             # Delete Episode (also deleted associated Loaded + Card objects)
             db.delete(all_existing[delete_key])
             changed = True
-            
-            # Invalidate series cache since we deleted cards for this series
-            invalidate_series_cache(series.id)
 
     # Log any new Episodes
     if len(new_episodes) > 1:
         log.info(f'{series} {len(new_episodes)} new Episodes')
-        invalidate_series_cache(series.id)
     elif len(new_episodes) == 1:
         log.info(f'{series} new Episode "{new_episodes[0].title}"')
-        invalidate_series_cache(series.id)
     else:
         log.trace(f'{series} has no new Episodes')
 
@@ -355,7 +348,6 @@ def update_episode_config(
     return changed
 
 
-@cache_result(ttl=Hours(0.25), key_prefix='series')  # 15 minutes
 def get_series_episodes_with_cache(
         db: Session,
         series_id: int,
@@ -385,7 +377,6 @@ def get_series_episodes_with_cache(
     return episodes
 
 
-@cache_result(ttl=Hours(0.25), key_prefix='series')  # 15 minutes
 def get_series_episodes_simplified_with_cache(
         db: Session,
         series_id: int,
@@ -453,7 +444,6 @@ def get_series_episodes_simplified_with_cache(
     return simplified_episodes
 
 
-@cache_result(ttl=Hours(0.25), key_prefix='series')  # 15 minutes
 def get_series_episodes_overview_with_cache(
         db: Session,
         series_id: int,

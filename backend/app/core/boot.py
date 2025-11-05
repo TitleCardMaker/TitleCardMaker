@@ -17,7 +17,6 @@ from starlette.staticfiles import StaticFiles
 
 from app.core.availability import get_latest_version
 from app.core.backup import backup_data, restore_backup
-from app.core.cache import get_cache_manager
 from app.core.cards import refresh_all_card_types
 from app.core.connection import initialize_connections
 from app.core.schedule import huey
@@ -191,24 +190,6 @@ def disable_authentication(db: Session, *, log: Logger = logger) -> None:
     log.warning('Deleted all existing Users')
 
 
-def initialize_cache_system(*, log: Logger = logger) -> None:
-    """
-    Initialize the caching system and start background cleanup tasks.
-    
-    Args:
-        log: The logger to use for logging.
-    """
-
-    try:
-        # Start cleanup task for the single cache manager
-        cache_manager = get_cache_manager()
-        cache_manager.start_cleanup_task()
-
-        log.info('Cache system initialized and cleanup task started')
-    except Exception as e:
-        log.error(f'Error initializing cache system: {e}')
-
-
 def initialize_app(app: FastAPI) -> None:
     """
     Initialize the FastAPI application.
@@ -226,7 +207,6 @@ def initialize_app(app: FastAPI) -> None:
     mount_static_app_directories(app, log=log)
     perform_database_migrations(log=log)
     apply_card_type_blur_profiles()
-    initialize_cache_system(log=log)
     refresh_all_card_types(log=log)
 
     # Database operations

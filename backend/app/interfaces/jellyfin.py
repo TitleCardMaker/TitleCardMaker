@@ -280,7 +280,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             )
 
             # If no responses, return
-            if not all_results or all_results.total_record_count == 0
+            if not all_results or all_results.total_record_count == 0:
                 return None
 
             # Parse all results into SeriesInfo objects

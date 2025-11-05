@@ -15,7 +15,6 @@ from app.cards.loader import RemoteCardType, RemoteFile
 from app.cards.title import Title
 from app.cards.types import BUILTIN_CARD_TYPES
 from app.core.availability import expire_cache, get_remote_card_hash
-from app.core.cache import invalidate_card_cache
 from app.core.episodes import refresh_episode_data
 from app.core.sources import download_episode_source_images
 from app.core.templates import get_effective_templates
@@ -1030,15 +1029,9 @@ def create_episode_cards(
             raise_exc=raise_exc, log=log,
         )
 
-    result = create_episode_card(
+    return create_episode_card(
         db, episode, None, raise_exc=raise_exc, log=log
     )
-
-    # Invalidate caches since we created new cards
-    if result:
-        invalidate_card_cache(result)
-
-    return result
 
 
 def get_watched_statuses(
@@ -1102,7 +1095,6 @@ def delete_cards(
             card_file.unlink()
             log.debug(f'Deleted "{card_file.resolve()}" Title Card')
             deleted.append(str(card_file))
-            invalidate_card_cache(card)
 
     # Delete from database
     if card_query:
