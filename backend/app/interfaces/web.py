@@ -10,7 +10,7 @@ from urllib.parse import urljoin
 from PIL import Image
 from re import IGNORECASE, compile as re_compile
 from pydantic import BaseModel, ValidationError
-from requests import Response, get, Session
+from requests import JSONDecodeError, ReadTimeout, Response, get, Session
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 import urllib3
 
@@ -397,11 +397,9 @@ class WebSession:
             The response from the request.
         """
 
-        url = urljoin(self._base_url, endpoint)
-
         return self.session.request(
             method,
-            url,
+            urljoin(self._base_url, endpoint),
             params=self._base_parameters | parameters,
             data=data,
             headers=headers,
@@ -434,6 +432,7 @@ class WebSession:
                 | type[list[ModelType]]
                 | None
             ) = None,
+            log: Logger = log,
         ) -> ModelType | list[ModelType] | None:
         """
         Submit a GET request to the given endpoint with the given
@@ -454,7 +453,11 @@ class WebSession:
             validated or if the response model was not provided.
         """
 
-        response = self._request('GET', endpoint, parameters=parameters)
+        try:
+            response = self._request('GET', endpoint, parameters=parameters)
+        except ReadTimeout:
+            log.exception(f'Timeout while requesting {endpoint}')
+            return None
 
         if response_model is None:
             try:
