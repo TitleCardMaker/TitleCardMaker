@@ -207,12 +207,17 @@ class SeriesInfo(DatabaseInfoContainer):
             SeriesInfo object defining the given data.
         """
 
+        # Parse TMDb ID; sometimes formatted as {id}-{name}
+        tmdb = None
+        if (tmdb_id := info.provider_ids.get('Tmdb')) is not None:
+            tmdb = int(''.join(ch for ch in str(tmdb_id) if ch.isdigit()))
+
         return cls(
             info.name,
             None if info.premiere_date is None else info.premiere_date.year,
             emby_id=f'{interface_id}:{library_name}:{info.id}',
             imdb_id=info.provider_ids.get('Imdb'),
-            tmdb_id=info.provider_ids.get('Tmdb'), # type: ignore
+            tmdb_id=tmdb,
             tvdb_id=info.provider_ids.get('Tvdb'), # type: ignore
             tvrage_id=info.provider_ids.get('TvRage'), # type: ignore
         )
