@@ -53,6 +53,7 @@ ENV/
 .env/
 
 # Testing
+tests/
 cypress.config.js
 .pytest_cache/
 .coverage
