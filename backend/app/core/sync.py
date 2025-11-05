@@ -12,9 +12,9 @@ from app.logging.logger import Logger, log
 from app.models.card import Card
 from app.models.connection import Connection
 from app.models.loaded import Loaded
-from app.models.series import Series
+from app.models.series import Series, Library
 from app.models.sync import Sync
-from app.schemas.series import MediaServerLibrary, NewSeries
+from app.schemas.series import NewSeries
 from app.schemas.sync import (
     NewEmbySync,
     NewJellyfinSync,
@@ -120,7 +120,7 @@ def get_sonarr_libraries(
         connection: Connection,
         *,
         log: Logger = log,
-    ) -> list[MediaServerLibrary]:
+    ) -> list[Library]:
     """
     Get all Sonarr libraries for the given directory, as determined by
     the given Connection.
@@ -136,7 +136,7 @@ def get_sonarr_libraries(
     """
 
     # Determine libraries using this Connection
-    libraries: list[MediaServerLibrary] = []
+    libraries: list[Library] = []
     for interface_id, library in connection.determine_libraries(directory):
         # Get Connection of this library
         if (interface := db.get(Connection, interface_id)) is None:
@@ -146,11 +146,11 @@ def get_sonarr_libraries(
             ))
             continue
 
-        libraries.append({
-            'interface': interface.interface_type,
-            'interface_id': interface_id,
-            'name': library,
-        })
+        libraries.append(Library(
+            interface=interface.interface_type, # type: ignore
+            interface_id=interface_id,
+            name=library,
+        ))
 
     return libraries
 
@@ -214,11 +214,11 @@ def run_sync(
         if sync.interface == 'Sonarr':
             libraries = get_sonarr_libraries(db, lib_or_dir, connection,log=log)
         else:
-            libraries = [{
-                'interface': sync.interface,
-                'interface_id': sync.interface_id,
-                'name': lib_or_dir
-            }]
+            libraries = [Library(
+                interface=sync.interface,
+                interface_id=sync.interface_id,
+                name=lib_or_dir
+            )]
 
         # If already exists in Database, update IDs and libraries then skip
         if existing:
