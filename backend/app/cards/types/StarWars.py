@@ -224,7 +224,6 @@ class StarWarsTitleCard(BaseCardType):
 def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
         episode_text: Annotated[str, StringConstraints(to_upper=True)]

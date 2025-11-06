@@ -744,7 +744,6 @@ class TintedFrameTitleCard(BaseCardType):
 def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
         logo_file: Path
         font_color: str = TintedFrameTitleCard.CardConfig.font_color

@@ -578,7 +578,6 @@ def get_validator_model() -> type[BaseCardModel]:
         StringConstraints(pattern=r'^\S+( \S+)?$', strip_whitespace=True)
     ]
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
         font_color: str = ScoreTitleCard.CardConfig.font_color
         font_file: FilePath = ScoreTitleCard.CardConfig.font_file

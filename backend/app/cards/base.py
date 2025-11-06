@@ -713,6 +713,17 @@ def create_card_cli(
         card_type: type[BaseCardType],
         validator_model: type[BaseCardModel],
     ) -> None:
+    """
+    Add command-line card creation functionality to the given card type.
+
+    Args:
+        dname: Name of the module to run the card creation from - this
+            should be provided via `__name__`.
+        card_type: Card type whose `__init__()` and `create()` methods
+            will be called during card creation.
+        validator_model: Pydantic model to use for validation of the card
+            creation arguments.
+    """
 
     # Exit if not running in main module
     if dname != '__main__':

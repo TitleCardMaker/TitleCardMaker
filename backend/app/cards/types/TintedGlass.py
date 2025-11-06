@@ -426,7 +426,6 @@ def get_validator_model() -> type[BaseCardModel]:
     BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'
     BoxAdjustments = Annotated[str, StringConstraints(pattern=BoxAdjustmentRegex)]
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontNoText):
         title_text: str
         episode_text: Annotated[str, StringConstraints(to_upper=True)]

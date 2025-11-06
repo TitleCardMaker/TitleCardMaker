@@ -508,7 +508,6 @@ def get_validator_model() -> type[BaseCardModel]:
     BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'
     BoxAdjustments = Annotated[str, StringConstraints(pattern=BoxAdjustmentRegex)]
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
         font_color: str = LandscapeTitleCard.CardConfig.font_color

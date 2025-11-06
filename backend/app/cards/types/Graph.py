@@ -641,7 +641,6 @@ def get_validator_model() -> type[BaseCardModel]:
     # Regex to match the episode text formatted as a fraction
     graph_episode_text_regex = re_compile(r'^(\d+)\s*\/\s*(\d+)$')
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
         episode_text: Annotated[str, StringConstraints(to_upper=True)]

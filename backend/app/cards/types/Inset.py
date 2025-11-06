@@ -340,7 +340,6 @@ class InsetTitleCard(BaseCardType):
 def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
         font_color: str = InsetTitleCard.CardConfig.font_color
         font_file: FilePath = InsetTitleCard.CardConfig.font_file

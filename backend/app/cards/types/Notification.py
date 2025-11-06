@@ -19,7 +19,6 @@ from app.cards.base import (
     ImageMagickCommands,
     Rectangle,
 )
-from app.logging.logger import log # noqa: F401
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
 
@@ -449,7 +448,6 @@ def get_validator_model() -> type[BaseCardModel]:
 
     BoxAdjustmentRegex = r'^([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)\s+([-+]?\d+)$'
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeCustomFontAllText):
         season_text: str
         episode_text: str

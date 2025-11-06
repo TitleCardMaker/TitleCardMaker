@@ -10,6 +10,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    create_card_cli,
 )
 from app.schemas.base import BaseCardModel, BaseCardModel
 
@@ -390,7 +391,6 @@ class NegativeSpaceTitleCard(BaseCardType):
 def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardModel):
         title_text: str
         episode_text: Annotated[str, StringConstraints(to_upper=True)]
@@ -426,3 +426,6 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+create_card_cli(__name__, NegativeSpaceTitleCard, get_validator_model())

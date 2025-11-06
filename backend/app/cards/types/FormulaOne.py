@@ -402,7 +402,6 @@ class FormulaOneTitleCard(BaseCardType):
 def get_validator_model() -> type[BaseCardModel]:
     """Get the Pydantic validator class for this card type."""
 
-    # pyright: reportInvalidTypeForm=false
     class CardModel(BaseCardTypeAllText):
         airdate: datetime | None = None
         font_color: str = FormulaOneTitleCard.CardConfig.font_color
