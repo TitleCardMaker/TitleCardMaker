@@ -2,6 +2,7 @@ from datetime import datetime
 from re import match, compile as re_compile
 from typing import TYPE_CHECKING, TypedDict
 
+from app.interfaces.schemas.sonarr import SeriesResource
 from plexapi.video import Show as PlexShow
 from sqlalchemy import ColumnElement, and_, false as sql_false, func, or_
 
@@ -282,6 +283,33 @@ class SeriesInfo(DatabaseInfoContainer):
                 series_info.set_tvdb_id(int(guid.id[len('tvdb://'):]))
 
         return series_info
+
+
+    @classmethod
+    def from_sonarr_resource(cls,
+            resource: SeriesResource,
+            interface_id: int,
+        ) -> 'SeriesInfo':
+        """
+        Create a SeriesInfo object from a `SeriesResource` object.
+
+        Args:
+            resource: SeriesResource to create an object from.
+            interface_id: ID of the Sonarr interface whose data is being
+                parsed.
+
+        Returns:
+            SeriesInfo object defining the given resource.
+        """
+
+        return cls(
+            resource.title or '',
+            resource.year,
+            imdb_id=resource.imdb_id,
+            sonarr_id=f'{interface_id}:{resource.id}' if resource.id else None,
+            tvdb_id=resource.tvdb_id,
+            tvrage_id=resource.tvrage_id,
+        )
 
 
     @property

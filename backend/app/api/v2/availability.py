@@ -328,7 +328,11 @@ def get_sonarr_tags(
     """Get all tags defined in all Sonarr interfaces."""
 
     return [
-        tag | {'interface_id': interface_id}
+        Tag(
+            id=tag.id,
+            label=tag.label or '',
+            interface_id=interface_id,
+        )
         for interface_id, interface in sonarr_interfaces
         for tag in interface.get_all_tags()
     ]

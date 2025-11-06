@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, TypedDict
 
+from app.interfaces.schemas.sonarr import EpisodeResource
 from num2words import num2words
 from plexapi.video import Episode as PlexEpisode
 from sqlalchemy import ColumnElement, and_, false as sql_false, func, or_, not_
@@ -403,6 +404,23 @@ class EpisodeInfo(DatabaseInfoContainer):
                 episode_info.set_tvdb_id(int(guid.id[len('tvdb://'):]))
 
         return episode_info
+
+
+    @staticmethod
+    def from_sonarr_resource(resource: EpisodeResource) -> 'EpisodeInfo':
+        """
+        Create an EpisodeInfo object from a `EpisodeResource` object.
+        """
+
+        return EpisodeInfo(
+            resource.title or '',
+            resource.season_number or 1,
+            resource.episode_number or 1,
+            absolute_number=resource.absolute_episode_number,
+            # Some episode have TVDb IDs of 0, reset to None
+            tvdb_id=resource.tvdb_id or None,
+            airdate=resource.airdate,
+        )
 
 
     @property

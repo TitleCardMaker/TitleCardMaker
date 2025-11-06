@@ -16,6 +16,7 @@ from PIL import Image
 from app.info.base import InterfaceID
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
+from app.interfaces.schemas.sonarr import SeriesResource
 from app.logging.logger import Logger, log
 
 if TYPE_CHECKING:
@@ -77,6 +78,29 @@ class SearchResult:
             self.overview = overview.splitlines()
         else:
             self.overview = overview
+
+
+    @staticmethod
+    def from_sonarr_resource(
+            resource: SeriesResource,
+            interface_id: int,
+            poster: str | None = None,
+        ) -> 'SearchResult':
+        """
+        Create a SearchResult object from a `SeriesResource` object.
+        """
+
+        return SearchResult(
+            resource.title or '',
+            resource.year,
+            ongoing=not resource.ended,
+            poster=poster,
+            overview=resource.overview or 'No overview available',
+            imdb_id=resource.imdb_id,
+            sonarr_id=f'{interface_id}:{resource.id}' if resource.id else None,
+            tvdb_id=resource.tvdb_id,
+            tvrage_id=resource.tvrage_id,
+        )
 
 
     def __repr__(self) -> str:
