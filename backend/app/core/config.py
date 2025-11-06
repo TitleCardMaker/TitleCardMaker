@@ -142,6 +142,12 @@ class AppConfig(BaseSettings):
         'Algorithm to use for encryption'
     ] = 'HS256'
 
+    # Connection timeouts
+    SONARR_REQUEST_TIMEOUT: Annotated[
+        int,
+        'Timeout for Sonarr requests (in seconds)'
+    ] = Field(default=300, ge=10, le=10000)
+
     # Testing
     TESTING_MODE: Annotated[
         bool,
