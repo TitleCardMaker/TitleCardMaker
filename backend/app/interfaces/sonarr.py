@@ -28,11 +28,11 @@ class TestingSonarrInterface:
     def get_root_folders(self) -> list[Path]:
         return [Path('/media/tv'), Path('/media/tv_4k'), Path('/media/anime')]
 
-    def get_all_tags(self) -> list[dict[Literal['id', 'label'], Any]]:
+    def get_all_tags(self) -> list[TagResource]:
         return [
-            {'label': 'anime', 'id': 1},
-            {'label': 'tv', 'id': 2},
-            {'label': 'star wars', 'id': 3},
+            TagResource(label='anime', id=1),
+            TagResource(label='tv', id=2),
+            TagResource(label='star wars', id=3),
         ]
 
     def query_series(self,
@@ -124,16 +124,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
         api_url = (
             url.removesuffix('/').removesuffix('/api').removesuffix('/api/v3')
             + '/api/v3/'
-        )
-
-        from requests import get
-        print(
-            f'GET {api_url}/system/status\n' +
-            get(
-                f'{api_url}/system/status',
-                headers={'apikey': api_key},
-                verify=verify_ssl,
-            ).text
         )
 
         # Base parameters for sending requests to Sonarr
