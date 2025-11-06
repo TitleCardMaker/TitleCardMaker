@@ -119,7 +119,7 @@ class AppConfig(BaseSettings):
     BACKUP_RETENTION_DAYS: Annotated[
         int,
         'How long to keep old backups'
-    ] = Field(default=21)
+    ] = Field(default=21, ge=1)
 
     @property
     def BACKUP_RETENTION(self) -> timedelta:
@@ -129,7 +129,7 @@ class AppConfig(BaseSettings):
     AUTH_EXPIRATION_DAYS: Annotated[
         int,
         'How many days to keep authentication tokens valid'
-    ] = 7
+    ] = Field(default=7, ge=1, le=120)
 
     @property
     def AUTH_EXPIRATION_TIME(self) -> timedelta:
