@@ -116,6 +116,30 @@ class InterfaceID:
         self._id_map[key] = str(value)
 
 
+    def has_id(self,
+            interface_id: int,
+            library_name: str | None = None,
+            /,
+        ) -> bool:
+        """
+        Determine whether this object has an ID for the given interface
+        ID and library name.
+
+        Args:
+            interface_id: ID of the interface whose ID to check.
+            library_name: Name of the library containing the ID to check.
+
+        Returns:
+            True if the object has an ID for the given interface ID and
+            library name. False otherwise.
+        """
+
+        if library_name:
+            return f'{interface_id}:{library_name}' in self._id_map
+
+        return str(interface_id) in self._id_map
+
+
     def get_id(self,
             interface_id: int,
             library_name: str | None = None,
