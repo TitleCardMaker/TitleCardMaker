@@ -371,7 +371,7 @@ class WebSession:
         self.session = Session()
         self.session.verify = verify_ssl
 
-        self._base_url = base_url.removesuffix('/') + '/'
+        self._base_url = base_url.removesuffix('/')
         self._timeout = timeout
         self._base_parameters = base_parameters
 
@@ -399,7 +399,7 @@ class WebSession:
 
         return self.session.request(
             method,
-            urljoin(self._base_url, endpoint),
+            f'{self._base_url}/{endpoint.removeprefix("/")}',
             params=self._base_parameters | parameters,
             data=data,
             headers=headers,
@@ -480,15 +480,17 @@ class WebSession:
                 )
                 return None
 
+        text = response.text
         try:
-            return response_model.model_validate_json(response.text)
+            return response_model.model_validate_json(text)
         except ValidationError:
             log.exception('Unable to parse response as JSON model')
-            log.trace(response.text)
+            log.trace(f'URL: {response.url} - Response: {text}')
             try:
                 return response_model.model_validate(response.json())
             except (ValidationError, JSONDecodeError):
                 log.exception('Unable to parse response as model')
+                log.trace(f'URL: {response.url} - Response: {text}')
                 return None
 
         return None
