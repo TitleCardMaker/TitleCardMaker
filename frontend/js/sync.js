@@ -175,6 +175,59 @@ function getTemplates() {
 }
 
 /**
+ * Submit an API request to edit the given Sync.
+ * @param {number} syncId - ID of the Sync to edit.
+ */
+function editSync(syncId) {
+  // Turn form into object, turning multi selects into arrays
+  let form = new FormData(document.getElementById(`edit-sync${syncId}-form`));
+  let dataObj = {
+    downloaded_only: false,
+    monitored_only: false,
+    add_as_unmonitored: false,
+  };
+  for (let [name, value] of [...form.entries()]) {
+    // Handle list/multi-select fields
+    if (name.includes('_tags')
+      || name.includes('_libraries')
+      || name === 'required_root_folders'
+      || name === 'template_ids'
+    ) {
+      if (value !== '') {
+        dataObj[name] = value.split(',');
+      } else {
+        dataObj[name] = [];
+      }
+    }
+    // Handle single-select fields
+    else {
+      dataObj[name] = value === '' ? null : value;
+    }
+  }
+
+  // Submit API request
+  $.ajax({
+    type: 'PATCH',
+    url: `/api/v2/sync/${syncId}`,
+    data: JSON.stringify(dataObj),
+    contentType: 'application/json',
+    /**
+     * Sync updated, re-query all Syncs.
+     * @param {Sync} updatedSync - Modified Sync object.
+     */
+    success: updatedSync => {
+      showInfoToast(`Updated Sync "${updatedSync.name}"`);
+      getAllSyncs();
+    },
+    error: response => showErrorToast({title: 'Error Editing Sync', response}),
+    complete: () => {
+      $(`#edit-sync${syncId}`).modal('hide');
+      $(`#edit-sync${syncId}`).remove();
+    }
+  });
+}
+
+/**
  * Populate and display a modal for editing the given Sync.
  * @param {Sync} sync - Sync object used to populate the modal.
  */
@@ -224,48 +277,7 @@ function showEditModel(sync) {
     .off('click')
     .on('click', (event) => {
       event.preventDefault();
-      // Turn form into object, turning multi selects into arrays
-      let form = new FormData(document.getElementById(`edit-sync${sync.id}-form`));
-      let dataObj = {
-        downloaded_only: false,
-        monitored_only: false,
-        add_as_unmonitored: false,
-      };
-      for (let [name, value] of [...form.entries()]) {
-        if (name.includes('_tags')
-            || name.includes('_libraries')
-            || name === 'required_root_folders'
-            || name === 'template_ids'
-          ) {
-          if (value !== '') {
-            dataObj[name] = value.split(',');
-          } else {
-            dataObj[name] = [];
-          }
-        } else if (value !== '') {
-          dataObj[name] = value;
-        }
-      }
-
-      $.ajax({
-        type: 'PATCH',
-        url: `/api/v2/sync/${sync.id}`,
-        data: JSON.stringify(dataObj),
-        contentType: 'application/json',
-        /**
-         * Sync updated, re-query all Syncs.
-         * @param {Sync} updatedSync - Modified Sync object.
-         */
-        success: updatedSync => {
-          showInfoToast(`Updated Sync "${updatedSync.name}"`);
-          getAllSyncs();
-        },
-        error: response => showErrorToast({title: 'Error Editing Sync', response}),
-        complete: () => {
-          $(`#edit-sync${sync.id}`).modal('hide');
-          $(`#edit-sync${sync.id}`).remove();
-        }
-      });
+      editSync(sync.id);
     })
   ;
 
