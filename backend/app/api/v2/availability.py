@@ -1,3 +1,4 @@
+from app.core.cards import get_active_card_identifiers
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -129,7 +130,7 @@ def get_all_available_card_types(
 def get_builtin_card_types() -> list[BuiltinCardType]:
     """Get all pre-built card types."""
 
-    return LocalCards
+    return [BuiltinCardType.model_validate(card) for card in LocalCards]
 
 
 @availablility_router.get('/card-types/local', tags=['Title Cards'])
@@ -148,6 +149,16 @@ def get_remote_card_types_(
     return get_remote_cards(log=log)
 
 
+@availablility_router.get('/card-types/active', tags=['Title Cards'])
+def get_active_card_types(db: Session = Depends(get_database)) -> list[str]:
+    """
+    Get a list of all active card type identifiers currently in use
+    anywhere in the database.
+    """
+
+    return list(get_active_card_identifiers(db))
+
+
 @availablility_router.get('/extras')
 def get_all_supported_extras(
         show_excluded: bool = Query(default=False),
@@ -162,14 +173,20 @@ def get_all_supported_extras(
     """
 
     local_extras = [
-        {'card_type': identifier} | extra.dict()
+        Extra(
+            card_type=identifier,
+            **extra.model_dump(),
+        )
         for identifier, CardClass in settings.local_card_types.items()
         if (show_excluded or identifier not in settings.excluded_card_types)
         for extra in CardClass.API_DETAILS.supported_extras
     ]
 
     return [
-        {'card_type': card_type.identifier} | extra.model_dump()
+        Extra(
+            card_type=card_type.identifier,
+            **extra.model_dump(),
+        )
         for card_type in LocalCards + get_remote_cards(log=log)
         if (show_excluded
             or card_type.identifier not in settings.excluded_card_types)
@@ -276,7 +293,7 @@ def get_server_libraries(
     for interface_id, interface in emby_interfaces:
         libraries += [
             MediaServerLibrary(
-                interface=interface.INTERFACE_TYPE,
+                interface=interface.INTERFACE_TYPE, # type: ignore
                 interface_id=interface_id,
                 name=library
             ) for library in interface.get_libraries()

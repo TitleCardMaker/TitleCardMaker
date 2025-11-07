@@ -229,6 +229,42 @@ def refresh_all_card_types(*, log: Logger = log) -> None:
         refresh_remote_card_types(db, reset=True, log=log)
 
 
+def get_active_card_identifiers(db: Session) -> set[str]:
+    """
+    Get a set of all active card identifiers. This includes the global
+    default card type, as well as all unique card types from Templates,
+    Series, and Episodes.
+
+    Args:
+        db: Database to query for card types.
+
+    Returns:
+        Set of all active card identifiers.
+    """
+
+    # Function to get all unique card types for the table model
+    def _get_unique_card_types(
+        model: type[Episode] | type[Series] | type[Template], /
+    ) -> set[str]:
+        """
+        Get all unique card types for the given model.
+        """
+
+        return set(
+            obj[0]
+            for obj in db.query(model.card_type).distinct().all()
+            if obj[0] is not None
+        )
+
+    # Get all card types globally, from Templates, Series, and Episodes
+    return (
+        {settings.default_card_type}
+        | _get_unique_card_types(Template)
+        | _get_unique_card_types(Series)
+        | _get_unique_card_types(Episode)
+    )
+
+
 def refresh_remote_card_types(
         db: Session,
         reset: bool = False,
@@ -245,25 +281,13 @@ def refresh_remote_card_types(
         log: Logger for all log messages.
     """
 
-    # Function to get all unique card types for the table model
-    def _get_unique_card_types(
-        model: type[Episode] | type[Series] | type[Template]
-    ) -> set[str]:
-        return set(obj[0] for obj in db.query(model.card_type).distinct().all())
-
-    # Get all card types globally, from Templates, Series, and Episodes
-    card_identifiers = {settings.default_card_type} \
-        | _get_unique_card_types(Template) \
-        | _get_unique_card_types(Series) \
-        | _get_unique_card_types(Episode)
-
     # Reset loaded remote file(s)
     if reset:
         RemoteFile.reset_loaded_database()
         expire_cache()
 
     # Refresh all remote card types
-    for card_identifier in card_identifiers:
+    for card_identifier in get_active_card_identifiers(db):
         # Skip blank identifiers, and builtin or local cards
         if (card_identifier is None
             or card_identifier in BUILTIN_CARD_TYPES
@@ -278,7 +302,7 @@ def refresh_remote_card_types(
         # Get reference hash of card
         if not (card_hash := get_remote_card_hash(card_identifier, log=log)):
             log.error(
-                f'Cannot validate RemoteCardType[{card_identifier}] - skipping'
+                f'Cannot validate Card Type ({card_identifier}) - skipping'
             )
             continue
 
