@@ -917,6 +917,16 @@ def add_series(
         HTTPException (404): Any specified linked objects do not exist.
     """
 
+    # Look for a Series with the same name and year, exit if found
+    existing = (
+        db.query(Series)
+            .filter(Series.name==new_series.name, Series.year==new_series.year)
+            .first()
+    )
+    if existing:
+        log.warning(f'{existing} already exists in database, skipping')
+        return existing
+
     # Convert object to dictionary
     new_series_dict = new_series.model_dump(exclude_unset=True)
 
