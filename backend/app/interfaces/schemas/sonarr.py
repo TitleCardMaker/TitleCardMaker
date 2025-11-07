@@ -35,7 +35,7 @@ class SeriesStatistics(BaseModel):
     # percent_of_episodes: int = Field(alias='percentOfEpisodes')
 
 class SeriesResource(BaseModel):
-    id: int
+    id: int | None = None
     title: str | None
     year: int
     ended: bool
@@ -44,8 +44,8 @@ class SeriesResource(BaseModel):
     status: SeriesStatus
     statistics: SeriesStatistics
     overview: str | None = None
-    path: str | None
-    root_folder_path: str | None = Field(alias='rootFolderPath')
+    path: str | None = None
+    root_folder_path: str | None = Field(default=None, alias='rootFolderPath')
     tags: list[int]
     images: list[MediaCover]
     imdb_id: str | None = Field(default=None, alias='imdbId')
