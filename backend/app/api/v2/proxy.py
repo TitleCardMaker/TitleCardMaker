@@ -18,10 +18,10 @@ proxy_router = APIRouter(
 
 
 @proxy_router.get(
-        '/plex',
-        responses = {200: {'content': {'image/jpeg': {}}}},
-        response_class=Response
-    )
+    '/plex',
+    responses = {200: {'content': {'image/jpeg': {}}}},
+    response_class=Response
+)
 def redirect_plex_url(
         url: str = Query(...),
         interface_id: int = Query(...),
@@ -89,16 +89,13 @@ def redirect_sonarr_url(
         )
 
     # Remove /api/ endpoint from URL if present; do not end in /
-    if '/api' in connection.decrypted_url:
-        server_url = connection.decrypted_url.split('/api')[0]
-    elif connection.decrypted_url.endswith('/'):
-        server_url = connection.decrypted_url[:-1]
-    else:
-        server_url = connection.decrypted_url
-
-    # Start redirect URL in /
-    url = url if url.startswith('/') else f'/{url}'
-    redirected_url = f'{server_url}{url}'
+    server_url = (
+        connection.decrypted_url
+            .removesuffix('/')
+            .removesuffix('/api')
+            .removesuffix('/api/v3')
+    )
+    redirected_url = f'{server_url}/{url.removeprefix("/")}'
 
     # Query for content, ensure the local `SonarrAuth` cookies are
     # utilized in the request
@@ -109,9 +106,10 @@ def redirect_sonarr_url(
             timeout=5,
         ).content
     except Timeout as exc:
+        log.trace(f'Sonarr redirect timed out: {redirected_url}')
         raise HTTPException(
             status_code=400,
-            detail=f'Sonarr redirect timed out'
+            detail='Sonarr redirect timed out'
         ) from exc
 
     # Return Response of this content
