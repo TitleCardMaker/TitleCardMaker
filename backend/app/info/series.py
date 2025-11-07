@@ -1,4 +1,3 @@
-from datetime import datetime
 from re import match, compile as re_compile
 from typing import TYPE_CHECKING, TypedDict
 

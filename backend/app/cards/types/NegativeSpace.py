@@ -12,7 +12,7 @@ from app.cards.base import (
     ImageMagickCommands,
     create_card_cli,
 )
-from app.schemas.base import BaseCardModel, BaseCardModel
+from app.schemas.base import BaseCardModel
 
 TextSide = Literal['left', 'right']
 

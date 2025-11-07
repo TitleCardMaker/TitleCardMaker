@@ -1,7 +1,7 @@
 from datetime import datetime
 from json import dumps, JSONEncoder
 from pathlib import Path
-from typing import Any, Callable, ParamSpec, TypeVar, overload
+from typing import Any, Callable, ParamSpec, TypeVar
 
 from num2words import num2words
 from titlecase import titlecase

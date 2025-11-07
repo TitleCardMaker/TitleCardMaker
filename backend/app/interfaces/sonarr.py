@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from re import IGNORECASE, compile as re_compile
-from typing import Any, ClassVar, Literal
+from typing import Any, ClassVar
 
 from app.interfaces.schemas.sonarr import (
     EpisodeResource,

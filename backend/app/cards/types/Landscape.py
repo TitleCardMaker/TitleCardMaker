@@ -19,7 +19,7 @@ from app.cards.base import (
     ImageMagickCommands,
     Shadow,
 )
-from app.schemas.base import BaseCardModel, BaseCardModel
+from app.schemas.base import BaseCardModel
 
 
 DarkenOption = Literal['all', 'box'] | bool

@@ -10,7 +10,7 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
 )
-from app.schemas.base import BaseCardModel, BaseCardModel
+from app.schemas.base import BaseCardModel
 
 
 class CutoutTitleCard(BaseCardType):

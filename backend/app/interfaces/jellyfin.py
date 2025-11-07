@@ -1,6 +1,13 @@
-from base64 import b64encode
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Literal, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Any,
+    ClassVar,
+    Literal,
+    Union,
+    overload,
+)
 
 from fastapi import HTTPException
 

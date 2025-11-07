@@ -15,7 +15,7 @@ from app.cards.base import (
     Line,
 )
 from app.logging.logger import log # noqa: F401
-from app.schemas.base import BaseCardModel, BaseCardModel
+from app.schemas.base import BaseCardModel
 
 
 TextPosition = Literal[

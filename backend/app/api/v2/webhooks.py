@@ -1,6 +1,5 @@
 from asyncio import wait_for, TimeoutError as AsyncTimeoutError
 from time import sleep
-from typing import cast
 
 from fastapi import (
     APIRouter,

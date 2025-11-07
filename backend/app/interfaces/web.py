@@ -5,7 +5,6 @@ from pathlib import Path
 from random import choices as random_choices
 from string import hexdigits
 from typing import Any, Literal, TypeVar, TypedDict, get_args, get_origin, overload
-from urllib.parse import urljoin
 
 from PIL import Image
 from re import IGNORECASE, compile as re_compile

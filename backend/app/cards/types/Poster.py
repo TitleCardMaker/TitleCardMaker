@@ -3,13 +3,13 @@ from typing import Annotated, Any, Self
 
 from pydantic import Field, FilePath, StringConstraints, model_validator
 
-from app.schemas.base import BaseCardModel, BaseCardModel
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
 )
+from app.schemas.base import BaseCardModel
 
 
 class PosterTitleCard(BaseCardType):
