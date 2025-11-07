@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -55,11 +56,14 @@ class SeriesResource(BaseModel):
 class EpisodeResource(BaseModel):
     episode_number: int | None = Field(alias='episodeNumber')
     season_number: int | None = Field(alias='seasonNumber')
-    absolute_episode_number: int | None = Field(alias='absoluteEpisodeNumber')
-    airdate: datetime | None = Field(alias='airDateUtc')
+    absolute_episode_number: int | None = Field(
+        default=None,
+        alias='absoluteEpisodeNumber'
+    )
+    airdate: datetime | None = Field(default=None, alias='airDateUtc')
     monitored: bool
-    tvdb_id: int | None = Field(alias='tvdbId')
-    has_file: bool = Field(alias='hasFile')
+    tvdb_id: int | None = Field(default=None, alias='tvdbId')
+    has_file: bool = Field(default=False, alias='hasFile')
     title: str | None
 
 class TagResource(BaseModel):
