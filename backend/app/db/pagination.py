@@ -1,3 +1,4 @@
+from typing import TypeVar
 from fastapi_pagination import Page as BasePage
 from fastapi_pagination.customization import (
     CustomizedPage,
@@ -7,8 +8,9 @@ from fastapi_pagination.customization import (
 
 
 # Default Page arguments used for paginated returns
+T = TypeVar('T')
 Page = CustomizedPage[
-    BasePage,
+    BasePage[T],
     UseName('Page'),
     UseParamsFields(size=50),
 ]

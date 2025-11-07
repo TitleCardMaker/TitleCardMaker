@@ -294,7 +294,7 @@ def get_series_extended_episode_data(
         series_id: int,
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-    ) -> Page[ExtendedEpisodeData]: # type: ignore
+    ) -> Page[ExtendedEpisodeData]:
     """
     Get all the episodes associated with the given series. This returns
     the extended episode data for each Episode.
@@ -310,7 +310,7 @@ def get_series_simplified_episode_data(
         series_id: int,
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-    ) -> Page[SimplifiedEpisodeData]: # type: ignore
+    ) -> Page[SimplifiedEpisodeData]:
     """
     Get all the episodes associated with the given series. This returns
     the simplified episode data for each Episode.
@@ -328,7 +328,7 @@ def get_series_episode_overview_data(
         order_by: Literal['index', 'absolute', 'id'] = 'index',
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-    ) -> Page[EpisodeOverview]: # type: ignore
+    ) -> Page[EpisodeOverview]:
     """
     Get all the episodes associated with the given series.
 
