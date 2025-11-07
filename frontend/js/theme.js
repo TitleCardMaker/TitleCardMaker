@@ -20,10 +20,12 @@ function refreshTheme() {
   if (inverted) {
     // Set <html> background image
     document.documentElement.style.setProperty('--background', 'linear-gradient(to bottom right, rgb(29,29,29), rgb(40,40,40))')
+    document.documentElement.classList.add('dark');
     document.querySelector('#theme-toggle i').className = 'moon outline icon';
     themeColorMeta.content = '#1b1c1d';
   } else {
     document.documentElement.style.setProperty('--background', 'linear-gradient(to bottom right, var(--background-color-light), #d9d9d9)');
+    document.documentElement.classList.remove('dark');
     document.querySelector('#theme-toggle i').className = 'sun outline icon';
     themeColorMeta.content = '#f5f7fa';
   }
