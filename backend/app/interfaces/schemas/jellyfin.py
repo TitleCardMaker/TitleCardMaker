@@ -37,3 +37,12 @@ class ItemDetails(BaseModel):
 class ItemQuery(BaseModel):
     items: list[ItemDetails] = Field(alias='Items')
     total_record_count: int = Field(alias='TotalRecordCount')
+
+
+__all__ = [
+    'UserQueryItem',
+    'LibraryQuery',
+    'ItemDetails',
+    'ItemQuery',
+    'SystemInfo',
+]

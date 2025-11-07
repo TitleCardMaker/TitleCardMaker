@@ -168,7 +168,7 @@ def set_all_series_ids(*, log: Logger = log) -> None:
                     series, db, commit=False, log=log,
                 )
             except HTTPException:
-                log.warning(f'{series} skipping ID assignment')
+                log.exception(f'{series} skipping ID assignment')
                 continue
 
         # Commit changes if any were made
@@ -223,7 +223,7 @@ def download_all_series_posters(*, log: Logger = log) -> None:
             try:
                 download_series_poster(db, series, log=log)
             except HTTPException:
-                log.warning(f'{series} Skipping poster selection')
+                log.exception(f'{series} skipping poster selection')
                 continue
 
 
@@ -250,7 +250,8 @@ def set_series_database_ids(
     # Query all interfaces for potential ID's
     series_info = series.as_series_info
     for library in series.libraries:
-        if (interface := get_interface(library['interface_id'])):
+        interface = get_interface(library['interface_id'], raise_exc=False)
+        if interface:
             interface.set_series_ids(library['name'], series_info, log=log)
     for _, interface in get_sonarr_interfaces():
         interface.set_series_ids('', series_info, log=log)
@@ -294,7 +295,11 @@ def download_series_poster(
     # Download poster from Media Server if possible
     series_info, poster = series.as_series_info, None
     for library in series.libraries:
-        if (interface := get_media_interface(library['interface_id'])):
+        interface = get_media_interface(
+            library['interface_id'],
+            raise_exc=False
+        )
+        if interface:
             try:
                 poster = interface.get_series_poster(
                     library['name'], series_info, log=log
