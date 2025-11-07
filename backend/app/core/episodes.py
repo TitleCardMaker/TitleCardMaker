@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from fastapi import BackgroundTasks, HTTPException
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy.orm import Session
 
 from app.db.query import (
     get_all_templates,
@@ -28,7 +28,6 @@ from app.models.episode import Episode
 from app.models.series import Series
 from app.schemas.base import UNSPECIFIED
 from app.schemas.episode import UpdateEpisode
-from app.schemas.schedule import Hours
 from app.settings import settings
 from app.utils.tiered_settings import TieredSettings
 
@@ -346,156 +345,3 @@ def update_episode_config(
             changed = True
 
     return changed
-
-
-def get_series_episodes_with_cache(
-        db: Session,
-        series_id: int,
-        *,
-        log: Logger = log,
-    ) -> list[Episode]:
-    """
-    Get all episodes for a series with caching support.
-    
-    Args:
-        db: Database session
-        series_id: ID of the Series whose Episodes are being queried.
-        log: Logger for all log messages.
-        
-    Returns:
-        List of Episode objects
-    """
-
-    # Get from database
-    episodes = db.query(Episode)\
-        .filter_by(series_id=series_id)\
-        .order_by(Episode.season_number, Episode.episode_number)\
-        .all()
-
-    log.debug(f'Retrieved {len(episodes)} episodes for series {series_id} from database')
-
-    return episodes
-
-
-def get_series_episodes_simplified_with_cache(
-        db: Session,
-        series_id: int,
-        *,
-        log: Logger = log,
-    ) -> list[dict]:
-    """
-    Get simplified episode data for a series with caching support.
-    
-    Args:
-        db: Database session
-        series_id: Series ID
-        log: Logger instance
-        
-    Returns:
-        List of simplified episode data dictionaries
-    """
-    # Get from database with simplified fields
-    episodes = (
-        db.query(Episode)
-            .options(
-                load_only(
-                    Episode.id,
-                    Episode.season_number,
-                    Episode.episode_number,
-                    Episode.absolute_number,
-                    Episode.title,
-                    Episode.match_title,
-                    Episode.auto_split_title,
-                    Episode.season_text,
-                    Episode.episode_text,
-                    Episode.hide_season_text,
-                    Episode.hide_episode_text,
-                    Episode.extras,
-                    Episode.translations,
-                )
-            )
-            .filter_by(series_id=series_id)\
-            .order_by(Episode.season_number, Episode.episode_number)
-            .all()
-    )
-
-    # Convert to simplified format
-    simplified_episodes = [
-        {
-            'id': episode.id,
-            'season_number': episode.season_number,
-            'episode_number': episode.episode_number,
-            'absolute_number': episode.absolute_number,
-            'title': episode.title,
-            'match_title': episode.match_title,
-            'auto_split_title': episode.auto_split_title,
-            'season_text': episode.season_text,
-            'episode_text': episode.episode_text,
-            'hide_season_text': episode.hide_season_text,
-            'hide_episode_text': episode.hide_episode_text,
-            'extras': episode.extras,
-            'translations': episode.translations,
-        }
-        for episode in episodes
-    ]
-
-    log.debug(f'Retrieved {len(simplified_episodes)} simplified episodes for series {series_id} from database')
-
-    return simplified_episodes
-
-
-def get_series_episodes_overview_with_cache(
-        db: Session,
-        series_id: int,
-        order_by: str = 'index',
-        *,
-        log: Logger = log,
-    ) -> list[dict]:
-    """
-    Get episode overview data for a series with caching support.
-    
-    Args:
-        db: Database session
-        series_id: Series ID
-        order_by: How to order the episodes
-        log: Logger instance
-        
-    Returns:
-        List of episode overview data dictionaries
-    """
-    # Get from database with overview fields
-    query = db.query(
-        Episode.id,
-        Episode.series_id,
-        Episode.season_number,
-        Episode.episode_number,
-        Episode.absolute_number,
-    ).filter_by(series_id=series_id)
-    
-    # Order by indicated attribute
-    if order_by == 'index':
-        sorted_query = query.order_by(Episode.season_number, Episode.episode_number)
-    elif order_by == 'absolute':
-        sorted_query = query.order_by(Episode.absolute_number)
-    elif order_by == 'id':
-        sorted_query = query
-    else:
-        sorted_query = query.order_by(Episode.season_number, Episode.episode_number)
-    
-    episodes = sorted_query.all()
-    
-    # Convert to overview format
-    overview_episodes = [
-        {
-            'id': episode.id,
-            'series_id': episode.series_id,
-            'season_number': episode.season_number,
-            'episode_number': episode.episode_number,
-            'absolute_number': episode.absolute_number,
-        }
-        for episode in episodes
-    ]
-    
-    log.debug(f'Retrieved episode overview for series {series_id} from database')
-    
-    return overview_episodes

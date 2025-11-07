@@ -44,7 +44,7 @@ from app.models.card import Card
 from app.models.connection import Connection
 from app.models.episode import Episode
 from app.models.loaded import Loaded
-from app.models.series import Series
+from app.models.series import Library as SeriesLibrary, Series
 from app.schemas.series import NewSeries
 from app.schemas.webhooks import PlexWebhook, SonarrWebhook
 from app.logging.logger import Logger
@@ -357,7 +357,7 @@ def add_series_via_sonarr_webhook(
         log.debug(f'Skipping Webhook of type "{webhook.eventType}"')
         return None
 
-    def _get_libraries():
+    def _get_libraries() -> list[SeriesLibrary]:
         if connection_id is None:
             return []
 
