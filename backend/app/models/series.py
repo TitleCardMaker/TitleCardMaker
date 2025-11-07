@@ -580,7 +580,11 @@ class Series(Base):
         return changed
 
 
-    def set_ids_from_series_info(self, info: SeriesInfo) -> bool:
+    def set_ids_from_series_info(self,
+            info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> bool:
         """
         Set all ID attributes of this object from the given SeriesInfo.
         This WILL override any existing ID information of this object,
@@ -588,6 +592,7 @@ class Series(Base):
 
         Args:
             info: SeriesInfo containing ID information to set.
+            log: Logger for all log messages.
 
         Returns:
             True if any of this Series' underlying ID's were changed.
@@ -596,9 +601,10 @@ class Series(Base):
 
         changed = False
         for id_type, id_ in info.ids.items():
-            if id_:
-                changed |= (getattr(self, id_type) != id_)
+            if id_ and (current := getattr(self, id_type)) != id_:
+                log.trace(f'Series[{self.id}].{id_type} = {current} -> {id_}')
                 setattr(self, id_type, id_)
+                changed = True
 
         return changed
 
