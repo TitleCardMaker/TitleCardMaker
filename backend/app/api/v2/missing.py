@@ -67,7 +67,7 @@ def get_missing_cards(
 @missing_router.get('/cards-without-loaded')
 def get_cards_without_loaded(
         db: Session = Depends(get_database),
-    ) -> Page[ReturnUnloadedCardSchema]: # type: ignore
+    ) -> Page[ReturnUnloadedCardSchema]:
     """Get all Cards that do not have an associated Loaded record."""
 
     return paginate(
@@ -81,7 +81,11 @@ def get_cards_without_loaded(
                     CardModel.library_name,
                 ),
             )
-            .filter(LoadedModel.id.is_(None))
+            .filter(
+                LoadedModel.id.is_(None),
+                CardModel.series_id.is_not(None),
+                CardModel.episode_id.is_not(None),
+            )
             .outerjoin(CardModel.loaded)
             .outerjoin(CardModel.episode)
             .outerjoin(CardModel.series)
