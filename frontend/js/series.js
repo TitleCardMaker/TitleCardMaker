@@ -1432,13 +1432,7 @@ async function initAll() {
       },
       season_title_values: {
         depends: 'season_title_ranges',
-        // rules: [{type: 'minLength[1]'}],
       },
-      // data_key: {
-      //   optional: true,
-      //   depends: 'language_code',
-      //   rules: [{type: 'regExp', value: /^$|^[a-z]+[^ ]*$/i}],
-      // },
     },
   });
 
