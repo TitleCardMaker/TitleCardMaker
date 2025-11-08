@@ -717,8 +717,8 @@ function updateLinkedFields(inputElement) {
  */
 function updateColorBubble(inputElement) {
   inputElement.closest('.field')
-    .querySelector('label > .color.circle')
-    .style.setProperty('--color', inputElement.value);
+    ?.querySelector('label > .color.circle')
+    ?.style.setProperty('--color', inputElement.value);
 }
 
 /**
