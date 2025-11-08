@@ -268,7 +268,17 @@ function updatePreviewTitleCard(allCards, previewCardType) {
       const previewCard = document.getElementById('card-type-preview');
       // Update all attributes of the title card element for the given card
       previewCard.querySelector('img').src = cardType.example; 
-      previewCard.querySelector('[data-label="name"]').innerText = cardType.name;
+      const nameHeader = previewCard.querySelector('[data-label="name"]');
+      // Update the text content
+      const nameText = nameHeader.querySelector('[data-label="name-text"]');
+      if (nameText) {
+        nameText.textContent = cardType.name;
+      }
+      // Update the documentation link
+      const docsLink = nameHeader.querySelector('[data-label="docs-link"]');
+      if (docsLink) {
+        docsLink.href = `https://titlecardmaker.com/card_types/${cardType.identifier}`;
+      }
       previewCard.querySelector('[data-label="creators"]').innerText = 'by ' + cardType.creators.join(', ');
       previewCard.querySelector('[data-label="supports_custom_fonts"] .description').innerHTML = cardType.supports_custom_fonts ? supportedHtml : notSupportedHtml;
       previewCard.querySelector('[data-label="supports_custom_seasons"] .description').innerHTML = cardType.supports_custom_seasons ? supportedHtml : notSupportedHtml;
@@ -342,11 +352,20 @@ function populateAllCardTypesModal(allCards, filterText = '') {
           <img src="${cardType.example}" alt="${cardType.name} example" style="object-fit: contain;">
         </div>
         <div class="content" style="flex: 1;">
-          <div class="header">${cardType.name}</div>
+          <div class="header">
+            ${cardType.name}
+            ${cardType.source === 'builtin'
+              && (
+                `<a href="https://titlecardmaker.com/card_types/${cardType.identifier}" target="_blank" class="ui blue tertiary icon button" style="float: right; margin-left: 0.5em;" title="View Documentation">
+                  Documentation <i class="external link icon"></i>
+                </a>`
+              )
+            }
+          </div>
           <div class="meta">
             <span class="date">by ${cardType.creators.join(', ')}</span>
             <br>
-            <div class="ui divided horizontal list" style="margin-top: 1em;">
+            <div class="ui divided horizontal list">
               <div class="item">
                 <div class="content">
                   <div class="header">Custom Fonts</div>
@@ -374,7 +393,7 @@ function populateAllCardTypesModal(allCards, filterText = '') {
               </div>
             </div>
           </div>
-          <div class="description" style="margin-top: 1em;">
+          <div class="description">
             ${cardType.description.map(desc => `<p>${desc}</p>`).join('')}
           </div>
         </div>
