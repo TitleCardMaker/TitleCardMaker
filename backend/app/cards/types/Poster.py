@@ -71,6 +71,7 @@ class PosterTitleCard(BaseCardType):
     __slots__ = (
         'episode_text',
         'episode_text_color',
+        'episode_text_font_size',
         'font_color',
         'font_file',
         'font_interline_spacing',
@@ -97,6 +98,7 @@ class PosterTitleCard(BaseCardType):
             grayscale: bool = False,
             logo_file: Path | None = None,
             episode_text_color: str = EPISODE_TEXT_COLOR,
+            episode_text_font_size: float = 1.0,
             **unused: Any,
         ) -> None:
         """Construct a new instance of this card."""
@@ -122,6 +124,40 @@ class PosterTitleCard(BaseCardType):
 
         # Extras
         self.episode_text_color = episode_text_color
+        self.episode_text_font_size = episode_text_font_size
+
+
+    @property
+    def episode_text_commands(self) -> ImageMagickCommands:
+        """Subcommands to add the episode text to the image."""
+
+        return [
+            f'-gravity south',
+            f'-font "{self.font_file}"',
+            f'-pointsize {75 * self.episode_text_font_size}',
+            f'-fill "{self.episode_text_color}"',
+            f'-annotate +649+50 "{self.episode_text}"',
+        ]
+
+
+    @property
+    def title_text_commands(self) -> ImageMagickCommands:
+        """Subcommands to add the background to the image."""
+
+        if self.logo is None or not self.logo.exists():
+            title_offset = 0
+        # Adjust title offset to center in smaller space (due to logo)
+        else:
+            title_offset = (450 / 2) - (50 / 2)
+
+        return [
+            f'-gravity center',
+            f'-pointsize {165 * self.font_size}',
+            f'-interline-spacing {-40 + self.font_interline_spacing}',
+            f'-interword-spacing {self.font_interword_spacing}',
+            f'-fill "{self.font_color}"',
+            f'-annotate +649+{title_offset} "{self.title_text}"',
+        ]
 
 
     def create(self) -> None:
@@ -129,8 +165,7 @@ class PosterTitleCard(BaseCardType):
 
         # If no logo is specified, create empty logo command
         if self.logo is None or not self.logo.exists():
-            title_offset = 0
-            logo_command = ''
+            logo_command = []
         # Logo specified and exists, create command to resize and add image
         else:
             logo_command = [
@@ -143,9 +178,6 @@ class PosterTitleCard(BaseCardType):
                 f'-geometry +649+50',
                 f'-composite',
             ]
-
-            # Adjust title offset to center in smaller space (due to logo)
-            title_offset = (450 / 2) - (50 / 2)
 
         # Single command to create card
         self.image_magick.run([
@@ -163,18 +195,9 @@ class PosterTitleCard(BaseCardType):
             # Optionally add logo
             *logo_command,
             # Add episode text
-            f'-gravity south',
-            f'-font "{self.font_file}"',
-            f'-pointsize {75 * self.font_size}',
-            f'-fill "{self.episode_text_color}"',
-            f'-annotate +649+50 "{self.episode_text}"',
+            *self.episode_text_commands,
             # Add title text
-            f'-gravity center',
-            f'-pointsize {165 * self.font_size}',
-            f'-interline-spacing {-40 + self.font_interline_spacing}',
-            f'-interword-spacing {self.font_interword_spacing}',
-            f'-fill "{self.font_color}"',
-            f'-annotate +649+{title_offset} "{self.title_text}"',
+            *self.title_text_commands,
             # Create card
             *self.resize_output,
             f'"{self.output_file.resolve()}"',
@@ -195,6 +218,7 @@ def get_validator_model() -> type[BaseCardModel]:
         font_size: FontSize = 1.0
         logo_file: Path | None = None
         episode_text_color: str | None = None
+        episode_text_font_size: FontSize = 1.0
 
         @model_validator(mode='after')
         def toggle_text_hiding(self) -> Self:
