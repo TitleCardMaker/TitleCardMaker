@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import Field, FilePath, StringConstraints, model_validator
+from pydantic import FilePath, StringConstraints, model_validator
 
 from app.cards.base import (
     BaseCardType,
@@ -10,7 +10,11 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
 )
-from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontNoText
+from app.schemas.base import (
+    BaseCardModel,
+    BaseCardTypeCustomFontNoText,
+    FontSize,
+)
 
 
 GradientType = Literal['original', 'improved']
@@ -367,7 +371,7 @@ def get_validator_model() -> type[BaseCardModel]:
         font_color: str = OlivierTitleCard.CardConfig.font_color
         font_file: FilePath = OlivierTitleCard.CardConfig.font_file
         episode_text_color: str = OlivierTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         episode_text_vertical_shift: int = 0
         gradient_type: (
             Annotated[str, StringConstraints(pattern=r'^custom:.*$')]

@@ -12,8 +12,7 @@ from app.cards.base import (
     ImageMagickCommands,
     Extra,
 )
-from app.logging.logger import log  # noqa: F401
-from app.schemas.base import BaseCardModel, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 
 
 VerticalPosition = Literal['top', 'center', 'bottom', 'random']
@@ -625,10 +624,10 @@ def get_validator_model() -> type[BaseCardModel]:
 
     class CardModel(BaseCardTypeAllText):
         font_color: str = SkeletonCrewTitleCard.CardConfig.font_color
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         font_vertical_shift: int = 0
         episode_text_color: str = 'transparent'
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         outline_color: str | None = None
         outline_width: Annotated[
             float,

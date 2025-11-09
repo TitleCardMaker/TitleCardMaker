@@ -14,8 +14,7 @@ from app.cards.base import (
     ImageMagickCommands,
     Line,
 )
-from app.logging.logger import log # noqa: F401
-from app.schemas.base import BaseCardModel
+from app.schemas.base import BaseCardModel, FontSize
 
 
 TextPosition = Literal[
@@ -650,9 +649,9 @@ def get_validator_model() -> type[BaseCardModel]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         font_vertical_shift: int = 0
-        graph_text_font_size: Annotated[float, Field(gt=0)] | None = None
+        graph_text_font_size: FontSize | None = None
         grayscale: bool = False
         graph_background_color: str = GraphTitleCard.BACKGROUND_GRAPH_COLOR
         graph_color: str = GraphTitleCard.GRAPH_COLOR

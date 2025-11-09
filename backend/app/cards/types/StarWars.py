@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Annotated, Any, Self
 
-from pydantic import Field, FilePath, StringConstraints, model_validator
+from pydantic import FilePath, StringConstraints, model_validator
 
 from app.cards.base import (
     BaseCardType,
@@ -10,7 +10,7 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
 )
-from app.schemas.base import BaseCardModel
+from app.schemas.base import BaseCardModel, FontSize
 
 
 class StarWarsTitleCard(BaseCardType):
@@ -233,7 +233,7 @@ def get_validator_model() -> type[BaseCardModel]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         font_vertical_shift: int = 0
         episode_text_color: str = StarWarsTitleCard.EPISODE_TEXT_COLOR
 

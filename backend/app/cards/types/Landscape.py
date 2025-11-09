@@ -19,7 +19,7 @@ from app.cards.base import (
     ImageMagickCommands,
     Shadow,
 )
-from app.schemas.base import BaseCardModel
+from app.schemas.base import BaseCardModel, FontSize
 
 
 DarkenOption = Literal['all', 'box'] | bool
@@ -515,7 +515,7 @@ def get_validator_model() -> type[BaseCardModel]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         font_vertical_shift: int = 0
         add_bounding_box: bool = True
         blur_box: bool = False

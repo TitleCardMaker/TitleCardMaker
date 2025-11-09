@@ -1,15 +1,19 @@
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Any
 
-from pydantic import Field, FilePath
+from pydantic import FilePath
 
-from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+)
+from app.schemas.base import (
+    BaseCardModel,
+    BaseCardTypeCustomFontAllText,
+    FontSize,
 )
 
 
@@ -261,8 +265,8 @@ def get_validator_model() -> type[BaseCardModel]:
         font_file: FilePath = FadeTitleCard.CardConfig.font_file
         logo_file: Path | None = None
         episode_text_color: str = FadeTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
-        logo_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
+        logo_size: FontSize = 1.0
         separator: str = '•'
 
     return CardModel

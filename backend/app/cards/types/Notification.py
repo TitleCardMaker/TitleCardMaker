@@ -19,7 +19,11 @@ from app.cards.base import (
     ImageMagickCommands,
     Rectangle,
 )
-from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
+from app.schemas.base import (
+    BaseCardModel,
+    BaseCardTypeCustomFontAllText,
+    FontSize,
+)
 
 
 Position = Literal['left', 'right']
@@ -460,7 +464,7 @@ def get_validator_model() -> type[BaseCardModel]:
         edge_color: str | None = None
         edge_width: Annotated[int, Field(ge=0)] = NotificationTitleCard.EDGE_WIDTH
         episode_text_color: str | None = None
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         episode_text_vertical_shift: int = 0
         glass_color: str = NotificationTitleCard.GLASS_COLOR
         position: Position = 'right'

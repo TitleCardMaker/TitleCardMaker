@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import Annotated, Any, Self
 
-from pydantic import Field, FilePath, StringConstraints, model_validator
+from app.magick.base import ImageMagickCommands
+from pydantic import FilePath, StringConstraints, model_validator
 
 from app.cards.base import (
     BaseCardType,
@@ -9,7 +10,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
 )
-from app.schemas.base import BaseCardModel
+from app.schemas.base import BaseCardModel, FontSize
 
 
 class PosterTitleCard(BaseCardType):
@@ -191,7 +192,7 @@ def get_validator_model() -> type[BaseCardModel]:
         font_file: FilePath = PosterTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         logo_file: Path | None = None
         episode_text_color: str | None = None
 

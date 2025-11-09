@@ -1,9 +1,9 @@
 from pathlib import Path
 from random import choice
 from re import compile as re_compile
-from typing import Annotated, Any, NamedTuple
+from typing import Any, NamedTuple
 
-from pydantic import Field, FilePath, field_validator
+from pydantic import FilePath, field_validator
 
 from app.cards.base import (
     BaseCardType,
@@ -13,7 +13,7 @@ from app.cards.base import (
     ImageMagickCommands,
 )
 from app.logging.logger import log
-from app.schemas.base import BaseCardModel, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 
 
 class Offset:
@@ -726,11 +726,11 @@ def get_validator_model() -> type[BaseCardModel]:
         font_file: FilePath = RomanNumeralTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         background: str = RomanNumeralTitleCard.BACKGROUND_COLOR
         roman_numeral_color: str = RomanNumeralTitleCard.ROMAN_NUMERAL_TEXT_COLOR
         season_text_color: str = RomanNumeralTitleCard.SEASON_TEXT_COLOR
-        season_text_size: Annotated[float, Field(gt=0)] = 1.0
+        season_text_size: FontSize = 1.0
 
         @field_validator('episode_text', mode='after')
         @classmethod
@@ -742,10 +742,10 @@ def get_validator_model() -> type[BaseCardModel]:
 
             val = ''.join(c for c in value if c.isdigit())
             if not (0 <= int(val) <= RomanNumeralTitleCard.MAX_ROMAN_NUMERAL):
-                raise ValueError(
+                raise ValueError((
                     f'Episode text number must be between 0 and '
                     f'{RomanNumeralTitleCard.MAX_ROMAN_NUMERAL}'
-                )
+                ))
             return val
 
     return CardModel

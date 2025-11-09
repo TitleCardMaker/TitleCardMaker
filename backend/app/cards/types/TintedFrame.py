@@ -5,7 +5,6 @@ from typing import Annotated, Any, Literal, Self
 
 from pydantic import Field, FilePath, model_validator
 
-from app.schemas.base import BaseCardModel, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
@@ -16,6 +15,7 @@ from app.cards.base import (
     Rectangle,
     Shadow,
 )
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 
 
 RandomColorRegex = re_compile(r'random\[([^[\]]*(?:,[^[\]]*)*)\]', IGNORECASE)
@@ -751,14 +751,14 @@ def get_validator_model() -> type[BaseCardModel]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         font_vertical_shift: int = 0
         separator: str = '-'
         episode_text_color: str | None = None
         episode_text_font: (
             Literal['{font_file}'] | str | Path
         ) = TintedFrameTitleCard.EPISODE_TEXT_FONT
-        episode_text_font_size: Annotated[float, Field(ge=0.0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         episode_text_vertical_shift: Annotated[int, Field(ge=-1800, le=1800)] = 0
         frame_color: str | None = None
         frame_width: Annotated[
@@ -782,7 +782,6 @@ def get_validator_model() -> type[BaseCardModel]:
         def validate_episode_text_font_file(self) -> Self:
             """Assign and validate the episode text font file."""
 
-            # 
             if (etf := self.episode_text_font) in ('{title_font}', '{font_file}'):
                 self.episode_text_font = self.font_file
             # Episode text font does not exist, search alongside source image
@@ -793,10 +792,10 @@ def get_validator_model() -> type[BaseCardModel]:
             # Verify new specified font file does exist
             self.episode_text_font = Path(self.episode_text_font)
             if not Path(self.episode_text_font).exists():
-                raise ValueError(
+                raise ValueError((
                     f'Specified Episode Text Font '
                     f'({self.episode_text_font}) does not exist'
-                )
+                ))
 
             return self
 

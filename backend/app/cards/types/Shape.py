@@ -25,7 +25,7 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
 )
-from app.schemas.base import BaseCardModel, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 
 
 _DEG_TO_RAD = PI / 180.0
@@ -1279,14 +1279,14 @@ def get_validator_model() -> type[BaseCardModel]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         font_stroke_width: float = 1.0
         font_vertical_shift: int = 0
         hide_shape: bool = False
         italicize_season_text: bool = False
         omit_gradient: bool = False
         season_text_color: str | None = None
-        season_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        season_text_font_size: FontSize = 1.0
         season_text_position: SeasonTextPosition = 'below'
         shape: (
             Shape

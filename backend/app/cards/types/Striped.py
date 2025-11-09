@@ -21,7 +21,7 @@ from app.cards.base import (
     ImageMagickCommands,
     SplitStyle,
 )
-from app.schemas.base import BaseCardModel, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 
 
 STRIPE_DOC_LINK = 'https://titlecardmaker.com/card_types/striped/#definition'
@@ -803,14 +803,14 @@ def get_validator_model() -> type[BaseCardModel]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         font_vertical_shift: int = 0
         angle: Annotated[
             float,
             Field(le=135, ge=45)
         ] = StripedTitleCard.DEFAULT_ANGLE
         episode_text_color: str = StripedTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         episode_text_vertical_shift: Annotated[
             int,
             Field(ge=-1800, le=1800)

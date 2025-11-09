@@ -1,16 +1,20 @@
 from pathlib import Path
 from typing import Annotated, Any
 
-from pydantic import Field, FilePath
+from pydantic import FilePath
 
-from app.logging.logger import log # noqa: F401
-from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+)
+from app.logging.logger import log # noqa: F401
+from app.schemas.base import (
+    BaseCardModel,
+    BaseCardTypeCustomFontAllText,
+    FontSize,
 )
 
 
@@ -381,7 +385,7 @@ def get_validator_model() -> type[BaseCardModel]:
         separator: str = '•'
         stroke_color: str = StandardTitleCard.DEFAULT_STROKE_COLOR
         episode_text_color: str = StandardTitleCard.SERIES_COUNT_TEXT_COLOR
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         episode_text_stroke_color: str = StandardTitleCard.DEFAULT_STROKE_COLOR
         episode_text_vertical_shift: int = 0
 

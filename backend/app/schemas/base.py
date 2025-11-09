@@ -19,8 +19,23 @@ UNSPECIFIED = '_UnspecifiedValue'
 # Convert string to uppercase
 UppercaseString = Annotated[str, BeforeValidator(lambda s: s.upper())]
 
-# Strings which must be at least 1 character long
-MinimumLengthString = Annotated[str, Field(min_length=1)]
+MinimumLengthString = Annotated[
+    str,
+    Field(min_length=1),
+    'Strings which must be at least 1 character long',
+]
+
+FontSize = Annotated[
+    float,
+    Field(gt=0.0),
+    'Font sizes must be positive',
+]
+
+ShadowDefinition = Annotated[
+    str,
+    StringConstraints(to_lower=True, pattern=r'^\d+x\d+[+-]\d+[+-]\d+$'),
+    'Shadow definitions must be in the format "85x10+10+10"',
+]
 
 # String that can be used as key in a dictionary
 DictKey = Annotated[

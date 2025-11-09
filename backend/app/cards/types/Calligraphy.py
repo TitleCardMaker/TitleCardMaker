@@ -86,7 +86,7 @@ class CalligraphyTitleCard(BaseCardType):
             Extra(
                 name='Shadow Color',
                 identifier='shadow_color',
-                description='Color of the text drop shadow.',
+                description='Color of the text drop shadow',
                 tooltip='Default is <c>black</c>.',
                 default='black',
             ),

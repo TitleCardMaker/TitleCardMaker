@@ -9,7 +9,7 @@ from pydantic import (
     model_validator,
 )
 
-from app.schemas.base import BaseCardModel, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 from app.cards.base import (
     BaseCardType,
     CardTypeDescription,
@@ -406,10 +406,10 @@ def get_validator_model() -> type[BaseCardModel]:
         airdate: datetime | None = None
         font_color: str = FormulaOneTitleCard.CardConfig.font_color
         font_file: FilePath = FormulaOneTitleCard.CardConfig.font_file
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         country: Country | None = None
         episode_text_color: str = FormulaOneTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         flag: Path | None = None
         frame_year: Annotated[int, Field(gt=0)] | None = None
         race: Annotated[

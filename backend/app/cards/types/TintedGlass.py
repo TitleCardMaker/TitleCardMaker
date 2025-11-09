@@ -264,8 +264,10 @@ class TintedGlassTitleCard(BaseCardType):
         font_size = 200 * self.font_size
         kerning = -5 * self.font_kerning
         interword_spacing = 40 + self.font_interword_spacing
-        vertical_shift = 300 + self.font_vertical_shift \
+        vertical_shift = (
+            300 + self.font_vertical_shift
             + self.vertical_adjustment
+        )
 
         return [
             f'-gravity south',

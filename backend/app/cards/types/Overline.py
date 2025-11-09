@@ -13,7 +13,12 @@ from app.cards.base import (
     Rectangle,
 )
 from app.interfaces.magick import Dimensions
-from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
+from app.schemas.base import (
+    BaseCardModel,
+    BaseCardTypeCustomFontAllText,
+    FontSize,
+)
+
 
 LinePosition = Literal['top', 'bottom']
 
@@ -441,7 +446,7 @@ def get_validator_model() -> type[BaseCardModel]:
         font_color: str = OverlineTitleCard.CardConfig.font_color
         font_file: FilePath = OverlineTitleCard.CardConfig.font_file
         episode_text_color: str | None = None
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         hide_line: bool = False
         line_color: str | None = None
         line_position: LinePosition = 'top'

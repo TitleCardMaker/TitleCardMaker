@@ -11,7 +11,11 @@ from app.cards.base import (
     ImageMagickCommands,
     Shadow,
 )
-from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
+from app.schemas.base import (
+    BaseCardModel,
+    BaseCardTypeCustomFontAllText,
+    FontSize,
+)
 
 LogoPosition = Literal['omit', 'top left', 'top right', 'bottom right']
 
@@ -584,19 +588,18 @@ def get_validator_model() -> type[BaseCardModel]:
         kanji: str | None = None
         require_kanji: bool = False
         kanji_color: str | None = AnimeTitleCard.CardConfig.font_color
-        kanji_font_size: Annotated[float, Field(gt=0)] = 1.0
+        kanji_font_size: FontSize = 1.0
         kanji_stroke_color: str | None = None
         kanji_stroke_width: Annotated[float, Field(ge=0)] = 1.0
         kanji_vertical_shift: int = 0
         separator: str = '·'
         logo_file: Path | None = None
         logo_position: LogoPosition = 'omit'
-        logo_size: Annotated[float, Field(gt=0)] = 1.0
+        logo_size: FontSize = 1.0
         omit_gradient: bool = False
         episode_stroke_color: str = AnimeTitleCard.EPISODE_STROKE_COLOR
         episode_text_color: str = AnimeTitleCard.EPISODE_TEXT_COLOR
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
-        logo_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         season_text_color: str | None = None
         stroke_color: str = 'black'
 

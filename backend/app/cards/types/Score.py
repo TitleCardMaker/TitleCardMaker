@@ -2,7 +2,7 @@ from pathlib import Path
 from random import choice as random_choice
 from typing import Annotated, Any, ClassVar, Literal, Self
 
-from pydantic import Field, FilePath, StringConstraints, model_validator
+from pydantic import FilePath, StringConstraints, model_validator
 
 from app.cards.base import (
     BaseCardType,
@@ -13,7 +13,7 @@ from app.cards.base import (
     Shadow,
 )
 from app.info.episode import EpisodeInfo
-from app.schemas.base import BaseCardModel, BaseCardTypeAllText
+from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 
 
 LabelPlacement = Literal['above', 'below', 'random']
@@ -584,10 +584,10 @@ def get_validator_model() -> type[BaseCardModel]:
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         font_vertical_shift: int = 0
         episode_text_color: ColorPair | None = None
-        episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
+        episode_text_font_size: FontSize = 1.0
         episode_text_horizontal_offset: int = 0
         episode_text_vertical_offset: int = 0
         season_text_color: ColorPair | None = None

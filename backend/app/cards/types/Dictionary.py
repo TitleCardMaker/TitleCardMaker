@@ -17,7 +17,12 @@ from app.cards.base import (
     ImageMagickCommands,
     create_card_cli,
 )
-from app.schemas.base import BaseCardModel, BaseCardTypeAllText
+from app.schemas.base import (
+    BaseCardModel,
+    BaseCardTypeAllText,
+    FontSize,
+    ShadowDefinition,
+)
 
 if TYPE_CHECKING:
     from app.info.episode import EpisodeInfo
@@ -585,14 +590,14 @@ def get_validator_model() -> type[BaseCardModel]:
         font_file: FilePath = DictionaryTitleCard.CardConfig.font_file
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
-        font_size: Annotated[float, Field(gt=0)] = 1.0
+        font_size: FontSize = 1.0
         background_color: str = DictionaryTitleCard.BACKGROUND_COLOR
         italicize_definition: bool = True
         quote_definition: bool = True
         definition_text: str = '{episode_description}'
         definition_color: str | None = None
         definition_line_limit: Annotated[int, Field(ge=1, le=24)] = 4
-        definition_size: Annotated[float, Field(gt=0)] = 1.0
+        definition_size: FontSize = 1.0
         position: Annotated[
             str,
             StringConstraints(pattern=DictionaryTitleCard.POSITION_REGEX.pattern)
@@ -600,7 +605,7 @@ def get_validator_model() -> type[BaseCardModel]:
         separator: str = ', '
         word_text: str = '{series_name.lower()}'
         word_color: str | None = None
-        word_size: Annotated[float, Field(gt=0)] = 1.0
+        word_size: FontSize = 1.0
 
         @model_validator(mode='after')
         def assign_unassigned_color(self) -> Self:
