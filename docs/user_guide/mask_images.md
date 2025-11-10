@@ -94,7 +94,7 @@ helpful at extracting a person/thing from the underlying image.
 
 If you are willing to set up another piece of Software, I've had great success
 with the command line tool
-[BackgroundRemover](https://github.com/nadermx/backgroundremover)
+[BackgroundRemover](https://github.com/nadermx/backgroundremover).
 
 ```bash
 python -m backgroundremover.cmd.cli -i "input.jpg" -o "output-mask.png"
