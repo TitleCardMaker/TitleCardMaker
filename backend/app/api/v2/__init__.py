@@ -12,7 +12,7 @@ from .imports import import_router
 from .logs import log_router
 from .missing import missing_router
 from .proxy import proxy_router
-from .schedule import scheduler_router
+from .scheduler import scheduler_router
 from .series import series_router
 from .settings import settings_router
 from .sources import source_router
