@@ -5,10 +5,13 @@ from pydantic import FilePath
 
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    PreviewCard,
+    add_cli,
 )
 from app.schemas.base import (
     BaseCardModel,
@@ -264,9 +267,41 @@ def get_validator_model() -> type[BaseCardModel]:
         font_color: str = FadeTitleCard.CardConfig.font_color
         font_file: FilePath = FadeTitleCard.CardConfig.font_file
         logo_file: Path | None = None
+        logo_size: FontSize = 1.0
         episode_text_color: str = FadeTitleCard.EPISODE_TEXT_COLOR
         episode_text_font_size: FontSize = 1.0
-        logo_size: FontSize = 1.0
         separator: str = '•'
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    FadeTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'The Man Trap',
+            'season_text': 'SEASON 1',
+            'episode_text': 'EPISODE 1',
+        },
+        cards=[
+            PreviewCard(
+                filename='episode_text_color',
+                variables={'episode_text_color': 'rgb(233,20,35)'},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 1.3},
+            ),
+            PreviewCard(
+                filename='logo_size',
+                variables={'logo_size': 0.3},
+            ),
+            PreviewCard(
+                filename='separator',
+                variables={'separator': '-'},
+            ),
+        ]
+    ),
+)
