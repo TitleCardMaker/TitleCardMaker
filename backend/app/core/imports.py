@@ -420,7 +420,7 @@ async def import_mediux_yaml(
     tasks = []
     temp_images: list[Path] = []
     async with AsyncSession(
-        max_clients=5, timeout=10, http_version=CurlHttpVersion.V1_1
+        max_clients=5, timeout=15, http_version=CurlHttpVersion.V1_1
     ) as session:
         for season_number, season_yaml in yaml.seasons.items():
             # Parse season posters if a library was provided and specified
