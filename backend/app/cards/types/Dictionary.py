@@ -441,8 +441,8 @@ class DictionaryTitleCard(BaseCardType):
             and (lines := lines + 1) <= 24 # Do not apply user limit here
         ):
             # Split into specified number of lines
-            self.definition_text = self.image_magick.escape_chars(
-                '\n'.join(split_into_lines(self.definition_text, lines))
+            self.definition_text = '\n'.join(
+                split_into_lines(self.definition_text, lines)
             )
 
             # Recalculate the dimensions of the definition text after each split
