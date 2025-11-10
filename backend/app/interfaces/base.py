@@ -16,6 +16,7 @@ from PIL import Image
 from app.info.base import InterfaceID
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
+from app.interfaces.schemas.emby import ItemDetails
 from app.interfaces.schemas.sonarr import SeriesResource
 from app.logging.logger import Logger, log
 
@@ -49,7 +50,7 @@ class SearchResult:
             overview: str | list[str] = ['No overview available'],
             ongoing: bool | None = None,
             *,
-            emby_id: int | None = None,
+            emby_id: str | None = None,
             imdb_id: str | None = None,
             jellyfin_id: str | None = None,
             sonarr_id: str | None  =None,
@@ -83,6 +84,7 @@ class SearchResult:
     @staticmethod
     def from_sonarr_resource(
             resource: SeriesResource,
+            /,
             interface_id: int,
             poster: str | None = None,
         ) -> 'SearchResult':
@@ -100,6 +102,36 @@ class SearchResult:
             sonarr_id=f'{interface_id}:{resource.id}' if resource.id else None,
             tvdb_id=resource.tvdb_id,
             tvrage_id=resource.tvrage_id,
+        )
+
+
+    @staticmethod
+    def from_emby_resource(
+            resource: ItemDetails,
+            /,
+            poster: str,
+            emby_id: str | None = None
+        ) -> 'SearchResult':
+        """
+        Create a SearchResult object from an Emby ItemDetails object.
+
+        Args:
+            resource: Emby ItemDetails object.
+            poster: URL to the poster image.
+            emby_id: Optional Emby ID of the series.
+        """
+
+        return SearchResult(
+            name=resource.name,
+            year=resource.production_year,
+            ongoing=resource.status == 'Continuing',
+            overview=resource.overview or 'No overview available',
+            poster=poster,
+            emby_id=emby_id,
+            imdb_id=resource.provider_ids.get('Imdb'),
+            tmdb_id=resource.provider_ids.get('Tmdb'), # type: ignore
+            tvdb_id=resource.provider_ids.get('Tvdb'), # type: ignore
+            tvrage_id=resource.provider_ids.get('TvRage'), # type: ignore
         )
 
 

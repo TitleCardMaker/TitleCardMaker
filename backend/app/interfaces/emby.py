@@ -175,6 +175,12 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             self.user_id = user_id
 
         self.libraries = self._map_libraries()
+        # Make mapping of folder ID to library name
+        self._library_ids = {
+            id_: library_name
+            for library_name, library in self.libraries.items()
+            for id_ in library
+        }
 
         self.activate()
 
@@ -237,7 +243,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             *,
             raw_obj: Literal[False] = False,
             log: Logger = log
-        ) -> str | None: ...
+        ) -> int | None: ...
 
     @overload
     def __get_series_id(self,
@@ -254,7 +260,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             *,
             raw_obj: bool = False,
             log: Logger = log,
-        ) -> str | SeriesInfo | None:
+        ) -> int | SeriesInfo | None:
         """
         Get the Jellyfin ID for the given series.
 
@@ -283,7 +289,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             )
 
             # Item found, ID is still valid
-            if details and details.id == id_:
+            if details and details.id == int(id_):
                 return details.id
 
             # No item found, ID must be invalid - reset and re-query
@@ -303,6 +309,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             'Recursive': True,
             'Years': series_info.year,
             'IncludeItemTypes': 'series',
+            'EnableUserData': False,
             'SearchTerm': series_info.name,
             'Fields': 'ProviderIds,PremiereDate',
         }
@@ -343,9 +350,9 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
 
     def __get_season_id(self,
-            series_id: str,
+            series_id: int,
             season_number: int,
-        ) -> str | None:
+        ) -> int | None:
         """
         Get the Emby ID of the given season.
 
@@ -533,7 +540,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 'Recursive': True,
                 'IncludeItemTypes': 'Series',
                 'SearchTerm': '' if return_all else query,
-                'Fields': 'ProviderIds,Overview,ProductionYear,Status',
+                'Fields': 'ParentId,ProviderIds,Overview,ProductionYear,Status',
+                'EnableUserData': False,
                 'EnableImages': True,
                 'ImageTypes': 'Primary',
             },
@@ -543,17 +551,18 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         if not search_results or not search_results.total_record_count:
             return []
 
+        def get_emby_id(result: ItemDetails, /) -> str | None:
+            if result.parent_id is None:
+                return None
+            if (library := self._library_ids.get(result.parent_id)) is None:
+                return None
+            return f'{self._interface_id}:{library}:{result.id}'
+
         return [
-            SearchResult(
-                name=result.name,
-                year=result.production_year,
-                ongoing=result.status == 'Continuing',
-                overview=result.overview or 'No overview available',
-                poster=f'{self.url}/Items/{result.id}/Images/Primary?quality=75',
-                imdb_id=result.provider_ids.get('Imdb'),
-                tmdb_id=result.provider_ids.get('Tmdb'), # type: ignore
-                tvdb_id=result.provider_ids.get('Tvdb'), # type: ignore
-                tvrage_id=result.provider_ids.get('TvRage'), # type: ignore
+            SearchResult.from_emby_resource(
+                result,
+                f'{self.url}/Items/{result.id}/Images/Primary?quality=75',
+                get_emby_id(result),
             )
             for result in search_results.items
             if result.production_year
@@ -638,7 +647,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             if excluded_series:
                 parameters.update({
                     'ExcludeItemIds': ','.join((
-                        item.id for item in excluded_series.items
+                        str(item.id) for item in excluded_series.items
                     ))
                 })
 
