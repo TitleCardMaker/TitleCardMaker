@@ -25,7 +25,12 @@ most extras resolve around manipulating the "word" (series name), "label"
 
     ![Labeled Dictionary Card Elements](./assets/dictionary/labeled.webp)
 
-## Background Color
+## Background
+
+The background element is the rectangle which is positioned behind the text
+elements.
+
+### Background Color
 
 The color of the background box can be adjusted with the _Background Color_
 extra.
@@ -37,6 +42,22 @@ extra.
         data-left-label="rgba(212,212,212,0.3)"
         data-right-label="rgba(12,12,12,0.8)">
         <img src="../assets/dictionary/background_color.webp"/>
+        <img src="../assets/dictionary.webp"/>
+    </div>
+
+### Rounding Radius
+
+The roundness of the background rectangle can be adjusted with the _Background
+Rounding Radius_ extra. The higher the radius/value, the more round the edges. A
+value of 0 will result in square corners.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="27.07"
+        data-left-label="0"
+        data-right-label="35">
+        <img src="../assets/dictionary/background_rounding_radius.webp"/>
         <img src="../assets/dictionary.webp"/>
     </div>
 
@@ -196,6 +217,55 @@ unspecified, this color defaults to matching the color of the title text.
         data-right-label="white">
         <img src="../assets/dictionary/word_color.webp"/>
         <img src="../assets/dictionary.webp"/>
+    </div>
+
+### Shadow
+
+#### Color
+
+The color of the word text's drop shadow can be changed with the _Shadow Color_
+extra.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="27.07"
+        data-left-label="crimson"
+        data-right-label="black">
+        <img src="../assets/dictionary/shadow_color.webp"/>
+        <img src="../assets/dictionary.webp"/>
+    </div>
+
+#### Definition
+
+The "definition" of the word text's drop shadow can be changed with the _Shadow
+Definition_ extra. This is an ImageMagick [Shadow
+Definition](https://imagemagick.org/script/command-line-options.php#shadow). See
+the tip tooltip for more information. The default shadow is `95x2+7+7`.
+
+??? tip "Shadow Customization"
+
+    ImageMagick defines shows in the format of:
+
+    ```
+    {opacity}x{sigma}{+ or -}{x}{+ or -}{y}
+    ```
+
+    For example, `95x2+7+7`, `50x5+0+0`, and `80x4+0-10` are all valid shadow
+    definitions.
+
+    This can be interpreted like so (using the default shadow, for example):
+    the shadow has 95% opacity, has a sigma/blurriness value of 2, and is
+    positioned 7 pixels below, and 7 pixels to the right of the base text.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="27.07"
+        data-left-label="80x8+0+12"
+        data-right-label="95x2+7+7">
+        <img src="../assets/dictionary/shadow_definition.webp"/>
+        <img src="../assets/dictionary/shadow_color.webp"/>
     </div>
 
 ### Size
