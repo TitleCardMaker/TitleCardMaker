@@ -155,11 +155,10 @@ class DictionaryTitleCard(BaseCardType):
                 identifier='shadow_definition',
                 description='Definition of the word text drop shadow',
                 tooltip=(
-                    'Shadow definition string (e.g `85x10+10+10`). See '
-                    'documentation for more details. Default is '
-                    '<v>95x2+7+7</v>.'
+                    'Shadow definition string. See documentation for more '
+                    'details. Default is <v>95x4+7+7</v>.'
                 ),
-                default='95x2+7+7',
+                default='95x4+7+7',
             ),
             Extra(
                 name='Word Text',
@@ -215,7 +214,7 @@ class DictionaryTitleCard(BaseCardType):
     DEFINITION_ITALIC_FONT: ClassVar[Path] = DICTIONARY_DIR / 'Georgia Italic.ttf'
     POSITION_REGEX = re_compile(r'([-+]\d+.?\d*)([-+]\d+.?\d*)')
     SHADOW_COLOR: ClassVar[str] = 'black'
-    SHADOW_DEFINITION: ClassVar[ShadowDefinition] = '95x2+7+7'
+    SHADOW_DEFINITION: ClassVar[ShadowDefinition] = '95x4+7+7'
     WORD_FONT: ClassVar[Path] = NEGATIVE_SPACE_DIRECTORY / 'Futura.ttc'
     SMUSH_SPACING: ClassVar[int] = 30
 
