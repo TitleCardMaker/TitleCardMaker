@@ -5,11 +5,14 @@ from pydantic import Field, FilePath, model_validator
 
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    PreviewCard,
     Shadow,
+    add_cli,
 )
 from app.schemas.base import (
     BaseCardModel,
@@ -634,3 +637,76 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    AnimeTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'Never Give Up',
+            'season_text': 'ENTERTAINMENT DISTRICT',
+            'episode_text': 'EPISODE 10',
+            'kanji': '絶対諦めない',
+        },
+        cards=[
+            PreviewCard(
+                filename='episode_text_color',
+                variables={'episode_text_color': 'rgb(233,20,35)'},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 1.3},
+            ),
+            PreviewCard(
+                filename='episode_stroke_color',
+                variables={'episode_stroke_color': 'crimson'},
+            ),
+            PreviewCard(
+                filename='omit_gradient',
+                variables={'omit_gradient': True},
+            ),
+            PreviewCard(
+                filename='logo_position',
+                variables={'logo_position': 'top left'},
+            ),
+            PreviewCard(
+                filename='logo_size',
+                variables={'logo_position': 'top left', 'logo_size': 3.0},
+            ),
+            PreviewCard(
+                filename='kanji_color',
+                variables={'kanji_color': 'skyblue'},
+            ),
+            PreviewCard(
+                filename='kanji_size',
+                variables={'kanji_size': 1.5},
+            ),
+            PreviewCard(
+                filename='kanji_stroke_color',
+                variables={'kanji_stroke_color': 'crimson'},
+            ),
+            PreviewCard(
+                filename='kanji_stroke_width',
+                variables={'kanji_stroke_width': 1.4},
+            ),
+            PreviewCard(
+                filename='kanji_vertical_shift',
+                variables={'kanji_vertical_shift': 20},
+            ),
+            PreviewCard(
+                filename='season_text_color',
+                variables={'season_text_color': '#CFCFCF'},
+            ),
+            PreviewCard(
+                filename='separator',
+                variables={'separator': '//'},
+            ),
+            PreviewCard(
+                filename='stroke_color',
+                variables={'stroke_color': 'red'},
+            ),
+        ]
+    )
+)
