@@ -708,13 +708,25 @@ class BaseCardType(ImageMaker, ABC):
         raise NotImplementedError
 
 
-def create_card_cli(
+class PreviewCard(BaseModel):
+    filename: str
+    variables: dict[str, Any]
+
+class CardDocumentation(BaseModel):
+    static_variables: dict[str, Any]
+    cards: list[PreviewCard] = []
+    extension: str = '.webp'
+
+def add_cli(
         dname: str,
+        /,
         card_type: type[BaseCardType],
         validator_model: type[BaseCardModel],
+        *,
+        documentation: CardDocumentation | None = None,
     ) -> None:
     """
-    Add command-line card creation functionality to the given card type.
+    Add CLI functionality for the given card type.
 
     Args:
         dname: Name of the module to run the card creation from - this
@@ -723,41 +735,89 @@ def create_card_cli(
             will be called during card creation.
         validator_model: Pydantic model to use for validation of the card
             creation arguments.
+        documentation: Card documentation to use for the documentation
+            cards. If provided, a `docs` command will be added.
     """
 
-    # Exit if not running in main module
     if dname != '__main__':
         return None
 
-    def parse_unknown_args(args: list[str]) -> dict[str, Any]:
+    import click
+
+    @click.group()
+    def cli():
+        pass
+
+    @cli.command()
+    @click.argument('args', nargs=-1)
+    def card(args: list[str]) -> None:
         """
-        Parse unknown arguments into a dictionary of keyword arguments.
+        Create a card from the given arguments.
 
-        >>> parse_unknown_args(['--font_color', 'red', '--grayscale'])
-        {'font_color': 'red', 'grayscale': True}
+        Example:
+            python app.py card --season-text input.jpg --output output.jpg
         """
 
-        kwargs, key = {}, None
+        def to_key(val: str, /) -> str:
+            return val.lstrip('-').replace('-', '_')
 
-        for arg in args:
-            if arg.startswith('--'):
-                key = arg.lstrip('--').replace('-', '_')
-                kwargs[key] = True
-            elif key:
-                kwargs[key] = arg
-                key = None
+        params: dict[str, Any] = {
+            to_key(args[i]): args[i + 1] if i + 1 < len(args) else None
+            for i in range(0, len(args), 2)
+        }
 
-        return kwargs
+        card_maker = card_type(**validator_model(**params).model_dump())
+        card_maker.create()
+        card_maker.image_magick.print_command_history()
 
-    # Parse arguments into keyword arguments
-    from argparse import ArgumentParser
-    parser = ArgumentParser()
-    _, unknown = parser.parse_known_args()
-    kwargs = parse_unknown_args(unknown)
 
-    card = card_type(**validator_model(**kwargs).model_dump())
-    card.create()
-    card.image_magick.print_command_history()
+    @click.option(
+        '--source', '-s', 'source_file',
+        required=True,
+        type=click.Path(exists=True),
+        help='Path to the source image to use for the documentation cards',
+    )
+    @click.option(
+        '--output', '-o', 'output_dir',
+        required=True,
+        type=click.Path(file_okay=False),
+        help='Output directory to save the documentation cards',
+    )
+    @click.option(
+        '--debug', '-d', 'debug',
+        is_flag=True,
+        help='Enable debug mode',
+    )
+    def docs(source_file: Path, output_dir: Path, debug: bool = False) -> None:
+        """
+        Create the documentation preview images.
+        Example:
+            python app.py docs -s input.jpg -o ./out
+        """
+
+        if documentation is None:
+            return None
+
+        (output_dir := Path(output_dir)).mkdir(parents=True, exist_ok=True)
+        for preview_card in documentation.cards:
+            # Combine static variables with preview card variables
+            kwargs = documentation.static_variables | preview_card.variables
+            kwargs['source_file'] = source_file
+            kwargs['card_file'] = (
+                output_dir / preview_card.filename
+            ).with_suffix(documentation.extension)
+
+            # Create card
+            card_maker = card_type(**validator_model(**kwargs).model_dump())
+            card_maker.create()
+            log.info(f'Created "{kwargs["card_file"].relative_to(output_dir)}"')
+            if debug:
+                card_maker.image_magick.print_command_history()
+
+    if documentation is not None:
+        cli.add_command(cli.command(docs))
+
+    cli()
 
 
 __all__ = [

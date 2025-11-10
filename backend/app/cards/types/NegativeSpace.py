@@ -10,7 +10,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
-    create_card_cli,
+    add_cli,
 )
 from app.schemas.base import BaseCardModel, FontSize
 
@@ -428,4 +428,4 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-create_card_cli(__name__, NegativeSpaceTitleCard, get_validator_model())
+add_cli(__name__, NegativeSpaceTitleCard, get_validator_model())

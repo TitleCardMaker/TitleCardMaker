@@ -699,4 +699,89 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-create_card_cli(__name__, DictionaryTitleCard, get_validator_model())
+add_cli(
+    __name__,
+    DictionaryTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'hello, ms. cobel',
+            'word_text': 'severance',
+            'season_text': '2',
+            'episode_text': ': 1',
+            'definition_text': (
+                'Mark returns to work under different circumstances. Secrets '
+                'from the Outie world come to light.'
+            ),
+        },
+        cards=[
+            PreviewCard(
+                filename='background_color',
+                variables={'background_color': 'rgba(212,212,212,0.3)'},
+            ),
+            PreviewCard(
+                filename='background_rounding_radius',
+                variables={'background_rounding_radius': 0},
+            ),
+            PreviewCard(
+                filename='definition_color',
+                variables={'definition_color': 'skyblue'},
+            ),
+            PreviewCard(
+                filename='definition_size',
+                variables={'definition_size': 1.5},
+            ),
+            PreviewCard(
+                filename='italicize_definition_text',
+                variables={'italicize_definition': False},
+            ),
+            PreviewCard(
+                filename='definition_line_limit.webp',
+                variables={'definition_line_limit': 2},
+            ),
+            PreviewCard(
+                filename='quote_toggle',
+                variables={'quote_definition': False},
+            ),
+            PreviewCard(
+                filename='definition_size',
+                variables={'definition_size': 0.8},
+            ),
+            PreviewCard(
+                filename='definition_text',
+                variables={'definition_text': 'example text'},
+            ),
+            PreviewCard(
+                filename='position',
+                variables={'position': '+100+600'},
+            ),
+            PreviewCard(
+                filename='separator',
+                variables={'separator': ' -'},
+            ),
+            PreviewCard(
+                filename='shadow_color',
+                variables={'shadow_color': 'crimson'},
+            ),
+            PreviewCard(
+                filename='shadow_definition',
+                variables={
+                    'shadow_color': 'crimson',
+                    'shadow_definition': '80x8+0+12'
+                },
+            ),
+            PreviewCard(
+                filename='word_color',
+                variables={'word_color': 'skyblue'},
+            ),
+            PreviewCard(
+                filename='word_size',
+                variables={'word_size': 0.6},
+            ),
+            PreviewCard(
+                filename='word_text',
+                variables={'word_text': 'Severance'},
+            ),
+        ]
+    )
+)
