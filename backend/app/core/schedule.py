@@ -363,7 +363,16 @@ RecurringTasks: dict[TaskID, RecurringTask] = {
 
 
 def get_task_details(db: Session, task_id: TaskID, /) -> TaskDetails:
-    ...
+    """
+    Get the details of a given Task.
+
+    Args:
+        db: Database session.
+        task_id: ID of the Task to get the details of.
+
+    Returns:
+        TaskDetails: Details of the Task.
+    """
 
     crontab = settings.task_schedules.get(
         task_id,

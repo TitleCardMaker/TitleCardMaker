@@ -1,11 +1,5 @@
 from io import StringIO
-from logging import Logger
-import sys
-from typing import Any, Callable, Iterator, Literal, NamedTuple
-if sys.version_info >= (3, 10): # pragma: no cover
-    from typing import ParamSpec
-else: # pragma: no cover
-    from typing_extensions import ParamSpec
+from typing import Any, Callable, Iterator, Literal, NamedTuple, ParamSpec
 
 import fastapi
 from rich.console import Console
@@ -14,7 +8,7 @@ from sqlalchemy.orm.session import Session
 import starlette.background
 
 from app.db.database import Base as DatabaseBase, SessionLocal
-from app.logging.logger import log
+from app.logging.logger import Logger, log
 
 
 class _Task(NamedTuple):
@@ -119,7 +113,7 @@ class DependencyInjector:
         # Determine how many dependencies will require a Session be
         # instantiated
         self.multiple_db_dependencies = (
-            sum(1 for arg in args if is_dependency(arg)) \
+            sum(1 for arg in args if is_dependency(arg))
             + sum(1 for v in kwargs.values() if is_dependency(v))
             > 1
         )
@@ -259,6 +253,7 @@ class BackgroundTasks(starlette.background.BackgroundTasks):
         """
 
         def new_func(injector: DependencyInjector) -> None:
+            args_, kwargs_ = tuple(), {}
             try:
                 # Re-inject any Dependencies - e.g. the SQL DB Session
                 args_, kwargs_ = injector.args, injector.kwargs
@@ -268,8 +263,9 @@ class BackgroundTasks(starlette.background.BackgroundTasks):
                 logger = log
                 if ('log' in kwargs_
                     and hasattr(kwargs_['log'], 'error')
-                    and callable(kwargs_['log'].error)):
-                    logger: Logger = kwargs['log']
+                    and callable(kwargs_['log'].error)
+                ):
+                    logger: Logger = kwargs_['log']
 
                 # Create Console to print rich Traceback
                 file = StringIO()
@@ -287,10 +283,10 @@ class BackgroundTasks(starlette.background.BackgroundTasks):
                 )
 
                 # Log traceback of failed Task
-                logger.error(
+                logger.error((
                     f'BackgroundTask {func.__name__}() failed:\n'
                     f'{file.getvalue()}'
-                )
+                ))
 
         # Original add_task creates a BackgroundTask object and adds to
         # tasks queue; replace injected objects which may be from

@@ -380,25 +380,25 @@ class Episode(Base):
 
         # Update indices
         if self.season_number != episode_info.season_number:
-            log.debug(
+            log.debug((
                 f'{self} updating season number ({self.season_number} -> '
                 f'{episode_info.season_number})'
-            )
+            ))
             self.season_number = episode_info.season_number
             changed = True
         if self.episode_number != episode_info.episode_number:
-            log.debug(
+            log.debug((
                 f'{self} updating episode number ({self.episode_number} -> '
                 f'{episode_info.episode_number})'
-            )
+            ))
             self.episode_number = episode_info.episode_number
             changed = True
         if (episode_info.absolute_number is not None
             and self.absolute_number != episode_info.absolute_number):
-            log.debug(
+            log.debug((
                 f'{self} updating absolute number ({self.absolute_number} -> '
                 f'{episode_info.absolute_number})'
-            )
+            ))
             self.absolute_number = episode_info.absolute_number
             changed = True
 

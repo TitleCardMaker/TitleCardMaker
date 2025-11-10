@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from pathlib import Path
 
-from fastapi import BackgroundTasks, HTTPException
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.query import (
@@ -54,7 +54,8 @@ def set_episode_ids(
 
     # Set ID's from all library interfaces
     for library in series.libraries:
-        if (interface := get_interface(library['interface_id'], raise_exc=False)):
+        interface = get_interface(library['interface_id'], raise_exc=False)
+        if interface:
             interface.set_episode_ids(
                 library['name'], series.as_series_info, episode_infos, log=log,
             )
@@ -161,7 +162,10 @@ def get_all_episode_data(
         if raise_exc:
             raise HTTPException(
                 status_code=409,
-                detail=f'Series does not have a Library for Connection[{interface_id}]'
+                detail=(
+                    f'Series does not have a Library for '
+                    f'Connection[{interface_id}]'
+                )
             )
         return []
 
@@ -174,7 +178,6 @@ def get_all_episode_data(
 def refresh_episode_data(
         db: Session,
         series: Series,
-        background_tasks: BackgroundTasks | None = None,
         *,
         refresh_all_ids: bool = False,
         log: Logger = log,
@@ -188,9 +191,6 @@ def refresh_episode_data(
     Args:
         db: Database to read/update/modify.
         series: Series whose episodes are being refreshed.
-        background_tasks: Optional BackgroundTasks queue to add the
-            Episode ID assignment task to, if provided. If omitted then
-            the assignment is done in a blocking manner.
         refresh_all_ids: Whether to refresh all Episode ID's, not just
             those of new Episodes, after querying data.
         log: Logger for all log messages.
@@ -227,10 +227,14 @@ def refresh_episode_data(
             continue
 
         # Check if this Episode exists in the database already
-        existing = db.query(Episode)\
-            .filter(Episode.series_id == series.id,
-                    episode_info.filter_conditions(Episode))\
-            .first()
+        existing = (
+            db.query(Episode)
+                .filter(
+                    Episode.series_id == series.id,
+                    episode_info.filter_conditions(Episode)
+                )
+                .first()
+        )
 
         # Episode does not exist, add
         if existing is None:
@@ -260,13 +264,15 @@ def refresh_episode_data(
         all_existing = {ep.index_str: ep for ep in series.episodes}
         for delete_key in set(all_existing) - new_keys:
             # Delete Title Card(s)
-            log.info(
+            log.info((
                 f'Deleting {all_existing[delete_key]} - not in Episode Data '
                 f'Source'
+            ))
+            cards = (
+                db.query(Card)
+                    .filter_by(episode_id=all_existing[delete_key].id)
+                    .all()
             )
-            cards = db.query(Card)\
-                .filter_by(episode_id=all_existing[delete_key].id)\
-                .all()
             for card in cards:
                 if (card_file := Path(card.card_file)).exists():
                     card_file.unlink(missing_ok=True)
@@ -277,6 +283,10 @@ def refresh_episode_data(
             db.delete(all_existing[delete_key])
             changed = True
 
+    # Commit to database if changed
+    if changed:
+        db.commit()
+
     # Log any new Episodes
     if len(new_episodes) > 1:
         log.info(f'{series} {len(new_episodes)} new Episodes')
@@ -286,19 +296,8 @@ def refresh_episode_data(
         log.trace(f'{series} has no new Episodes')
 
     # Set Episode ID's for all/new Episodes
-    id_episodes = series.episodes if refresh_all_ids else new_episodes
-    if id_episodes:
-        if background_tasks is None:
-            set_episode_ids(db, series, id_episodes, log=log)
-        else:
-            background_tasks.add_task(
-                set_episode_ids,
-                db, series, id_episodes,log=log
-            )
-
-    # Commit to database if changed
-    if changed:
-        db.commit()
+    if (id_episodes := series.episodes if refresh_all_ids else new_episodes):
+        set_episode_ids(db, series, id_episodes, log=log)
 
     return new_episodes
 

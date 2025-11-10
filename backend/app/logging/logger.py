@@ -155,6 +155,7 @@ def _configure_logger(logger: Logger) -> Logger:
         # dict(
         #     sink='sqlalchemy.engine',
         #     level='DEBUG',
+        #     enqueue=True,
         # ),
         # Asyncronous websocket handler - must be removed if executing in an
         # environment w/o an event loop

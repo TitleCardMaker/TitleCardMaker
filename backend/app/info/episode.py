@@ -137,7 +137,7 @@ class EpisodeInfo(DatabaseInfoContainer):
 
         attributes = ', '.join(f'{attr}={getattr(self, attr)!r}'
             for attr in self.__slots__
-            if not attr.startswith('__')
+            if not attr.startswith('_')
         )
 
         return f'<EpisodeInfo {attributes}>'

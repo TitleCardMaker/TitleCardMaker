@@ -963,10 +963,10 @@ def add_series(
         if background_tasks:
             background_tasks.add_task(
                 refresh_episode_data,
-                db, series, background_tasks=background_tasks, log=log,
+                db, series, log=log,
             )
         else:
-            refresh_episode_data(db, series, background_tasks=None, log=log)
+            refresh_episode_data(db, series, log=log)
 
     return series
 

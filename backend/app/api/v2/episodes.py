@@ -2,7 +2,6 @@ from typing import Literal
 
 from fastapi import (
     APIRouter,
-    BackgroundTasks,
     Body,
     Depends,
     HTTPException,
@@ -176,7 +175,6 @@ def delete_all_series_episodes(
 
 @episodes_router.post('/series/{series_id}/refresh')
 def refresh_episode_data_(
-        background_tasks: BackgroundTasks,
         series_id: int,
         db: Session = Depends(get_database),
         refresh_all_ids: bool = Query(default=True),
@@ -195,11 +193,9 @@ def refresh_episode_data_(
     # Query for this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    # Refresh episode data, use BackgroundTasks for ID assignment
     refresh_episode_data(
         db,
         series,
-        background_tasks,
         refresh_all_ids=refresh_all_ids,
         log=log
     )
