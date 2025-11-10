@@ -733,10 +733,11 @@ def add_cli(
             should be provided via `__name__`.
         card_type: Card type whose `__init__()` and `create()` methods
             will be called during card creation.
-        validator_model: Pydantic model to use for validation of the card
-            creation arguments.
-        documentation: Card documentation to use for the documentation
-            cards. If provided, a `docs` command will be added.
+        validator_model: Pydantic model to use for validation of the
+            card creation arguments.
+        documentation: Definition of how to create card documentation
+            assets for this card. If provided, a `docs` command will be
+            added.
     """
 
     if dname != '__main__':
