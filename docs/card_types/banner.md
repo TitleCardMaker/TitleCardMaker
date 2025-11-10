@@ -38,7 +38,8 @@ This extra will also affect the coloring of the season and episode text.
 
     <div class="image-compare example-card"
         data-starting-point="34.6"
-        data-left-label="goldenrod2" data-right-label="black">
+        data-left-label="goldenrod2"
+        data-right-label="black">
         <img src="../assets/banner/alternate_color.webp"/>
         <img src="../assets/banner.webp"/>
     </div>

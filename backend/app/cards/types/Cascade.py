@@ -8,12 +8,15 @@ from app.interfaces.magick import Dimensions
 from app.schemas.base import BaseCardModel, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     Coordinate,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    PreviewCard,
     Rectangle,
+    add_cli,
 )
 from app.utils.fstring import FormatString
 
@@ -965,3 +968,89 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    CascadeTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'MAN ON FIRE',
+            'season_text': 'S3',
+            'episode_text': 'E6',
+            'alt_text': 'THE LINCOLN LAWYER',
+        },
+        cards=[
+            PreviewCard(
+                filename='alternate_text_color',
+                variables={'alternate_text_color': 'skyblue'},
+            ),
+            PreviewCard(
+                filename='alternate_text_blank',
+                variables={'alt_text': ''},
+            ),
+            PreviewCard(
+                filename='alternate_text_format',
+                variables={'alt_text': 'THE GODS OF GUILT'},
+            ),
+            PreviewCard(
+                filename='cascade_count',
+                variables={'cascade_count': 3},
+            ),
+            PreviewCard(
+                filename='cascade_cropping',
+                variables={'cascade_count': 5, 'cascade_cropping': '90,-15'},
+            ),
+            PreviewCard(
+                filename='cascade_cropping_default',
+                variables={'cascade_count': 5, 'cascade_cropping': '66,/2'},
+            ),
+            PreviewCard(
+                filename='cascade_fill_color',
+                variables={'cascade_fill_color': 'rgba(255,255,255,0.1)'},
+            ),
+            PreviewCard(
+                filename='cascade_outline_color',
+                variables={'cascade_outline_color': 'red'},
+            ),
+            PreviewCard(
+                filename='cascade_outline_width',
+                variables={'cascade_outline_width': 2},
+            ),
+            PreviewCard(
+                filename='cascade_transparencies',
+                variables={'cascade_alphas': '80,*0.6'},
+            ),
+            PreviewCard(
+                filename='episode_text_color',
+                variables={'episode_text_color': 'Gold2'},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 1.2},
+            ),
+            PreviewCard(
+                filename='glass_edge_color',
+                variables={'glass_edge_color': 'rgba(240, 23, 23, 0.5)'},
+            ),
+            PreviewCard(
+                filename='glass_fill_color',
+                variables={'glass_fill_color': 'rgba(55,55,55,0.3)'},
+            ),
+            PreviewCard(
+                filename='glass_toggle',
+                variables={'glass_toggle': False},
+            ),
+            PreviewCard(
+                filename='multi_line_text',
+                variables={
+                    'title_text': 'TINKER TAILOR\nOLDER SPY',
+                    'alt_text': 'A MAN ON THE INSIDE',
+                    'hide_season_text': True,
+                    'episode_text': 'E1',
+                },
+            ),
+        ]
+    )
+)

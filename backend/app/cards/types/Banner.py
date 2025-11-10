@@ -6,10 +6,13 @@ from pydantic import Field, FilePath, model_validator
 from app.schemas.base import BaseCardModel, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    PreviewCard,
+    add_cli,
 )
 
 
@@ -407,3 +410,44 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
         
     return CardModel
+
+
+add_cli(
+    __name__,
+    BannerTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'Do You Love Me?',
+            'season_text': 'SEASON 1',
+            'episode_text': 'EPISODE 25',
+            'kanji': '第弐拾伍話 終わる世界',
+        },
+        cards=[
+            PreviewCard(
+                filename='alternate_color',
+                variables={'alternate_color': 'goldenrod2'},
+            ),
+            PreviewCard(
+                filename='banner_color',
+                variables={'banner_color': 'rgba(212, 212, 212, 0.7)'},
+            ),
+            PreviewCard(
+                filename='banner_height',
+                variables={'banner_height': 150},
+            ),
+            PreviewCard(
+                filename='banner_toggle',
+                variables={'hide_banner': True},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 1.1},
+            ),
+            PreviewCard(
+                filename='horizontal_offset',
+                variables={'horizontal_offset': 90},
+            ),
+        ]
+    )
+)

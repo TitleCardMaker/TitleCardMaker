@@ -8,12 +8,15 @@ from app.info.episode import EpisodeInfo
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Dimensions,
     Extra,
     ImageMagickCommands,
+    PreviewCard,
     Shadow,
+    add_cli,
 )
 
 
@@ -512,3 +515,59 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    CalligraphyTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'Ozymandias',
+            'season_text': 'Season 5',
+            'episode_text': 'Episode Fourteen',
+        },
+        cards=[
+            PreviewCard(
+                filename='deep_blur_enabled',
+                variables={'watched': False, 'deep_blur_if_unwatched': True},
+            ),
+            PreviewCard(
+                filename='deep_blur_disabled',
+                variables={'watched': False, 'deep_blur_if_unwatched': False},
+            ),
+            PreviewCard(
+                filename='episode_text_color',
+                variables={'episode_text_color': 'rgb(81, 124, 102)'},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 1.5},
+            ),
+            PreviewCard(
+                filename='logo_size',
+                variables={'logo_size': 0.8},
+            ),
+            PreviewCard(
+                filename='separator',
+                variables={'separator': '/'},
+            ),
+            PreviewCard(
+                filename='shadow_color',
+                variables={'shadow_color': 'rgb(81, 124, 102)'},
+            ),
+            PreviewCard(
+                filename='texture_toggle',
+                variables={'add_texture': False},
+            ),
+            PreviewCard(
+                filename='title_offset_off',
+                variables={'offset_titles': False},
+            ),
+            PreviewCard(
+                filename='title_offset_on',
+                variables={'offset_titles': True},
+            ),
+        ]
+    )
+)

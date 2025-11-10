@@ -5,10 +5,13 @@ from pydantic import Field, FilePath, model_validator
 
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    PreviewCard,
+    add_cli,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
@@ -448,3 +451,44 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    AnimeFadeTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'Do You Love Me?',
+            'season_text': 'SEASON 1',
+            'episode_text': 'EPISODE 25',
+            'kanji': '第弐拾伍話 終わる世界',
+        },
+        cards=[
+            PreviewCard(
+                filename='episode_text_color',
+                variables={'episode_text_color': 'RoyalBlue'},
+            ),
+            PreviewCard(
+                filename='season_text_color',
+                variables={'season_text_color': 'PaleVioletRed1'},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 1.3},
+            ),
+            PreviewCard(
+                filename='kanji_color',
+                variables={'kanji_color': 'MediumPurple1'},
+            ),
+            PreviewCard(
+                filename='separator',
+                variables={'separator': '//'},
+            ),
+            PreviewCard(
+                filename='text_position',
+                variables={'text_position': 'center'},
+            ),
+        ]
+    )
+)
