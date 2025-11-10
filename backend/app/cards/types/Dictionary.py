@@ -9,13 +9,16 @@ from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     Coordinate,
     DefaultCardConfig,
     Dimensions,
     Extra,
     ImageMagickCommands,
-    create_card_cli,
+    PreviewCard,
+    Rectangle,
+    add_cli,
 )
 from app.schemas.base import (
     BaseCardModel,
@@ -52,6 +55,16 @@ class DictionaryTitleCard(BaseCardType):
                 description='Color of the background rectangle',
                 tooltip='Default is <c>rgba(12,12,12,0.8)</c>.',
                 default='rgba(12,12,12,0.8)',
+            ),
+            Extra(
+                name='Background Rounding Radius',
+                identifier='background_rounding_radius',
+                description='Radius of the background rounded corners',
+                tooltip=(
+                    'Value between <v>0</v> and <v>200</v>.Default is '
+                    '<v>35</v>. Unit is pixels.'
+                ),
+                default=35,
             ),
             Extra(
                 name='Definition Text',
@@ -131,6 +144,24 @@ class DictionaryTitleCard(BaseCardType):
                 default=', ',
             ),
             Extra(
+                name='Shadow Color',
+                identifier='shadow_color',
+                description='Color of the word text drop shadow',
+                tooltip='Default is <c>black</c>.',
+                default='black',
+            ),
+            Extra(
+                name='Shadow Definition',
+                identifier='shadow_definition',
+                description='Definition of the word text drop shadow',
+                tooltip=(
+                    'Shadow definition string (e.g `85x10+10+10`). See '
+                    'documentation for more details. Default is '
+                    '<v>95x2+7+7</v>.'
+                ),
+                default='95x2+7+7',
+            ),
+            Extra(
                 name='Word Text',
                 identifier='word_text',
                 description='Text to display as the word',
@@ -182,11 +213,15 @@ class DictionaryTitleCard(BaseCardType):
     BACKGROUND_COLOR: ClassVar[str] = 'rgba(12,12,12,0.8)'
     DEFINITION_FONT: ClassVar[Path] = DICTIONARY_DIR / 'Georgia.ttf'
     DEFINITION_ITALIC_FONT: ClassVar[Path] = DICTIONARY_DIR / 'Georgia Italic.ttf'
-    WORD_FONT: ClassVar[Path] = NEGATIVE_SPACE_DIRECTORY / 'Futura.ttc'
     POSITION_REGEX = re_compile(r'([-+]\d+.?\d*)([-+]\d+.?\d*)')
+    SHADOW_COLOR: ClassVar[str] = 'black'
+    SHADOW_DEFINITION: ClassVar[ShadowDefinition] = '95x2+7+7'
+    WORD_FONT: ClassVar[Path] = NEGATIVE_SPACE_DIRECTORY / 'Futura.ttc'
+    SMUSH_SPACING: ClassVar[int] = 30
 
     __slots__ = (
         'background_color',
+        'background_rounding_radius',
         'definition_color',
         '__definition_dimensions',
         'definition_line_limit',
@@ -208,6 +243,8 @@ class DictionaryTitleCard(BaseCardType):
         '__reference',
         'season_text',
         'separator',
+        'shadow_color',
+        'shadow_definition',
         'source_file',
         'title_text',
         'word_color',
@@ -255,6 +292,7 @@ class DictionaryTitleCard(BaseCardType):
             grayscale: bool = False,
             # Extras
             background_color: str = BACKGROUND_COLOR,
+            background_rounding_radius: int = 35,
             definition_text: str = '',
             definition_color: str = CardConfig.font_color,
             definition_size: float = 1.0,
@@ -263,6 +301,8 @@ class DictionaryTitleCard(BaseCardType):
             position: str = '+100+100',
             quote_definition: bool = True,
             separator: str = ', ',
+            shadow_color: str = SHADOW_COLOR,
+            shadow_definition: ShadowDefinition = SHADOW_DEFINITION,
             word_text: str = '',
             word_size: float = 1.0,
             word_color: str = CardConfig.font_color,
@@ -292,6 +332,7 @@ class DictionaryTitleCard(BaseCardType):
 
         # Extras
         self.background_color = background_color
+        self.background_rounding_radius = background_rounding_radius
         self.definition_color = definition_color
         self.definition_line_limit = definition_line_limit
         self.definition_size = definition_size
@@ -300,6 +341,8 @@ class DictionaryTitleCard(BaseCardType):
         self.position = position
         self.quote_definition = quote_definition
         self.separator = separator
+        self.shadow_color = shadow_color
+        self.shadow_definition = shadow_definition
         self.word_text = self.image_magick.escape_chars(word_text)
         self.word_color = word_color
         self.word_size = word_size
@@ -442,23 +485,32 @@ class DictionaryTitleCard(BaseCardType):
 
         width = 35 + top_width + 35 # 35px padding on each side
         height = (
-            # 35px padding between texts; need two because of the word,
-            # label, and definition text
-            35 + top_height + 35 + definition_dimensions.height
-            # Remove part of the word height so the background stops in
-            # the middle of the word
-            - (self.__word_dimensions.height * 0.35)
+            35
+            + definition_dimensions.height
+            + self.SMUSH_SPACING
+            + self.__label_dimensions.height
+            + self.SMUSH_SPACING
+            + self.__word_dimensions.height
+            - (self.__word_dimensions.height * 0.55)
         )
 
+        # Start 35px below and to the left of the reference coordinate
+        start = Coordinate(self.__reference.x - 35, self.__reference.y - 35)
+        rectangle = Rectangle(start, start + (width, height))
+
+        # Add a small offset to the radius to prevent 0px radius, as IM
+        # fails to draw the rectangle for a 0px radius
+        radius = self.background_rounding_radius + 0.01
+
         return [
-            fr'\(',
-                f'-size {width}x{height}',
-                f'xc:"{self.background_color}"',
-            fr'\)',
-            f'-gravity southwest',
-            f'-geometry {self.__reference.x - 35:+}{self.__reference.y - 35:+}',
-            f'-composite',
-            f'+size',
+            f'-fill "{self.background_color}"',
+            f'-draw "',
+                # Translate draw coordinate to the bottom left corner
+                f'translate 0,{self.HEIGHT}',
+                # Flip the y-axis so the coordinates increase upwards
+                f'scale 1,-1',
+                f'roundrectangle {rectangle} {radius},{radius}',
+            f'"',
         ]
 
 
@@ -466,19 +518,25 @@ class DictionaryTitleCard(BaseCardType):
     def word_text_commands(self) -> ImageMagickCommands:
         """Subcommands to add the word text to the image."""
 
-        return [
-            fr'\(',
-                f'-background none',
-                f'-gravity center',
-                f'-interword-spacing 100',
-                f'-kerning -10.0',
-                f'-font "{self.WORD_FONT.resolve()}"',
-                f'-fill "{self.word_color}"',
-                f'-pointsize {250 * self.word_size:.1f}',
-                f'label:"{self.word_text}"',
-                f'-trim',
-            fr'\)',
-        ]
+        return self.add_drop_shadow(
+            commands=[
+                fr'\(',
+                    f'-background none',
+                    f'-gravity center',
+                    f'-interword-spacing 100',
+                    f'-kerning -10.0',
+                    f'-font "{self.WORD_FONT.resolve()}"',
+                    f'-fill "{self.word_color}"',
+                    f'-pointsize {225 * self.word_size:.1f}',
+                    f'label:"{self.word_text}"',
+                    f'-trim',
+                fr'\)',
+            ],
+            # If no shadow definition is provided, use the default shadow
+            shadow=self.shadow_definition,
+            shadow_color=self.shadow_color,
+            compose=False,
+        )
 
 
     @property
@@ -567,7 +625,7 @@ class DictionaryTitleCard(BaseCardType):
                 *self.label_text_commands,
                 *self.definition_text_commands,
                 f'-gravity west',
-                f'-smush 35',
+                f'-smush {self.SMUSH_SPACING}',
             fr'\)',
             f'-gravity southwest',
             f'-geometry {self.__reference.x:+}{self.__reference.y:+}',
@@ -592,6 +650,7 @@ def get_validator_model() -> type[BaseCardModel]:
         font_kerning: float = 1.0
         font_size: FontSize = 1.0
         background_color: str = DictionaryTitleCard.BACKGROUND_COLOR
+        background_rounding_radius: Annotated[int, Field(ge=0, le=200)] = 35
         italicize_definition: bool = True
         quote_definition: bool = True
         definition_text: str = '{episode_description}'
@@ -603,6 +662,8 @@ def get_validator_model() -> type[BaseCardModel]:
             StringConstraints(pattern=DictionaryTitleCard.POSITION_REGEX.pattern)
         ] = '+100+100'
         separator: str = ', '
+        shadow_color: str = DictionaryTitleCard.SHADOW_COLOR
+        shadow_definition: ShadowDefinition = DictionaryTitleCard.SHADOW_DEFINITION
         word_text: str = '{series_name.lower()}'
         word_color: str | None = None
         word_size: FontSize = 1.0
