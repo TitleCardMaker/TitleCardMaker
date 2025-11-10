@@ -112,12 +112,13 @@ def get_internal_server_errors(
     Get a list of all internal server errors listed in the log files.
     """
 
-    return (
-        log_db.query(LogModel)
+    return [
+        LogInternalServerError.model_validate(log)
+        for log in log_db.query(LogModel)
             .filter(LogModel.message.startswith('Internal Server Error'))
             .order_by(LogModel.timestamp.desc())
             .all()
-    )
+    ]
 
 
 @log_router.get('/database-zip')
