@@ -783,12 +783,22 @@ def add_cli(
         type=click.Path(file_okay=False),
         help='Output directory to save the documentation cards',
     )
+    @click.option('--logo-file', '-l', 'logo_file',
+        required=False,
+        type=click.Path(exists=True),
+        help='Path to the logo file to use for the documentation cards',
+    )
     @click.option(
         '--debug', '-d', 'debug',
         is_flag=True,
         help='Enable debug mode',
     )
-    def docs(source_file: Path, output_dir: Path, debug: bool = False) -> None:
+    def docs(
+            source_file: Path,
+            output_dir: Path,
+            logo_file: Path | None = None,
+            debug: bool = False,
+        ) -> None:
         """
         Create the documentation preview images.
         Example:
@@ -806,12 +816,16 @@ def add_cli(
             kwargs['card_file'] = (
                 output_dir / preview_card.filename
             ).with_suffix(documentation.extension)
+            if logo_file is not None:
+                kwargs['logo_file'] = logo_file
 
             # Create card
             card_maker = card_type(**validator_model(**kwargs).model_dump())
             card_maker.create()
             log.info(f'Created "{kwargs["card_file"].relative_to(output_dir)}"')
+
             if debug:
+                log.debug(f'{kwargs = !r}')
                 card_maker.image_magick.print_command_history()
 
     if documentation is not None:
