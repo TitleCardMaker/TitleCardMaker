@@ -366,13 +366,31 @@ async function initializeSeriesConfig() {
   });
 
   // Card types
-  loadCardTypes({
+  await loadCardTypes({
     element: '#card-config-form .dropdown[data-value="card-types"]',
-    isSelected: (identifier) => identifier === '{{series.card_type}}',
+    isSelected: (identifier) => identifier === '{{ series.card_type }}',
     showExcluded: false,
     // Dropdown args
     dropdownArgs: {
       placeholder: 'Default',
+      onChange: async function(value, text, $selectedItem) {
+        // Get current extras values before refreshing
+        const currentExtras = {};
+        document.querySelectorAll('#card-config-form section[aria-label="extras"] input').forEach(input => {
+          if (input.value !== '') {
+            currentExtras[input.name] = input.value;
+          }
+        });
+        // Refresh extras for the new card type
+        await refreshExtrasForCardType(
+          value || 'Default',
+          '#card-config-form section[aria-label="extras"]',
+          document.getElementById('extra-input-template'),
+          currentExtras,
+          false
+        );
+        refreshTheme();
+      }
     }
   });
   // Font color
@@ -581,10 +599,19 @@ async function editEpisodeExtras(episodeId, allEpisodeIds) {
     $('#episode-extras-modal .field[data-value="translation-value"]').append(newValue);
   }
 
+  // Get card type from dropdown if it's been changed (even if not saved)
+  const $cardTypeDropdown = $(`#${getEpisodeElementId(episodeId)} .dropdown[data-value="card_type"]`);
+  const currentCardType = $cardTypeDropdown.dropdown('get value') || 
+    episode.card_type || 
+    ('{{series.card_type}}' !== 'None' ? '{{series.card_type}}' : '{{preferences.default_card_type}}');
+  
+  // Add the card type to active types so its extras are available
+  await addActiveCardType(currentCardType);
+  
   // Initialize extras
   await initializeExtras(
     episode.extras || [],
-    episode.card_type || ('{{series.card_type}}' !== 'None' ? '{{series.card_type}}' : '{{preferences.default_card_type}}'),
+    currentCardType,
     '#episode-extras-modal section[aria-label="extras"]',
     document.getElementById('extra-input-template'),
   );
@@ -1121,7 +1148,45 @@ async function getEpisodeData(page=1) {
       element: `#${getEpisodeElementId(episode.id)} .dropdown[data-value="card_type"]`,
       isSelected: (identifier) => identifier === episode.card_type,
       showExcluded: false,
-      dropdownArgs: {}
+      dropdownArgs: {
+        onChange: async function(value, text, $selectedItem) {
+          // Add the new card type to active types so its extras are available
+          await addActiveCardType(value);
+          
+          // If the episode extras modal is open for this episode, refresh extras
+          const $modal = $('#episode-extras-modal');
+          if ($modal.hasClass('active') || $modal.modal('is active')) {
+            // Check if this is the episode in the modal by checking the header
+            const headerText = $modal.find('.header span').text();
+            const episodeMatch = headerText.match(/Season (\d+) Episode (\d+)/);
+            if (episodeMatch) {
+              const [_, seasonNum, episodeNum] = episodeMatch;
+              // Find the episode in the current data
+              const currentEpisode = episodeData.items.find(ep => 
+                ep.season_number === parseInt(seasonNum) && ep.episode_number === parseInt(episodeNum)
+              );
+              if (currentEpisode && currentEpisode.id === episode.id) {
+                // Get current extras values
+                const currentExtras = {};
+                document.querySelectorAll('#episode-extras-modal section[aria-label="extras"] input').forEach(input => {
+                  if (input.value !== '') {
+                    currentExtras[input.name] = input.value;
+                  }
+                });
+                
+                // Refresh extras for the new card type
+                await refreshExtrasForCardType(
+                  value || episode.card_type || ('{{series.card_type}}' !== 'None' ? '{{series.card_type}}' : '{{preferences.default_card_type}}'),
+                  '#episode-extras-modal section[aria-label="extras"]',
+                  document.getElementById('extra-input-template'),
+                  currentExtras,
+                  false
+                );
+              }
+            }
+          }
+        }
+      }
     });
   });
   $('#episode-data-table .ui.dropdown').dropdown();
@@ -1370,12 +1435,12 @@ async function initAll() {
     });
 
   // Enable all dropdowns, menus, and accordians
-  $('.ui.dropdown').dropdown();
+  $('.ui.dropdown:not([data-value="card-types"])').dropdown();
   $('.ui.accordion').accordion();
   $('.ui.checkbox').checkbox();
 
   // Make clearable dropdowns clearable
-  $('.ui.clearable.dropdown').dropdown({
+  $('.ui.clearable.dropdown:not([data-value="card-types"])').dropdown({
     'clearable': true,
     'placeholder': 'None',
   });
@@ -1425,13 +1490,6 @@ async function initAll() {
       font_vertical_shift: {
         optional: true,
         rules: [{type: 'number', value: 'integer'}],
-      },
-      season_title_ranges: {
-        optional: true,
-        rules: [{type: 'regExp', value: /^(\d+-\d+)|^(\d+)|^(s\d+e\d+-s\d+e\d+)|^$/i}]
-      },
-      season_title_values: {
-        depends: 'season_title_ranges',
       },
     },
   });

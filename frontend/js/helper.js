@@ -415,20 +415,127 @@ async function downloadFileBlob(filename, blob) {
 
 /** @type {Extra[]} */
 let allExtras;
+/** @type {Extra[]} */
+let filteredExtras;
+/** @type {string[]} */
+let activeCardTypes;
 
 let cardTypeSet, cardTypes;
 /**
  * Submit an API request to get all the available extras and populate the
- * allExtras, cardTypeSet, and cardTypes variables.
+ * allExtras, cardTypeSet, and cardTypes variables. Filters extras to only
+ * those associated with active card types.
  */
 async function queryAvailableExtras() {
   if (allExtras === undefined) {
+    // Fetch all extras
     allExtras = await fetch('/api/v2/available/extras').then(resp => resp.json());
-    // Get list of all unique card types
-    cardTypeSet = new Set();
-    allExtras.forEach(extra => cardTypeSet.add(extra.card_type));
-    cardTypes = Array.from(cardTypeSet);
   }
+  
+  // Fetch active card types
+  if (activeCardTypes === undefined) {
+    activeCardTypes = await fetch('/api/v2/available/card-types/active').then(resp => resp.json());
+  }
+  
+  // Filter extras to only those associated with active card types or variable overrides
+  filteredExtras = allExtras.filter(extra => {
+    // Always include variable overrides (extras without a card_type or with 'Variable Overrides')
+    if (!extra.card_type || extra.card_type === 'Variable Overrides') {
+      return true;
+    }
+    // Include extras for active card types
+    return activeCardTypes.includes(extra.card_type);
+  });
+  
+  // Get list of all unique card types from filtered extras
+  cardTypeSet = new Set();
+  filteredExtras.forEach(extra => {
+    if (extra.card_type) {
+      cardTypeSet.add(extra.card_type);
+    }
+  });
+  cardTypes = Array.from(cardTypeSet);
+}
+
+/**
+ * Add a card type to the active card types list and refresh filtered extras.
+ * This is called when a new card type is selected (even if not saved).
+ * @param {string} cardType - The card type identifier to add.
+ */
+async function addActiveCardType(cardType) {
+  if (!cardType || cardType === 'Default' || cardType === 'None') {
+    return;
+  }
+
+  // Ensure we have the base data
+  if (allExtras === undefined) {
+    await queryAvailableExtras();
+  }
+
+  // Add to active card types if not already present
+  if (!activeCardTypes.includes(cardType)) {
+    activeCardTypes.push(cardType);
+  }
+
+  // Re-filter extras
+  filteredExtras = allExtras.filter(extra => {
+    if (!extra.card_type || extra.card_type === 'Variable Overrides') {
+      return true;
+    }
+    return activeCardTypes.includes(extra.card_type);
+  });
+  
+  // Update card type set
+  cardTypeSet = new Set();
+  filteredExtras.forEach(extra => {
+    if (extra.card_type) {
+      cardTypeSet.add(extra.card_type);
+    }
+  });
+  cardTypes = Array.from(cardTypeSet);
+}
+
+/**
+ * Refresh extras display for a given section after card type change.
+ * This clears the existing extras and re-initializes them with the new card type.
+ * @param {string} cardType - The newly selected card type identifier.
+ * @param {string} sectionQuerySelector - Query selector for the extras section.
+ * @param {HTMLTemplateElement} inputTemplateElement - Template element for extra inputs.
+ * @param {Object} currentExtras - Current extras values to preserve.
+ * @param {boolean} isGlobal - Whether these are global extras.
+ */
+async function refreshExtrasForCardType(cardType, sectionQuerySelector, inputTemplateElement, currentExtras = {}, isGlobal = false) {
+  // Add the new card type to active types
+  await addActiveCardType(cardType);
+  
+  // Clear existing extras menu and tabs
+  const section = document.querySelector(sectionQuerySelector);
+  if (section) {
+    const menu = section.querySelector('.menu');
+    const tabs = section.querySelectorAll('.tab.segment');
+    if (menu) {
+      menu.innerHTML = '';
+    }
+    tabs.forEach(tab => tab.remove());
+  }
+  
+  // Determine active tab (use the card type or default)
+  const activeTab = cardType && cardType !== 'Default' && cardType !== 'None' 
+    ? cardType 
+    : (currentExtras && Object.keys(currentExtras).length > 0 
+      ? Object.keys(currentExtras)[0] 
+      : 'Variable Overrides');
+
+  // Re-initialize extras
+  await initializeExtras(
+    currentExtras,
+    activeTab,
+    sectionQuerySelector,
+    inputTemplateElement,
+    isGlobal,
+    3,
+    true
+  );
 }
 
 let popups = {};
@@ -843,7 +950,7 @@ async function initializeExtras(
   groupAmount = 3,
   initializeTabs = true,
 ) {
-  if (allExtras === undefined) {
+  if (filteredExtras === undefined) {
     await queryAvailableExtras();
   }
 
@@ -851,7 +958,7 @@ async function initializeExtras(
   const types = {};
 
   // Create object of card type identifiers to array of extras
-  allExtras.forEach(extra => {
+  filteredExtras.forEach(extra => {
     // If skipping overrides, skip if no assigned card type
     if (isGlobal && !extra.card_type) { return; }
 
