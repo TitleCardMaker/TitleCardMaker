@@ -43,7 +43,7 @@ overwritten with the [_Season Text Color_](#season-text-color) extra.
         data-starting-point="22"
         data-left-label="rgb(233,20,35)"
         data-right-label="#CFCFCF">
-        <img src="../assets/anime/etc.webp"/>
+        <img src="../assets/anime/episode_text_color.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
 
@@ -59,7 +59,7 @@ size of the text, and values less than `#!yaml 1.0` will decrease it.
         data-starting-point="15"
         data-left-label="1.3"
         data-right-label="1.0">
-        <img src="../assets/anime/etfs.webp"/>
+        <img src="../assets/anime/episode_text_font_size.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
 
@@ -77,7 +77,7 @@ _Episode Text Stroke Color_ extra.
         data-starting-point="15"
         data-left-label="crimson"
         data-right-label="black">
-        <img src="../assets/anime/etsc.webp"/>
+        <img src="../assets/anime/episode_stroke_color.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
 
@@ -94,7 +94,7 @@ this gradient overlay, set the _Gradient Omission_ extra to `True`.
         data-left-label="False"
         data-right-label="True">
         <img src="../assets/anime.webp"/>
-        <img src="../assets/anime/gradient.webp"/>
+        <img src="../assets/anime/omit_gradient.webp"/>
     </div>
 
 ## Logo
@@ -114,7 +114,7 @@ the file is available).
         data-starting-point="14.5"
         data-left-label="top left"
         data-right-label="omit">
-        <img src="../assets/anime/logo.webp"/>
+        <img src="../assets/anime/logo_position.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
 
@@ -237,7 +237,7 @@ of the kanji, you can do so with the _Kanji Vertical Shift_ extra.
         data-starting-point="10.5"
         data-left-label="20"
         data-right-label="0">
-        <img src="../assets/anime/kanji_shift.webp"/>
+        <img src="../assets/anime/kanji_vertical_shift.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
 
@@ -251,8 +251,9 @@ extra overrides that.
 
     <div class="image-compare example-card"
         data-starting-point="20.7"
-        data-left-label="skyblue" data-right-label="#CFCFCF">
-        <img src="../assets/anime/stc.webp"/>
+        data-left-label="skyblue"
+        data-right-label="#CFCFCF">
+        <img src="../assets/anime/season_text_color.webp"/>
         <img src="../assets/anime.webp"/>
     </div>
 
