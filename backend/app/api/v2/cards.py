@@ -830,7 +830,7 @@ def create_card_for_episode(
     except InvalidCardSettings as exc:
         raise HTTPException(
             status_code=400,
-            detail=f'Invalid Card settings',
+            detail='Invalid Card settings',
         ) from exc
 
 

@@ -84,7 +84,7 @@ def download_blueprint_database(*, log: Logger = log) -> None:
         )
         raise HTTPException(
             status_code=404,
-            detail=f'No Blueprint database file found',
+            detail='No Blueprint database file found',
         )
 
     # Non-404 error, raise
@@ -127,7 +127,7 @@ def get_blueprint_database(
         or (allow_refresh and _db_expiration <= datetime.now())
     ):
         download_blueprint_database(log=log)
-        log.debug(f'Downloaded Blueprint database')
+        log.debug('Downloaded Blueprint database')
         _db_expiration = datetime.now() + timedelta(hours=2)
 
     db = BlueprintSessionMaker()

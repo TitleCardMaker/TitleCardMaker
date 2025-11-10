@@ -168,7 +168,7 @@ class Version:
         """
 
         if not isinstance(other, Version):
-            raise TypeError(f'Can only compare Version objects')
+            raise TypeError('Can only compare Version objects')
 
         # Compare each like-version
         for this_v, other_v in zip(self.version, other.version):
@@ -248,13 +248,16 @@ class Changelog:
 
         i_1, i_2, i_3 = self._indent(1), self._indent(2), self._indent(3)
         _prev_indent = 0
+        date_str = date.strftime('%B %d, %Y')
         html: list[str] = [
             f'<h2 id="{version}" class="ui top attached header">',
             f'  {version}',
-            f'  <div class="sub header">Released {date.strftime("%B %d, %Y")}</div>',
+            f'  <div class="sub header">Released {date_str}</div>',
             f'</h2>',
             f'<div data-version="{version}" class="ui bottom attached segment">'
         ]
+
+        fmt = self._format
 
         for line in Path(file).read_text().splitlines():
             # Header -> <h3>
@@ -265,10 +268,10 @@ class Changelog:
                     html.append(f'{i_1}</div>')
                 # Close previous section list
                 if html:
-                    html.append(f'</div>')
+                    html.append('</div>')
                 # Start new list
                 html.append(f'<h3>{match.group(1)}</h3>')
-                html.append(f'<div class="ui ordered list">')
+                html.append('<div class="ui ordered list">')
                 _prev_indent = 0
             # Outer-level bullet
             elif (match := self.OUTER_BULLET_REGEX.match(line)):
@@ -277,7 +280,9 @@ class Changelog:
                     html.append(f'{i_2}</div>') # Close list
                     html.append(f'{i_1}</div>') # Close item
 
-                html.append(f'{i_1}<div class="item">{self._format(match.group(1))}</div>')
+                html.append(
+                    f'{i_1}<div class="item">{fmt(match.group(1))}</div>'
+                )
                 _prev_indent = 0
             # Inner bullet
             elif (match := self.INNER_BULLET_REGEX.match(line)):
@@ -286,15 +291,21 @@ class Changelog:
                 if _prev_indent < curr_indent:
                     html[-1] = html[-1][:-len('</div>')] # Remove item closing tag
                     html.append(f'{i_2}<div class="list">')
-                    html.append(f'{i_3}<div class="item">{self._format(match.group(2))}</div>')
+                    html.append(
+                        f'{i_3}<div class="item">{fmt(match.group(2))}</div>'
+                    )
                     _prev_indent = curr_indent
                 # Line is same indent as previous, add as item
                 elif _prev_indent == curr_indent:
-                    html.append(f'{i_3}<div class="item">{self._format(match.group(2))}</div>')
+                    html.append(
+                        f'{i_3}<div class="item">{fmt(match.group(2))}</div>'
+                    )
                 # Line is less indented, add as item
                 else:
                     html.append(f'{i_2}</div>')
-                    html.append(f'{i_2}<div class="item">{self._format(match.group(2))}</div>')
+                    html.append(
+                        f'{i_2}<div class="item">{fmt(match.group(2))}</div>'
+                    )
                     _prev_indent = curr_indent
             # Image
             elif (match := self.IMAGE_REGEX.match(line)):
@@ -304,8 +315,8 @@ class Changelog:
                 html.append(f'{i_2}</div>')
                 html.append(f'{i_1}</div>')
 
-        html.append(f'</div>') # Close final list
-        html.append(f'</div>') # Close final segment
+        html.append('</div>') # Close final list
+        html.append('</div>') # Close final segment
 
         # Store resulting HTML string
         self.html = '\n'.join(html)
@@ -332,8 +343,8 @@ class Changelog:
         like italics, code highlights, and links with their HTML
         equivalents.
 
-        >>> print(self._format('This `code` _example_ with [links!](test.com)'))
-        'This <b>code</b> <i>example</i> with <a href="test.com" target="_blank">links!</a>
+        >>> print(self._format('`code` _example_ with [links!](test.com)'))
+        '<b>code</b> <i>example</i> with <a href="test.com" target="_blank">links!</a>'
 
         Args:
             text: Text to format.

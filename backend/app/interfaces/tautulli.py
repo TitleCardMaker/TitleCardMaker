@@ -1,5 +1,5 @@
 from json import dumps
-from typing import NamedTuple
+from typing import ClassVar, NamedTuple
 
 from fastapi import HTTPException
 
@@ -20,7 +20,7 @@ class TautulliInterface(WebInterface, Interface):
     updating/creation.
     """
 
-    INTERFACE_TYPE: str = 'Tautulli'
+    INTERFACE_TYPE: ClassVar[str] = 'Tautulli'
 
     """Default configurations for the notification agent(s)"""
     DEFAULT_AGENT_NAME = 'Update TitleCardMaker (v3)'
@@ -68,8 +68,10 @@ class TautulliInterface(WebInterface, Interface):
 
         # Get correct TCM URL
         tcm_url = tcm_url.removesuffix("/")
-        self.tcm_url = f'{tcm_url}/api/v2/webhooks/plex/rating-key?' \
+        self.tcm_url = (
+            f'{tcm_url}/api/v2/webhooks/plex/rating-key?'
             + f'interface_id={plex_interface_id}'
+        )
 
         # Get correct Tautulli URL
         tautulli_url = tautulli_url.removesuffix('/') + '/'
@@ -96,13 +98,13 @@ class TautulliInterface(WebInterface, Interface):
                 log.debug(f'Tautulli returned response: {status}')
                 raise HTTPException(
                     status_code=401,
-                    detail=f'Invalid Tautulli URL or API key'
+                    detail='Invalid Tautulli URL or API key'
                 )
         except Exception as exc:
-            log.exception(f'Tautulli connection error')
+            log.exception('Tautulli connection error')
             raise HTTPException(
                 status_code=400,
-                detail=f'Cannot connect to Tautulli',
+                detail='Cannot connect to Tautulli',
             ) from exc
 
         # Store attributes
@@ -178,7 +180,7 @@ class TautulliInterface(WebInterface, Interface):
 
         # If no new ID's are returned
         if len(new_ids - existing_ids) == 0:
-            log.error(f'Failed to create new notification agent on Tautulli')
+            log.error('Failed to create new notification agent on Tautulli')
             return None
 
         # Get ID of created notifier
@@ -230,10 +232,10 @@ class TautulliInterface(WebInterface, Interface):
                 'on_created_body': '"{rating_key}"',
             }
             self.get(self.tautulli_url, params)
-            log.info(
+            log.info((
                 f'Created and configured Recently Added Tautulli Notification '
                 f'Agent {created_id}'
-            )
+            ))
         else:
             log.debug('Recently Added Tautulli integration detected')
 
@@ -280,9 +282,9 @@ class TautulliInterface(WebInterface, Interface):
                 'on_watched_body': '"{rating_key}"',
             }
             self.get(self.tautulli_url, params)
-            log.info(
+            log.info((
                 f'Created and configured Watched Tautulli Notification Agent '
                 f'{created_id}'
-            )
+            ))
         elif self._trigger_watched:
             log.debug('Watched Tautulli integration detected')

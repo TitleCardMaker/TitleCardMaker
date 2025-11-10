@@ -105,7 +105,7 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
         log: The logger to use for logging.
     """
 
-    def store_db_schema(engine: Engine, db_attribute: str) -> str:
+    def store_db_schema(engine: Engine, db_attribute: str) -> None:
         with engine.begin() as connection:
             context = MigrationContext.configure(connection)
             version = context.get_current_revision()

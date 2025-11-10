@@ -12,7 +12,12 @@ from fastapi_pagination import add_pagination
 from app.api.api import api_router
 from app.api.pages import router as pages_router
 from app.api.sockets import router as sockets_router
-from app.core.boot import initialize_app, initialize_huey, teardown_app, teardown_huey
+from app.core.boot import (
+    initialize_app,
+    initialize_huey,
+    teardown_app,
+    teardown_huey,
+)
 from app.middleware import middlewares
 
 # Patch rich.pretty.traverse to force no limit on max length/string

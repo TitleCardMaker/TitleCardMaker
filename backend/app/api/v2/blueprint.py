@@ -216,7 +216,7 @@ async def export_series_blueprint_as_zip(
 
     # Copy preview into main zip directory
     if card_file is None:
-        log.warning(f'No applicable Title Cards found for preview')
+        log.warning('No applicable Title Cards found for preview')
     # .webp must be converted, GitHub does not support natively
     elif card_file.suffix == '.webp':
         Image.open(card_file).convert('RGB').save(tzip.dir / 'preview.jpg')

@@ -395,7 +395,7 @@ class DatabaseInfoContainer(ABC):
 
     @abstractmethod
     def __repr__(self) -> str:
-        raise NotImplementedError(f'All DatabaseInfoContainers must define this')
+        raise NotImplementedError('All DatabaseInfoContainers must define this')
 
 
     def __eq__(self, other: 'DatabaseInfoContainer | object') -> bool:

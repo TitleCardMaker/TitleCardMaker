@@ -33,7 +33,7 @@ def get_latest_version(
     """
 
     # TODO remove placeholder when repo is public [pylint: disable=unreachable]
-    return Version(f'v2.0-alpha.13.0')
+    return Version('v2.0-alpha.13.0')
 
     try:
         response = get(
@@ -42,13 +42,13 @@ def get_latest_version(
             timeout=10,
         )
         assert response.ok
-    except Exception as e:
-        log.exception(f'Error checking for new release')
+    except Exception as exc:
+        log.exception('Error checking for new release')
         if raise_exc:
             raise HTTPException(
                 status_code=500,
-                detail=f'Error checking for new release',
-            ) from e
+                detail='Error checking for new release',
+            ) from exc
         return None
 
     return Version(response.json().get('name', '').strip())

@@ -99,8 +99,9 @@ def backup_data(
 
     # Store backups in a dated subfolder
     settings.backup_directory.mkdir(exist_ok=True, parents=True)
-    backup_folder = settings.backup_directory \
+    backup_folder = (settings.backup_directory
         / datetime.now().strftime(app_config.BACKUP_DT_FORMAT)
+    )
     backup_folder.mkdir(exist_ok=True, parents=True)
 
     # Identify source and destination files
@@ -145,7 +146,7 @@ def restore_backup(backup: DataBackup | str, /, *, log: Logger = log):
             config = next(folder.glob('settings.json*'))
             database = next(folder.glob('db.sqlite*'))
         except StopIteration as exc:
-            log.exception(f'Unable to identify backup data from folder')
+            log.exception('Unable to identify backup data from folder')
             raise HTTPException(
                 status_code=400,
                 detail='Invalid backup folder'
@@ -187,9 +188,11 @@ def list_available_backups(*, log: Logger = log) -> list[SystemBackup]:
         """Parse the alembic schema version from the given file."""
         connection = connect(file)
         try:
-            return connection.cursor()\
-                .execute('SELECT * FROM alembic_version LIMIT 1')\
-                .fetchone()[0]
+            return (
+                connection.cursor()
+                    .execute('SELECT * FROM alembic_version LIMIT 1')\
+                    .fetchone()[0]
+            )
         except OperationalError:
             log.debug(f'Unable to detect schema from {file}')
             return None
@@ -209,10 +212,10 @@ def list_available_backups(*, log: Logger = log) -> list[SystemBackup]:
         # Skip if there's no version or schema
         if (not (schema := _parse_schema_version(database))
             or not (version := _parse_version_number(settings_file))):
-            log.debug(
+            log.debug((
                 f'Unable to identify database schema or version from '
                 f'"{subfolder}'
-            )
+            ))
             continue
 
         backups.append(SystemBackup(

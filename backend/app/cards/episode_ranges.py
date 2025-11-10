@@ -131,6 +131,6 @@ class SeasonTitleRanges:
 
         # No fallback, return default titles
         if episode_info.season_number == 0:
-            return f'Specials'
+            return 'Specials'
 
         return f'Season {episode_info.season_number}'

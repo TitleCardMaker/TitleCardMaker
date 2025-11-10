@@ -216,7 +216,7 @@ def create_cards_for_sonarr_webhook(
                 return episode
 
             # Sleep and re-query Episode data
-            log.debug(f'Cannot find Episode, waiting..')
+            log.debug('Cannot find Episode, waiting..')
             sleep(15)
             refresh_episode_data(db, series, log=log)
 

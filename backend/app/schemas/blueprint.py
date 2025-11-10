@@ -1,5 +1,3 @@
-# pylint: disable=missing-class-docstring,missing-function-docstring,no-self-argument
-# pyright: reportInvalidTypeForm=false, reportAssignmentType=false
 from datetime import datetime
 from json import loads
 from re import sub as re_sub, IGNORECASE
@@ -58,7 +56,9 @@ class BlueprintSeries(ConfigBase):
     source_files: list[str] = []
     episode_text_format: str | None = None
     translations: list[Translation] | None = None
-    season_title_ranges: list[SeasonTitleRange] | None = Field(exclude=True, default=None)
+    season_title_ranges: list[SeasonTitleRange] | None = Field(
+        exclude=True, default=None
+    )
     season_title_values: list[str] | None = Field(exclude=True, default=None)
     skip_localized_images: bool | None = None
 
@@ -111,7 +111,9 @@ class BlueprintTemplate(ConfigBase):
     filters: list[Condition] = []
     episode_text_format: str | None = None
     translations: list[Translation] | None = None
-    season_title_ranges: list[SeasonTitleRange] | None = Field(exclude=True, default=None)
+    season_title_ranges: list[SeasonTitleRange] | None = Field(
+        exclude=True, default=None
+    )
     season_title_values: list[str] | None = Field(exclude=True, default=None)
     skip_localized_images: bool | None = None
 

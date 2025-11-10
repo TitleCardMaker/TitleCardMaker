@@ -16,7 +16,18 @@ from sqlalchemy.orm import Session
 
 from app.db.query import get_connection, get_episode, get_series
 from app.db.pagination import Page
-from app.dependencies import get_database, get_emby_interfaces, get_first_tmdb_interface, get_first_tvdb_interface, get_jellyfin_interfaces, get_logger, get_plex_interfaces, get_tmdb_interfaces, get_tvdb_interfaces, require_tmdb_interface
+from app.dependencies import (
+    get_database,
+    get_emby_interfaces,
+    get_first_tmdb_interface,
+    get_first_tvdb_interface,
+    get_jellyfin_interfaces,
+    get_logger,
+    get_plex_interfaces,
+    get_tmdb_interfaces,
+    get_tvdb_interfaces,
+    require_tmdb_interface,
+)
 from app.db.users import get_current_user
 from app.core.cards import delete_cards
 from app.core.sources import (
@@ -83,7 +94,9 @@ def download_series_backdrop_from_tmdb(
         series_id: int,
         # ignore_blacklist: bool = Query(default=False),
         db: Session = Depends(get_database),
-        tmdb_interfaces: InterfaceGroup[int, TMDbInterface] = Depends(get_tmdb_interfaces),
+        tmdb_interfaces: (
+            InterfaceGroup[int, TMDbInterface]
+        ) = Depends(get_tmdb_interfaces),
         log: Logger = Depends(get_logger),
     ) -> str:
     """
@@ -116,7 +129,7 @@ def download_series_backdrop_from_tmdb(
 
     raise HTTPException(
         status_code=400,
-        detail=f'Unable to download backdrop'
+        detail='Unable to download backdrop'
     )
 
 
@@ -124,7 +137,9 @@ def download_series_backdrop_from_tmdb(
 def download_series_backdrop_from_tvdb(
         series_id: int,
         db: Session = Depends(get_database),
-        tvdb_interfaces: InterfaceGroup[int, TVDbInterface] = Depends(get_tvdb_interfaces),
+        tvdb_interfaces: (
+            InterfaceGroup[int, TVDbInterface]
+        ) = Depends(get_tvdb_interfaces),
         log: Logger = Depends(get_logger),
     ) -> str:
     """
@@ -203,11 +218,17 @@ def download_episode_source_images_(
 def get_all_episode_source_images(
         episode_id: int,
         db: Session = Depends(get_database),
-        emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
-        jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
-        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
-        tmdb_interface: TMDbInterface | None = Depends(get_first_tmdb_interface),
-        tvdb_interface: TVDbInterface | None = Depends(get_first_tvdb_interface),
+        emby_interfaces: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_emby_interfaces),
+        jellyfin_interfaces: (
+            InterfaceGroup[int, JellyfinInterface]
+        ) = Depends(get_jellyfin_interfaces),
+        plex_interfaces: (
+            InterfaceGroup[int, PlexInterface]
+        ) = Depends(get_plex_interfaces),
+        tmdb_interface: TMDbInterface | None =Depends(get_first_tmdb_interface),
+        tvdb_interface: TVDbInterface | None =Depends(get_first_tvdb_interface),
         log: Logger = Depends(get_logger),
     ) -> list[ExternalSourceImage]:
     """
@@ -307,10 +328,15 @@ def get_all_series_logos_on_tmdb(
     - series_id: ID of the Series whose logos are being requested.
     """
 
-    # Get the Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    return tmdb_interface.get_all_logos(series.as_series_info, log=log) or []
+    return [
+        ExternalSourceImage.model_validate(logo)
+        for logo in (
+            tmdb_interface.get_all_logos(series.as_series_info, log=log)
+            or []
+        )
+    ]
 
 
 @source_router.get('/series/{series_id}/backdrop/browse')
@@ -327,11 +353,15 @@ def get_all_series_backdrops_on_tmdb(
     - series_id: ID of the Series whose backdrops are being requested.
     """
 
-    # Get the Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    # Get all backdrops
-    return tmdb_interface.get_all_backdrops(series.as_series_info,log=log) or []
+    return [
+        ExternalSourceImage.model_validate(backdrop)
+        for backdrop in (
+            tmdb_interface.get_all_backdrops(series.as_series_info,log=log)
+            or []
+        )
+    ]
 
 
 @source_router.get('/series/{series_id}')
@@ -459,7 +489,9 @@ async def set_episode_source_image(
         file: UploadFile | None = None,
         interface_id: int | None = Query(default=None),
         db: Session = Depends(get_database),
-        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
+        plex_interfaces: (
+            InterfaceGroup[int, PlexInterface]
+        ) = Depends(get_plex_interfaces),
         log: Logger = Depends(get_logger),
     ) -> SourceImage:
     """
@@ -538,7 +570,7 @@ async def set_episode_source_image(
         if not WebInterface.download_image(url, source_file, log=log):
             raise HTTPException(
                 status_code=400,
-                detail=f'Unable to download image'
+                detail='Unable to download image'
             )
 
     # Delete associated Card and Loaded entry to initiate future reload
@@ -744,10 +776,11 @@ def delete_series_logo(
     # Get Series with this ID, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    if not (file := series.get_logo_file(season_number, fallback=False)).exists():
+    file = series.get_logo_file(season_number, fallback=False)
+    if not file.exists():
         raise HTTPException(
             status_code=404,
-            detail='Indicated file does not exist',
+            detail='Indicated file does not exist'
         )
 
     file.unlink(missing_ok=True)

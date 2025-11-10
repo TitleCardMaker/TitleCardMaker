@@ -53,7 +53,7 @@ def enable_authentication(
     )
     db.add(new_user)
     db.commit()
-    log.warning(f'Created temporary User("admin", "password")')
+    log.warning('Created temporary User("admin", "password")')
 
     return ReturnUserSchema(
         username=new_user.username,
@@ -77,11 +77,11 @@ def disable_authentication(
     # Disable authentication requirement
     settings.require_auth = False
     settings.commit(log=log)
-    log.warning(f'Disabling Authentication')
+    log.warning('Disabling Authentication')
 
     # If revoking access, deleting existing User entries
     if revoke_access:
-        log.warning(f'Revoking access from all existing Users')
+        log.warning('Revoking access from all existing Users')
         db.query(UserModel).delete()
         db.commit()
 
@@ -99,9 +99,11 @@ def add_new_user(
     """
 
     # Verify no User exists with this username
-    existing = db.query(UserModel)\
-        .filter_by(username=new_user.username)\
-        .first()
+    existing = (
+        db.query(UserModel)
+            .filter(UserModel.username == new_user.username)
+            .first()
+    )
     if existing:
         raise HTTPException(
             status_code=422,
@@ -148,8 +150,8 @@ def delete_user(
     log.info(f'Deleted User({username})')
 
     # If there are no more active Users, disable authentication to avoid L/O
-    if len(db.query(UserModel).all()) == 0:
-        log.warning(f'No remaining active users - disabling authentication')
+    if db.query(UserModel).count() == 0:
+        log.warning('No remaining active users - disabling authentication')
         settings.require_auth = False
         settings.commit(log=log)
 
@@ -242,10 +244,10 @@ def login_for_access_token(
         data={'sub': user.username, 'uid': user.hashed_password},
         expires_delta=settings.config.AUTH_EXPIRATION_TIME,
     )
-    log.info(
+    log.info((
         f'Authenticated User({user.username}) for '
         f'{settings.config.AUTH_EXPIRATION_TIME}'
-    )
+    ))
 
     return ReturnTokenSchema(
         access_token=access_token,

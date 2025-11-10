@@ -477,7 +477,7 @@ def create_card(
 
         return card
 
-    log.warning(f'Card creation failed')
+    log.warning('Card creation failed')
     card_maker.image_magick.print_command_history(log=log)
     return None
 
