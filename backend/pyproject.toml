@@ -68,13 +68,11 @@ dev-dependencies = [
 [tool.hatch.build.targets.wheel]
 packages = [
     "app",
-    "modules",
 ]
 
 [tool.pyright]
 include = [
     "./app",
-    "./modules"
 ]
 exclude = [
     "./archives",
@@ -112,8 +110,12 @@ target-version = "py313"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
-select = ["E4", "E7", "E9", "F"]
-ignore = ['F541', 'F403', 'F405']
+select = ["E", "F"]
+ignore = [
+    # 'F541', # f-string without interpolation used often
+    # 'F403',
+    # 'F405',
+]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
@@ -121,6 +123,13 @@ unfixable = []
 
 # Allow unused variables when underscore-prefixed, or log variable
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?)|log)$"
+
+[tool.ruff.lint.per-file-ignores]
+"app/cards/base.py" = ["F541"]
+"app/cards/types/*" = ["F541"]
+"app/magick/*" = ["F541"]
+"app/interfaces/magick.py" = ["F541"]
+"app/schemas/card_type.py" = ["F403", "F405"]
 
 [tool.ruff.format]
 quote-style = "single"
