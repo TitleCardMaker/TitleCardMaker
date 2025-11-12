@@ -73,16 +73,16 @@ def upgrade() -> None:
     session = Session(bind=op.get_bind())
 
     for model in [Card, Episode, Series]:
-        now = datetime.now(tz=settings.config.TIMEZONE)
+        now = settings.config.now()
         index = 0
         for index, obj in enumerate(
             session.query(model).order_by(model.id.desc()).all()
         ):
             obj.created = now - timedelta(seconds=index)
-        log.trace(
+        log.trace((
             f'Initialized {(index + 1):,} '
             f'{model.__tablename__.title()}.creation timestamps'
-        )
+        ))
 
     # Commit changes
     session.commit()

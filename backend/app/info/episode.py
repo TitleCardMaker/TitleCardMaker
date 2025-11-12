@@ -316,9 +316,8 @@ class EpisodeInfo(DatabaseInfoContainer):
         )
 
 
-    @classmethod
+    @staticmethod
     def from_jellyfin_info(
-            cls,
             info: 'JellyfinItemDetails',
             interface_id: int,
             library_name: str,
@@ -341,26 +340,16 @@ class EpisodeInfo(DatabaseInfoContainer):
             EpisodeInfo object defining the given data.
         """
 
-        # Parse airdate
-        airdate = None
-        if 'PremiereDate' in info:
-            try:
-                airdate = datetime.strptime(
-                    info['PremiereDate'], '%Y-%m-%dT%H:%M:%S.%f000000Z'
-                )
-            except Exception as e:
-                log.debug(f'Cannot parse airdate {e} - {info=}')
-
-        return cls(
-            info['Name'],
-            info['ParentIndexNumber'],
-            info['IndexNumber'],
-            imdb_id=info.get('ProviderIds', {}).get('Imdb'),
-            jellyfin_id=f'{interface_id}:{library_name}:{info["Id"]}',
-            tmdb_id=info.get('ProviderIds', {}).get('Tmdb'),
-            tvdb_id=info.get('ProviderIds', {}).get('Tvdb'),
-            tvrage_id=info.get('ProviderIds', {}).get('TvRage'),
-            airdate=airdate,
+        return EpisodeInfo(
+            info.name,
+            info.parent_index_number,
+            info.index_number,
+            imdb_id=info.provider_ids.get('Imdb'),
+            jellyfin_id=f'{interface_id}:{library_name}:{info.id}',
+            tmdb_id=info.provider_ids.get('Tmdb'), # type: ignore
+            tvdb_id=info.provider_ids.get('Tvdb'), # type: ignore
+            tvrage_id=info.provider_ids.get('TvRage'), # type: ignore
+            airdate=info.premiere_date,
         )
 
 

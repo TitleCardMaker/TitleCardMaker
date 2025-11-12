@@ -710,9 +710,11 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
         for episode in episodes.items:
             # Skip episodes without required a title, season, or
             # episode number
-            if (episode.name is None
-                or episode.index_number is None
-                or episode.parent_index_number is None):
+            if not all((
+                episode.name,
+                episode.index_number,
+                episode.parent_index_number,
+            )):
                 log.debug(
                     f'Series {series_info} is missing required episode data'
                 )
