@@ -99,7 +99,8 @@ def backup_data(
 
     # Store backups in a dated subfolder
     settings.backup_directory.mkdir(exist_ok=True, parents=True)
-    backup_folder = (settings.backup_directory
+    backup_folder = (
+        settings.backup_directory
         / datetime.now().strftime(app_config.BACKUP_DT_FORMAT)
     )
     backup_folder.mkdir(exist_ok=True, parents=True)

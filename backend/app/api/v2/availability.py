@@ -283,9 +283,15 @@ def get_plex_libraries(
     tags=['Emby', 'Jellyfin', 'Plex']
 )
 def get_server_libraries(
-        emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
-        jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
-        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
+        emby_interfaces: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_emby_interfaces),
+        jellyfin_interfaces: (
+            InterfaceGroup[int, JellyfinInterface]
+        ) = Depends(get_jellyfin_interfaces),
+        plex_interfaces: (
+            InterfaceGroup[int, PlexInterface]
+        ) = Depends(get_plex_interfaces),
     ) -> list[MediaServerLibrary]:
     """Get all available libraries for all enabled interfaces."""
 

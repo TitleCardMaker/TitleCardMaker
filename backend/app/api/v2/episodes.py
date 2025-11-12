@@ -416,15 +416,24 @@ def batch_delete_episodes(
     db.commit()
 
 
-@episodes_router.get('/series/{series_id}/connection/{interface_id}', tags=['Connections'])
+@episodes_router.get(
+    '/series/{series_id}/connection/{interface_id}',
+    tags=['Connections'],
+)
 def get_all_episodes_on_connection(
         series_id: int,
         interface_id: int,
         library_name: str = Query(...),
         db: Session = Depends(get_database),
-        emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
-        jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
-        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
+        emby_interfaces: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_emby_interfaces),
+        jellyfin_interfaces: (
+            InterfaceGroup[int, JellyfinInterface]
+        ) = Depends(get_jellyfin_interfaces),
+        plex_interfaces: (
+            InterfaceGroup[int, PlexInterface]
+        ) = Depends(get_plex_interfaces),
         log: Logger = Depends(get_logger),
     ) -> list[EpisodeData]:
     """

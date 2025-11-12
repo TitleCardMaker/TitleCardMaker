@@ -217,4 +217,7 @@ def get_task_durations(
     if task_name:
         filters.append(TaskDuration.task_name == task_name)
 
-    return db.query(TaskDuration).filter(*filters).all()
+    return [
+        Duration.model_validate(duration)
+        for duration in db.query(TaskDuration).filter(*filters).all()
+    ]

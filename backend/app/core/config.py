@@ -88,6 +88,10 @@ class AppConfig(BaseSettings):
 
         return self._TIMEZONE
 
+    def now(self) -> datetime:
+        """Get the current time in the configured timezone."""
+        return datetime.now(tz=self.TIMEZONE)
+
     # Valid image extensions
     VALID_IMAGE_EXTENSIONS: Annotated[
         tuple[str, ...],

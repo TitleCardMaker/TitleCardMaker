@@ -29,7 +29,10 @@ class SonarrWebhookEpisode(Base):
 class SonarrWebhook(Base):
     series: SonarrWebhookSeries
     episodes: list[SonarrWebhookEpisode] = []
-    eventType: str # Literal['SeriesAdd', 'Download', 'SeriesDelete', 'EpisodeFileDelete']
+    eventType: str
+    """
+    'SeriesAdd', 'Download', 'SeriesDelete', 'EpisodeFileDelete'
+    """
 
 
 """

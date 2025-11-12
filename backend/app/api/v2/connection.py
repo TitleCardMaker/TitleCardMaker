@@ -76,7 +76,9 @@ connection_router = APIRouter(
 def add_emby_connection(
         new_connection: NewEmbyConnection = Body(...),
         db: Session = Depends(get_database),
-        interface_group: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
+        interface_group: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_emby_interfaces),
         log: Logger = Depends(get_logger),
     ) -> EmbyConnection:
     """
@@ -93,7 +95,9 @@ def add_emby_connection(
 def add_jellyfin_connection(
         new_connection: NewJellyfinConnection = Body(...),
         db: Session = Depends(get_database),
-        interface_group: InterfaceGroup[int, EmbyInterface] = Depends(get_jellyfin_interfaces),
+        interface_group: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_jellyfin_interfaces),
         log: Logger = Depends(get_logger),
     ) -> JellyfinConnection:
     """
@@ -110,7 +114,9 @@ def add_jellyfin_connection(
 def add_plex_connection(
         new_connection: NewPlexConnection = Body(...),
         db: Session = Depends(get_database),
-        interface_group: InterfaceGroup[int, EmbyInterface] = Depends(get_plex_interfaces),
+        interface_group: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_plex_interfaces),
         log: Logger = Depends(get_logger),
     ) -> PlexConnection:
     """
@@ -127,7 +133,9 @@ def add_plex_connection(
 def add_sonarr_connection(
         new_connection: NewSonarrConnection = Body(...),
         db: Session = Depends(get_database),
-        interface_group: InterfaceGroup[int, SonarrInterface] = Depends(get_sonarr_interfaces),
+        interface_group: (
+            InterfaceGroup[int, SonarrInterface]
+        ) = Depends(get_sonarr_interfaces),
         log: Logger = Depends(get_logger),
     ) -> SonarrConnection:
     """
@@ -144,7 +152,9 @@ def add_sonarr_connection(
 def add_tmdb_connection(
         new_connection: NewTMDbConnection = Body(...),
         db: Session = Depends(get_database),
-        interface_group: InterfaceGroup[int, TMDbInterface] = Depends(get_tmdb_interfaces),
+        interface_group: (
+            InterfaceGroup[int, TMDbInterface]
+        ) = Depends(get_tmdb_interfaces),
         log: Logger = Depends(get_logger),
     ) -> TMDbConnection:
     """
@@ -161,7 +171,9 @@ def add_tmdb_connection(
 def add_tvdb_connection(
         new_connection: NewTVDbConnection = Body(...),
         db: Session = Depends(get_database),
-        interface_group: InterfaceGroup[int, TVDbInterface] = Depends(get_tvdb_interfaces),
+        interface_group: (
+            InterfaceGroup[int, TVDbInterface]
+        ) = Depends(get_tvdb_interfaces),
         log: Logger = Depends(get_logger),
     ) -> TVDbConnection:
     """
@@ -180,12 +192,24 @@ def enable_or_disable_connection_by_id(
         interface_id: int,
         status: Literal['enable', 'disable'],
         db: Session = Depends(get_database),
-        emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
-        jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
-        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
-        sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(get_sonarr_interfaces),
-        tmdb_interfaces: InterfaceGroup[int, TMDbInterface] = Depends(get_tmdb_interfaces),
-        tvdb_interfaces: InterfaceGroup[int, TVDbInterface] = Depends(get_tvdb_interfaces),
+        emby_interfaces: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_emby_interfaces),
+        jellyfin_interfaces: (
+            InterfaceGroup[int, JellyfinInterface]
+        ) = Depends(get_jellyfin_interfaces),
+        plex_interfaces: (
+            InterfaceGroup[int, PlexInterface]
+        ) = Depends(get_plex_interfaces),
+        sonarr_interfaces: (
+            InterfaceGroup[int, SonarrInterface]
+        ) = Depends(get_sonarr_interfaces),
+        tmdb_interfaces: (
+            InterfaceGroup[int, TMDbInterface]
+        ) = Depends(get_tmdb_interfaces),
+        tvdb_interfaces: (
+            InterfaceGroup[int, TVDbInterface]
+        ) = Depends(get_tvdb_interfaces),
         log: Logger = Depends(get_logger),
     ) -> AnyConnection:
     """
@@ -385,7 +409,9 @@ def update_emby_connection(
         interface_id: int,
         update_object: UpdateEmby = Body(...),
         db: Session = Depends(get_database),
-        emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
+        emby_interfaces: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_emby_interfaces),
         log: Logger = Depends(get_logger),
     ) -> EmbyConnection:
     """
@@ -428,7 +454,9 @@ def update_plex_connection(
         update_object: UpdatePlex = Body(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
+        plex_interfaces: (
+            InterfaceGroup[int, PlexInterface]
+        ) = Depends(get_plex_interfaces),
     ) -> PlexConnection:
     """
     Update the Connection details for the given Plex interface.
@@ -448,7 +476,9 @@ def update_sonarr_connection(
         update_object: UpdateSonarr = Body(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(get_sonarr_interfaces),
+        sonarr_interfaces: (
+            InterfaceGroup[int, SonarrInterface]
+        ) = Depends(get_sonarr_interfaces),
     ) -> SonarrConnection:
     """
     Update the Connection details for the given Sonarr connection.
@@ -468,7 +498,9 @@ def update_tmdb_connection(
         update_object: UpdateTMDb = Body(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        tmdb_interfaces: InterfaceGroup[int, TMDbInterface] = Depends(get_tmdb_interfaces),
+        tmdb_interfaces: (
+            InterfaceGroup[int, TMDbInterface]
+        ) = Depends(get_tmdb_interfaces),
     ) -> TMDbConnection:
     """
     Update the Connection details for the given TMDb connection.
@@ -488,7 +520,9 @@ def update_tvdb_connection(
         update_object: UpdateTVDb = Body(...),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        tvdb_interfaces: InterfaceGroup[int, TVDbInterface] = Depends(get_tvdb_interfaces),
+        tvdb_interfaces: (
+            InterfaceGroup[int, TVDbInterface]
+        ) = Depends(get_tvdb_interfaces),
     ) -> TVDbConnection:
     """
     Update the Connection details for the given TVDb connection.
@@ -508,12 +542,24 @@ def delete_connection(
         delete_title_cards: bool = Query(default=False),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
-        emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
-        jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
-        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
-        sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(get_sonarr_interfaces),
-        tmdb_interfaces: InterfaceGroup[int, TMDbInterface] = Depends(get_tmdb_interfaces),
-        tvdb_interfaces: InterfaceGroup[int, TVDbInterface] = Depends(get_tvdb_interfaces),
+        emby_interfaces: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_emby_interfaces),
+        jellyfin_interfaces: (
+            InterfaceGroup[int, JellyfinInterface]
+        ) = Depends(get_jellyfin_interfaces),
+        plex_interfaces: (
+            InterfaceGroup[int, PlexInterface]
+        ) = Depends(get_plex_interfaces),
+        sonarr_interfaces: (
+            InterfaceGroup[int, SonarrInterface]
+        ) = Depends(get_sonarr_interfaces),
+        tmdb_interfaces: (
+            InterfaceGroup[int, TMDbInterface]
+        ) = Depends(get_tmdb_interfaces),
+        tvdb_interfaces: (
+            InterfaceGroup[int, TVDbInterface]
+        ) = Depends(get_tvdb_interfaces),
     ) -> None:
     """
     Delete the Connection with the given ID. This also disables and
@@ -645,7 +691,9 @@ def delete_connection(
 @connection_router.get('/sonarr/{interface_id}/libraries', tags=['Sonarr'])
 def get_potential_sonarr_libraries(
         interface_id: int,
-        sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(get_sonarr_interfaces),
+        sonarr_interfaces: (
+            InterfaceGroup[int, SonarrInterface]
+        ) = Depends(get_sonarr_interfaces),
     ) -> list[PotentialSonarrLibrary]:
     """Get the potential library names and paths from Sonarr."""
 
@@ -740,9 +788,15 @@ def get_interface_libraries(interface_id: int) -> list[str]:
 @connection_router.post('/{interface_id}/libraries')
 def refresh_interface_libraries(
         interface_id: int,
-        emby_interfaces: InterfaceGroup[int, EmbyInterface] = Depends(get_emby_interfaces),
-        jellyfin_interfaces: InterfaceGroup[int, JellyfinInterface] = Depends(get_jellyfin_interfaces),
-        plex_interfaces: InterfaceGroup[int, PlexInterface] = Depends(get_plex_interfaces),
+        emby_interfaces: (
+            InterfaceGroup[int, EmbyInterface]
+        ) = Depends(get_emby_interfaces),
+        jellyfin_interfaces: (
+            InterfaceGroup[int, JellyfinInterface]
+        ) = Depends(get_jellyfin_interfaces),
+        plex_interfaces: (
+            InterfaceGroup[int, PlexInterface]
+        ) = Depends(get_plex_interfaces),
     ) -> list[str]:
     """
     Refresh the library list for the given Connection.

@@ -236,8 +236,7 @@ class InterfaceID:
 
         if isinstance(other, str):
             other = InterfaceID(other)
-        for key in self._id_map:
-            log.warning(f'  {key} in {other._id_map}          //   {key in other._id_map}')
+
         return any(key not in other._id_map for key in self._id_map)
 
 
@@ -554,7 +553,11 @@ class DatabaseInfoContainer(ABC):
 
 
     @overload
-    def has_ids(self, *ids: IdName, interface_id: int, library_name: str) -> bool:
+    def has_ids(self,
+            *ids: IdName,
+            interface_id: int,
+            library_name: str,
+        ) -> bool:
         ...
 
     @overload

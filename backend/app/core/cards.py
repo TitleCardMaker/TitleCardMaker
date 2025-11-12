@@ -68,10 +68,10 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                     except HTTPException:
                         log.exception(f'Cannot refresh Episode data of {series}')
                 else:
-                    log.trace(
+                    log.trace((
                         f'{series} is unmonitored, not refreshing Episode '
                         f'data'
-                    )
+                    ))
 
                 # Set watch statuses of all Episodes
                 try:
@@ -97,10 +97,10 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                         )
                     db.commit()
                 else:
-                    log.trace(
+                    log.trace((
                         f'{series} is unmonitored, skipping Source Image '
                         f'selection'
-                    )
+                    ))
 
                 # Create Cards for all Episodes
                 for episode in series.episodes:
@@ -124,7 +124,7 @@ def create_all_title_cards(*, log: Logger = log) -> None:
             except Exception as exc:
                 if failures > 10:
                     log.critical('Many errors have occurred - exiting')
-                    raise exc 
+                    raise exc
 
                 failures += 1
                 log.exception('Error ocurred while processing Series')

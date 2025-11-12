@@ -215,7 +215,7 @@ class RecurringTask:
                 return None
 
             # Mark task as running, log start time
-            start_time = datetime.now(tz=settings.config.TIMEZONE)
+            start_time = settings.config.now()
             _task_running_state[self.task_id] = True
 
             # Run wrapped task
@@ -227,7 +227,7 @@ class RecurringTask:
 
             # Log task finishing
             log_.info(f'Task[{self.task_id}] finished execution')
-            end_time = datetime.now(tz=settings.config.TIMEZONE)
+            end_time = settings.config.now()
             _task_running_state[self.task_id] = False
 
             # Attempt to add TaskDuration record to database
@@ -381,7 +381,7 @@ def get_task_details(db: Session, task_id: TaskID, /) -> TaskDetails:
 
     next_run: datetime = croniter(crontab).get_next( # type: ignore
         datetime,
-        datetime.now(tz=settings.config.TIMEZONE),
+        settings.config.now(),
     )
 
     # Get the last run details
