@@ -24,7 +24,7 @@ engine = create_engine(
     pool_pre_ping=True,
     # https://docs.sqlalchemy.org/en/20/core/pooling.html#pool-disconnects
     connect_args={'check_same_thread': False, 'timeout': 30},
-    # echo=True,
+    echo=any(pkg in config.PACKAGE_LOGGING.lower() for pkg in ['sqlalchemy', 'all']),
     # Do not limit pool overflow since "new" connections are made inside queued
     # BackgroundTasks - see https://docs.sqlalchemy.org/en/20/errors.html for
     # reference
