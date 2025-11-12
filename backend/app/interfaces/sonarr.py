@@ -22,6 +22,7 @@ from app.interfaces.base import Interface, SyncInterface
 from app.interfaces.testing import testing_override
 from app.interfaces.web import WebSession
 from app.logging.logger import Logger, log
+from app.settings import settings
 
 
 class TestingSonarrInterface:
@@ -504,7 +505,17 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
 
             # Skip unaired episodes which have a temporary title
             if (episode.airdate is not None
-                and not episode.has_file and episode.airdate > datetime.now()
+                and not episode.has_file and (
+                    (
+                        # Timezone-naive airdate
+                        episode.airdate.tzinfo is None
+                        and episode.airdate > datetime.now()
+                    ) or (
+                        # Timezone-aware airdate
+                        episode.airdate.tzinfo is not None
+                        and episode.airdate > settings.config.now()
+                    )
+                )
                 and self.__TEMP_IGNORE_REGEX.match(episode.title or '')):
                 log.trace((
                     f'Temporarily ignoring "{episode.title}" of '
