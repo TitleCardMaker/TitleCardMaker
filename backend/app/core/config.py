@@ -150,7 +150,7 @@ class AppConfig(BaseSettings):
     SONARR_REQUEST_TIMEOUT: Annotated[
         int,
         'Timeout for Sonarr requests (in seconds)'
-    ] = Field(default=300, ge=10, le=10000)
+    ] = Field(default=500, ge=10, le=10000)
 
     # Testing
     TESTING_MODE: Annotated[
