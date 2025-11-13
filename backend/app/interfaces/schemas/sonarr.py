@@ -31,7 +31,7 @@ class SeriesStatistics(BaseModel):
     # season_count: int = Field(alias='seasonCount')
     # episode_count: int = Field(alias='episodeCount')
     # episode_file_count: int = Field(alias='episodeFileCount')
-    size_on_disk: int = Field(alias='sizeOnDisk')
+    size_on_disk: int = Field(default=0, alias='sizeOnDisk')
     # percent_of_episodes: int = Field(alias='percentOfEpisodes')
 
 class SeriesResource(BaseModel):
@@ -42,7 +42,7 @@ class SeriesResource(BaseModel):
     monitored: bool
     type: SeriesType = Field(alias='seriesType')
     status: SeriesStatus
-    statistics: SeriesStatistics
+    statistics: SeriesStatistics = Field(default_factory=SeriesStatistics)
     overview: str | None = None
     path: str | None = None
     root_folder_path: str | None = Field(default=None, alias='rootFolderPath')
