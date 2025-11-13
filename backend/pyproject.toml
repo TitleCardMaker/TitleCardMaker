@@ -63,6 +63,7 @@ dev-dependencies = [
     "ruff>=0.6.1",
     "mkdocs-material>=9.5.33",
     "mkdocs-glightbox>=0.4.0",
+    "pyright==1.1.407",
 ]
 
 [tool.hatch.build.targets.wheel]
