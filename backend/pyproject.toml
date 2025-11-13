@@ -42,7 +42,7 @@ dependencies = [
     "charset-normalizer==3.4.0",
     "win32-setctime==1.1.0",
     "sqlalchemy==2.0.41",
-    "huey>=2.5.1",
+    "huey==2.5.3",
     "starlette==0.46.2",
     "urllib3==2.4.0",
     "six==1.16.0",
