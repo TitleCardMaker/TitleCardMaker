@@ -403,7 +403,8 @@ class EpisodeInfo(DatabaseInfoContainer):
 
         return EpisodeInfo(
             resource.title or '',
-            resource.season_number or 1,
+            # Allow a season number of 0
+            1 if resource.season_number is None else resource.season_number,
             resource.episode_number or 1,
             absolute_number=resource.absolute_episode_number,
             # Some episode have TVDb IDs of 0, reset to None
