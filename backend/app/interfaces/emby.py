@@ -43,6 +43,9 @@ if TYPE_CHECKING:
 
 
 class TestingEmbyInterface:
+    def _get_user_id(self, username: str | None, *, log: Logger = log) -> str:
+        return 'Admin'
+
     def _map_libraries(self) -> dict[str, tuple[int, ...]]:
         return { 'TV': (1, 2), 'TV 4K': (3, 4), 'Anime': (5, ) }
 
@@ -107,7 +110,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def __init__(self,
             url: str,
             api_key: str,
-            username: str,
+            username: str | None,
             use_ssl: bool = True,
             filesize_limit: int | None = None,
             *,
@@ -143,7 +146,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             verify_ssl=use_ssl,
             base_parameters={'api_key': api_key}
         )
-        self.user_id = None
+        self.user_id = ''
         self.libraries = {}
 
         # Authenticate with server
@@ -152,6 +155,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 system_info = self._session.get(
                     '/System/Info',
                     response_model=SystemInfo,
+                    log=log,
                 )
 
                 if not system_info:
@@ -165,17 +169,16 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             ) from exc
 
         # Get user ID
-        if username and not config.TESTING_MODE:
-            if (user_id := self._get_user_id(username)) is None:
-                log.critical(f'Cannot identify ID of user "{username}"')
-                raise HTTPException(
-                    status_code=400,
-                    detail=f'Cannot identify ID of user "{username}"',
-                )
-            self.user_id = user_id
+        if (user_id := self._get_user_id(username, log=log)) is None:
+            log.critical(f'Cannot identify ID of user "{username}"')
+            raise HTTPException(
+                status_code=400,
+                detail=f'Cannot identify ID of user "{username}"',
+            )
+        self.user_id = user_id
 
-        self.libraries = self._map_libraries()
         # Make mapping of folder ID to library name
+        self.libraries = self._map_libraries()
         self._library_ids = {
             id_: library_name
             for library_name, library in self.libraries.items()
@@ -185,34 +188,57 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         self.activate()
 
 
-    def _get_user_id(self, username: str) -> str | None:
+    @testing_override(TestingEmbyInterface._get_user_id)
+    def _get_user_id(self, username: str | None, *, log: Logger = log) -> str:
         """
         Get the User ID associated with the given username.
 
         Args:
-            username: Username to query for.
+            username: Username to query for. If omitted, the first user
+                on the server will be used.
+            log: Logger for all log messages.
 
         Returns:
-            User ID hexstring associated with the given username. None
-            if the username was not found.
+            User ID hexstring associated with the given username.
+
+        Raises:
+            HTTPException (400): Cannot identify any users on this
+                server or user not found.
         """
 
-        users = self._session.get('/Users/Query', response_model=UserQuery)
-        if users is None:
-            return None
+        users = self._session.get(
+            '/Users/Query',
+            response_model=UserQuery,
+            log=log
+        )
+
+        if not users or not users.items:
+            log.critical('Cannot identify any users on this server')
+            raise HTTPException(
+                status_code=400,
+                detail='Cannot identify any users on this server',
+            )
 
         for user in users.items:
+            if not username:
+                return user.id
             if user.name == username:
                 return user.id
 
         log.error(f'User "{username}" not found in Emby ({users})')
-        return None
+        raise HTTPException(
+            status_code=400,
+            detail=f'User "{username}" not found in Emby ({users})',
+        )
 
 
     @testing_override(TestingEmbyInterface._map_libraries)
-    def _map_libraries(self) -> dict[str, tuple[int, ...]]:
+    def _map_libraries(self, *, log: Logger = log) -> dict[str, tuple[int, ...]]:
         """
         Map the libraries on this interface's Emby server.
+
+        Args:
+            log: Logger for all log messages.
 
         Returns:
             Dictionary whose keys are the names of the libraries, and
@@ -222,7 +248,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         libraries = self._session.get(
             '/Library/SelectableMediaFolders',
-            response_model=list[LibraryMediaFolder]
+            response_model=list[LibraryMediaFolder],
+            log=log
         )
 
         if libraries is None:
@@ -286,6 +313,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             details = self._session.get(
                 f'/Users/{self.user_id}/Items/{id_}',
                 response_model=ItemDetails,
+                log=log,
             )
 
             # Item found, ID is still valid
@@ -321,7 +349,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             query = self._session.get(
                 '/Items',
                 parameters=parameters | {'ParentId': library_id},
-                response_model=QueryResult
+                response_model=QueryResult,
+                log=log,
             )
 
             # No results found, continue to next library
@@ -352,6 +381,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def __get_season_id(self,
             series_id: int,
             season_number: int,
+            *,
+            log: Logger = log,
         ) -> int | None:
         """
         Get the Emby ID of the given season.
@@ -359,6 +390,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         Args:
             series_id: Emby ID of the associated series.
             season_number: Season number whose ID is being queried.
+            log: Logger for all log messages.
 
         Returns:
             The Emby ID of the season, if found. None otherwise.
@@ -371,7 +403,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 'includeItemTypes': 'Season',
                 'parentId': series_id,
             },
-            response_model=QueryResult
+            response_model=QueryResult,
+            log=log,
         )
 
         if not seasons or not seasons.total_record_count:
@@ -416,6 +449,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 'Fields': 'ProviderIds',
             },
             response_model=EpisodeQueryResult,
+            log=log,
         )
 
         if not episodes or not episodes.total_record_count:
@@ -433,15 +467,23 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
 
     @testing_override(TestingEmbyInterface.get_usernames)
-    def get_usernames(self) -> list[str]:
+    def get_usernames(self, *, log: Logger = log) -> list[str]:
         """
         Get all the usernames for this interface's Emby server.
+
+        Args:
+            log: Logger for all log messages.
 
         Returns:
             List of usernames.
         """
 
-        users = self._session.get('/Users', response_model=list[UserDetails])
+        users = self._session.get(
+            '/Users',
+            response_model=list[UserDetails],
+            log=log,
+        )
+
         if not users:
             return []
 
@@ -546,6 +588,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 'ImageTypes': 'Primary',
             },
             response_model=QueryResult,
+            log=log,
         )
 
         if not search_results or not search_results.total_record_count:
@@ -571,6 +614,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def get_library_paths(self,
             filter_libraries: list[str] = [],
+            *,
+            log: Logger = log,
         ) -> dict[str, list[str]]:
         """
         Get all libraries and their associated base directories.
@@ -586,7 +631,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         libraries = self._session.get(
             '/Library/SelectableMediaFolders',
-            response_model=list[LibraryMediaFolder]
+            response_model=list[LibraryMediaFolder],
+            log=log,
         )
 
         if not libraries:
@@ -641,7 +687,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             excluded_series = self._session.get(
                 '/Items',
                 parameters=parameters | {'Tags': '|'.join(excluded_tags)},
-                response_model=QueryResult
+                response_model=QueryResult,
+                log=log,
             )
 
             if excluded_series:
@@ -673,6 +720,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                     '/Items',
                     parameters=parameters | {'ParentId': parent_id},
                     response_model=QueryResult,
+                    log=log,
                 )
 
                 if not series_query or not series_query.total_record_count:
@@ -881,7 +929,8 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Load each season's poster
         for season_number, image in posters.items():
-            if (sid := self.__get_season_id(series_id, season_number)) is None:
+            sid = self.__get_season_id(series_id, season_number, log=log)
+            if sid is None:
                 log.warning(f'Season {season_number} not found')
                 continue
 

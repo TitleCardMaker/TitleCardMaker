@@ -412,6 +412,7 @@ class WebSession:
             *,
             parameters: dict[str, Any] = {},
             response_model: type[ModelType],
+            log: Logger = log,
         ) -> ModelType | None: ...
 
     @overload
@@ -420,6 +421,7 @@ class WebSession:
             *,
             parameters: dict[str, Any] = {},
             response_model: type[list[ModelType]],
+            log: Logger = log,
         ) -> list[ModelType] | None: ...
 
     def get(self,
@@ -481,12 +483,12 @@ class WebSession:
 
         text = response.text
         try:
-            return response_model.model_validate_json(text)
+            return response_model.model_validate_json(text) # type: ignore
         except ValidationError:
             log.exception('Unable to parse response as JSON model')
             log.trace(f'URL: {response.url} - Response: {text}')
             try:
-                return response_model.model_validate(response.json())
+                return response_model.model_validate(response.json()) # type: ignore
             except (ValidationError, JSONDecodeError):
                 log.exception('Unable to parse response as model')
                 log.trace(f'URL: {response.url} - Response: {text}')

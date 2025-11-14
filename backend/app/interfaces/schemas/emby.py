@@ -32,13 +32,13 @@ class UserData(BaseModel):
     played: bool = Field(alias='Played', default=False)
 
 class ItemDetails(BaseModel):
+    id: int = Field(alias='Id')
     parent_id: int | None = Field(alias='ParentId', default=None)
     name: str = Field(alias='Name')
     type: Literal['Series'] | str = Field(alias='Type')
     premiere_date: datetime | None = Field(alias='PremiereDate', default=None)
     production_year: int | None = Field(alias='ProductionYear', default=None)
     provider_ids: dict[str, str] = Field(alias='ProviderIds', default={})
-    id: int = Field(alias='Id')
     series_id: str | None = Field(alias='SeriesId', default=None)
     index_number: int | None = Field(alias='IndexNumber', default=None)
     parent_index_number: int | None = Field(alias='ParentIndexNumber', default=None)
