@@ -401,7 +401,7 @@ class Series(Base):
     def path_safe_name(self) -> str:
         """Name of this Series to be utilized in Path operations"""
 
-        return str(CleanPath.sanitize_name(self.full_name))[:254] # type: ignore
+        return str(CleanPath.sanitize_name(self.full_name))[:254]
 
 
     @property
