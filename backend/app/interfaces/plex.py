@@ -120,11 +120,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     INTERFACE_TYPE = 'Plex'
 
-    SERIES_IDS: Annotated[
-        ClassVar[tuple[str, ...]],
-        "Series ID's that can be set by Plex"
-    ] = ('imdb_id', 'tmdb_id', 'tvdb_id')
-
     EXIF_TAG: Annotated[
         ClassVar[dict],
         'EXIF data to write to images if Kometa integration is enabled'
@@ -549,7 +544,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         """
 
         # If all possible ID's are defined
-        if series_info.has_ids(*self.SERIES_IDS):
+        if series_info.has_ids('imdb_id', 'tmdb_id', 'tvdb_id'):
             return None
 
         # If the given library cannot be found, exit
@@ -604,7 +599,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         filtered_episode_infos = {
             episode_info.key: episode_info
             for episode_info in episode_infos
-            if not episode_info.has_ids(*self.SERIES_IDS)
+            if not episode_info.has_ids('imdb_id', 'tmdb_id', 'tvdb_id')
         }
 
         # Go through all of this Series' Episodes
@@ -701,7 +696,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             SearchResult(
                 name=result.title,
                 year=result.year, # type: ignore
-                poster=f'/api/v2/proxy/plex?url={result.thumb}&interface_id={self._interface_id}',
+                poster=(
+                    f'/api/v2/proxy/plex?url={result.thumb}'
+                    f'&interface_id={self._interface_id}'
+                ),
                 overview=result.summary,
                 **parse_ids(result),
             ) for result in results
@@ -755,18 +753,18 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Verify this Episode does not have the Kometa overlay label
         if any(label.tag in bad_labels for label in plex_episode.labels):
-            log.debug(
+            log.debug((
                 f'{series_info} {episode_info} Cannot use Plex thumbnail, has '
                 f'existing Overlay or Title Card'
-            )
+            ))
             return None
 
         # Check that the Episode's thumbnail is valid
         if not plex_episode.thumb:
-            log.warning(
+            log.warning((
                 f'{series_info} {episode_info} cannot use Plex image, this '
                 'episode does not have a valid thumbnail'
-            )
+            ))
             return None
 
         # If proxying, use API redirect URL; token will be embedded by endpoint
@@ -778,7 +776,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # pylint: disable=protected-access
         return (
-            f'{self.__server._baseurl}/{plex_episode.thumb}'
+            f'{self.__server._baseurl.removesuffix("/")}/{plex_episode.thumb}'
             f'?X-Plex-Token={self.__token}'
         )
 
