@@ -6,6 +6,7 @@ from secrets import token_hex
 from typing import Any
 
 from cryptography.fernet import Fernet
+from cryptography.fernet import InvalidToken
 from jose import jwt
 from passlib.context import CryptContext
 
@@ -57,7 +58,7 @@ def get_secret_key() -> bytes:
     if it exists, and generates a new one if it does not.
 
     Returns:
-        Secret key (as a hexstring).
+        Bytes of the secret key.
     """
 
     # File exists, read
@@ -124,7 +125,16 @@ def encrypt(plaintext: str) -> str:
         Encrypted text.
     """
 
-    return Fernet(get_secret_key()).encrypt(plaintext.encode()).decode()
+    try:
+        return Fernet(get_secret_key()).encrypt(plaintext.encode()).decode()
+    except InvalidToken:
+        log.exception('Invalid encryption key')
+        log.error((
+            f'Consider regenerating the encryption key by deleting the key file'
+            f' ({KEY_FILE.resolve()}), restarting the server, and then '
+            f're-entering your Connection details'
+        ))
+        return plaintext
 
 
 def decrypt(encrypted_text: str) -> str:    
@@ -138,7 +148,16 @@ def decrypt(encrypted_text: str) -> str:
         Plain decrypted text.
     """
 
-    return Fernet(get_secret_key()).decrypt(encrypted_text).decode()
+    try:
+        return Fernet(get_secret_key()).decrypt(encrypted_text).decode()
+    except InvalidToken:
+        log.exception('Invalid encryption key')
+        log.error((
+            f'Consider regenerating the encryption key by deleting the key file'
+            f' ({KEY_FILE.resolve()}), restarting the server, and then '
+            f're-entering your Connection details'
+        ))
+        return encrypted_text
 
 
 __all__ = (
