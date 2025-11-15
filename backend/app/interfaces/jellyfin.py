@@ -117,6 +117,7 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
                 system_info = self._session.get(
                     '/System/Info',
                     response_model=SystemInfo,
+                    log=log,
                 )
 
                 if not system_info:
