@@ -303,12 +303,27 @@ class ImageMagickInterface:
     def print_command_history(self, *, log: Logger = log) -> None:
         """Print the command history of this Interface."""
 
+        console = Console(width=100, record=True)
+
+        def pretty_print(command: str, stdout: bytes, stderr: bytes) -> None:
+            out, err = stdout.decode(), stderr.decode()
+
+            body = Text()
+            body.append('Command:\n', style='bold underline')
+            body.append(Text(command))
+            body.append('\n\n', style='reset')
+            body.append('Output:\n', style='bold underline')
+            body.append(Text(out or '(no stdout)', style='green'))
+            body.append('\n', style='reset')
+            body.append('Error:\n', style='bold underline')
+            body.append(Text(err or '(no stderr)', style='red'))
+
+            console.print(Panel(body, title=f'[bold]ImageMagick Command[/]'))
+
+            log.debug('\n' + console.export_text())
+
         for command, stdout, stderr in self.__history:
-            log.debug(
-                f'Command:\n{command}\n\n'
-                f'stdout:\n{stdout.decode()}\n\n'
-                f'stderr:\n{stderr.decode()}'
-            )
+            pretty_print(command, stdout, stderr)
 
 
     def get_image_dimensions(self, image: Path) -> Dimensions:
