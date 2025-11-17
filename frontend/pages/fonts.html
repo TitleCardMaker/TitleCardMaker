@@ -162,13 +162,9 @@
           </div>
 
           <div class="seven wide column" data-label="preview-form">
-            <button data-action="refresh" class="ui blue tertiary compact button">
-              <i class="redo icon"></i>
-              Refresh Preview
-            </button>
             <form data-value="preview-form" class="ui form">
               <div class="two fields">
-                <div class="eight wide field">
+                <div class="field">
                   <label>Preview Card Type</label>
                   <div class="ui clearable selection card-type dropdown" data-value="card_type">
                     <input name="card_type" type="hidden">
@@ -178,12 +174,21 @@
                   </div>
                 </div>
                 <div class="field">
-                  <label>Preview Title<a><i class="sort alphabet down icon"></i></a></label>
-                  <input name="title_text" placeholder="Example Title" value="Example Title">
+                  <label>Preview Title Text</label>
+                  <input name="title_text" type="text" placeholder="Episode Title">
+                </div>
+              </div>
+              <div class="field">
+                <label>Preview Episode</label>
+                <div class="ui search selection clearable dropdown episode-search" data-value="episode_id">
+                  <input name="episode_id" type="hidden">
+                  <i class="dropdown icon"></i>
+                  <div class="default text">Search Episodes..</div>
+                  <div class="menu"></div>
                 </div>
               </div>
             </form>
-            <div class="ui fluid raised card">
+            <div class="ui fluid raised card" title="Click to refresh">
               <div class="content">
                 <img alt="Preview Title Card" src="/public/blank.png">
               </div>

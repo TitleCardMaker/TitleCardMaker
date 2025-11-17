@@ -92,27 +92,54 @@ function deleteFont(font) {
 function reloadPreview(fontId, fontForm, previewForm, cardElement, imageElement) {
   const fontFormObj = new FormData(fontForm);
   const previewFormObj = new FormData(previewForm);
-  /** @type {PreviewTitleCard} */
-  const previewCardObj = {
-    card_type: previewFormObj.get('card_type') || '{{preferences.default_card_type}}',
-    title_text: previewFormObj.get('title_text'),
-    font_id: fontId,
-    font_title_case: fontFormObj.get('title_case'),
-    font_color: fontFormObj.get('color'),
-    font_interline_spacing: fontFormObj.get('interline_spacing'),
-    font_interword_spacing: fontFormObj.get('interword_spacing'),
-    font_kerning: fontFormObj.get('kerning') / 100.0,
-    font_size: fontFormObj.get('size') / 100.0,
-    font_stroke_width: fontFormObj.get('stroke_width') / 100.0,
-    font_vertical_shift: fontFormObj.get('vertical_shift'),
+  const episodeId = previewFormObj.get('episode_id');
+
+  // If no Episode has been selected, exit
+  if (!episodeId) {
+    showErrorToast({title: 'Select Episode to display preview of'});
+    return;
+  }
+
+  const updateFont = {
+    id: fontId,
+    title_case: fontFormObj.get('title_case') || undefined,
+    color: fontFormObj.get('color') || undefined,
+    interline_spacing: fontFormObj.get('interline_spacing') || undefined,
+    interword_spacing: fontFormObj.get('interword_spacing') || undefined,
+    kerning: fontFormObj.get('kerning') ? fontFormObj.get('kerning') / 100.0 : undefined,
+    size: fontFormObj.get('size') ? fontFormObj.get('size') / 100.0 : undefined,
+    stroke_width: fontFormObj.get('stroke_width') ? fontFormObj.get('stroke_width') / 100.0 : undefined,
+    vertical_shift: fontFormObj.get('vertical_shift') || undefined,
   };
+
+  const previewData = {
+    update_episode: {
+      font_id: fontId,
+      card_type: previewFormObj.get('card_type') || undefined,
+      title: previewFormObj.get('title_text') || undefined,
+    },
+    update_series: {},
+    update_font: updateFont,
+  };
+
+  // Remove undefined values
+  Object.keys(previewData.update_episode).forEach(key => {
+    if (previewData.update_episode[key] === undefined || previewData.update_episode[key] === '') {
+      delete previewData.update_episode[key];
+    }
+  });
+  Object.keys(updateFont).forEach(key => {
+    if (updateFont[key] === undefined || updateFont[key] === '') {
+      delete updateFont[key];
+    }
+  });
 
   // Submit API request
   cardElement.classList.add('loading');
   $.ajax({
     type: 'POST',
-    url: '/api/v2/cards/preview',
-    data: JSON.stringify(previewCardObj),
+    url: `/api/v2/cards/preview/episode/${episodeId}`,
+    data: JSON.stringify(previewData),
     contentType: 'application/json',
     /**
      * Preview created; update `imageElement.src`.
@@ -401,13 +428,34 @@ function populateFontElement(fontElement, font) {
   const fontForm = fontElement.querySelector('form[data-label="font-form"]');
   const previewForm =  fontElement.querySelector('form[data-value="preview-form"]');
   fontElement.querySelector('.card').onclick = () => reloadPreview(font.id, fontForm, previewForm, previewCard, previewImage);
-  fontElement.querySelector('.button[data-action="refresh"]').onclick = () => reloadPreview(font.id, fontForm, previewForm, previewCard, previewImage);
 
-  // Update title text + preview when a-z icon is clicked
-  const titleInput = fontElement.querySelector('form[data-value="preview-form"] input[name="title_text"]');
-  fontElement.querySelector('form[data-value="preview-form"] .field label a').onclick = () => {
-    titleInput.value = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\\nabcdefghijklmnopqrstuvwxyz';
-    reloadPreview(font.id, fontForm, previewForm, previewCard, previewImage);
+  // Initialize episode search dropdown
+  const episodeDropdown = fontElement.querySelector('.dropdown.episode-search');
+  if (episodeDropdown) {
+    $(episodeDropdown).dropdown({
+      clearable: true,
+      placeholder: 'Search for episode...',
+      fullTextSearch: true,
+      forceSelection: false,
+      apiSettings: {
+        url: '/api/v2/episodes/search?search={query}&page=1&limit=20',
+        onResponse: function(response) {
+          const items = response.items.map(episode => ({
+            name: `${episode.series.name} - ${episode.title} (S${episode.season_number.toString().padStart(2, '0')}E${episode.episode_number.toString().padStart(2, '0')})`,
+            value: episode.id,
+          }));
+          return {
+            success: true,
+            results: items,
+          };
+        },
+      },
+      minCharacters: 2,
+      onChange: function(value) {
+        // Refresh preview when episode is selected or cleared
+        reloadPreview(font.id, fontForm, previewForm, previewCard, previewImage);
+      },
+    });
   }
 
   return fontElement;
