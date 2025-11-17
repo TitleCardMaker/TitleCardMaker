@@ -155,6 +155,14 @@ function saveFontForm(fontId, eventTarget) {
     form.append($(val).attr('name'), $(val).is(':checked'));
   });
 
+  // Remove blank input relacements and their matching output replacements
+  listData.replacements_in.forEach((value, index) => {
+    if (value === '') {
+      listData.replacements_in.splice(index, 1);
+      listData.replacements_out.splice(index, 1);
+    }
+  });
+
   // Submit API request
   $.ajax({
     type: 'PATCH',
