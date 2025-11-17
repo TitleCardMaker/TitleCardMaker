@@ -4,7 +4,7 @@ from pathlib import Path
 from random import choices as random_choices
 from re import findall, compile as re_compile
 from shlex import split as command_split
-from string import hexdigits
+from string import hexdigits, whitespace
 from subprocess import Popen, PIPE, TimeoutExpired
 from typing import Annotated, ClassVar, Literal, NamedTuple, overload
 
@@ -671,3 +671,49 @@ class ImageMagickInterface:
             # Sort by the pixel count
             sorted(color_list, key=lambda c: c[0], reverse=True)[:colors]
         ]
+
+
+    def get_missing_characters(self,
+            file: Path,
+            chars: Iterable[str],
+        ) -> set[str]:
+        """
+        Get the subset of all characters in the given iterable that are
+        not contained in the given font file.
+
+        Args:
+            file: Path to the font file to check.
+            chars: Iterable of characters to check.
+
+        Returns:
+            Set of characters that are not contained in the font.
+        """
+
+        # Remove whitespace characters
+        chars = [char for char in chars if char not in whitespace]
+
+        # Get a space-separated list of comma-separated width and height
+        # values for each character - i.e. '50,50 10,10' - ImageMagick
+        # returns 1,1 if the font is not available
+        output = self.run_get_output(' '.join([
+            f'convert',
+            # Suppress warnings because IM displays a warning when a
+            # character is not contained in a label: generated font
+            f'-quiet',
+            f'-font "{file.resolve()}"',
+            f'-pointsize 100',
+            *[
+                f'label:"{self.escape_chars(char)}"'
+                for char in chars if char not in whitespace
+            ],
+            f'-trim',
+            f'-format "%w,%h "',
+            f'info:',
+        ]))
+        self.print_command_history()
+        return set(
+            char
+            for char, dimensions in zip(chars, output.split(' '))
+            if dimensions.strip() in ('0,0', '1,1')
+        )
+
