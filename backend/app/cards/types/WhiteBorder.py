@@ -91,7 +91,7 @@ class WhiteBorderTitleCard(BaseCardType):
     FRAME_IMAGE = REF_DIRECTORY / 'border.png'
 
     """Gradient image to overlay"""
-    __GRADIENT_IMAGE = REF_DIRECTORY.parent / 'gradient.png'
+    __GRADIENT_IMAGE = REF_DIRECTORY.parent / 'standard' / 'gradient.png'
 
     __slots__ = (
         'source_file',
