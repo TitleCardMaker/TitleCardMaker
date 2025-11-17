@@ -70,6 +70,7 @@ class PreviewFont(Base):
 Update classes
 """
 class UpdateNamedFont(Base):
+    id: int | None = None # This is never updated, but used for some ID matching
     name: MinimumLengthString = UNSPECIFIED
     color: str | None = UNSPECIFIED
     interline_spacing: int = UNSPECIFIED
@@ -82,14 +83,6 @@ class UpdateNamedFont(Base):
     stroke_width: float = UNSPECIFIED
     title_case: TitleCase | None = UNSPECIFIED
     vertical_shift: int = UNSPECIFIED
-
-    @validator('*', pre=True)
-    def validate_arguments(cls, v):
-        return None if v == '' else v
-
-    @validator('replacements_in', 'replacements_out', pre=True)
-    def validate_list(cls, v: str | list[str]) -> list[str]:
-        return [v] if isinstance(v, str) else v
 
     @model_validator(mode='after')
     def validate_paired_lists(self) -> Self:
