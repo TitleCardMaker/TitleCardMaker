@@ -268,8 +268,8 @@ def coerce_path(v: Path | Any) -> str | Any:
 
 class DefaultCardConfig(BaseModel):
     """
-    Base configuration class for card types. Card-specific Config classes
-    should inherit from this and override fields as needed.
+    Base configuration class for card types. Card-specific Config
+    classes should instantiate this class.
     
     This consolidates all user-facing default settings into a single
     configuration object for better organization and maintainability.
@@ -288,10 +288,10 @@ class DefaultCardConfig(BaseModel):
     """Character replacements to apply to text (e.g., Unicode → ASCII)"""
 
     title_max_line_width: Annotated[int, Field(ge=1)]
-    """Maximum width of one line of title text, in characters"""
+    """Maximum number of characters on one line of title text"""
 
     title_max_line_count: Annotated[int, Field(ge=1)]
-    """Maximum number of lines a title can take up, in total"""
+    """Maximum number of lines a title can take up"""
 
     title_split_style: SplitStyle
     """How to dynamically split title text into multiple lines"""

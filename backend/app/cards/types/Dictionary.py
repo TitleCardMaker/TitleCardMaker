@@ -2,9 +2,6 @@ from pathlib import Path
 from re import compile as re_compile
 from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Self
 
-from app.cards.title import split_into_lines
-from app.logging.logger import Logger, log
-from app.utils.fstring import FormatString
 from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.cards.base import (
@@ -20,12 +17,15 @@ from app.cards.base import (
     Rectangle,
     add_cli,
 )
+from app.cards.title import split_into_lines
+from app.logging.logger import Logger, log
 from app.schemas.base import (
     BaseCardModel,
     BaseCardTypeAllText,
     FontSize,
     ShadowDefinition,
 )
+from app.utils.fstring import FormatString
 
 if TYPE_CHECKING:
     from app.info.episode import EpisodeInfo
@@ -364,7 +364,7 @@ class DictionaryTitleCard(BaseCardType):
             episode_description: str = '{episode_description}',
             tmdb_interface: 'TMDbInterface | None' = None,
             log: Logger = log,
-            **kwargs: Any,
+            **unused: Any,
         ) -> dict[str, Any]:
         """
         Enrich the card data with an episode description from TMDb.
@@ -375,18 +375,16 @@ class DictionaryTitleCard(BaseCardType):
             episode_description: The value of the episode description
                 extra.
             tmdb_interface: TMDbInterface if available, None otherwise.
-            **kwargs: Additional optional parameters.
 
         Returns:
-            Dictionary of additional data to merge into card_settings.
+            Dictionary of additional data to merge into `card_settings`.
         """
 
         description = ''
 
         # If the episode description is a format string, query
-        if ('{' in episode_description
-            and '}' in episode_description
-            and 'episode_description' in episode_description
+        if (all(char in episode_description
+                for char in ('{', '}', 'episode_description'))
             and tmdb_interface # TMDb is required to query description
         ):
             description = tmdb_interface.get_episode_description(
