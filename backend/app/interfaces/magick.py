@@ -9,6 +9,9 @@ from subprocess import Popen, PIPE, TimeoutExpired
 from typing import Annotated, ClassVar, Literal, NamedTuple, overload
 
 from imagesize import get as im_get
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
 
 from app.logging.logger import Logger, log
 
@@ -259,18 +262,23 @@ class ImageMagickInterface:
         return stdout, stderr
 
 
-    def run_get_output(self, command: str) -> str:
+    def run_get_output(self, command: str, *, stdout_only: bool = False) -> str:
         """
         Wrapper for `run()`, but return the byte-decoded stdout.
 
         Args:
             command: The command (as string) being executed.
+            stdout_only: Whether to return only the stdout output.
 
         Returns:
             The decoded stdout output of the executed command.
         """
 
         output = self.run(command)
+
+        # If only stdout is needed, remove stderr
+        if stdout_only:
+            output = output[0], bytes()
 
         try:
             return b''.join(output).decode()
@@ -692,28 +700,40 @@ class ImageMagickInterface:
         # Remove whitespace characters
         chars = [char for char in chars if char not in whitespace]
 
-        # Get a space-separated list of comma-separated width and height
-        # values for each character - i.e. '50,50 10,10' - ImageMagick
-        # returns 1,1 if the font is not available
-        output = self.run_get_output(' '.join([
-            f'convert',
-            # Suppress warnings because IM displays a warning when a
-            # character is not contained in a label: generated font
-            f'-quiet',
-            f'-font "{file.resolve()}"',
-            f'-pointsize 100',
-            *[
-                f'label:"{self.escape_chars(char)}"'
-                for char in chars if char not in whitespace
-            ],
-            f'-trim',
-            f'-format "%w,%h "',
-            f'info:',
-        ]))
-        self.print_command_history()
-        return set(
-            char
-            for char, dimensions in zip(chars, output.split(' '))
-            if dimensions.strip() in ('0,0', '1,1')
+        def label(text: str, /) -> str:
+            for char in ['\\', "'", '"']:
+                text = text.replace(char, '\\' + char)
+            if '\\\\' in text: # Use single quotes if backslash is present
+                return f"label:'{text}'"
+            return f'label:"{text}"'
+
+        # Get a line-separated list of the character and the comma-
+        # separated width and height of that character - i.e.
+        # 'A 50,50' - ImageMagick returns 1,1 if the character
+        # is not defined in the fontmap
+        output = self.run_get_output(
+            ' '.join([
+                f'convert',
+                # Suppress warnings because IM displays a warning when a
+                # character is not contained in a label: generated font
+                f'-quiet',
+                f'-font "{file.resolve()}"',
+                f'-pointsize 100',
+                *[label(char) for char in chars],
+                f'-trim',
+                # Print "text width,height" on each line
+                fr'-format "%l %w,%h\n"',
+                f'info:',
+            ]),
+            # stderr contains warnings which are not relevant
+            stdout_only=True
         )
 
+        log.trace(f'Measured the dimensions of {len(chars)} characters')
+
+        return set(
+            char
+            for line in output.splitlines()
+            for char, dimensions in [line.split(' ')]
+            if dimensions.strip() in ('0,0', '1,1')
+        )
