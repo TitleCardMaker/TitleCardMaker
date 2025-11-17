@@ -178,7 +178,11 @@ function queryForLogs(page=1) {
         if (message.exception_traceback) {
           row.querySelector('[data-value="message"]').classList.add('code');
           row.querySelector('[data-value="message"]').innerText = message.message + '\n\n' + message.exception_traceback;
-        } else if (message.message.startsWith('Internal Server Error') || message.message.includes('Traceback (most recent call last)')) {
+        } else if (
+          message.message.startsWith('Internal Server Error')
+          || message.message.includes('─ ImageMagick Command ─')
+          || message.message.includes('Traceback (most recent call last)')
+        ) {
           row.querySelector('[data-value="message"]').classList.add('code');
           row.querySelector('[data-value="message"]').innerText = message.message;
         } else {
