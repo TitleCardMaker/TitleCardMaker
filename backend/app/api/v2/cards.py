@@ -58,7 +58,7 @@ from app.schemas.card import (
     TitleCardReduced,
 )
 from app.schemas.episode import UpdateEpisode
-from app.schemas.font import DefaultFont
+from app.schemas.font import DefaultFont, UpdateNamedFont
 from app.schemas.series import UpdateSeries
 from app.settings import settings
 from app.utils.fstring import FormatString
@@ -74,7 +74,7 @@ card_router = APIRouter(
 )
 
 
-@card_router.post('/preview')
+@card_router.post('/preview', deprecated=True)
 def create_preview_card(
         card: PreviewTitleCard = Body(...),
         db: Session = Depends(get_database),
@@ -209,6 +209,7 @@ def create_preview_card_for_episode(
         episode_id: int,
         update_episode: UpdateEpisode = Body(...),
         update_series: UpdateSeries = Body(...),
+        update_font: UpdateNamedFont | None = Body(default=None),
         query_watched_statuses: bool = Query(default=False),
         db: Session = Depends(get_database),
         log: Logger = Depends(get_logger),
@@ -228,8 +229,16 @@ def create_preview_card_for_episode(
     # Raise exception if Template IDs are part of update object; cannot
     # be reflected in the live preview because relationship objects will
     # not be reflected until a database commit
-    if (getattr(update_episode, 'template_ids', []) != episode.template_ids or
-        getattr(update_series,'template_ids',[]) !=episode.series.template_ids):
+    e_dict = update_episode.model_dump(exclude_unset=True)
+    s_dict = update_series.model_dump(exclude_unset=True)
+    if ((
+            e_dict.get('template_ids') is not None
+            and e_dict.get('template_ids') != episode.template_ids
+        ) or (
+            s_dict.get('template_ids') is not None
+            and s_dict.get('template_ids') != episode.series.template_ids
+        )
+    ):
         raise HTTPException(
             status_code=422,
             detail=(
@@ -241,11 +250,22 @@ def create_preview_card_for_episode(
     update_episode_config(db, episode, update_episode, log=log)
     update_series_config(db, episode.series, update_series, commit=False, log=log)
 
+    # Update Font if indicated
+    if update_font is not None and update_font.id is not None:
+        font = get_font(db, update_font.id, raise_exc=True)
+        for attribute, value in update_font.model_dump(exclude_unset=True).items():
+            if getattr(font, attribute) != value:
+                setattr(font, attribute, value)
+                log.debug(f'Font[{font.id}].{attribute} = {value}')
+
     # Set watch status(es) of the Episode
     if query_watched_statuses:
         get_watched_statuses(db, episode.series, [episode], log=log)
 
     # Determine appropriate Source and Output file
+    if not (source := episode.get_source_file('unique')).exists():
+        source = INTERNAL_ASSET_DIRECTORY / 'preview' / 'unique.jpg'
+    episode.source_file = str(source)
     output = (
         INTERNAL_ASSET_DIRECTORY
         / 'preview'
@@ -253,11 +273,12 @@ def create_preview_card_for_episode(
     )
     output.unlink(missing_ok=True)
 
-    # Create Card for this Episode
+    # If a library is available, use the first one
     library = None
     if episode.series.libraries:
         library = episode.series.libraries[0]
 
+    # Create Card for this Episode
     try:
         card_settings = resolve_card_settings(episode, library, log=log)
         card_settings['card_file'] = output
