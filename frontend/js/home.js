@@ -744,7 +744,7 @@ function addTab(filter=null, active=false) {
   document.querySelector('#filter-modal .content').appendChild(newTab);
 
   // Activate tab if needed
-  if (active) { $('#filter-modal .ui.tab').tab('change tab', 'tab' + tabNumber); }
+  if (active) { $('#filter-modal .menu .item').tab('change tab', 'tab' + tabNumber); }
 
   const tabs = document.querySelectorAll('#filter-modal .content .tab.segment');
   return tabs[tabs.length - 1];
