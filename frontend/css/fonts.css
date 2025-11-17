@@ -7,6 +7,7 @@
 img {
   max-width: 100%;
 }
+
 /* Make sure card loader is below the search bar and dropdown */
 .ui.loading.card::before {
   z-index: 10;
@@ -15,4 +16,9 @@ img {
 /* Reduce opacity of font file prefix text */
 .field label[data-value="file"] span.prefix {
   opacity: 50%;
+}
+
+/* Make the preview card appear clickable */
+[data-label="preview-form"] .card {
+  cursor: pointer;
 }
