@@ -179,7 +179,7 @@ def update_font(
 
     # Update other attributes
     changed = False
-    for attribute, value in update_font.model_dump().items():
+    for attribute, value in update_font.model_dump(exclude_unset=True).items():
         if getattr(font, attribute) != value:
             setattr(font, attribute, value)
             changed = True
@@ -281,37 +281,46 @@ def get_suggested_font_replacements(
         titles = (
             # Episode titles using this Font
             set(episode.title for episode in font.episodes)
-            | set( # Translated titles using this Font
+            | set(
+                # Translated titles using this Font
                 translation
                 for episode in font.episodes
                 for key, translation in episode.translations.items()
                 if key == 'preferred_title'
-            ) | set( # Episode titles of Series using this Font
+            ) | set(
+                # Episode titles of Series using this Font
                 episode.title
                 for series in font.series
                 for episode in series.episodes
-            ) | set( # Translated titles of Series using this Font
+            ) | set(
+                # Translated titles of Series using this Font
                 translation
                 for series in font.series
                 for episode in series.episodes
                 for key, translation in episode.translations.items()
                 if key == 'preferred_title'
-            ) | set( # Episode titles using Templates using this Font
+            ) | set(
+                # Episode titles using Templates using this Font
                 episode.title
                 for template in font.templates
                 for episode in template.episodes
-            ) | set( # Translated titles of Templates using this Font
+            ) | set(
+                # Translated titles of Templates using this Font
                 translation
                 for template in font.templates
                 for episode in template.episodes
                 for key, translation in episode.translations.items()
                 if key == 'preferred_title'
-            ) | set( # Episode titles whose Series are using Templates using this Font
+            ) | set(
+                # Episode titles whose Series are using Templates using
+                # this Font
                 episode.title
                 for template in font.templates
                 for series in template.series
                 for episode in series.episodes
-            ) | set( # Translated titles of Episodes of Series using Templates using this Font
+            ) | set(
+                # Translated titles of Episodes of Series using
+                # Templates using this Font
                 translation
                 for template in font.templates
                 for series in template.series
