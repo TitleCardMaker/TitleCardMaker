@@ -237,7 +237,9 @@ titlecase = register_builtin()(titlecase)
 
 __BUILTIN_VARIABLES: dict[str, str] = {
     'NEWLINE': '\n',
-    'BACKSLASH': '\\'
+    'BACKSLASH': '\\',
+    'OPEN_BRACKET': '}',
+    'CLOSE_BRACKET': '}',
 }
 __BUILTIN_TYPES = {'dict': dict, 'len': len, 'locals': locals}
 _BUILTINS = __BUILTIN_FUNCTIONS | __BUILTIN_VARIABLES | __BUILTIN_TYPES
