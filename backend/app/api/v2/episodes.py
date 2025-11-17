@@ -8,7 +8,8 @@ from fastapi import (
     Query,
 )
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy import or_
+from sqlalchemy.orm import Session, joinedload, load_only
 
 from app.core.cards import delete_cards, refresh_remote_card_types
 from app.core.episodes import (
@@ -49,6 +50,7 @@ from app.schemas.episode import (
     EpisodeOverview,
     ExtendedEpisodeData,
     NewEpisode,
+    ReducedEpisodeData,
     SimplifiedEpisodeData,
     UpdateEpisode
 )
@@ -112,6 +114,49 @@ def get_episode_by_id(
     """
 
     return get_episode(db, episode_id, raise_exc=True)
+
+
+@episodes_router.get('/search')
+def search_episodes(
+        search: str = Query(..., min_length=1),
+        db: Session = Depends(get_database),
+    ) -> Page[ReducedEpisodeData]: # type: ignore
+    """
+    Search for Episodes by Series name OR Episode title.
+
+    - search: Search string to query against Series name or Episode title.
+    """
+
+    # Query episodes with a join to Series
+    query = (
+        db.query(EpisodeModel)
+            .options(
+                load_only(
+                    EpisodeModel.id,
+                    EpisodeModel.series_id,
+                    EpisodeModel.season_number,
+                    EpisodeModel.episode_number,
+                    EpisodeModel.title,
+                ),
+                joinedload(EpisodeModel.series).load_only(
+                    Series.name,
+                ),
+            )
+            .join(Series)
+            .filter(
+                or_(
+                    EpisodeModel.title.ilike(f'%{search}%'),
+                    Series.name.ilike(f'%{search}%'),
+                )
+            )
+            .order_by(
+                Series.sort_name,
+                EpisodeModel.season_number,
+                EpisodeModel.episode_number,
+            )
+    )
+
+    return paginate(query)
 
 
 @episodes_router.delete('/episode/{episode_id}')
