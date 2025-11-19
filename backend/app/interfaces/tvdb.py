@@ -820,12 +820,17 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
 
-    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
+    def get_series_logo(self,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> str | None:
         """
         Get the best logo for the given series.
 
         Args:
             series_info: Series to get the logo of.
+            log: Logger for all log messages.
 
         Returns:
             URL to the 'best' logo for the given series, and None if no

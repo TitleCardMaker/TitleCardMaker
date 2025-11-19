@@ -380,7 +380,11 @@ class TestingTMDBInterface:
 
         return []
 
-    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
+    def get_series_logo(self,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> str | None:
         if series_info.name == 'Mr. Robot':
             return (
                 'https://image.tmdb.org/t/p/'
@@ -1413,12 +1417,17 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     @testing_override(TestingTMDBInterface.get_series_logo)
     @catch_and_log('Error getting series logo', default=None)
-    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
+    def get_series_logo(self,
+            series_info: SeriesInfo,
+            *,
+            log: Logger = log,
+        ) -> str | None:
         """
         Get the best logo for the given series.
 
         Args:
             series_info: Series to get the logo of.
+            log: Logger for all log messages.
 
         Returns:
             URL to the 'best' logo for the given series, and None if no

@@ -218,6 +218,7 @@ def download_series_logo(
     for interface_id in image_source_priority:
         # Skip if there is no interface for this ID
         if not (interface := get_interface(interface_id, raise_exc=False)):
+            log.trace(f'Skipping Interface[{interface_id}] - not found')
             continue
 
         # Skip interfaces which cannot provide logos
@@ -230,22 +231,21 @@ def download_series_logo(
 
         # Handle TMDb and TVDb separately
         if isinstance(interface, (TMDbInterface, TVDbInterface)):
-            logo = interface.get_series_logo(series.as_series_info)
-            continue
+            logo = interface.get_series_logo(series.as_series_info, log=log)
+        else:
+            # Go through each library of this interface
+            for _, library in series.get_libraries(interface_id):
+                # Stop when a logo has been found
+                if logo:
+                    break
 
-        # Go through each library of this interface
-        for _, library in series.get_libraries(interface_id):
-            # Stop when a logo has been found
-            if logo:
-                break
-
-            try:
-                logo = interface.get_series_logo(
-                    library, series.as_series_info, log=log
-                )
-            except Exception:
-                log.exception('Error downloading logo')
-                continue
+                try:
+                    logo = interface.get_series_logo(
+                        library, series.as_series_info, log=log
+                    )
+                except Exception:
+                    log.exception('Error downloading logo')
+                    continue
 
         # If no logo was returned, move on to next image source
         if logo is None:
