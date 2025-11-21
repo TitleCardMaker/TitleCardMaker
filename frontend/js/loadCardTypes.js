@@ -51,7 +51,7 @@ async function loadCardTypes(args) {
         value: identifier,
         text: identifier,
         selected: selected,
-        description: creators[0],
+        description: creators.join(', '),
         descriptionVertical: true,
       });
     }
