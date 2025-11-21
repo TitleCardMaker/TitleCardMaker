@@ -39,7 +39,7 @@ from app.dependencies import (
     get_tmdb_interfaces,
     get_tvdb_interfaces
 )
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.loaded import Loaded
@@ -150,13 +150,10 @@ ConditionExpressionFunctions: dict[str, _FilterFunction] = {
 }
 
 
-def set_all_series_ids(*, log: Logger = log) -> None:
+def set_all_series_ids() -> None:
     """
     Schedule-able function to set any missing Series ID's for all Series
     in the Database.
-
-    Args:
-        log: Logger for all log messages.
     """
 
     with next(get_database()) as db:
@@ -165,7 +162,7 @@ def set_all_series_ids(*, log: Logger = log) -> None:
         for series in db.query(Series).filter(Series.status != 'disabled').all():
             try:
                 changed |= set_series_database_ids(
-                    series, db, commit=False, log=log,
+                    series, db, commit=False,
                 )
             except HTTPException:
                 log.exception(f'{series} skipping ID assignment')
@@ -176,13 +173,10 @@ def set_all_series_ids(*, log: Logger = log) -> None:
             db.commit()
 
 
-def load_all_media_servers(*, log: Logger = log) -> None:
+def load_all_media_servers() -> None:
     """
     Schedule-able function to load all Title Cards in the Database to
     the media servers.
-
-    Args:
-        log: Logger for all log messages.
     """
 
     with next(get_database()) as db:
@@ -196,7 +190,7 @@ def load_all_media_servers(*, log: Logger = log) -> None:
 
             # Load Title Cards for this Series
             try:
-                load_all_series_title_cards(series, db, log=log)
+                load_all_series_title_cards(series, db)
             except HTTPException:
                 log.warning(f'{series} Skipping Title Card loading')
                 continue
@@ -208,20 +202,17 @@ def load_all_media_servers(*, log: Logger = log) -> None:
                 sleep(30)
 
 
-def download_all_series_posters(*, log: Logger = log) -> None:
+def download_all_series_posters() -> None:
     """
     Schedule-able function to download all posters for all monitored
     Series in the Database.
-
-    Args:
-        log: Logger for all log messages.
     """
 
     with next(get_database()) as db:
         # Get all Series
         for series in db.query(Series).all():
             try:
-                download_series_poster(db, series, log=log)
+                download_series_poster(db, series)
             except HTTPException:
                 log.exception(f'{series} skipping poster selection')
                 continue
@@ -232,7 +223,6 @@ def set_series_database_ids(
         db: Session,
         *,
         commit: bool = True,
-        log: Logger = log,
     ) -> bool:
     """
     Set the database ID's of the given Series.
@@ -241,7 +231,6 @@ def set_series_database_ids(
         series: Series to set the ID's of.
         db: Database to commit changes to.
         commit: Whether to commit changes after setting any ID's.
-        log: Logger for all log messages.
 
     Returns:
         Whether the Series was modified.
@@ -252,13 +241,13 @@ def set_series_database_ids(
     for library in series.libraries:
         interface = get_interface(library['interface_id'], raise_exc=False)
         if interface:
-            interface.set_series_ids(library['name'], series_info, log=log)
+            interface.set_series_ids(library['name'], series_info)
     for _, interface in get_sonarr_interfaces():
-        interface.set_series_ids('', series_info, log=log)
+        interface.set_series_ids('', series_info)
     for _, interface in get_tmdb_interfaces():
-        interface.set_series_ids('', series_info, log=log)
+        interface.set_series_ids('', series_info)
     for _, interface in get_tvdb_interfaces():
-        interface.set_series_ids('', series_info, log=log)
+        interface.set_series_ids('', series_info)
 
     # Update Series with new IDs
     if (changed := series.set_ids_from_series_info(series_info)) and commit:
@@ -270,8 +259,6 @@ def set_series_database_ids(
 def download_series_poster(
         db: Session,
         series: Series,
-        *,
-        log: Logger = log,
     ) -> None:
     """
     Download the poster for the given Series.
@@ -279,7 +266,6 @@ def download_series_poster(
     Args:
         db: Database to commit any changes to.
         series: Series to download the poster of.
-        log: Logger for all log messages.
     """
 
     # If Series poster exists and is not a placeholder, return
@@ -302,7 +288,7 @@ def download_series_poster(
         if interface:
             try:
                 poster = interface.get_series_poster(
-                    library['name'], series_info, log=log
+                    library['name'], series_info
                 )
             except Exception:
                 log.exception('Error downloading poster')
@@ -315,7 +301,7 @@ def download_series_poster(
     # If no poster was returned, download from TMDb
     if poster is None:
         for _, interface in get_tmdb_interfaces():
-            if (poster := interface.get_series_poster(series_info, log=log)):
+            if (poster := interface.get_series_poster(series_info)):
                 break
 
     # If no posters were returned, log and exit
@@ -374,8 +360,6 @@ def process_series(
         db: Session,
         series: Series,
         background_tasks: BackgroundTasks,
-        *,
-        log: Logger = log,
     ) -> None:
     """
     Completely process the given Series. This does all Title-Card tasks
@@ -385,7 +369,6 @@ def process_series(
         db: Database connection.
         series: Series being processed.
         background_tasks: BackgroundTasks to queue processing into.
-        log: Logger for all log messages.
     """
 
     # Nothing to process if disabled
@@ -397,10 +380,10 @@ def process_series(
     # Refresh episode data
     if series.status == 'monitored':
         log.debug(f'{series} Started refreshing Episode data')
-        refresh_episode_data(db, series, log=log)
+        refresh_episode_data(db, series)
 
     # Update watch statuses
-    get_watched_statuses(db, series, series.episodes, log=log)
+    get_watched_statuses(db, series, series.episodes)
 
     # Begin downloading Source images
     if series.status == 'monitored':
@@ -408,7 +391,7 @@ def process_series(
         for episode in series.episodes:
             background_tasks.add_task(
                 download_episode_source_images,
-                db, episode, raise_exc=False, log=log,
+                db, episode, raise_exc=False,
             )
 
     # Begin Episode translation
@@ -417,7 +400,7 @@ def process_series(
         for episode in series.episodes:
             background_tasks.add_task(
                 translate_episode,
-                db, episode, commit=True, log=log,
+                db, episode, commit=True,
             )
 
     # Begin Card creation
@@ -425,7 +408,7 @@ def process_series(
     for episode in series.episodes:
         background_tasks.add_task(
             create_episode_cards,
-            db, episode, raise_exc=False, log=log
+            db, episode, raise_exc=False
         )
 
     return None
@@ -437,7 +420,6 @@ def update_series_config(
         update_series: UpdateSeries,
         *,
         commit: bool = True,
-        log: Logger = log,
     ) -> bool:
     """
     Update the given Series with the changes defined in update_series.
@@ -449,7 +431,6 @@ def update_series_config(
         series: Series to modify.
         update_series: Object defining changes to make to the Series.
         commit: Whether to commit any changes to the database.
-        log: Logger for all log messages.
 
     Returns:
         Whether the given Series was modified.
@@ -469,7 +450,7 @@ def update_series_config(
         not in (None, UNSPECIFIED)):
         if series.template_ids != template_ids:
             templates = get_all_templates(db, template_ids)
-            series.assign_templates(templates, log=log)
+            series.assign_templates(templates)
             changed = True
 
     # Update each attribute of the object
@@ -486,18 +467,17 @@ def update_series_config(
     if changed:
         if commit:
             db.commit()
-        refresh_remote_card_types(db, log=log)
+        refresh_remote_card_types(db)
 
     return changed
 
 
-def _delete_folder(folder: Path, *, log: Logger = log) -> None:
+def _delete_folder(folder: Path) -> None:
     """
     Recursively delete all subcontent of the provided folder.
 
     Args:
         folder: Folder to iterate through and delete.
-        log: Logger for all log messages.
     """
 
     if folder.is_file():
@@ -505,7 +485,7 @@ def _delete_folder(folder: Path, *, log: Logger = log) -> None:
 
     for item in folder.iterdir():
         if item.is_dir():
-            _delete_folder(item, log=log)
+            _delete_folder(item)
         else:
             item.unlink(missing_ok=True)
             log.trace(f'Deleting "{item}"')
@@ -518,7 +498,6 @@ def delete_series(
         series: Series,
         *,
         commit_changes: bool = True,
-        log: Logger = log,
     ) -> None:
     """
     Delete the given Series, poster, and all child (Episode, Card, and
@@ -528,7 +507,6 @@ def delete_series(
         db: Database to commit any deletion to.
         series: Series to delete.
         commit_changes: Whether to commit Database changes.
-        log: Logger for all log messages.
     """
 
     # Delete poster if not the placeholder
@@ -541,7 +519,7 @@ def delete_series(
 
     # Delete Source directory (and files) if necessary
     if settings.completely_delete_series:
-        _delete_folder(series.source_directory, log=log)
+        _delete_folder(series.source_directory)
 
     # If all Cards have been deleted, delete the card directory
     if (series.card_directory.exists()
@@ -566,7 +544,6 @@ def load_series_title_cards(
         force_reload: bool = False,
         *,
         episodes: list[Episode] | None = None,
-        log: Logger = log,
     ) -> None:
     """
     Load the Title Cards for the given Series into the associated
@@ -585,7 +562,6 @@ def load_series_title_cards(
             are detected.
         episodes: Subset of Episodes to load the Title Cards of. If
             omitted, all Episodes are loaded.
-        log: Logger for all log messages.
     """
 
     # Get list of Episodes to reload
@@ -652,7 +628,7 @@ def load_series_title_cards(
 
     # Load into indicated interface
     loaded_assets = interface.load_title_cards(
-        library_name, series.as_series_info, episodes_to_load, log=log,
+        library_name, series.as_series_info, episodes_to_load,
     )
 
     # Update database with loaded entries
@@ -687,7 +663,6 @@ def load_all_series_title_cards(
         *,
         episodes: list[Episode] | None = None,
         raise_exc: bool = True,
-        log: Logger = log,
     ) -> None:
     """
     Load the Title Cards for the given Series into all the Series
@@ -703,7 +678,6 @@ def load_all_series_title_cards(
             omitted, all Episodes are loaded.
         raise_exc: Whether to raise an HTTPException if a Connection
             associated with a library is invalid.
-        log: Logger for all log messages.
     """
 
     # Load into each assigned library
@@ -712,7 +686,7 @@ def load_all_series_title_cards(
         if (interface := get_media_interface(interface_id)):
             load_series_title_cards(
                 series, library['name'], interface_id, db, interface,
-                force_reload=force_reload, episodes=episodes, log=log,
+                force_reload=force_reload, episodes=episodes,
             )
         elif raise_exc:
             raise HTTPException(
@@ -729,7 +703,6 @@ def load_episode_title_card(
         interface: EmbyInterface | JellyfinInterface | PlexInterface,
         *,
         attempts: int = 1,
-        log: Logger = log,
     ) -> bool | None:
     """
     Load the Title Card for the given Episode into the indicated media
@@ -742,7 +715,6 @@ def load_episode_title_card(
         media_server: Which media server to load Title Cards into.
         interface: Interface to load Title Cards into.
         attempts: How many times to attempt loading the given Card.
-        log: Logger for all log messages.
 
     Returns:
         Whether the Episode's Card was loaded or not. None if there is
@@ -790,7 +762,6 @@ def load_episode_title_card(
             library_name,
             episode.series.as_series_info,
             [(episode, card)],
-            log=log,
         )
         if loaded_assets:
             break
@@ -824,7 +795,6 @@ def load_title_card(
         interface: EmbyInterface | JellyfinInterface | PlexInterface,
         *,
         uid: int | str | None = None,
-        log: Logger = log,
     ) -> bool:
     """
     Load the Title Card for the given Episode into the indicated media
@@ -838,7 +808,6 @@ def load_title_card(
         interface: Interface to load Title Cards into.
         uid: Optional unique ID for for loading to a specific item in
             the indicated Interface.
-        log: Logger for all log messages.
 
     Returns:
         Whether the Card was loaded or not.
@@ -870,7 +839,6 @@ def load_title_card(
         library_name,
         card.episode.series.as_series_info,
         [target], # type: ignore
-        log=log,
     )
 
     # Card not loaded, exit
@@ -895,8 +863,6 @@ def add_series(
         new_series: NewSeries,
         background_tasks: BackgroundTasks | None,
         db: Session,
-        *,
-        log: Logger = log,
     ) -> Series:
     """
     Add the given NewSeries object to the database, and then perform all
@@ -908,7 +874,6 @@ def add_series(
         background_tasks: BackgroundTasks to add the Episode data
             refresh task to.
         db: Database to add the Series to.
-        log: Logger for all log messages.
 
     Returns:
         The Created Series.
@@ -942,31 +907,34 @@ def add_series(
     log.info(f'Added {series} to database')
 
     # Assign Templates
-    series.assign_templates(templates, log=log)
+    series.assign_templates(templates)
     db.commit()
 
     # Create source directory if DNE
     series.source_directory.mkdir(parents=True, exist_ok=True)
 
     try:
-        set_series_database_ids(series, db, log=log)
-        download_series_poster(db, series, log=log)
-        download_series_logo(series, log=log)
+        log.trace(f'{series} - setting database IDs')
+        set_series_database_ids(series, db)
+        log.trace(f'{series} - downloading poster')
+        download_series_poster(db, series)
+        log.trace(f'{series} - downloading logo')
+        download_series_logo(series)
     except Exception:
         log.exception(f'{series} - skipping processing')
 
     # Refresh card types in case new remote type was specified
-    refresh_remote_card_types(db, reset=False, log=log)
+    refresh_remote_card_types(db, reset=False)
 
     # Refresh Episode data
     if series.status == 'monitored':
         if background_tasks:
             background_tasks.add_task(
                 refresh_episode_data,
-                db, series, log=log,
+                db, series,
             )
         else:
-            refresh_episode_data(db, series, log=log)
+            refresh_episode_data(db, series)
 
     return series
 
@@ -977,7 +945,6 @@ def lookup_series(
         name: str,
         *,
         max_results: int = 25,
-        log: Logger = log,
     ) -> list[SearchResult]:
     """
     Get all the search results for the given name on the given
@@ -988,7 +955,6 @@ def lookup_series(
         interface: Interface to query for results.
         name: Name of the Series being looked up.
         max_results: Maximum number of results to return.
-        log: Logger for all log messages.
 
     Returns:
         Search results from the specified Interface for the given
@@ -996,7 +962,7 @@ def lookup_series(
     """
 
     # Query Interface
-    results = interface.query_series(name, log=log)[:max_results]
+    results = interface.query_series(name)[:max_results]
 
     # Update added attribute(s)
     for result in results:
@@ -1017,8 +983,6 @@ def apply_filter(
         db: Session,
         query: Query[Series],
         filter: SeriesFilter | None,
-        *,
-        log: Logger = log,
     ) -> Query[Series]:
     """
     Apply the given set of filters to the provided query.
@@ -1028,7 +992,6 @@ def apply_filter(
         query: Query of Series to modify.
         filter: Optional filter to apply. May include any number of
             conditions, which will be applied in order.
-        log: Logger for all log messages.
 
     Returns:
         A modified query (`query`) with the indicated filter conditions
@@ -1096,7 +1059,6 @@ def query_and_filter_series(
         *,
         order_by: SeriesOrder,
         extended: bool,
-        log: Logger = log,
     ) -> list[SeriesOverview] | list[SeriesOverviewWithCounts]:
     """
     Query for Series which match the given filter, ordering the results
@@ -1109,7 +1071,6 @@ def query_and_filter_series(
         extended: Whether to return extended data. This is not used
             explicity, but is used in the cache key to differentiate
             between the two types of queries.
-        log: Logger for all log messages.
 
     Returns:
         Paginated overview of all matching Series.
@@ -1180,7 +1141,7 @@ def query_and_filter_series(
             )
         )
 
-    query = apply_filter(db, query, filter, log=log)
+    query = apply_filter(db, query, filter)
 
     # Order associated query
     sub_query = query

@@ -4,11 +4,11 @@ from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
-from app.db.query import get_all_templates, get_interface
-from app.dependencies import get_database
 from app.core.cards import delete_cards
 from app.core.series import add_series, delete_series
-from app.logging.logger import Logger, log
+from app.db.query import get_all_templates, get_interface
+from app.dependencies import get_database
+from app.logging.logger import log
 from app.models.card import Card
 from app.models.connection import Connection
 from app.models.loaded import Loaded
@@ -26,12 +26,9 @@ from app.settings import settings
 CURRENTLY_RUNNING_SYNC: int | None = None
 
 
-def sync_all(*, log: Logger = log) -> None:
+def sync_all() -> None:
     """
     Schedule-able function to run all defined Syncs in the Database.
-
-    Args:
-        log: Logger for all log messages.
     """
 
     global CURRENTLY_RUNNING_SYNC
@@ -51,7 +48,7 @@ def sync_all(*, log: Logger = log) -> None:
         # Run each Sync
         for sync in syncs:
             try:
-                run_sync(db, sync, log=log)
+                run_sync(db, sync)
             except HTTPException as exc:
                 log.exception(f'{sync} Error Syncing - {exc.detail}')
             except OperationalError:
@@ -71,10 +68,9 @@ def sync_all(*, log: Logger = log) -> None:
                     db.query(Card).filter_by(series_id=series.id),
                     db.query(Loaded).filter_by(series_id=series.id),
                     commit=False,
-                    log=log,
                 )
                 # Delete Series itself
-                delete_series(db, series, commit_changes=False, log=log)
+                delete_series(db, series, commit_changes=False)
             db.commit()
 
     CURRENTLY_RUNNING_SYNC = None
@@ -83,8 +79,6 @@ def sync_all(*, log: Logger = log) -> None:
 def add_sync(
         db: Session,
         new_sync: NewEmbySync | NewJellyfinSync | NewPlexSync | NewSonarrSync,
-        *,
-        log: Logger = log,
     ) -> Sync:
     """
     Add the given Sync to the database.
@@ -92,7 +86,6 @@ def add_sync(
     Args:
         db: Database to query for Templates and add the Sync to.
         new_sync: New Sync definition to add to the database.
-        log: Logger for all log messages.
 
     Returns:
         Newly created Sync object.
@@ -108,7 +101,7 @@ def add_sync(
     db.commit()
 
     # Add Templates
-    sync.assign_templates(templates, log=log)
+    sync.assign_templates(templates)
     db.commit()
 
     return sync
@@ -118,8 +111,6 @@ def get_sonarr_libraries(
         db: Session,
         directory: str,
         connection: Connection,
-        *,
-        log: Logger = log,
     ) -> list[Library]:
     """
     Get all Sonarr libraries for the given directory, as determined by
@@ -129,7 +120,6 @@ def get_sonarr_libraries(
         db: Database to query for Connections.
         directory: Directory to get libraries for.
         connection: Connection to use to get libraries.
-        log: Logger for all log messages.
 
     Returns:
         List of all Sonarr libraries for the given directory.
@@ -159,8 +149,6 @@ def run_sync(
         db: Session,
         sync: Sync,
         background_tasks: BackgroundTasks | None = None,
-        *,
-        log: Logger = log,
     ) -> list[Series]:
     """
     Run the given Sync. This adds any missing Series from the given Sync
@@ -172,7 +160,6 @@ def run_sync(
         sync: Sync to run.
         background_tasks: BackgroundTasks to add tasks to for any newly
             added Series.
-        log: Logger for all log messages.
 
     Returns:
         List of all newly added Series.
@@ -196,7 +183,7 @@ def run_sync(
 
     # Query interface for the indicated subset of Series
     log.debug(f'{sync} starting to query {sync.interface}[{sync.interface_id}]')
-    all_series = interface.get_all_series(**sync.sync_kwargs, log=log)
+    all_series = interface.get_all_series(**sync.sync_kwargs)
     log.trace(f'{sync} returned {len(all_series)} Series')
 
     # Process all Series returned by Sync
@@ -212,7 +199,7 @@ def run_sync(
 
         # Determine this Series' libraries
         if sync.interface == 'Sonarr':
-            libraries = get_sonarr_libraries(db, lib_or_dir, connection,log=log)
+            libraries = get_sonarr_libraries(db, lib_or_dir, connection)
         else:
             libraries = [Library(
                 interface=sync.interface,
@@ -266,6 +253,6 @@ def run_sync(
     # Process each newly added Series
     CURRENTLY_RUNNING_SYNC = None
     return [
-        add_series(new_series, background_tasks, db, log=log)
+        add_series(new_series, background_tasks, db)
         for new_series in added
     ]

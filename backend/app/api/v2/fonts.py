@@ -14,9 +14,9 @@ from unidecode import unidecode
 
 from app.core.font import delete_font_files, get_missing_characters
 from app.db.query import get_font
-from app.dependencies import get_database, get_logger
+from app.dependencies import get_database
 from app.db.users import get_current_user
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.models.episode import Episode
 from app.models.font import Font
 from app.schemas.font import (
@@ -87,7 +87,6 @@ async def add_font_file(
         font_id: int,
         file: UploadFile,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> NamedFont:
     """
     Add a custom font file to the specified Font.
@@ -134,7 +133,6 @@ async def add_font_file(
 def delete_font_file(
         font_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> NamedFont:
     """
     Delete the font file associated with the given Font.
@@ -153,7 +151,7 @@ def delete_font_file(
         )
 
     # Delete files, update font name reference
-    delete_font_files(font, log=log)
+    delete_font_files(font)
     font.file_name = None
     db.commit()
 
@@ -165,7 +163,6 @@ def update_font(
         font_id: int,
         update_font: UpdateNamedFont = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> NamedFont:
     """
     Update the Font with the given ID. Only provided fields are updated.
@@ -210,7 +207,6 @@ def get_font_by_id(
 def delete_font(
         font_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Font with the given ID. This also deletes the font's
@@ -232,17 +228,16 @@ def delete_font(
         log.debug(f'{settings.default_fonts = }')
 
     # Delete all files and the Font itself
-    delete_font_files(font, log=log)
+    delete_font_files(font)
     db.delete(font)
     db.commit()
-    settings.commit(log=log)
+    settings.commit()
 
 
 @font_router.get('/font/{font_id}/analysis')
 def get_suggested_font_replacements(
         font_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> FontAnalysis:
     """
     Analyze the Font file associated with the Font with the given ID and
@@ -384,7 +379,6 @@ def transfer_font_references(
         from_id: int = Query(..., alias='from'),
         delete_from: bool = Query(default=False),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> NamedFont:
     """
     Transfer all references for the given `from` Font to the given `to`
@@ -423,7 +417,7 @@ def transfer_font_references(
 
     # Delete transferred Font, if indicated
     if delete_from:
-        delete_font_files(from_font, log=log)
+        delete_font_files(from_font)
         db.delete(from_font)
         log.debug(f'Deleting Font[{from_id}]')
 

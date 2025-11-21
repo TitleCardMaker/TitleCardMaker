@@ -8,7 +8,7 @@ from app.core.settings import (
 )
 from app.db.query import get_font, get_template
 from app.db.users import get_current_user
-from app.dependencies import get_database, get_logger
+from app.dependencies import get_database
 from app.models.connection import Connection
 from app.schemas.preferences import (
     EpisodeDataSourceToggle,
@@ -16,7 +16,7 @@ from app.schemas.preferences import (
     Preferences,
     UpdatePreferences,
 )
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.settings import settings
 
 
@@ -46,7 +46,6 @@ def get_current_version() -> str:
 def update_global_settings(
         update_preferences: UpdatePreferences = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Preferences:
     """
     Update all global settings.
@@ -70,12 +69,9 @@ def update_global_settings(
     if update_model.get('source_directory'):
         update_model['source_directory'].mkdir(parents=True, exist_ok=True)
 
-    settings.update_values(
-        log=log,
-        **update_preferences.model_dump(exclude_unset=True),
-    )
-    refresh_remote_card_types(db, log=log)
-    settings.determine_imagemagick_prefix(log=log)
+    settings.update_values(**update_preferences.model_dump(exclude_unset=True))
+    refresh_remote_card_types(db)
+    settings.determine_imagemagick_prefix()
 
     # Update card type object blur profiles
     apply_card_type_blur_profiles()
@@ -95,7 +91,6 @@ def get_global_episode_data_source(
 @settings_router.get('/image-source-priority')
 def get_image_source_priority(
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> list[ImageSourceToggle]:
     """Get the global image source priority."""
 

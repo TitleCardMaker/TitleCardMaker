@@ -12,7 +12,7 @@ from app.core.translate import translate_episode
 from app.db.query import get_connection
 from app.dependencies import PlexInterface
 from app.exceptions import InvalidCardSettings
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.models.episode import Episode
 from app.models.series import Series
 
@@ -24,7 +24,6 @@ def process_rating_key(
         new_only: bool = False,
         *,
         snapshot: bool = True,
-        log: Logger = log,
     ) -> None:
     """
     Create the Title Card for the item associated with the given Plex
@@ -40,7 +39,6 @@ def process_rating_key(
             then ALL Episodes associated with the given Key will be
             reloaded.
         snapshot: Whether to take a snapshot of the database afterwards.
-        log: Logger for all log messages.
 
     Raises:
         HTTPException (404): There are no details associated with the
@@ -48,7 +46,7 @@ def process_rating_key(
     """
 
     # Get details of each key from Plex, raise 404 if not found/invalid
-    if len(details := plex_interface.get_episode_details(key, log=log)) == 0:
+    if len(details := plex_interface.get_episode_details(key)) == 0:
         raise HTTPException(
             status_code=404,
             detail=f'Rating key {key} does not correspond to any content'
@@ -87,7 +85,7 @@ def process_rating_key(
 
             # Series found, refresh data and look for Episode again
             sleep(5)
-            new_episodes = refresh_episode_data(db, series, log=log)
+            new_episodes = refresh_episode_data(db, series)
             episodes = [
                 episode
                 for episode in
@@ -115,13 +113,13 @@ def process_rating_key(
             continue
 
         # Update Episode watched status
-        episode.add_watched_status(watched_status, log=log)
+        episode.add_watched_status(watched_status)
 
         # Look for source, add translation, create card if source exists
-        download_episode_source_images(db, episode, log=log)
-        translate_episode(db, episode, log=log)
+        download_episode_source_images(db, episode)
+        translate_episode(db, episode)
         try:
-            new_cards = create_episode_cards(db, episode, log=log)
+            new_cards = create_episode_cards(db, episode)
         except (HTTPException, InvalidCardSettings):
             log.exception(
                 f'Unable to create Title Card for {episode} - skipping'
@@ -149,8 +147,8 @@ def process_rating_key(
     for series in set(episode.series for episode in episodes_to_load):
         sub_episodes = [ep for ep in episodes_to_load if ep.series == series]
         load_all_series_title_cards(
-            series, db, episodes=sub_episodes, raise_exc=False, log=log,
+            series, db, episodes=sub_episodes, raise_exc=False,
         )
 
     if snapshot:
-        take_snapshot(db, log=log)
+        take_snapshot(db)

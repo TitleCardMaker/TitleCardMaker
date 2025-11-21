@@ -9,7 +9,6 @@ from titlecase import titlecase
 
 from app.cards.title import Title
 from app.info.base import DatabaseInfoContainer, InterfaceID
-from app.logging.logger import Logger, log
 
 if TYPE_CHECKING:
     from app.interfaces.schemas.emby import EpisodeDetails
@@ -321,8 +320,6 @@ class EpisodeInfo(DatabaseInfoContainer):
             info: 'JellyfinItemDetails',
             interface_id: int,
             library_name: str,
-            *,
-            log: Logger = log,
         ) -> 'EpisodeInfo':
         """
         Create an EpisodeInfo object from the given Jellyfin episode
@@ -334,7 +331,6 @@ class EpisodeInfo(DatabaseInfoContainer):
                 being parsed.
             library_name: Name of the library associated with this
                 Series.
-            log: Logger for all log messages.
 
         Returns:
             EpisodeInfo object defining the given data.

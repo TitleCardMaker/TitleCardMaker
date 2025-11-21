@@ -13,10 +13,8 @@ from app.dependencies import (
     PlexInterface,
     SonarrInterface,
     get_database,
-    get_logger,
     require_interface,
 )
-from app.logging.logger import Logger
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
 from app.models.series import Series as SeriesModel
@@ -131,7 +129,6 @@ def get_missing_logos(
 def get_missing_series(
         db: Session = Depends(get_database),
         interface: AnyInterface = Depends(require_interface),
-        log: Logger = Depends(get_logger),
     ) -> Page[SearchResult]: # type: ignore
     """Get a list of Series which are not added to the Database."""
 
@@ -144,11 +141,13 @@ def get_missing_series(
             detail='Interface type not supported'
         )
 
-    missing_series: list[SearchResult] = []
-    for result in interface.query_series(query='', return_all=True, log=log):
-        series = db.query(SeriesModel)\
-            .filter(result.series_info.filter_conditions(SeriesModel))\
-            .first()
+    missing_series = []
+    for result in interface.query_series(query='', return_all=True):
+        series = (
+            db.query(SeriesModel)
+                .filter(result.series_info.filter_conditions(SeriesModel))
+                .first()
+        )
 
         if not series:
             missing_series.append(result)

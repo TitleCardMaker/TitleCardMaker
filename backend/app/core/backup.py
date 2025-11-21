@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from app.core.config import CONFIG_ROOT, config as app_config
 from app.schemas.preferences import DatabaseBackup, SettingsBackup, SystemBackup
 from app.settings import settings
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.utils.version import Version
 
 
@@ -18,12 +18,9 @@ class DataBackup(NamedTuple): # pylint: disable=missing-class-docstring
     database: Path
 
 
-def delete_old_backups(*, log: Logger = log) -> None:
+def delete_old_backups() -> None:
     """
     Delete all backups older than the configured retention period.
-
-    Args:
-        log: Logger for all log messages.
     """
 
     delete_before = datetime.now() - app_config.BACKUP_RETENTION
@@ -58,13 +55,12 @@ def delete_old_backups(*, log: Logger = log) -> None:
                 log.debug(f'Deleted old backup "{backup}"')
 
 
-def delete_backup(folder_name: str | Path, *, log: Logger = log) -> None:
+def delete_backup(folder_name: str | Path) -> None:
     """
     Delete the given backup folder.
 
     Args:
         folder_name: Name of the directory to delete.
-        log: Logger for all log messages.
     """
 
     if not (folder := Path(settings.backup_directory / folder_name)).exists():
@@ -80,18 +76,13 @@ def delete_backup(folder_name: str | Path, *, log: Logger = log) -> None:
     return None
 
 
-def backup_data(
-        version: str | Version,
-        *,
-        log: Logger = log,
-    ) -> DataBackup:
+def backup_data(version: str | Version) -> DataBackup:
     """
     Perform a backup of the SQL database and global preferences. This
     also deletes any "old" backups.
 
     Args:
         version: Current version of TCM.
-        log: Logger for all log messages.
 
     Returns:
         Tuple of Paths to created preferences and database backup files.
@@ -111,7 +102,7 @@ def backup_data(
     database = CONFIG_ROOT / 'db.sqlite'
     database_backup = backup_folder / f'db.sqlite.{version}'
 
-    delete_old_backups(log=log)
+    delete_old_backups()
 
     # Backup config
     if config.exists():
@@ -130,14 +121,13 @@ def backup_data(
     return DataBackup(config=config_backup, database=database_backup)
 
 
-def restore_backup(backup: DataBackup | str, /, *, log: Logger = log):
+def restore_backup(backup: DataBackup | str, /):
     """
     Restore the config and database from the given data backup.
 
     Args:
         backup: Tuple of backup data (as returned by `backup_data()`)
             to restore from; or the name of the folder containing data.
-        log: Logger for all log messages.
     """
 
     # If a folder name was provided, search for the config/db files
@@ -170,12 +160,9 @@ def restore_backup(backup: DataBackup | str, /, *, log: Logger = log):
         log.warning(f'Cannot restore backup from "{database}"')
 
 
-def list_available_backups(*, log: Logger = log) -> list[SystemBackup]:
+def list_available_backups() -> list[SystemBackup]:
     """
     Get a list detailing all the available system backups.
-
-    Args:
-        log: Logger for all log messages.
 
     Returns:
         List of system backup information.

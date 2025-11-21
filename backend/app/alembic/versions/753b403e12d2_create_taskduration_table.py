@@ -10,7 +10,7 @@ Create Date: 2025-03-24 10:59:59.136723
 from alembic import op
 import sqlalchemy as sa
 
-from app.logging.logger import contextualize 
+from app.logging.logger import log 
 
 # Revision identifiers, used by Alembic.
 revision = '753b403e12d2'
@@ -20,7 +20,6 @@ depends_on = None
 
 
 def upgrade() -> None:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     op.create_table('task_durations',
@@ -39,7 +38,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('series', schema=None) as batch_op:

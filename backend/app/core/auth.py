@@ -11,7 +11,7 @@ from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import CONFIG_ROOT, config
-from app.logging.logger import log
+from app.logging.logger import get_contextualized_logger
 
 
 """File where the private key is stored"""
@@ -60,6 +60,8 @@ def get_secret_key() -> bytes:
     Returns:
         Bytes of the secret key.
     """
+
+    log = get_contextualized_logger()
 
     # File exists, read
     if KEY_FILE.exists():
@@ -125,6 +127,8 @@ def encrypt(plaintext: str) -> str:
         Encrypted text.
     """
 
+    log = get_contextualized_logger()
+
     try:
         return Fernet(get_secret_key()).encrypt(plaintext.encode()).decode()
     except InvalidToken:
@@ -147,6 +151,8 @@ def decrypt(encrypted_text: str) -> str:
     Returns:
         Plain decrypted text.
     """
+
+    log = get_contextualized_logger()
 
     try:
         return Fernet(get_secret_key()).decrypt(encrypted_text).decode()

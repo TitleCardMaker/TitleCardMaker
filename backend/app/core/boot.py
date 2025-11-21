@@ -24,7 +24,11 @@ from app.core.settings import apply_card_type_blur_profiles
 from app.db.database import engine as db_engine, SQLALCHEMY_DATABASE_URL
 from app.dependencies import get_database
 from app.logging.database import logs_engine, LOGS_DATABASE_URL
-from app.logging.logger import contextualize, log as logger, Logger
+from app.logging.logger import (
+    contextualize,
+    get_contextualized_logger,
+    set_contextualized_logger,
+)
 from app.models.user import User
 from app.settings import BACKEND_ROOT, FRONTEND_ROOT, settings
 from app.utils.tasks import TracebackSuppressedPackages
@@ -35,14 +39,13 @@ APP_ROOT = BACKEND_ROOT / 'app'
 huey_consumer: Annotated[Consumer | None, 'Global Huey Consumer'] = None
 
 
-def initialize_root_directories(*, log: Logger = logger) -> None:
+def initialize_root_directories() -> None:
     """
     Initialize the root directories for the application. This creates
     the required `/config` directories if running on Docker.
-
-    Args:
-        log: The logger to use for logging.
     """
+
+    log = get_contextualized_logger()
 
     for directory in [
         settings.asset_directory,
@@ -69,14 +72,15 @@ def initialize_root_directories(*, log: Logger = logger) -> None:
     return None
 
 
-def mount_static_app_directories(app: FastAPI, *, log: Logger = logger) -> None:
+def mount_static_app_directories(app: FastAPI) -> None:
     """
     Mount the static app directories into the FastAPI application.
 
     Args:
         app: The FastAPI application to mount the directories into.
-        log: The logger to use for logging.
     """
+
+    log = get_contextualized_logger()
 
     for (mount, directory) in (
         ('/css', FRONTEND_ROOT / 'css'),
@@ -96,14 +100,10 @@ def mount_static_app_directories(app: FastAPI, *, log: Logger = logger) -> None:
             ))
 
 
-def perform_database_migrations(*, log: Logger = logger) -> None:
-    """
-    Perform the database migrations.
+def perform_database_migrations() -> None:
+    """Perform the database migrations."""
 
-    Args:
-        app: The FastAPI application to mount the directories into.
-        log: The logger to use for logging.
-    """
+    log = get_contextualized_logger()
 
     def store_db_schema(engine: Engine, db_attribute: str) -> None:
         with engine.begin() as connection:
@@ -140,7 +140,7 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
             # Backup database if migration is about to be performed
             if context.get_current_revision() != script.get_current_head():
                 log.info('Pending schema migration - performing database backup')
-                backup = backup_data(settings.config.CURRENT_VERSION, log=log)
+                backup = backup_data(settings.config.CURRENT_VERSION)
 
                 # Perform database migrations
                 try:
@@ -160,20 +160,22 @@ def perform_database_migrations(*, log: Logger = logger) -> None:
                     log.critical('Unable to migrate and initialize Database')
                     if backup:
                         log.info('Restoring from backup..')
-                        restore_backup(backup, log=log)
+                        restore_backup(backup)
                     sys_exit(1)
 
             store_db_schema(engine, db_attribute)
 
 
-def disable_authentication(db: Session, *, log: Logger = logger) -> None:
+def disable_authentication(db: Session) -> None:
     """
     Disable authentication based on environment variable. This disables
     the global setting and deletes any existing Users.
 
     Args:
-        log: The logger to use for logging.
+        db: The database session to use.
     """
+
+    log = get_contextualized_logger()
 
     if not settings.config.DISABLE_AUTH:
         return None
@@ -198,25 +200,26 @@ def initialize_app(app: FastAPI) -> None:
         app: The FastAPI application to initialize.
     """
 
-    log = contextualize(logger)
+    with contextualize() as (contextualization, log):
+        settings.config.AVAILABLE_VERSION = get_latest_version(raise_exc=False)
+        settings.log_startup()
 
-    settings.config.AVAILABLE_VERSION = get_latest_version(raise_exc=False)
-    settings.log_startup(log=log)
+        initialize_root_directories()
+        mount_static_app_directories(app)
+        perform_database_migrations()
+        apply_card_type_blur_profiles()
+        refresh_all_card_types()
 
-    initialize_root_directories(log=log)
-    mount_static_app_directories(app, log=log)
-    perform_database_migrations(log=log)
-    apply_card_type_blur_profiles()
-    refresh_all_card_types(log=log)
+        # Database operations
+        with next(get_database()) as db:
+            disable_authentication(db)
 
-    # Database operations
-    with next(get_database()) as db:
-        disable_authentication(db, log=log)
+            try:
+                initialize_connections(db)
+            except Exception:
+                log.exception('Error initializing Connections')
 
-        try:
-            initialize_connections(db, log=log)
-        except Exception:
-            log.exception('Error initializing Connections')
+        contextualization.log_execution()
 
 
 def initialize_huey() -> tuple[Consumer, asyncio.Task]:
@@ -229,7 +232,7 @@ def initialize_huey() -> tuple[Consumer, asyncio.Task]:
         runs the consumer.
     """
 
-    log = contextualize(logger)
+    log, _ = set_contextualized_logger()
 
     # Initialize Huey Consumer
     global huey_consumer

@@ -3,8 +3,8 @@ from sqlalchemy import MetaData, text
 from sqlalchemy.orm import Session
 
 from app.api.v2 import v2_router
-from app.dependencies import get_database, get_logger
-from app.logging.logger import Logger
+from app.dependencies import get_database
+from app.logging.logger import log
 from app.settings import reset_settings, settings
 
 
@@ -14,10 +14,7 @@ api_router.include_router(v2_router)
 
 
 @api_router.get('/healthcheck')
-def health_check(
-        db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
-    ) -> None:
+def health_check(db: Session = Depends(get_database)) -> None:
     """
     Check the health of the TCM server by attempting to perform a dummy
     database operation; raising an HTTPException (500) if a connection
@@ -35,10 +32,7 @@ def health_check(
 
 
 @api_router.post('/reset')
-def reset_database(
-        db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
-    ) -> None:
+def reset_database(db: Session = Depends(get_database)) -> None:
     """
     Reset the entire database and system state. This DOES NOT clear any
     files, and requires the appropriate environment variable to be set
@@ -64,4 +58,4 @@ def reset_database(
         db.execute(table.delete())
     db.commit()
 
-    reset_settings(log=log)
+    reset_settings()

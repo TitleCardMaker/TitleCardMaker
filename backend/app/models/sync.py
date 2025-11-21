@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
 
 from app.db.database import Base
 from app.models.template import SyncTemplates, Template
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 if TYPE_CHECKING:
     from app.models.connection import Connection
@@ -73,11 +73,7 @@ class Sync(Base):
         return f'Sync[{self.id}] {self.name}'
 
 
-    def assign_templates(self,
-            templates: list[Template],
-            *,
-            log: Logger = log,
-        ) -> None:
+    def assign_templates(self, templates: list[Template]) -> None:
         """
         Assign the given Templates to this Sync. This updates the
         association table for Sync:Template relationships as needed.
@@ -87,17 +83,21 @@ class Sync(Base):
                 provided order is used for the creation of the
                 association table objects so that order is preserved
                 within the relationship.
-            log: Logger for all log messages.
         """
 
         # Reset existing assocations
         self.templates = []
         for index, template in enumerate(templates):
-            existing = object_session(template).query(SyncTemplates)\
-                .filter_by(sync_id=self.id,
-                           template_id=template.id,
-                           order=index)\
-                .first()
+            existing = (
+                object_session(template)
+                    .query(SyncTemplates)
+                    .filter_by(
+                        sync_id=self.id,
+                        template_id=template.id,
+                        order=index
+                    )
+                    .first()
+            )
 
             if existing:
                 self.templates.append(existing)

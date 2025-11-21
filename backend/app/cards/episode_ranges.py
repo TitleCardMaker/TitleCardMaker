@@ -4,7 +4,7 @@ from re import IGNORECASE, compile as re_compile
 from typing import Callable
 
 from app.info.episode import EpisodeInfo
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.utils.fstring import FormatString
 
 
@@ -36,7 +36,6 @@ class SeasonTitleRanges:
             ranges: dict[str, str],
             *,
             fallback: Callable[[EpisodeInfo], str] | None = None,
-            log: Logger = log,
         ) -> None:
         """
         Create a SeasonTitleRanges object with the given ranges.
@@ -49,7 +48,6 @@ class SeasonTitleRanges:
                 when there is no custom specification. If omitted, then
                 the generic text of "Specials" and "Season {x}" are
                 used. This is equivalent to:
-            log: Logger for all log messages.
         """
 
         # Parse ranges into objects

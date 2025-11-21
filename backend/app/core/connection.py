@@ -26,7 +26,7 @@ from app.schemas.connection import (
     UpdateTMDb,
     UpdateTVDb,
 )
-from app.logging.logger import Logger, SECRETS, log
+from app.logging.logger import SECRETS, get_contextualized_logger, log
 from app.interfaces.base import InterfaceGroup
 from app.interfaces.v2 import (
     EmbyInterface,
@@ -55,11 +55,7 @@ type _UpdateConnection = (
 )
 
 
-def initialize_connections(
-        db: Session,
-        *,
-        log: Logger = log,
-    ) -> None:
+def initialize_connections(db: Session) -> None:
     """
     Initialize all Interfaces (and add them to their respective
     InterfaceGroup). This also adds their secrets to the set of secrets
@@ -67,8 +63,9 @@ def initialize_connections(
 
     Args:
         db: Database with Connection definitions to query.
-        log: Logger for all log messages.
     """
+
+    log = get_contextualized_logger()
 
     # Initialize each type of Interface
     for interface_group, interface_type in (
@@ -80,9 +77,11 @@ def initialize_connections(
         (get_tvdb_interfaces(), 'TVDb'),
     ):
         # Get all Connections of this interface type
-        connections: list[Connection] = db.query(Connection)\
-            .filter_by(interface_type=interface_type)\
-            .all()
+        connections: list[Connection] = (
+            db.query(Connection)
+                .filter_by(interface_type=interface_type)
+                .all()
+        )
 
         # Set use_ toggle
         use_connection = any(connection.enabled for connection in connections)
@@ -100,7 +99,7 @@ def initialize_connections(
 
             try:
                 interface_group.initialize_interface(
-                    connection.id, connection.interface_kwargs, log=log,
+                    connection.id, connection.interface_kwargs
                 )
                 interface = interface_group[connection.id]
                 if isinstance(interface, _MediaServerInterface):
@@ -108,10 +107,10 @@ def initialize_connections(
                         interface_type,
                         interface.get_libraries()
                     )
-                    log.trace(
+                    log.trace((
                         f'Settings.libraries[{connection.id}] = '
                         f'{settings.libraries[connection.id]}'
-                    )
+                    ))
             except Exception:
                 settings.invalid_connections.append(connection.id)
                 log.exception(f'Error initializing {connection}')
@@ -125,8 +124,6 @@ def add_connection(
         db: Session,
         new_connection: _NewConnection,
         interface_group: InterfaceGroup,
-        *,
-        log: Logger = log,
     ) -> Connection:
     """
     Create a new Connecton and add it to the Database. If enabled, an
@@ -138,11 +135,12 @@ def add_connection(
         new_connection: Details of the new Connection to add.
         interface_group: InterfaceGroup to add the initialized Interface
             to (if enabled).
-        log: Logger for all log messages.
 
     Returns:
         Newly created Connection.
     """
+
+    log = get_contextualized_logger()
 
     # Convert AnyUrl to string for database storage
     connection_data = new_connection.model_dump()
@@ -166,7 +164,7 @@ def add_connection(
     if connection.enabled:
         try:
             interface_group.initialize_interface(
-                connection.id, connection.interface_kwargs, log=log
+                connection.id, connection.interface_kwargs
             )
         except Exception as exc:
             settings.invalid_connections.append(connection.id)
@@ -176,13 +174,13 @@ def add_connection(
     if settings.episode_data_source is None:
         settings.episode_data_source = connection.id
         log.info(f'Set global Episode Data Source to {connection}')
-        settings.commit(log=log)
+        settings.commit()
     # Assign global ISP if unset
     if (not settings.image_source_priority
         and connection.interface_type != 'Sonarr'):
         settings.image_source_priority = [connection.id]
         log.info(f'Set global Image Source Priority to [{connection}]')
-        settings.commit(log=log)
+        settings.commit()
 
     return connection
 
@@ -192,8 +190,6 @@ def update_connection(
         interface_id: int,
         interface_group: InterfaceGroup,
         update_object: _UpdateConnection,
-        *,
-        log: Logger = log,
     ) -> Connection:
     """
     Update the given Connection, refreshing the interface if any
@@ -203,7 +199,6 @@ def update_connection(
         db: Database to query for the given Connection.
         interface_id: ID of the interface being updated.
         update_object: Update object with attributes to update.
-        log: Logger for all log messages.
 
     Returns:
         Modified Connection with any updated attributes.
@@ -211,6 +206,8 @@ def update_connection(
     Raises:
         HTTPException (404): There is no Connection with the given ID.
     """
+
+    log = get_contextualized_logger()
 
     # Get existing Connection
     connection = get_connection(db, interface_id, raise_exc=True)
@@ -240,7 +237,7 @@ def update_connection(
             # Attempt to re-initialize Interface with new details
             try:
                 interface_group.refresh(
-                    interface_id, connection.interface_kwargs, log=log
+                    interface_id, connection.interface_kwargs
                 )
                 if interface_id in settings.invalid_connections:
                     settings.invalid_connections.remove(interface_id)

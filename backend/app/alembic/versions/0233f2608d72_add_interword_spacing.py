@@ -16,7 +16,7 @@ Create Date: 2023-08-18 11:10:19.833668
 from alembic import op
 import sqlalchemy as sa
 
-from app.logging.logger import contextualize
+from app.logging.logger import log
 
 # revision identifiers, used by Alembic.
 revision = '0233f2608d72'
@@ -26,7 +26,6 @@ depends_on = None
 
 
 def upgrade() -> None:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     with op.batch_alter_table('font', schema=None) as batch_op:
@@ -61,7 +60,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('card', schema=None) as batch_op:

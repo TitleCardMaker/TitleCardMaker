@@ -17,9 +17,9 @@ from app.core.imports import (
     import_mediux_yaml
 )
 from app.db.query import get_series
-from app.dependencies import get_database, get_logger
+from app.dependencies import get_database
 from app.db.users import get_current_user
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.models.series import Series as SeriesModel
 from app.schemas.imports import ImportCardDirectory, KometaYaml, MultiCardImport
 
@@ -42,7 +42,6 @@ async def import_card_files_for_series(
         textless: bool = Query(default=True),
         library_name: str | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import any existing Title Cards for the given Series. This finds
@@ -70,7 +69,6 @@ async def import_card_files_for_series(
         None if library_name is None else series.get_library(library_name),
         force_reload=force_reload,
         as_textless=textless,
-        log=log,
     )
 
 
@@ -85,7 +83,6 @@ async def import_mediux_yaml_for_series(
         textless: bool = Query(default=True),
         library_names: list[str] = Query(default=[]),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import Cards, posters, and backgrounds from the given Kometa YAML
@@ -124,7 +121,6 @@ async def import_mediux_yaml_for_series(
         import_season_posters=import_season_posters,
         force_reload=force_reload,
         textless=textless,
-        log=log,
     )
 
 
@@ -136,7 +132,6 @@ def import_card_directory_for_series(
         series_id: int,
         card_directory: ImportCardDirectory = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import any existing Title Cards for the given Series. This finds
@@ -153,7 +148,6 @@ def import_card_directory_for_series(
         card_directory.directory,
         card_directory.image_extension,
         card_directory.force_reload,
-        log=log,
     )
 
 
@@ -161,7 +155,6 @@ def import_card_directory_for_series(
 def import_cards_for_multiple_series(
         card_import: MultiCardImport = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import any existing Title Cards for all the given Series. This finds
@@ -179,7 +172,6 @@ def import_cards_for_multiple_series(
             None,
             card_import.image_extension,
             card_import.force_reload,
-            log=log,
         )
 
 
@@ -192,7 +184,6 @@ async def import_mediux_yaml_(
         force_reload: bool = Query(default=True),
         textless: bool = Query(default=True),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import Cards, posters, and backgrounds from the given Kometa YAML.
@@ -235,5 +226,4 @@ async def import_mediux_yaml_(
         import_season_posters=import_season_posters,
         force_reload=force_reload,
         textless=textless,
-        log=log,
     )

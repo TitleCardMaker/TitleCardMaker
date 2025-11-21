@@ -32,7 +32,7 @@ from app.interfaces.schemas.tvdb import (
     SeriesExtendedRecord,
 )
 from app.interfaces.testing import testing_override
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 
 class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
@@ -81,7 +81,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             language_priority: list[LanguageCode] = ['eng'],
             *,
             interface_id: int = 0,
-            log: Logger = log,
         ) -> None:
         """
         Construct a new instance of an interface to TVDb.
@@ -98,13 +97,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             language_priority: Priority which artwork should be
                 evaluated at.
             interface_id: Interface ID of this interface.
-            log: Logger for all log messages.
 
         Raises:
             HTTPException (401): The API key is invalid.
         """
 
-        super().__init__('TVDb', log=log)
+        super().__init__('TVDb')
 
         self.minimum_source_width = minimum_source_width
         self.minimum_source_height = minimum_source_height
@@ -116,17 +114,16 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         # Authenticate with TVDb, generate session token
         self.__api_key = api_key
         self.__token_expiration: datetime | None = None
-        self.__initialize_token(log=log) # This will initialize the interface
+        self.__initialize_token() # This will initialize the interface
 
 
-    def __generate_login_token(self, api_key: str, *, log: Logger = log) -> str:
+    def __generate_login_token(self, api_key: str) -> str:
         """
         Generate a login token which can be used for API requests with
         the given key.
 
         Args:
             api_key: The API key to communicate with TVDb.
-            log: Logger for all log messages.
 
         Returns:
             Token which can be used in a simple OAuth `Bearer` field
@@ -166,15 +163,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         return auth.data.token
 
     @testing_override(lambda *args, **kwargs: None)
-    def __initialize_token(self, *, log: Logger = log) -> None:
+    def __initialize_token(self) -> None:
         """
         Initialize the session token for communicating with TVDb. This
         can also re-initialize an expired session. Once initialized,
         this sets this object's session headers to use the OAuth2 bearer
         token.
-
-        Args:
-            log: Logger for all log messages.
 
         Raises:
             HTTPException (401): The API key is invalid.
@@ -187,7 +181,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Token has expired, regenerate and update expiration
         try:
-            token = self.__generate_login_token(self.__api_key, log=log)
+            token = self.__generate_login_token(self.__api_key)
             self.__token_expiration = datetime.now() + self.__TOKEN_DURATION
             self.activate()
         except ValueError:
@@ -301,8 +295,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
     def __get_episode_id(self,
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
-            *,
-            log: Logger = log,
         ) -> int | None:
         """
         Find the TVDb ID of the indicated episode.
@@ -310,7 +302,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         Args:
             series_info: Series associated with the given episode.
             episode_info: Episode whose ID is being queried.
-            log: Logger for all log messages.
 
         Returns:
             TVDb ID of the indicated episode. None if the episode cannot
@@ -470,8 +461,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set all possible series ID's for the given SeriesInfo object.
@@ -479,7 +468,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         Args:
             library_name: Unused argument.
             series_info: SeriesInfo to update.
-            log: Logger for all log messages.
         """
 
         # If all possible ID's are defined
@@ -511,17 +499,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         return None
 
 
-    def query_series(self,
-            query: str,
-            *,
-            log: Logger = log,
-        ) -> list[SearchResult]:
+    def query_series(self, query: str) -> list[SearchResult]:
         """
         Search TVDb for any Series matching the given query.
 
         Args:
             query: Series name or substring to look up.
-            log: Logger for all log messages.
 
         Returns:
             List of SearchResults for the given query.
@@ -560,8 +543,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
         """
         Gets all episode info for the given series. Only episodes that
@@ -570,7 +551,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         Args:
             library_name: Unused argument.
             series_info: Series to get the episodes of.
-            log: Logger for all log messages.
 
         Returns:
             List of EpisodeInfo objects and None (as watched statuses
@@ -610,8 +590,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             library_name: Any,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set all the ID's for the given list of EpisodeInfo objects. This
@@ -621,7 +599,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             library_name: Unused argument.
             series_info: SeriesInfo for the entry.
             infos: List of EpisodeInfo objects to update.
-            log: Logger for all log messages.
         """
 
         for episode_info in episode_infos:
@@ -630,7 +607,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
                 continue
 
             # Get and set the episode TVDb ID
-            tvdb_id = self.__get_episode_id(series_info, episode_info, log=log)
+            tvdb_id = self.__get_episode_id(series_info, episode_info)
             if tvdb_id is None:
                 log.debug(f'Cannot find {series_info} {episode_info} on TVDb')
                 continue
@@ -658,17 +635,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         return None
 
 
-    def get_all_logos(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> list[str] | None:
+    def get_all_logos(self, series_info: SeriesInfo) -> list[str] | None:
         """
         Get all logos for the requested series.
 
         Args:
             series_info: SeriesInfo for this entry.
-            log: Logger for all log messages.
 
         Returns:
             List of URLs of all logos corresponding to this Series. None
@@ -686,17 +658,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         ]
 
 
-    def get_all_backdrops(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> list[str] | None:
+    def get_all_backdrops(self, series_info: SeriesInfo) -> list[str] | None:
         """
         Get all backdrops for the requested series.
 
         Args:
             series_info: SeriesInfo for this entry.
-            log: Logger for all log messages.
 
         Returns:
             List of URLs to series backdrops. None if it cannot be
@@ -721,7 +688,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             episode_info: EpisodeInfo,
             *,
             check_dimensions: bool = True,
-            log: Logger = log,
         ) -> str | None:
         """
         Get the source image for the requested episode.
@@ -731,7 +697,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             episode_info: EpisodeInfo for this episode.
             check_dimensions: Whether to check the dimensions of the
                 image against the requirements of this Interface.
-            log: Logger for all log messages.
 
         Returns:
             URL to the source image for the requested episode. None if
@@ -739,7 +704,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         """
 
         # Find Episode
-        tvdb_id = self.__get_episode_id(series_info, episode_info, log=log)
+        tvdb_id = self.__get_episode_id(series_info, episode_info)
         if tvdb_id is None:
             log.warning(f'Cannot find {series_info} {episode_info} on TVDb')
             return None
@@ -771,7 +736,7 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
         # Verify image meets dimensional requirements
-        width, height = self.get_image_size(image_url, log=log)
+        width, height = self.get_image_size(image_url)
         if (width >= self.minimum_source_width
             and height >= self.minimum_source_height):
             return image_url
@@ -787,8 +752,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
             language_code: LanguageCode = 'eng',
-            *,
-            log: Logger = log,
         ) -> str | None:
         """
         Get the episode title for the episode in the given language.
@@ -797,14 +760,13 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo for the entry.
             episode_info: EpisodeInfo for the entry.
             language_code: The language code for the desired title.
-            log: Logger for all log messages.
 
         Args:
             The episode title, None if it cannot be found.
         """
 
         # Find Episode ID, warn and exit if cannot be found
-        tvdb_id = self.__get_episode_id(series_info, episode_info, log=log)
+        tvdb_id = self.__get_episode_id(series_info, episode_info)
         if tvdb_id is None:
             log.warning(f'Cannot find {series_info} {episode_info} on TVDb')
             return None
@@ -820,17 +782,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
 
-    def get_series_logo(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> str | None:
+    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
         """
         Get the best logo for the given series.
 
         Args:
             series_info: Series to get the logo of.
-            log: Logger for all log messages.
 
         Returns:
             URL to the 'best' logo for the given series, and None if no
@@ -845,17 +802,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         return self.__get_best_artwork(tvdb_id, 'logo')
 
 
-    def get_series_backdrop(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> str | None:
+    def get_series_backdrop(self, series_info: SeriesInfo) -> str | None:
         """
         Get the best backdrop for the given series.
 
         Args:
             series_info: Series to get the logo of.
-            log: Logger for all log messages.
 
         Returns:
             URL to the 'best' backdrop for the given series, and None if
@@ -870,17 +822,12 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
         return self.__get_best_artwork(tvdb_id, 'banner')
 
 
-    def get_series_poster(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> str | None:
+    def get_series_poster(self, series_info: SeriesInfo) -> str | None:
         """
         Get the best poster for the given series.
 
         Args:
             series_info: Series to get the poster of.
-            log: Logger for all log messages.
 
         Returns:
             URL to the 'best' poster for the given series, and None if
@@ -897,8 +844,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     def get_season_titles(self,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log
         ) -> dict[str, dict[int, str]]:
         """
         Get all custom season titles for all languages of the given
@@ -909,7 +854,6 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         Args:
             series_info: Series whose season titles to query.
-            log: Logger for all log messages.
 
         Returns:
             Dictionary whose keys are the language code and whose values

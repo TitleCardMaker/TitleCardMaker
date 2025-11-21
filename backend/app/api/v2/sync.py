@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 
 from app.db.query import get_all_templates, get_sync
 from app.db.users import get_current_user
-from app.dependencies import get_database, get_logger
+from app.dependencies import get_database
 from app.core.series import delete_series
 from app.core.sync import add_sync, run_sync, CURRENTLY_RUNNING_SYNC
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.models.sync import Sync as SyncModel
 from app.schemas.sync import (
     EmbySync,
@@ -42,7 +42,6 @@ sync_router = APIRouter(
 def create_new_emby_sync(
         new_sync: NewEmbySync = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> EmbySync:
     """
     Create a new Sync that interfaces with Emby.
@@ -50,14 +49,13 @@ def create_new_emby_sync(
     - new_sync: Sync definition to create.
     """
 
-    return add_sync(db, new_sync, log=log)
+    return add_sync(db, new_sync)
 
 
 @sync_router.post('/jellyfin/new', tags=['Jellyfin'])
 def create_new_jellyfin_sync(
         new_sync: NewJellyfinSync = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> JellyfinSync:
     """
     Create a new Sync that interfaces with Jellyfin.
@@ -65,14 +63,13 @@ def create_new_jellyfin_sync(
     - new_sync: Sync definition to create.
     """
 
-    return add_sync(db, new_sync, log=log)
+    return add_sync(db, new_sync)
 
 
 @sync_router.post('/plex/new', tags=['Plex'])
 def create_new_plex_sync(
         new_sync: NewPlexSync = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> PlexSync:
     """
     Create a new Sync that interfaces with Plex.
@@ -80,14 +77,13 @@ def create_new_plex_sync(
     - new_sync: Sync definition to create.
     """
 
-    return add_sync(db, new_sync, log=log)
+    return add_sync(db, new_sync)
 
 
 @sync_router.post('/sonarr/new', tags=['Sonarr'])
 def create_new_sonarr_sync(
         new_sync: NewSonarrSync = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> SonarrSync:
     """
     Create a new Sync that interfaces with Sonarr.
@@ -95,7 +91,7 @@ def create_new_sonarr_sync(
     - new_sync: Sync definition to create.
     """
 
-    return add_sync(db, new_sync, log=log)
+    return add_sync(db, new_sync)
 
 
 @sync_router.patch('/{sync_id}')
@@ -103,7 +99,6 @@ def edit_sync(
         sync_id: int,
         update_sync: UpdateSync = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Sync:
     """
     Update the Sync with the given ID. Only provided fields are updated.
@@ -121,7 +116,7 @@ def edit_sync(
     if (template_ids := update_sync_dict.pop('template_ids', None)) is not None:
         if template_ids != sync.template_ids:
             templates = get_all_templates(db, template_ids)
-            sync.assign_templates(templates, log=log)
+            sync.assign_templates(templates)
             changed = True
 
     # Update Sync itself
@@ -143,7 +138,6 @@ def delete_sync(
         sync_id: int,
         delete_series_: bool = Query(default=False, alias='delete_series'),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Sync with the given ID.
@@ -160,7 +154,7 @@ def delete_sync(
     if delete_series_:
         for series in sync.series:
             delete_series(
-                db, series, commit_changes=False, log=log
+                db, series, commit_changes=False
             )
 
     db.delete(sync)
@@ -247,7 +241,6 @@ def run_sync_(
         background_tasks: BackgroundTasks,
         sync_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> list[Series]:
     """
     Run the given Sync by querying the assigned interface, adding any
@@ -264,5 +257,4 @@ def run_sync_(
         )
 
     # Get existing Sync, raise 404 if DNE
-    sync = get_sync(db, sync_id, raise_exc=True)
-    return run_sync(db, sync, background_tasks, log=log)
+    return run_sync(db, get_sync(db, sync_id, raise_exc=True), background_tasks)

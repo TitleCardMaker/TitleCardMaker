@@ -9,7 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 
 from app.cards.base import BaseCardType
 from app.core.config import config
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.schemas.base import Base
 from app.utils.paths import CleanPath
 
@@ -223,8 +223,6 @@ class RemoteCardType:
             /,
             identifier: str | Path,
             file_hash: str | None = None,
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Construct a new RemoteCardType. This downloads the source file
@@ -240,7 +238,6 @@ class RemoteCardType:
             file_hash: MD5 hash of the file contents for the associated
                 remote card. Not required if `identifier` is associated
                 with a local file.
-            log: Logger for all log messages.
         """
 
         # Get database of loaded assets/cards

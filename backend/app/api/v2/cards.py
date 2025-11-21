@@ -21,7 +21,7 @@ from app.db.query import (
     get_series
 )
 from app.db.pagination import Page
-from app.dependencies import get_database, get_logger
+from app.dependencies import get_database
 from app.db.users import get_current_user
 from app.core.cards import (
     create_episode_cards,
@@ -44,25 +44,21 @@ from app.exceptions import (
     MissingSourceImage,
     UnknownCardType,
 )
-from app.info.episode import EpisodeInfo
 from app.interfaces.v2 import EmbyInterface, JellyfinInterface, PlexInterface
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.loaded import Loaded
 from app.schemas.card import (
     CardActions,
-    PreviewTitleCard,
     TitleCard,
     TitleCardExtended,
     TitleCardReduced,
 )
 from app.schemas.episode import UpdateEpisode
-from app.schemas.font import DefaultFont, UpdateNamedFont
+from app.schemas.font import UpdateNamedFont
 from app.schemas.series import UpdateSeries
 from app.settings import settings
-from app.utils.fstring import FormatString
-from app.utils.tiered_settings import TieredSettings
 from app.utils.tzip import TemporaryZip
 
 
@@ -74,136 +70,6 @@ card_router = APIRouter(
 )
 
 
-@card_router.post('/preview', deprecated=True)
-def create_preview_card(
-        card: PreviewTitleCard = Body(...),
-        db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
-    ) -> str:
-    """
-    Create a preview title card. This uses a fixed source file and
-    writes the created card only to a temporary directory. Returns a
-    URI to the created card.
-
-    - card: Card definition to create.
-    """
-
-    # Get the effective card class
-    CardClass = settings.get_card_type_class(card.card_type, log=log)
-    if CardClass is None:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                'Cannot create previews for Remote Card Types which have not '
-                'been saved first - save this change and try again'
-            ),
-        )
-
-    # Fake data
-    format_data = {
-        'series_full_name': 'Test Series (2020)', 'series_name': 'Test Series',
-        'season_episode_max': 10, 'series_episode_max': 20,
-        'logo_file': INTERNAL_ASSET_DIRECTORY / 'logo.png',
-        'poster_file': INTERNAL_ASSET_DIRECTORY / 'preview' / 'poster.webp',
-        'backdrop_file': INTERNAL_ASSET_DIRECTORY / 'preview' / 'art.jpg',
-    }
-
-    # Get preview season and episode text
-    if card.season_text is None:
-        # Apply season text formatting if indicated
-        try:
-            if getattr(CardClass, 'SEASON_TEXT_FORMATTER', None) is None:
-                card.season_text = FormatString(
-                    'Season {season_number}',
-                    data=format_data | card.model_dump(),
-                ).result
-            else:
-                fake_ei = EpisodeInfo(
-                    title=card.title_text, season_number=card.season_number,
-                    episode_number=card.episode_number,
-                    absolute_number=card.absolute_number
-                )
-                card.season_text = FormatString(
-                    getattr(CardClass, 'SEASON_TEXT_FORMATTER')(fake_ei),
-                    data=format_data | card.model_dump(),
-                ).result
-        except InvalidCardSettings as exc:
-            raise HTTPException(
-                status_code=400,
-                detail='Invalid season text format',
-            ) from exc
-    if card.episode_text is None:
-        try:
-            card.episode_text = FormatString(
-                (
-                    card.episode_text_format
-                    or CardClass.CardConfig.episode_text_format
-                ),
-                data=format_data | card.model_dump(),
-            ).result
-        except InvalidCardSettings as exc:
-            raise HTTPException(
-                status_code=400,
-                detail='Invalid episode text format',
-            ) from exc
-
-    # Get Font if indicated
-    font_template_dict = {}
-    if getattr(card, 'font_id', None) is not None and card.font_id:
-        font = get_font(db, card.font_id, raise_exc=True)
-        font_template_dict = font.card_properties
-
-    # Determine appropriate Source and Output file
-    preview_dir = INTERNAL_ASSET_DIRECTORY / 'preview'
-    source = preview_dir / (('art' if 'art' in card.style else 'unique') + '.jpg')
-    output = preview_dir / f'card-{card.style}{settings.card_extension}'
-
-    # Resolve all settings
-    card_settings = TieredSettings.new_settings(
-        settings.global_extras.get(card.card_type, {}),
-        format_data,
-        DefaultFont,
-        settings.card_properties,
-        font_template_dict,
-        {'source_file': source, 'card_file': output},
-        card.model_dump(),
-        card.extras,
-    )
-
-    # Add card default font stuff
-    if card_settings.get('font_file') is None:
-        card_settings['font_file'] = str(CardClass.CardConfig.font_file)
-    if card_settings.get('font_color') is None:
-        card_settings['font_color'] = CardClass.CardConfig.font_color
-
-    # Turn manually entered \n into newline
-    card_settings['title_text'] = card_settings['title_text'].replace(r'\n', '\n')
-
-    # Apply title text case function
-    if card_settings.get('font_title_case') is None:
-        case_func = CardClass.CASE_FUNCTIONS[CardClass.CardConfig.font_case]
-    elif card_settings['font_title_case'] in CardClass.CASE_FUNCTIONS:
-        case_func = CardClass.CASE_FUNCTIONS[card_settings['font_title_case']]
-    else:
-        case_func = CardClass.CASE_FUNCTIONS[CardClass.CardConfig.font_case]
-    card_settings['title_text'] = case_func(card_settings['title_text'])
-
-    # Delete output if it exists, then create Card
-    CardClass, CardTypeModel = validate_card_type_model(card_settings, log=log)
-    output.unlink(missing_ok=True)
-    card_maker = CardClass(**CardTypeModel.model_dump(), preferences=settings)
-    card_maker.create()
-
-    # Card created, return URI
-    if output.exists():
-        return f'/public/preview/{output.name}'
-
-    raise HTTPException(
-        status_code=500,
-        detail='Failed to create preview card'
-    )
-
-
 @card_router.post('/preview/episode/{episode_id}', tags=['Episodes'])
 def create_preview_card_for_episode(
         episode_id: int,
@@ -212,7 +78,6 @@ def create_preview_card_for_episode(
         update_font: UpdateNamedFont | None = Body(default=None),
         query_watched_statuses: bool = Query(default=False),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> str:
     """
     Create a preview Title Card for the given Episode.
@@ -247,8 +112,8 @@ def create_preview_card_for_episode(
             )
         )
 
-    update_episode_config(db, episode, update_episode, log=log)
-    update_series_config(db, episode.series, update_series, commit=False, log=log)
+    update_episode_config(db, episode, update_episode)
+    update_series_config(db, episode.series, update_series, commit=False)
 
     # Update Font if indicated
     if update_font is not None and update_font.id is not None:
@@ -260,7 +125,7 @@ def create_preview_card_for_episode(
 
     # Set watch status(es) of the Episode
     if query_watched_statuses:
-        get_watched_statuses(db, episode.series, [episode], log=log)
+        get_watched_statuses(db, episode.series, [episode])
 
     # Determine appropriate Source and Output file
     if not (source := episode.get_source_file('unique')).exists():
@@ -280,7 +145,7 @@ def create_preview_card_for_episode(
 
     # Create Card for this Episode
     try:
-        card_settings = resolve_card_settings(episode, library, log=log)
+        card_settings = resolve_card_settings(episode, library)
         card_settings['card_file'] = output
     except UnknownCardType as exc:
         raise HTTPException(
@@ -302,7 +167,7 @@ def create_preview_card_for_episode(
         ) from exc
 
     # Delete output if it exists, then create Card
-    CardClass, CardTypeModel = validate_card_type_model(card_settings, log=log)
+    CardClass, CardTypeModel = validate_card_type_model(card_settings)
     card_maker = CardClass(**CardTypeModel.model_dump(), preferences=settings)
     card_maker.create()
 
@@ -310,7 +175,7 @@ def create_preview_card_for_episode(
     if output.exists():
         return f'/public/preview/{output.name}'
 
-    card_maker.image_magick.print_command_history(log=log)
+    card_maker.image_magick.print_command_history()
     raise HTTPException(
         status_code=500,
         detail='Failed to create preview card'
@@ -371,7 +236,6 @@ def get_title_card(
 def create_cards_for_series(
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Create the Title Cards for the given Series. This deletes and
@@ -384,13 +248,13 @@ def create_cards_for_series(
     series = get_series(db, series_id, raise_exc=True)
 
     # Set watch statuses of the Episodes
-    get_watched_statuses(db, series, series.episodes, log=log)
+    get_watched_statuses(db, series, series.episodes)
     db.commit()
 
     # Create each associated Episode's Card
     for episode in series.episodes:
         try:
-            create_episode_cards(db, episode, log=log)
+            create_episode_cards(db, episode)
         except Exception as exc:
             log.exception(f'{episode} Card creation failed - {exc}')
 
@@ -460,7 +324,6 @@ def download_series_title_cards_zip(
         series_id: int,
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> FileResponse:
     """
     Download all Title Cards for the given Series as a zip file. Cards
@@ -512,7 +375,7 @@ def download_series_title_cards_zip(
             log.warning(f'Card file does not exist: {card.card_file}')
             continue
 
-        tzip.add_file(card_path, log=log)
+        tzip.add_file(card_path)
         files_added += 1
 
     # Check if any files were actually added
@@ -525,7 +388,7 @@ def download_series_title_cards_zip(
     log.info(f'Creating zip with {files_added} Title Cards for {series}')
 
     # Create and return the zip file
-    zip_path = tzip.zip(log=log)
+    zip_path = tzip.zip()
     return FileResponse(
         zip_path,
         media_type='application/zip',
@@ -538,7 +401,6 @@ def load_all_series_title_cards_(
         series_id: int,
         reload: bool = Query(default=False),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Load the Title Cards for the given Series into all libraries.
@@ -552,7 +414,7 @@ def load_all_series_title_cards_(
     # Get this Series and Interface, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    load_all_series_title_cards(series, db, force_reload=reload, log=log)
+    load_all_series_title_cards(series, db, force_reload=reload)
 
 
 @card_router.put('/series/{series_id}/load', tags=['Series'])
@@ -563,7 +425,6 @@ def load_series_title_cards_(
         reload: bool = Query(default=False),
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Load the Title Cards for the given Series into the library of the
@@ -618,7 +479,6 @@ def load_series_title_cards_(
             interface,
             reload,
             episodes=episodes,
-            log=log,
         )
     # Load Title Cards into all libraries
     else:
@@ -627,7 +487,6 @@ def load_series_title_cards_(
             db,
             force_reload=reload,
             episodes=episodes,
-            log=log,
         )
 
 
@@ -635,7 +494,6 @@ def load_series_title_cards_(
 def force_reload_episode_cards(
         episode_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Reload the Title Cards associated with the given Episode. This is a
@@ -656,7 +514,6 @@ def force_reload_episode_cards(
             library['name'],
             library['interface_id'],
             get_interface(library['interface_id']), # type: ignore
-            log=log,
         )
 
     if not loaded:
@@ -673,7 +530,6 @@ def reload_card(
         library_name: str | None = Query(default=None),
         uid: int | str | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Reload the Title Card. This is a "force" reload.
@@ -706,7 +562,6 @@ def reload_card(
             interface_id,
             get_interface(interface_id), # type: ignore
             uid=uid,
-            log=log,
         )
     # Load Cards for all libraries
     else:
@@ -718,7 +573,6 @@ def reload_card(
                 library['name'],
                 library['interface_id'],
                 get_interface(library['interface_id']), # type: ignore
-                log=log,
             )
 
     if not loaded:
@@ -750,7 +604,6 @@ def get_episode_cards(
 def delete_series_title_cards(
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> CardActions:
     """
     Delete all TitleCards for the given Series. Return a list of the
@@ -764,7 +617,7 @@ def delete_series_title_cards(
     loaded_query = db.query(Loaded).filter_by(series_id=series_id)
 
     # Delete cards
-    deleted = delete_cards(db, card_query, loaded_query, log=log)
+    deleted = delete_cards(db, card_query, loaded_query)
 
     return CardActions(deleted=len(deleted))
 
@@ -773,7 +626,6 @@ def delete_series_title_cards(
 def delete_episode_title_cards(
         episode_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> CardActions:
     """
     Delete all Title Cards for the given Episode. Return a list of the
@@ -787,7 +639,7 @@ def delete_episode_title_cards(
     loaded_query = db.query(Loaded).filter_by(episode_id=episode_id)
 
     # Delete cards
-    deleted = delete_cards(db, card_query, loaded_query, log=log)
+    deleted = delete_cards(db, card_query, loaded_query)
 
     return CardActions(deleted=len(deleted))
 
@@ -796,7 +648,6 @@ def delete_episode_title_cards(
 def delete_title_card(
         card_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> CardActions:
     """
     Delete the Title Card with the given ID. Also removes the associated
@@ -810,7 +661,7 @@ def delete_title_card(
     loaded_query = db.query(Loaded).filter_by(id=card_id)
 
     # Delete cards
-    deleted = delete_cards(db, card_query, loaded_query, log=log)
+    deleted = delete_cards(db, card_query, loaded_query)
 
     return CardActions(deleted=len(deleted))
 
@@ -820,7 +671,6 @@ def create_card_for_episode(
         episode_id: int,
         query_watched_statuses: bool = Query(default=False),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Create the Title Cards for the given Episode. This deletes and
@@ -836,13 +686,11 @@ def create_card_for_episode(
 
     # Set watch status of the Episode
     if query_watched_statuses:
-        get_watched_statuses(
-            db, episode.series, [episode], log=log,
-        )
+        get_watched_statuses(db, episode.series, [episode])
 
     # Create Card for this Episode
     try:
-        create_episode_cards(db, episode, log=log)
+        create_episode_cards(db, episode)
     except MissingSourceImage as exc:
         raise HTTPException(
             status_code=404,
@@ -859,7 +707,6 @@ def create_card_for_episode(
 def batch_delete_title_cards(
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> CardActions:
     """
     Batch delete all the Title Cards associated with the given Series.
@@ -868,10 +715,9 @@ def batch_delete_title_cards(
     deleted.
     """
 
-    cards = db.query(Card)\
-        .filter(Card.series_id.in_(series_ids))
+    cards = db.query(Card).filter(Card.series_id.in_(series_ids))
 
-    return CardActions(deleted=len(delete_cards(db, cards, log=log)))
+    return CardActions(deleted=len(delete_cards(db, cards)))
 
 
 @card_router.put('/batch/load')
@@ -879,7 +725,6 @@ def batch_load_title_cards_into_all_libraries(
         series_ids: list[int] = Body(...),
         reload: bool = Query(default=False),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Batch operation to load all Title Cards for all Series into all
@@ -896,5 +741,4 @@ def batch_load_title_cards_into_all_libraries(
             get_series(db, series_id, raise_exc=True),
             db,
             force_reload=reload,
-            log=log,
         )

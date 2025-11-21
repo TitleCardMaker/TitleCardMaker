@@ -19,7 +19,7 @@ from pathlib import Path
 from alembic import op
 import sqlalchemy as sa
 
-from app.logging.logger import contextualize
+from app.logging.logger import log
 from app.settings import settings
 from app.utils.paths import CleanPath
 
@@ -86,7 +86,6 @@ def get_logo_file(series: Series, source_directory: Path) -> Path:
         / 'logo.png'
 
 def upgrade() -> None:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     # Add new column
@@ -174,7 +173,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
     log.error(f'SQL schema is not backwards compatible')
 

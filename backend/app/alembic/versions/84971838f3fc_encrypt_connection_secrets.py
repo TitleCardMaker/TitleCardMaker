@@ -9,7 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 
 from app.core.auth import decrypt, encrypt
-from app.logging.logger import contextualize 
+from app.logging.logger import log 
 
 # Revision identifiers, used by Alembic.
 revision = '84971838f3fc'
@@ -32,7 +32,6 @@ class Connection(Base):
 
 
 def upgrade() -> None:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     # Perform data migration
@@ -54,7 +53,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     # Perform data migration

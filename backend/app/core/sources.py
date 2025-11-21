@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.templates import get_effective_templates
 from app.db.query import get_connection, get_interface
 from app.dependencies import get_database, get_imagemagick_interface
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.interfaces.web import WebInterface
 from app.interfaces.v2 import (
     EmbyInterface,
@@ -25,13 +25,10 @@ from app.settings import settings
 from app.utils.tiered_settings import TieredSettings
 
 
-def download_all_series_logos(*, log: Logger = log) -> None:
+def download_all_series_logos() -> None:
     """
     Schedule-able function to download all Logos for all monitored
     Series in the Database.
-
-    Args:
-        log: Logger for all log messages.
     """
 
     with next(get_database()) as db:
@@ -43,7 +40,7 @@ def download_all_series_logos(*, log: Logger = log) -> None:
                 continue
 
             try:
-                download_series_logo(series, log=log)
+                download_series_logo(series)
             except HTTPException:
                 log.warning(f'{series} skipping logo selection')
                 continue
@@ -132,8 +129,6 @@ def process_svg_logo(
         url: str,
         series: Series,
         logo_file: Path,
-        *,
-        log: Logger = log,
     ) -> str:
     """
     Process the given SVG logo URL, converting it to a PNG file and
@@ -143,7 +138,6 @@ def process_svg_logo(
         url: URL to the SVG file to download and process.
         series: Series whose logo this is (for logging).
         logo_file: Path to the directory where the logo will be written.
-        log: Logger for all log messages.
 
     Returns:
         String of the asset path for the processed logo.
@@ -157,7 +151,7 @@ def process_svg_logo(
     # Download to temporary location pre-conversion
     imagemagick_interface = get_imagemagick_interface()
     success = WebInterface.download_image(
-        url, imagemagick_interface.TEMPORARY_SVG_FILE, log=log,
+        url, imagemagick_interface.TEMPORARY_SVG_FILE,
     )
 
     # Downloaded, convert svg -> png
@@ -182,17 +176,12 @@ def process_svg_logo(
     )
 
 
-def download_series_logo(
-        series: Series,
-        *,
-        log: Logger = log,
-    ) -> str | None:
+def download_series_logo(series: Series,) -> str | None:
     """
     Download the logo for the given Series.
 
     Args:
         series: Series whose logo to download.
-        log: Logger for all log messages.
 
     Returns:
         The URI to the Series logo. None if one cannot be downloaded.
@@ -231,7 +220,7 @@ def download_series_logo(
 
         # Handle TMDb and TVDb separately
         if isinstance(interface, (TMDbInterface, TVDbInterface)):
-            logo = interface.get_series_logo(series.as_series_info, log=log)
+            logo = interface.get_series_logo(series.as_series_info)
         else:
             # Go through each library of this interface
             for _, library in series.get_libraries(interface_id):
@@ -241,7 +230,7 @@ def download_series_logo(
 
                 try:
                     logo = interface.get_series_logo(
-                        library, series.as_series_info, log=log
+                        library, series.as_series_info
                     )
                 except Exception:
                     log.exception('Error downloading logo')
@@ -257,10 +246,10 @@ def download_series_logo(
 
         # If logo is an svg, convert
         if isinstance(logo, str) and logo.endswith('.svg'):
-            return process_svg_logo(logo, series, logo_file, log=log)
+            return process_svg_logo(logo, series, logo_file)
 
         # Logo is png and valid, download
-        if WebInterface.download_image(logo, logo_file, log=log):
+        if WebInterface.download_image(logo, logo_file):
             log.info((
                 f'{series} Downloaded logo from {interface.INTERFACE_TYPE}'
                 f'[{interface_id}]'
@@ -284,7 +273,6 @@ def download_episode_source_image(
         library: Library | None = None,
         *,
         raise_exc: Literal[True],
-        log: Logger = log,
     ) -> str:
     ...
 
@@ -295,7 +283,6 @@ def download_episode_source_image(
         library: Library | None = None,
         *,
         raise_exc: bool = False,
-        log: Logger = log,
     ) -> str | None:
     ...
 
@@ -305,7 +292,6 @@ def download_episode_source_image(
         library: Library | None = None,
         *,
         raise_exc: bool = False,
-        log: Logger = log,
     ) -> str | None:
     """
     Download the source image for the given Episode.
@@ -316,7 +302,6 @@ def download_episode_source_image(
         library: Library associated with this Episode - used for source
             setting and Template evaluation(s).
         raise_exc: Whether to raise any HTTPExceptions.
-        log: Logger for all log messages.
 
     Returns:
         URI to the Episode source image. None if no Source Image was
@@ -378,7 +363,6 @@ def download_episode_source_image(
                     library_name,
                     series.as_series_info,
                     episode.as_episode_info,
-                    log=log,
                 )
                 if source_image:
                     break
@@ -406,7 +390,6 @@ def download_episode_source_image(
                         episode.as_episode_info,
                         skip_localized_images=skip_localized_images,
                         raise_exc=raise_exc,
-                        log=log,
                     )
             except HTTPException:
                 pass
@@ -415,14 +398,12 @@ def download_episode_source_image(
             if 'art' in style:
                 source_image = interface.get_series_backdrop(
                     series.as_series_info,
-                    log=log,
                 )
             # Get source image
             else:
                 source_image = interface.get_source_image(
                     series.as_series_info,
                     episode.as_episode_info,
-                    log=log,
                 )
 
         # No source image was returned
@@ -434,7 +415,7 @@ def download_episode_source_image(
             continue
 
         # Source image is valid, download - error if download fails
-        if WebInterface.download_image(source_image, source_file, log=log):
+        if WebInterface.download_image(source_image, source_file):
             log.debug((
                 f'{episode} Downloaded "{source_file.name}" from '
                 f'{interface.INTERFACE_TYPE}'
@@ -457,7 +438,6 @@ def download_episode_source_images(
         episode: Episode,
         *,
         raise_exc: bool = False,
-        log: Logger = log,
     ) -> list[str | None]:
     """
     Download all Source Images for the given Episode.
@@ -466,7 +446,6 @@ def download_episode_source_images(
         db: Database to update.
         episode: Episode whose Source Images are being downloaded.
         raise_exc: Whether to raise any HTTPExceptions.
-        log: Logger for all log messages.
 
     Returns:
         List of URIs to the Episode source images.
@@ -478,12 +457,12 @@ def download_episode_source_images(
     if episode.series.libraries:
         return [
             download_episode_source_image(
-                db, episode, library, raise_exc=raise_exc, log=log,
+                db, episode, library, raise_exc=raise_exc,
             ) for library in episode.series.libraries
         ]
 
     return [download_episode_source_image(
-        db, episode, None, raise_exc=raise_exc, log=log,
+        db, episode, None, raise_exc=raise_exc,
     )]
 
 

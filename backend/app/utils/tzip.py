@@ -4,7 +4,7 @@ from time import sleep
 
 from fastapi import BackgroundTasks
 
-from app.logging.logger import Logger, generate_context_id, log
+from app.logging.logger import log
 
 
 class TemporaryZip:
@@ -51,12 +51,7 @@ class TemporaryZip:
         return self.__files > 0
 
 
-    def __delete_zip(self,
-            directory: Path,
-            file: Path,
-            *,
-            log: Logger = log,
-        ) -> None:
+    def __delete_zip(self, directory: Path, file: Path) -> None:
         """
         Delete the given zip directory and files. A delay is utilized so
         that the browser is able to download the content before they are
@@ -66,7 +61,6 @@ class TemporaryZip:
             directory: Directory containing zipped files to be deleted.
                 The contents are deleted, then the directory itself.
             file: Zip file to delete directly.
-            log: Logger for all log messages.
         """
 
         # Wait a while to give the browser time to download the zips
@@ -86,12 +80,7 @@ class TemporaryZip:
         log.debug(f'Deleted {directory}')
 
 
-    def add_file(self,
-            file: Path,
-            filename: str | None = None,
-            *,
-            log: Logger = log,
-        ) -> None:
+    def add_file(self, file: Path, filename: str | None = None) -> None:
         """
         Add the given file to this directory for future zipping.
 
@@ -99,7 +88,6 @@ class TemporaryZip:
             file: File to add to copy into this directory.
             filename: Filename to name `file` as. If not provided, then
                 the original filename is used.
-            log: Logger for all log messages.
         """
 
         copy_file(file, self.dir / (filename or file.name))
@@ -107,12 +95,9 @@ class TemporaryZip:
         self.__files += 1
 
 
-    def zip(self, *, log: Logger = log) -> Path:
+    def zip(self) -> Path:
         """
         Zip this object's directory and then queue its deletion.
-
-        Args:
-            log: Logger for all log messages.
 
         Returns:
             Path to the created zip file.
@@ -121,7 +106,7 @@ class TemporaryZip:
         zip_file = Path(zip_directory(str(self.dir), 'zip', self.dir))
         self.tasks.add_task(
             self.__delete_zip,
-            directory=self.dir, file=zip_file, log=log,
+            directory=self.dir, file=zip_file,
         )
 
         return zip_file

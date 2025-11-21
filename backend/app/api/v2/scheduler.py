@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.core.schedule import TaskID, get_task_details, RecurringTasks
 from app.db.users import get_current_user
-from app.dependencies import get_database, get_logger
-from app.logging.logger import Logger
+from app.dependencies import get_database
+from app.logging.logger import log
 from app.schemas.schedule import TaskDetails
 from app.settings import settings
 
@@ -21,7 +21,7 @@ scheduler_router = APIRouter(
 
 
 @scheduler_router.post('/type/toggle')
-def toggle_schedule_type(log: Logger = Depends(get_logger)) -> None:
+def toggle_schedule_type() -> None:
     """
     Toggle the global scheduling between basic and advanced. Basic
     scheduling mode using standard intervals, while advanced scheduling
@@ -34,14 +34,11 @@ def toggle_schedule_type(log: Logger = Depends(get_logger)) -> None:
     else:
         log.info('Enabling advanced Task scheduling')
     settings.advanced_scheduling = not settings.advanced_scheduling
-    settings.commit(log=log)
+    settings.commit()
 
 
 @scheduler_router.put('/type/{mode}')
-def set_the_scheduler_type(
-        mode: Literal['advanced', 'basic'],
-        log: Logger = Depends(get_logger),
-    ) -> None:
+def set_the_scheduler_type(mode: Literal['advanced', 'basic']) -> None:
     """
     Set the scheduler to the given mode.
     
@@ -54,7 +51,7 @@ def set_the_scheduler_type(
     else:
         log.info('Disabling advanced Task scheduling')
     settings.advanced_scheduling = mode == 'advanced'
-    settings.commit(log=log)
+    settings.commit()
 
 
 @scheduler_router.get('/scheduled')
@@ -123,7 +120,6 @@ def reschedule_task_deprecated(
         task_id: TaskID,
         update_crontab: str = Query(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> TaskDetails:
     """
     Reschedule the given Task with a new interval.
@@ -151,7 +147,7 @@ def reschedule_task_deprecated(
     # Reschedule with modified interval
     log.info(f'Task[{task_id}] rescheduling to "{update_crontab}"')
     settings.task_schedules[task_id] = update_crontab
-    settings.commit(log=log)
+    settings.commit()
 
     return get_task_details(db, task_id)
 
@@ -161,7 +157,6 @@ def reschedule_task(
         task_id: TaskID,
         update_crontab: str = Query(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> TaskDetails:
     """
     Reschedule the given Task with a new interval.
@@ -189,7 +184,7 @@ def reschedule_task(
     # Reschedule with modified interval
     log.info(f'Task[{task_id}] rescheduling to "{update_crontab}"')
     settings.task_schedules[task_id] = update_crontab
-    settings.commit(log=log)
+    settings.commit()
 
     return get_task_details(db, task_id)
 
@@ -198,7 +193,6 @@ def reschedule_task(
 def run_task_deprecated(
         task_id: TaskID,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> TaskDetails:
     """
     Run the given Task immediately. This __does not__ reschedule or
@@ -215,7 +209,7 @@ def run_task_deprecated(
         )
 
     try:
-        RecurringTasks[task_id].wrapped_func(log=log)
+        RecurringTasks[task_id].wrapped_func()
     except Exception as e:
         log.error(f'Failed to run Task {task_id}: {e}')
 
@@ -227,7 +221,6 @@ def run_task_deprecated(
 def run_task(
         task_id: TaskID,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> TaskDetails:
     """
     Run the given Task immediately. This __does not__ reschedule or
@@ -244,7 +237,7 @@ def run_task(
         )
 
     try:
-        RecurringTasks[task_id].wrapped_func(log=log)
+        RecurringTasks[task_id].wrapped_func()
     except Exception as e:
         log.error(f'Failed to run Task {task_id}: {e}')
 

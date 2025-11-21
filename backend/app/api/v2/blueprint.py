@@ -27,11 +27,7 @@ from app.core.series import add_series
 from app.core.sources import get_series_mask_images
 from app.db.pagination import Page
 from app.db.query import get_blueprint, get_blueprint_set, get_series
-from app.dependencies import (
-    get_blueprint_database,
-    get_database,
-    get_logger,
-)
+from app.dependencies import get_blueprint_database, get_database
 from app.db.users import get_current_user
 from app.models.blueprint import Blueprint, BlueprintSeries
 from app.models.card import Card
@@ -45,7 +41,7 @@ from app.schemas.blueprint import (
 )
 from app.schemas.series import Series
 from app.settings import settings
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.utils.tzip import TemporaryZip
 
 
@@ -63,7 +59,6 @@ def export_series_blueprint(
         include_episode_overrides: bool = Query(default=True),
         mask_images: bool = Query(default=True),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> ExportBlueprint:
     """
     Generate the Blueprint for the given Series. This Blueprint can be
@@ -87,7 +82,7 @@ def export_series_blueprint(
     if include_episode_overrides:
         episode_data = [
             ei for ei, _ in
-            get_all_episode_data(series, raise_exc=False, log=log)
+            get_all_episode_data(series, raise_exc=False)
         ]
 
     return generate_series_blueprint(
@@ -139,7 +134,6 @@ async def export_series_blueprint_as_zip(
         include_episode_overrides: bool = Query(default=True),
         mask_images: bool = Query(default=True),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> FileResponse:
     """
     Export a zipped file of the given Series' Blueprint (as JSON), any
@@ -162,7 +156,7 @@ async def export_series_blueprint_as_zip(
         # Get just the EpisodeInfo objects
         episode_data = [
             episode_info for episode_info, _ in
-            get_all_episode_data(series, raise_exc=False, log=log)
+            get_all_episode_data(series, raise_exc=False)
         ]
 
     # Generate Blueprint
@@ -208,11 +202,11 @@ async def export_series_blueprint_as_zip(
 
     # Copy all files into the zip directory
     for file in font_files:
-        font_tzip.add_file(file, log=log)
+        font_tzip.add_file(file)
 
     # Zip files, copy into main zip directory
     if font_files:
-        tzip.add_file(font_tzip.zip(log=log), log=log)
+        tzip.add_file(font_tzip.zip())
 
     # Copy preview into main zip directory
     if card_file is None:
@@ -223,7 +217,7 @@ async def export_series_blueprint_as_zip(
         log.debug(f'Converted "{card_file}" to .jpg')
         log.debug(f'Copied "{card_file}" into zip directory')
     else:
-        tzip.add_file(card_file, f'preview{card_file.suffix}', log=log)
+        tzip.add_file(card_file, f'preview{card_file.suffix}')
 
     # Zip mask images if indicated
     if mask_images:
@@ -231,9 +225,9 @@ async def export_series_blueprint_as_zip(
             settings.temporary_directory, background_tasks, name='sources'
         )
         for file in get_series_mask_images(series):
-            mask_tzip.add_file(file, log=log)
+            mask_tzip.add_file(file)
         if mask_tzip:
-            tzip.add_file(mask_tzip.zip(log=log), log=log)
+            tzip.add_file(mask_tzip.zip())
 
     # Write Blueprint as JSON into zip directory
     with (tzip.dir / 'blueprint.json').open('w') as file_handle:
@@ -241,13 +235,12 @@ async def export_series_blueprint_as_zip(
     log.debug('Wrote "blueprint.json" into zip directory')
 
     # Create zip of Font zip + preview file + Blueprint JSON
-    return FileResponse(tzip.zip(log=log))
+    return FileResponse(tzip.zip())
 
 
 @blueprint_router.put('/blacklist/{blueprint_id}')
 def blacklist_blueprint(
         blueprint_id: int,
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Blacklist the indicated Blueprint. Once blacklisted, this Blueprint
@@ -257,7 +250,7 @@ def blacklist_blueprint(
     """
 
     settings.blacklisted_blueprints.add(blueprint_id)
-    settings.commit(log=log)
+    settings.commit()
 
     log.debug(f'Blacklisted Blueprint[{blueprint_id}]')
 
@@ -265,7 +258,6 @@ def blacklist_blueprint(
 @blueprint_router.delete('/blacklist/{blueprint_id}')
 def remove_blueprint_from_blacklist(
         blueprint_id: int,
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Un-blacklist the Blueprint for the indicated Series.
@@ -275,7 +267,7 @@ def remove_blueprint_from_blacklist(
 
     try:
         settings.blacklisted_blueprints.remove(blueprint_id)
-        settings.commit(log=log)
+        settings.commit()
     except KeyError as exc:
         raise HTTPException(
             status_code=404,
@@ -436,7 +428,6 @@ def import_blueprint_and_series(
         blueprint_id: int,
         db: Session = Depends(get_database),
         blueprint_db: Session = Depends(get_blueprint_database),
-        log: Logger = Depends(get_logger),
     ) -> Series:
     """
     Import the given Blueprint - creating the associated Series if it
@@ -463,13 +454,13 @@ def import_blueprint_and_series(
             f'- adding to database'
         ))
         series = add_series(
-            blueprint.series.as_new_series, background_tasks, db, log=log,
+            blueprint.series.as_new_series, background_tasks, db,
         )
 
     # Import Blueprint
     background_tasks.add_task(
         import_blueprint,
-        db, series, blueprint, log=log
+        db, series, blueprint
     )
 
     return series
@@ -481,7 +472,6 @@ def import_series_blueprint_by_id(
         blueprint_id: int,
         db: Session = Depends(get_database),
         blueprint_db: Session = Depends(get_blueprint_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import the Blueprint with the given ID to the given Series.
@@ -497,7 +487,7 @@ def import_series_blueprint_by_id(
     blueprint = get_blueprint(blueprint_db, blueprint_id, raise_exc=True)
 
     # Import Blueprint
-    import_blueprint(db, series, blueprint, log=log)
+    import_blueprint(db, series, blueprint)
 
 
 @blueprint_router.put('/import/series/{series_id}')
@@ -505,7 +495,6 @@ def import_series_blueprint_(
         series_id: int,
         blueprint: RemoteBlueprint = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Import the given Blueprint object into the given Series.
@@ -518,7 +507,6 @@ def import_series_blueprint_(
         db,
         get_series(db, series_id, raise_exc=True),
         blueprint,
-        log=log
     )
 
 

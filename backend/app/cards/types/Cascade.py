@@ -17,6 +17,7 @@ from app.cards.base import (
     PreviewCard,
     Rectangle,
     add_cli,
+    get_extra_validation_error,
 )
 from app.utils.fstring import FormatString
 
@@ -952,8 +953,13 @@ def get_validator_model() -> type[BaseCardModel]:
                     length=self.cascade_count,
                 )
             except Exception as exc:
-                raise ValueError(
-                    f'Cascade Transparency sequence is invalid ({exc})'
+                raise get_extra_validation_error(
+                    title='Cascade Transparency sequence is invalid',
+                    error_name='bad_sequence',
+                    error_template='Transparency sequence is invalid: {exc}}',
+                    error_context={'exc': str(exc)},
+                    error_location='cascase_transparencies',
+                    input=self.cascade_alphas,
                 )
             try:
                 SequenceGenerator.validate_sequence(
@@ -961,8 +967,13 @@ def get_validator_model() -> type[BaseCardModel]:
                     length=self.cascade_count,
                 )
             except Exception as exc:
-                raise ValueError(
-                    f'Cascade Cropping sequence is invalid ({exc})'
+                raise get_extra_validation_error(
+                    title='Cascade Cropping sequence is invalid',
+                    error_name='bad_sequence',
+                    error_template='Cropping sequence is invalid: {exc}}',
+                    error_context={'exc': str(exc)},
+                    error_location='cascase_cropping',
+                    input=self.cascade_cropping,
                 )
 
             return self

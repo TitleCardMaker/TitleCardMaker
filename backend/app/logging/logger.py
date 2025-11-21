@@ -1,13 +1,21 @@
+from contextvars import ContextVar
 import logging
+from pathlib import Path
 from random import choices as random_choices
 from string import hexdigits
 import sys
-from typing import TYPE_CHECKING
+from time import time as current_time
+from types import TracebackType
+from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Self
+from uuid import uuid4
 
 import better_exceptions
-from fastapi import WebSocket
+from fastapi import Request, Response, WebSocket
 from loguru import logger as base_logger
 from loguru._logger import Logger
+from rich.console import Console, Group
+from rich.panel import Panel
+from rich.text import Text
 from sqlalchemy.exc import OperationalError
 
 from app.core.config import LOG_ROOT, config
@@ -15,13 +23,15 @@ from app.logging.database import LogsSessionLocal
 from app.logging.models import Log
 
 if TYPE_CHECKING:
-    from loguru import Message
+    from loguru import Message, Record
 
 
-"""Websocket connections to send log messages to"""
-ACTIVE_WEBSOCKETS: set[WebSocket] = set()
+ACTIVE_WEBSOCKETS: Annotated[
+    set[WebSocket],
+    'Websocket connections to send log messages to'
+] = set()
 
-"""Do not limit the length of exception tracebacks"""
+# Do not limit the length of exception tracebacks
 better_exceptions.MAX_LENGTH = None
 
 """
@@ -97,26 +107,6 @@ def generate_context_id() -> str:
     """
 
     return ''.join(random_choices(hexdigits, k=6)).lower()
-
-
-def contextualize(
-        logger: Logger = base_logger,
-        context_id: str | None = None
-    ) -> Logger:
-    """
-    Create a contextualized logger with a context ID for request
-    tracking.
-
-    Args:
-        logger: Base logger to contextualize.
-        context_id: Context ID to bind to the logger. If None, a random
-            one will be generated.
-
-    Returns:
-        Contextualized logger with the context ID bound.
-    """
-
-    return logger.bind(context_id=context_id or generate_context_id())
 
 
 def _configure_logger(logger: Logger) -> Logger:
@@ -255,4 +245,248 @@ def initialize_logging() -> Logger:
     return logger
 
 
-log = initialize_logging()
+_global_log = initialize_logging()
+rlv: ContextVar[Logger] = ContextVar('request_logger')
+
+
+def set_contextualized_logger() -> tuple[Logger, str]:
+    """
+    Set the contextualized logger for the current request.
+
+    Returns:
+        Tuple containing the contextualized logger and the context ID.
+    """
+
+    context_id = uuid4().hex[:6]
+    context_logger = _global_log.bind(context_id=context_id)
+
+    rlv.set(context_logger)
+
+    return context_logger, context_id
+
+
+def get_contextualized_logger() -> Logger:
+    """
+    Get the contextualized Logger from the Request object.
+
+    Returns:
+        Contextualized logger with a (pseudo)random context ID for this
+        request.
+    """
+
+    return rlv.get(_global_log)
+
+
+class contextualize_request:
+    """
+    Context manager which creates a contextualized logger which captures
+    the logs for a given FastAPI request.
+
+    >>> with contextualize_request(request) as (contextualization, log):
+    ...     log.info('Hello, world!')
+    ...     await call_next(request) # Do some request processing
+    ...     contextualization.log_response()
+    """
+
+    PANEL_MARGIN: ClassVar[int] = 4
+
+    def __init__(self, request: Request) -> None:
+        self._context_id = generate_context_id()
+        self._request = request
+        self._logger = _global_log
+        self._log_buffer: list[str] = []
+        self._request_start_time = current_time()
+        self._last_message_time = current_time()
+        self._sink_id: int | None = None
+
+
+    def __enter__(self) -> tuple[Self, Logger]:
+        self._logger = _global_log.bind(context_id=self._context_id)
+        rlv.set(self._logger)
+
+        def sink(message: 'Message') -> None:
+            self._log_buffer.append(self._format_record(message.record))
+
+        self._sink_id = _global_log.add(sink, level='TRACE')
+
+        return self, self._logger
+
+
+    def __exit__(self,
+            exc_type: type[BaseException] | None,
+            exc_value: BaseException | None,
+            exc_traceback: TracebackType | None,
+        ) -> bool:
+        """
+        Exit the contextualized logger context.
+        """
+
+        if self._sink_id is not None:
+            self._logger.remove(self._sink_id)
+
+        return False
+
+
+    def _format_record(self, record: 'Record') -> str:
+        """
+        Add a metadata line to the beginning of the log message.
+
+        Args:
+            record: The log record to add the metadata line to.
+
+        Returns:
+            An amended log message with the metadata line added.
+        """
+
+        level = record['level'].name
+
+        file_string = 'unknown'
+        if ((file_obj := record.get('file', {}))
+            and (file_path := getattr(file_obj, 'path', None))):
+            filename = Path(str(file_path)).name
+            line_number = record.get('line', '?')
+            file_string = f'{filename}:{line_number}'
+
+        time_string = (
+            f'+{(record["time"].timestamp()-self._last_message_time)*1000:.0f}ms'
+        )
+
+        center_width = (
+            config.CONSOLE_LOG_WIDTH
+            - (
+                self.PANEL_MARGIN
+                + len(level)
+                + len(time_string)
+                + self.PANEL_MARGIN
+            )
+        )
+        metadata_line = f'{level}{file_string.center(center_width)}{time_string}'
+
+        self._last_message_time = record['time'].timestamp()
+
+        return f'{metadata_line}\n{record["message"]}'
+
+
+    def _get_request_panel(self) -> Panel:
+        """
+        Format the request panel for the API request.
+        """
+
+        return Panel(
+            Text('\n'.join([
+                f'URL: {self._request.url}',
+                f'Method: {self._request.method}',
+                f'Query Parameters: {dict(self._request.query_params)}',
+                f'Path Parameters: {self._request.path_params}',
+            ])),
+            title=f'[bold yellow]REQUEST INFO[/]',
+            border_style='yellow',
+        )
+
+
+    def _get_logs_panel(self) -> Panel | None:
+        """
+        Get a formatted Panel containing all log messages for the
+        request.
+
+        Returns:
+            A formatted Panel containing all log messages for the request,
+            or None if no log messages are available.
+        """
+
+        if not self._log_buffer:
+            return None
+
+        text = Text()
+        for idx, message in enumerate(self._log_buffer):
+            text.append(message)
+            # Add separator until the last message
+            if idx < len(self._log_buffer) - 1:
+                inner_width = config.CONSOLE_LOG_WIDTH - (self.PANEL_MARGIN * 2)
+                text.append(f'\n{"-" * inner_width}\n', style='dim')
+
+        return Panel(
+            text,
+            title="[bold cyan]APPLICATION LOG MESSAGES[/]",
+            border_style="cyan",
+        )
+
+
+    def _get_response_panel(self, response: Response) -> Panel:
+
+        response_time_ms = (current_time() - self._request_start_time) * 1000
+
+        return Panel(
+            Text('\n'.join([
+                f'Status Code: {response.status_code}',
+                f'Response Time: {response_time_ms:.1f}ms',
+            ])),
+            title='[bold green]RESPONSE INFO[/]',
+            border_style='green',
+        )
+
+
+    def log_response(self, response: Response) -> None:
+
+        panels = [
+            self._get_request_panel(),
+            self._get_logs_panel(),
+            self._get_response_panel(response),
+        ]
+
+        combined = Group(*(panel for panel in panels if panel is not None))
+
+        Console(width=config.CONSOLE_LOG_WIDTH).print(
+            Panel(
+                combined,
+                title=f'Request Log ({self._context_id})',
+                border_style='magenta',
+                padding=1,
+            )
+        )
+
+
+class contextualize(contextualize_request):
+    """
+    Context manager which creates a modified contextual logger which
+    captures a scoped executions logs and displays them in a formatted
+    Panel.
+    
+    >>> with contextualize() as (contextualization, log):
+    >>>     log.info('Hello, world!')
+    >>>     contextualization.log_execution()
+    """
+
+    PANEL_MARGIN: ClassVar[int] = 2
+
+    def __init__(self) -> None:
+        self._context_id = uuid4().hex[:8]
+        self._logger = _global_log
+        self._log_buffer: list[str] = []
+        self._start_time = current_time()
+        self._last_message_time = current_time()
+        self._sink_id: int | None = None
+
+    def log_execution(self) -> None:
+        """
+        Log the execution of the scoped code. This displays a panel of
+        log messages, if any occured.
+        """
+
+        if (logs_panel := self._get_logs_panel()) is None:
+            return None
+
+        Console(width=config.CONSOLE_LOG_WIDTH).print(logs_panel)
+
+
+# IMPORTANT
+# Rebind the global `log` variable to a "class" which always resolves to
+# the contextualized logger for the current scope
+class ContextLogProxy:
+    def __getattr__(self, name: str) -> Any:
+        return getattr(get_contextualized_logger(), name)
+
+if TYPE_CHECKING:
+    log = _global_log
+else:
+    log = ContextLogProxy()

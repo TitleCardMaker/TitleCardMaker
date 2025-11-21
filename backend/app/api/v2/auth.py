@@ -6,9 +6,9 @@ from app.core.auth import (
     create_access_token,
     get_password_hash
 )
-from app.dependencies import get_database, get_logger
+from app.dependencies import get_database
 from app.db.users import authenticate_user, get_current_user, get_user
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.models.user import User as UserModel
 from app.schemas.auth import (
     CreateUserSchema,
@@ -29,7 +29,6 @@ auth_router = APIRouter(
 @auth_router.post('/enable', dependencies=[Depends(get_current_user)])
 def enable_authentication(
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> ReturnUserSchema:
     """
     Enable Authentication on this server. If there are no existing Users
@@ -38,7 +37,7 @@ def enable_authentication(
 
     # Enable authentication globally
     settings.require_auth = True
-    settings.commit(log=log)
+    settings.commit()
 
     # Get current users
     users = db.query(UserModel).all()
@@ -66,7 +65,6 @@ def enable_authentication(
 def disable_authentication(
         revoke_access: bool = Query(default=False),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Disable the Authentication requirement on this server.
@@ -76,7 +74,7 @@ def disable_authentication(
 
     # Disable authentication requirement
     settings.require_auth = False
-    settings.commit(log=log)
+    settings.commit()
     log.warning('Disabling Authentication')
 
     # If revoking access, deleting existing User entries
@@ -90,7 +88,6 @@ def disable_authentication(
 def add_new_user(
         db: Session = Depends(get_database),
         new_user: CreateUserSchema = Body(...),
-        log: Logger = Depends(get_logger),
     ) -> ReturnUserSchema:
     """
     Add a new User - must be called by an already authenticated User.
@@ -126,7 +123,6 @@ def add_new_user(
 def delete_user(
         username: str = Query(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the User with the given Username. If there are no remaining
@@ -153,7 +149,7 @@ def delete_user(
     if db.query(UserModel).count() == 0:
         log.warning('No remaining active users - disabling authentication')
         settings.require_auth = False
-        settings.commit(log=log)
+        settings.commit()
 
 
 @auth_router.get('/all', dependencies=[Depends(get_current_user)])
@@ -177,7 +173,6 @@ def update_user_credentials(
         update_user: UpdateUser = Body(...),
         db: Session = Depends(get_database),
         user: UserModel | None = Depends(get_current_user),
-        log: Logger = Depends(get_logger),
     ) -> ReturnUserSchema:
     """
     Update the credentials of the current User.
@@ -199,9 +194,11 @@ def update_user_credentials(
         )
 
     # Verify new username does not conflict with existing user
-    existing_user = db.query(UserModel)\
-        .filter_by(username=update_user.username)\
-        .first()
+    existing_user = (
+        db.query(UserModel)
+            .filter_by(username=update_user.username)
+            .first()
+    )
     if existing_user and existing_user != user:
         raise HTTPException(
             status_code=422,
@@ -221,7 +218,6 @@ def update_user_credentials(
 def login_for_access_token(
         db: Session = Depends(get_database),
         form_data: OAuth2PasswordRequestForm = Depends(),
-        log: Logger = Depends(get_logger),
     ) -> ReturnTokenSchema:
     """
     Authenticate the given User and return an appropriate access token.
@@ -258,7 +254,6 @@ def login_for_access_token(
 @auth_router.post('/reset')
 def reset_all_authentication(
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Reset all authentication of the current server. This requires the
@@ -277,4 +272,4 @@ def reset_all_authentication(
 
     # Do not require authentication
     settings.require_auth = False
-    settings.commit(log=log)
+    settings.commit()

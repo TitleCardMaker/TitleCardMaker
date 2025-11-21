@@ -20,6 +20,7 @@ module.exports = defineConfig({
         'cypress/e2e/add.cy.js',
         'cypress/e2e/connections.cy.js',
         'cypress/e2e/fonts.cy.js',
+        'cypress/e2e/logs.cy.js',
         'cypress/e2e/navigation.cy.js',
         'cypress/e2e/scheduler.cy.js',
         'cypress/e2e/settings.cy.js',

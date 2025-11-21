@@ -9,7 +9,7 @@ from app.core.cards import refresh_remote_card_types
 from app.core.sources import get_series_mask_images
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
-from app.logging.logger import log, Logger
+from app.logging.logger import log
 from app.models.blueprint import Blueprint, BlueprintSeries
 from app.models.episode import Episode
 from app.models.font import Font
@@ -215,8 +215,6 @@ def import_blueprint(
         db: Session,
         series: Series,
         blueprint: Blueprint,
-        *,
-        log: Logger = log,
     ) -> None:
     """
     Import the given Blueprint into the given Series.
@@ -226,7 +224,6 @@ def import_blueprint(
             query for existing Episodes.
         series: Series the imported Blueprint is affecting.
         blueprint: Blueprint to parse for imported settings.
-        log: Logger for all log messages.
     """
 
     # Get subfolder for this Blueprint
@@ -328,7 +325,7 @@ def import_blueprint(
 
     if (new_template_ids := series_blueprint.pop('template_ids', [])):
         templates = [template_map[id_] for id_ in new_template_ids]
-        series.assign_templates(templates, log=log)
+        series.assign_templates(templates)
         changed = True
 
     # Update each attribute of the Series object based on import
@@ -374,7 +371,7 @@ def import_blueprint(
 
         if (new_template_ids := episode_dict.pop('template_ids', [])):
             templates = [template_map[id_] for id_ in new_template_ids]
-            episode.assign_templates(templates, log=log)
+            episode.assign_templates(templates)
             changed = True
 
         # All other attributes
@@ -403,9 +400,9 @@ def import_blueprint(
 
     # Add ID to imported set
     settings.imported_blueprints.add(blueprint.id)
-    settings.commit(log=log)
+    settings.commit()
 
     # Commit changes to Database; refesh card types
     if changed:
         db.commit()
-        refresh_remote_card_types(db, reset=False, log=log)
+        refresh_remote_card_types(db, reset=False)

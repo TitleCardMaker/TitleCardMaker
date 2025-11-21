@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 from app.dependencies import get_database
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.models.card import Card
 from app.models.duration import TaskDuration
 from app.models.episode import Episode
@@ -19,28 +19,22 @@ from app.schemas.statistic import NewSnapshot
 from app.settings import settings
 
 
-def snapshot_database(*, log: Logger = log) -> None:
-    """
-    Schedulable function to take a snapshot of the database.
-
-    Args:
-        log: Logger for all log messages.
-    """
+def snapshot_database() -> None:
+    """Schedulable function to take a snapshot of the database."""
 
     try:
         with next(get_database()) as db:
-            take_snapshot(db, log=log)
+            take_snapshot(db)
     except Exception:
         log.exception('Failed to take snapshot')
 
 
-def take_snapshot(db: Session, *, log: Logger = log) -> None:
+def take_snapshot(db: Session) -> None:
     """
     Take a snapshot of the database.
 
     Args:
         db: Session to snapshot and add the snapshot to.
-        log: Logger for all log messages.
     """
 
     # Determine total card creation count; max of Card.id and previous card

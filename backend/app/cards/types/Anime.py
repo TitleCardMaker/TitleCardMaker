@@ -13,6 +13,7 @@ from app.cards.base import (
     PreviewCard,
     Shadow,
     add_cli,
+    get_extra_validation_error,
 )
 from app.schemas.base import (
     BaseCardModel,
@@ -610,7 +611,14 @@ def get_validator_model() -> type[BaseCardModel]:
         def validate_kanji(self) -> Self:
             """Validate that kanji has been provided if it is required"""
             if self.require_kanji and not self.kanji:
-                raise ValueError('Kanji is required, but not specified')
+                raise get_extra_validation_error(
+                    title='Kanji is required but not specified',
+                    error_name='missing_kanji',
+                    error_template='Kanji is required but not specified',
+                    error_context={},
+                    error_location='kanji',
+                    input=self.kanji,
+                )
             return self
 
         @model_validator(mode='after')
@@ -632,7 +640,14 @@ def get_validator_model() -> type[BaseCardModel]:
             elif (self.logo_position != 'omit'
                 and (self.logo_file is None or not self.logo_file.exists())
             ):
-                raise ValueError('Logo required but not provided')
+                raise get_extra_validation_error(
+                    title='Logo required but not provided',
+                    error_name='missing_logo',
+                    error_template='Logo required but not provided',
+                    error_context={},
+                    error_location='logo_file',
+                    input=self.logo_file,
+                )
 
             return self
 

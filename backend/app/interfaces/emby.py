@@ -35,7 +35,7 @@ from app.interfaces.schemas.emby import (
 )
 from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface, WebSession
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 if TYPE_CHECKING:
     from app.models.card import Card
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 
 class TestingEmbyInterface:
-    def _get_user_id(self, username: str | None, *, log: Logger = log) -> str:
+    def _get_user_id(self, username: str | None) -> str:
         return 'Admin'
 
     def _map_libraries(self) -> dict[str, tuple[int, ...]]:
@@ -55,24 +55,18 @@ class TestingEmbyInterface:
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> None:
         return None
 
     def get_series_poster(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> SourceImage:
         return None
 
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
         # TODO Populate with test data
         return []
@@ -115,7 +109,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             filesize_limit: int | None = None,
             *,
             interface_id: int = 0,
-            log: Logger = log,
         ) -> None:
         """
         Construct a new instance of an interface to an Emby server.
@@ -129,7 +122,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             filesize_limit: Number of bytes to limit a single file to
                 during upload.
             interface_id: ID of this interface.
-            log: Logger for all log messages.
 
         Raises:
             HTTPException (400): Invalid connection/user details.
@@ -155,7 +147,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 system_info = self._session.get(
                     '/System/Info',
                     response_model=SystemInfo,
-                    log=log,
                 )
 
                 if not system_info:
@@ -169,7 +160,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             ) from exc
 
         # Get user ID
-        if (user_id := self._get_user_id(username, log=log)) is None:
+        if (user_id := self._get_user_id(username)) is None:
             log.critical(f'Cannot identify ID of user "{username}"')
             raise HTTPException(
                 status_code=400,
@@ -189,14 +180,13 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
 
     @testing_override(TestingEmbyInterface._get_user_id)
-    def _get_user_id(self, username: str | None, *, log: Logger = log) -> str:
+    def _get_user_id(self, username: str | None) -> str:
         """
         Get the User ID associated with the given username.
 
         Args:
             username: Username to query for. If omitted, the first user
                 on the server will be used.
-            log: Logger for all log messages.
 
         Returns:
             User ID hexstring associated with the given username.
@@ -209,7 +199,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         users = self._session.get(
             '/Users/Query',
             response_model=UserQuery,
-            log=log
         )
 
         if not users or not users.items:
@@ -233,12 +222,9 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
 
     @testing_override(TestingEmbyInterface._map_libraries)
-    def _map_libraries(self, *, log: Logger = log) -> dict[str, tuple[int, ...]]:
+    def _map_libraries(self) -> dict[str, tuple[int, ...]]:
         """
         Map the libraries on this interface's Emby server.
-
-        Args:
-            log: Logger for all log messages.
 
         Returns:
             Dictionary whose keys are the names of the libraries, and
@@ -249,7 +235,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         libraries = self._session.get(
             '/Library/SelectableMediaFolders',
             response_model=list[LibraryMediaFolder],
-            log=log
         )
 
         if libraries is None:
@@ -269,7 +254,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             series_info: SeriesInfo,
             *,
             raw_obj: Literal[False] = False,
-            log: Logger = log
         ) -> int | None: ...
 
     @overload
@@ -278,7 +262,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             series_info: SeriesInfo,
             *,
             raw_obj: Literal[True],
-            log: Logger = log
         ) -> SeriesInfo | None: ...
 
     def __get_series_id(self,
@@ -286,7 +269,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             series_info: SeriesInfo,
             *,
             raw_obj: bool = False,
-            log: Logger = log,
         ) -> int | SeriesInfo | None:
         """
         Get the Jellyfin ID for the given series.
@@ -296,7 +278,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             series_info: The series being evaluated.
             raw_obj: Whether to return the raw object from the `/Items`
                 endpoint (rather than just the series ID).
-            log: Logger for all log messages.
 
         Returns:
             None if the series is not found. The Jellyfin ID of the
@@ -313,7 +294,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             details = self._session.get(
                 f'/Users/{self.user_id}/Items/{id_}',
                 response_model=ItemDetails,
-                log=log,
             )
 
             # Item found, ID is still valid
@@ -350,7 +330,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 '/Items',
                 parameters=parameters | {'ParentId': library_id},
                 response_model=QueryResult,
-                log=log,
             )
 
             # No results found, continue to next library
@@ -378,19 +357,13 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         return None
 
 
-    def __get_season_id(self,
-            series_id: int,
-            season_number: int,
-            *,
-            log: Logger = log,
-        ) -> int | None:
+    def __get_season_id(self, series_id: int, season_number: int) -> int | None:
         """
         Get the Emby ID of the given season.
 
         Args:
             series_id: Emby ID of the associated series.
             season_number: Season number whose ID is being queried.
-            log: Logger for all log messages.
 
         Returns:
             The Emby ID of the season, if found. None otherwise.
@@ -404,7 +377,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 'parentId': series_id,
             },
             response_model=QueryResult,
-            log=log,
         )
 
         if not seasons or not seasons.total_record_count:
@@ -421,8 +393,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def __get_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> Iterator[EpisodeDetails]:
         """
         Iterate through all the episodes associated with the given
@@ -438,7 +408,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         """
 
         # Find series
-        emby_id = self.__get_series_id(library_name, series_info, log=log)
+        emby_id = self.__get_series_id(library_name, series_info)
         if emby_id is None:
             return None
 
@@ -449,7 +419,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 'Fields': 'ProviderIds',
             },
             response_model=EpisodeQueryResult,
-            log=log,
         )
 
         if not episodes or not episodes.total_record_count:
@@ -467,12 +436,9 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
 
     @testing_override(TestingEmbyInterface.get_usernames)
-    def get_usernames(self, *, log: Logger = log) -> list[str]:
+    def get_usernames(self) -> list[str]:
         """
         Get all the usernames for this interface's Emby server.
-
-        Args:
-            log: Logger for all log messages.
 
         Returns:
             List of usernames.
@@ -481,7 +447,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         users = self._session.get(
             '/Users',
             response_model=list[UserDetails],
-            log=log,
         )
 
         if not users:
@@ -494,8 +459,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set the series ID's for the given SeriesInfo object.
@@ -503,12 +466,9 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         Args:
             library_name: The name of the library containing the series.
             series_info: Series to set the ID of.
-            log: Logger for all log messages.
         """
 
-        series = self.__get_series_id(
-            library_name, series_info, raw_obj=True, log=log
-        )
+        series = self.__get_series_id(library_name, series_info, raw_obj=True)
         if not series:
             log.warning((
                 f'Series "{series_info}" was not found under library '
@@ -529,8 +489,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set the Episode ID's for the given EpisodeInfo objects.
@@ -539,12 +497,9 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: Name of the library the series is under.
             series_info: Series to get the episodes of.
             infos: List of EpisodeInfo objects to set the ID's of.
-            log: Logger for all log messages.
         """
 
-        new_episode_infos = self.get_all_episodes(
-            library_name, series_info, log=log
-        )
+        new_episode_infos = self.get_all_episodes(library_name, series_info)
 
         # Match to existing info
         for old_episode_info in episode_infos:
@@ -552,7 +507,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 if (isinstance(old_episode_info, EpisodeInfo)
                     and isinstance(new_episode_info, EpisodeInfo)):
                     if old_episode_info == new_episode_info:
-                        old_episode_info.copy_ids(new_episode_info, log=log)
+                        old_episode_info.copy_ids(new_episode_info)
                         break
 
 
@@ -560,7 +515,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             query: str,
             *,
             return_all: bool = False,
-            log: Logger = log,
         ) -> list[SearchResult]:
         """
         Search Emby for any Series matching the given query.
@@ -569,7 +523,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             query: Series name or substring to look up.
             return_all: Whether to return all Series, instead of those
                 returned by the given query.
-            log: Logger for all log messages.
 
         Returns:
             List of SearchResults for the given query. Results are from
@@ -588,7 +541,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 'ImageTypes': 'Primary',
             },
             response_model=QueryResult,
-            log=log,
         )
 
         if not search_results or not search_results.total_record_count:
@@ -614,8 +566,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
     def get_library_paths(self,
             filter_libraries: list[str] = [],
-            *,
-            log: Logger = log,
         ) -> dict[str, list[str]]:
         """
         Get all libraries and their associated base directories.
@@ -632,7 +582,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         libraries = self._session.get(
             '/Library/SelectableMediaFolders',
             response_model=list[LibraryMediaFolder],
-            log=log,
         )
 
         if not libraries:
@@ -653,8 +602,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             excluded_libraries: list[str] = [],
             required_tags: list[str] = [],
             excluded_tags: list[str] = [],
-            *,
-            log: Logger = log,
         ) -> list[tuple[SeriesInfo, str]]:
         """
         Get all series within Emby, as filtered by the given libraries.
@@ -668,7 +615,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 to be returned.
             excluded_tags: Tags that a series cannot have any of in
                 order to be returned.
-            log: Logger for all log messages.
 
         Returns:
             List of tuples of the filtered series info and their
@@ -688,7 +634,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 '/Items',
                 parameters=parameters | {'Tags': '|'.join(excluded_tags)},
                 response_model=QueryResult,
-                log=log,
             )
 
             if excluded_series:
@@ -720,7 +665,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                     '/Items',
                     parameters=parameters | {'ParentId': parent_id},
                     response_model=QueryResult,
-                    log=log,
                 )
 
                 if not series_query or not series_query.total_record_count:
@@ -745,8 +689,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
         """
         Gets all episode info for the given series. Only episodes that
@@ -755,7 +697,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         Args:
             library_name: The name of the library containing the series.
             series_info: Series to get the episodes of.
-            log: Logger for all log messages.
 
         Returns:
             List of tuples of EpisodeInfo and WatchStatus objects for
@@ -771,9 +712,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                     self._interface_id, library_name, episode.user_data.played
                 )
             )
-            for episode in self.__get_episodes(
-                library_name, series_info, log=log
-            )
+            for episode in self.__get_episodes(library_name, series_info)
         ]
 
 
@@ -781,8 +720,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             episodes: list['Episode'],
-            *,
-            log: Logger = log,
         ) -> bool:
         """
         Modify the Episodes' watched attribute according to the watched
@@ -792,7 +729,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: The name of the library containing the series.
             series_info: The series to update.
             episodes: List of Episode objects to update.
-            log: Logger for all log messages.
 
         Returns:
             Whether any Episode's watched statuses were modified.
@@ -813,7 +749,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 )
             )
             for episode in
-            self.__get_episodes(library_name, series_info, log=log)
+            self.__get_episodes(library_name, series_info)
         ]
 
         # Update watched statuses of all Episodes
@@ -822,9 +758,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             episode_info = episode.as_episode_info
             for emby_episode, watched_status in emby_episodes:
                 if episode_info == emby_episode:
-                    changed |= episode.add_watched_status(
-                        watched_status, log=log,
-                    )
+                    changed |= episode.add_watched_status(watched_status)
                     break
 
         return changed
@@ -837,8 +771,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 list[tuple['Episode', 'Card']]
                 | list[tuple['Episode', 'Card', str]]
             ),
-            *,
-            log: Logger = log,
         ) -> list[tuple['Episode', 'Card']]:
         """
         Load the title cards for the given Series and Episodes.
@@ -849,7 +781,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             episode_and_cards: List of tuple of Episode and their
                 corresponding Card objects to load. Each tuple may
                 optionally include a UID to force load that Card into.
-            log: Logger for all log messages.
 
         Returns:
             List of tuple of Episode and Card pairs which were loaded.
@@ -867,7 +798,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             matched = episode_and_cards # type: ignore
         # Match each episode
         else:
-            for emby_ep in self.__get_episodes(library_name, series_info, log=log):
+            for emby_ep in self.__get_episodes(library_name, series_info):
                 emby_info = EpisodeInfo.from_emby_info(
                     emby_ep, self._interface_id, library_name
                 )
@@ -886,7 +817,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # Load each episode and card
         loaded = []
         for episode, card, emby_id in matched:
-            if (image := self.compress_image(card.card_file, log=log)) is None:
+            if (image := self.compress_image(card.card_file)) is None:
                 continue
 
             # Submit POST request for image upload on Base64 encoded image
@@ -907,8 +838,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             posters: dict[int, str | Path],
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Load the given season posters into Emby.
@@ -919,29 +848,28 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             series_info: The series to update.
             posters: Dictionary of season numbers to poster URLs or
                 files to upload.
-            log: Logger for all log messages.
         """
 
         # Find this series
-        series_id = self.__get_series_id(library_name, series_info, log=log)
+        series_id = self.__get_series_id(library_name, series_info)
         if series_id is None:
             return None
 
         # Load each season's poster
         for season_number, image in posters.items():
-            sid = self.__get_season_id(series_id, season_number, log=log)
+            sid = self.__get_season_id(series_id, season_number)
             if sid is None:
                 log.warning(f'Season {season_number} not found')
                 continue
 
             # Shrink image if necessary, skip if cannot be compressed
             if (isinstance(image, Path)
-                and (image := self.compress_image(image, log=log)) is None):
+                and (image := self.compress_image(image)) is None):
                 continue
 
             # Download or read image
             if isinstance(image, str):
-                image_bytes = WebInterface.download_image_raw(image, log=log)
+                image_bytes = WebInterface.download_image_raw(image)
                 if image_bytes is None:
                     continue
             else:
@@ -963,8 +891,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             image: str | Path,
-            *,
-            log: Logger = log
         ) -> None:
         """
         Load the given series poster into Emby.
@@ -974,22 +900,21 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 update.
             series_info: The series to update.
             image: URL or Path to the file to upload.
-            log: Logger for all log messages.
         """
 
         # Find this series
-        series_id = self.__get_series_id(library_name, series_info, log=log)
+        series_id = self.__get_series_id(library_name, series_info)
         if series_id is None:
             return None
 
         # Shrink image if necessary, skip if cannot be compressed
         if (isinstance(image, Path)
-            and (image := self.compress_image(image, log=log)) is None):
+            and (image := self.compress_image(image)) is None):
             return None
 
         # Download or read image
         if isinstance(image, str):
-            image_bytes = WebInterface.download_image_raw(image, log=log)
+            image_bytes = WebInterface.download_image_raw(image)
             if image_bytes is None:
                 return None
         else:
@@ -1009,8 +934,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             image: str | Path,
-            *,
-            log: Logger = log
         ) -> None:
         """
         Load the given series background image into Emby.
@@ -1020,22 +943,21 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 update.
             series_info: The series to update.
             image: URL or Path to the file to upload.
-            log: Logger for all log messages.
         """
 
         # Find this series
-        series_id = self.__get_series_id(library_name, series_info, log=log)
+        series_id = self.__get_series_id(library_name, series_info)
         if series_id is None:
             return None
 
         # Shrink image if necessary, skip if cannot be compressed
         if (isinstance(image, Path)
-            and (image := self.compress_image(image, log=log)) is None):
+            and (image := self.compress_image(image)) is None):
             return None
 
         # Download or read image
         if isinstance(image, str):
-            image_bytes = WebInterface.download_image_raw(image, log=log)
+            image_bytes = WebInterface.download_image_raw(image)
             if image_bytes is None:
                 return None
         else:
@@ -1056,8 +978,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
-            *,
-            log: Logger = log,
         ) -> bytes | None:
         """
         Get the source image for the given episode within Emby.
@@ -1066,7 +986,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: Name of the library the series is under.
             series_info: The series to get the source image of.
             episode_info: The episode to get the source image of.
-            log: Logger for all log messages.
 
         Returns:
             Bytes of the source image for the given Episode. None if the
@@ -1074,7 +993,7 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             returned.
         """
 
-        for episode in self.__get_episodes(library_name, series_info, log=log):
+        for episode in self.__get_episodes(library_name, series_info):
             emby_episode = EpisodeInfo.from_emby_info(
                 episode, self._interface_id, library_name
             )
@@ -1105,8 +1024,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def get_series_poster(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> SourceImage:
         """
         Get the poster for the given Series.
@@ -1114,14 +1031,13 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         Args:
             library_name: Name of the library containing the series.
             series_info: The series to get the poster of.
-            log: Logger for all log messages.
 
         Returns:
             URL to the poster for the given series. None if the library,
             series, or thumbnail cannot be found.
         """
 
-        emby_id = self.__get_series_id(library_name, series_info, log=log)
+        emby_id = self.__get_series_id(library_name, series_info)
         if emby_id is None:
             return None
 
@@ -1142,8 +1058,6 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def get_series_logo(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> SourceImage:
         """
         Get the logo for the given Series within Emby.
@@ -1151,14 +1065,13 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         Args:
             library_name: Name of the library containing the series.
             series_info: The series to get the logo of.
-            log: Logger for all log messages.
 
         Returns:
             Bytes of the logo for given series. None if the series does
             not exist in Emby, or no valid image was returned.
         """
 
-        emby_id = self.__get_series_id(library_name, series_info, log=log)
+        emby_id = self.__get_series_id(library_name, series_info)
         if emby_id is None:
             return None
 

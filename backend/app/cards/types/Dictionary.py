@@ -18,7 +18,6 @@ from app.cards.base import (
     add_cli,
 )
 from app.cards.title import split_into_lines
-from app.logging.logger import Logger, log
 from app.schemas.base import (
     BaseCardModel,
     BaseCardTypeAllText,
@@ -363,7 +362,6 @@ class DictionaryTitleCard(BaseCardType):
             *,
             episode_description: str = '{episode_description}',
             tmdb_interface: 'TMDbInterface | None' = None,
-            log: Logger = log,
             **unused: Any,
         ) -> dict[str, Any]:
         """
@@ -388,7 +386,7 @@ class DictionaryTitleCard(BaseCardType):
             and tmdb_interface # TMDb is required to query description
         ):
             description = tmdb_interface.get_episode_description(
-                series_info, episode_info, log=log
+                series_info, episode_info,
             ) or '' # Coerce None to an empty string
 
         return {'episode_description': description}

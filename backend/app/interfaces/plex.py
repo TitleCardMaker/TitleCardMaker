@@ -40,7 +40,7 @@ from app.interfaces.base import (
 )
 from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 if TYPE_CHECKING:
     from app.models.card import Card
@@ -139,7 +139,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             filesize_limit: int = 10485760,
             *,
             interface_id: int = 0,
-            log: Logger = log,
         ) -> None:
         """
         Constructs a new instance of a Plex Interface.
@@ -153,7 +152,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             filesize_limit: Number of bytes to limit a single file to
                 during upload.
             interface_id: ID of this interface.
-            log: Logger for all log messages.
 
         Raises:
             HTTPException (400): Cannot connect to Plex.
@@ -164,7 +162,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Create Session for caching HTTP responses
         self._interface_id = interface_id
-        self.__session = WebInterface('Plex', use_ssl, log=log).session
+        self.__session = WebInterface('Plex', use_ssl).session
 
         # Create PlexServer object with these arguments
         try:
@@ -192,20 +190,17 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         self.activate()
 
 
-    @retry(stop=stop_after_attempt(5),
-           wait=wait_fixed(3)+wait_exponential(min=1, max=32),
-           reraise=True)
-    def __get_library(self,
-            library_name: str,
-            *,
-            log: Logger = log,
-        ) -> PlexLibrary | None:
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(3)+wait_exponential(min=1, max=32),
+        reraise=True
+    )
+    def __get_library(self, library_name: str) -> PlexLibrary | None:
         """
         Get the Library object under the given name.
 
         Args:
             library_name: The name of the library to get.
-            log: Logger for all log messages.
 
         Returns:
             The Library object if found, None otherwise.
@@ -218,14 +213,14 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             return None
 
 
-    @retry(stop=stop_after_attempt(5),
-           wait=wait_fixed(3)+wait_exponential(min=1, max=32),
-           reraise=True)
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(3)+wait_exponential(min=1, max=32),
+        reraise=True
+    )
     def __get_series(self,
             library: PlexLibrary,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> PlexShow | None:
         """
         Get the Series object from within the given Library associated
@@ -235,7 +230,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         Args:
             library: The Library object to search for within Plex.
             series_info: Series to get the episodes of.
-            log: Logger for all log messages.
 
         Returns:
             The series associated with this SeriesInfo object.
@@ -274,8 +268,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             pass
 
         # Not found, return None
-        log.warning(f'Series "{series_info}" was not found under '
-                    f'library "{library.title}" in Plex')
+        log.warning((
+            f'Series "{series_info}" was not found under '
+            f'library "{library.title}" in Plex'
+        ))
         return None
 
 
@@ -321,8 +317,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             excluded_libraries: list[str] = [],
             required_tags: list[str] = [],
             excluded_tags: list[str] = [],
-            *,
-            log: Logger = log,
         ) -> list[tuple[SeriesInfo, str]]:
         """
         Get all series within Plex, as filtered by the given arguments.
@@ -336,15 +330,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 to be returned.
             excluded_tags: Tags that a series cannot have any of in
                 order to be returned.
-            log: Logger for all log messages.
 
         Returns:
             List of tuples of the filtered series info and their
             corresponding library names.
         """
-
-        # Temporarily override request timeout to 240s (4 min)
-        self.REQUEST_TIMEOUT = 240
 
         # Go through every library in this server
         all_series = []
@@ -379,9 +369,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 series_info = SeriesInfo.from_plex_show(show)
                 all_series.append((series_info, library.title))
 
-        # Reset request timeout
-        self.REQUEST_TIMEOUT = 30
-
         return all_series
 
 
@@ -389,8 +376,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
         """
         Gets all episode info for the given series. Only episodes that
@@ -399,7 +384,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         Args:
             library_name: The name of the library containing the series.
             series_info: Series to get the episodes of.
-            log: Logger for all log messages.
 
         Returns:
             List of tuples of the EpisodeInfos and that episode's
@@ -407,11 +391,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         """
 
         # If the given library cannot be found, exit
-        if not (library := self.__get_library(library_name, log=log)):
+        if not (library := self.__get_library(library_name)):
             return []
 
         # If the given series cannot be found in this library, exit
-        if not (series := self.__get_series(library, series_info, log=log)):
+        if not (series := self.__get_series(library, series_info)):
             return []
 
         # Create list of all episodes in Plex
@@ -422,10 +406,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             plex_episode = cast(PlexEpisode, plex_episode)
             if (plex_episode.parentIndex is None
                 or plex_episode.index is None):
-                log.warning(
+                log.warning((
                     f'Episode {plex_episode} of {series_info} in '
                     f'"{library_name}" has no index - skipping'
-                )
+                ))
                 continue
 
             # Skip temp titles if title matching and within 2 days of airing
@@ -434,10 +418,10 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 and airdate is not None
                 and self.__TEMP_IGNORE_REGEX.match(plex_episode.title)
                 and airdate + timedelta(days=2) > datetime.now()):
-                log.debug(
+                log.debug((
                     f'Temporarily ignoring {plex_episode.seasonEpisode.upper()}'
                     f' of {series_info} - placeholder title'
-                )
+                ))
                 continue
 
             # Create a new EpisodeInfo, add to list
@@ -463,8 +447,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             episodes: list['Episode'],
-            *,
-            log: Logger = log,
         ) -> bool:
         """
         Modify the Episodes' watched attribute according to the watched
@@ -474,7 +456,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: The name of the library containing the Series.
             series_info: The Series to update.
             episodes: List of Episode objects to update.
-            log: Logger for all log messages.
 
         Returns:
             Whether any Episode's watched statuses were modified.
@@ -485,12 +466,12 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             return False
 
         # If the given library cannot be found, exit
-        if (library := self.__get_library(library_name, log=log)) is None:
+        if (library := self.__get_library(library_name)) is None:
             log.warning(f'Cannot find library "{library_name}" of {series_info}')
             return False
 
         # If the given series cannot be found in this library, exit
-        if (series := self.__get_series(library, series_info, log=log)) is None:
+        if (series := self.__get_series(library, series_info)) is None:
             log.warning(f'Cannot find {series_info} in library "{library}"')
             return False
 
@@ -520,7 +501,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             for plex_episode, watched_status in plex_episodes:
                 if episode_info == plex_episode:
                     changed |= episode.add_watched_status(
-                        watched_status, log=log,
+                        watched_status,
                     )
                     break
 
@@ -531,8 +512,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set all possible series ID's for the given SeriesInfo object.
@@ -540,7 +519,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         Args:
             library_name: The name of the library containing the series.
             series_info: SeriesInfo to update.
-            log: Logger for all log messages.
         """
 
         # If all possible ID's are defined
@@ -548,11 +526,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             return None
 
         # If the given library cannot be found, exit
-        if not (library := self.__get_library(library_name, log=log)):
+        if not (library := self.__get_library(library_name)):
             return None
 
         # If the given series cannot be found in this library, exit
-        if not (series := self.__get_series(library, series_info, log=log)):
+        if not (series := self.__get_series(library, series_info)):
             return None
 
         # Set series ID's of all provided GUIDs
@@ -572,8 +550,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set all the episode ID's for the given list of EpisodeInfo objects. This
@@ -584,15 +560,14 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: Name of the library the series is under.
             series_info: SeriesInfo for the entry.
             infos: List of EpisodeInfo objects to update.
-            log: Logger for all log messages.
         """
 
         # If the given library cannot be found, exit
-        if not (library := self.__get_library(library_name, log=log)):
+        if not (library := self.__get_library(library_name)):
             return None
 
         # If the given series cannot be found in this library, exit
-        if not (series := self.__get_series(library, series_info, log=log)):
+        if not (series := self.__get_series(library, series_info)):
             return None
 
         # Filter EpisodeInfo's with all ID's
@@ -636,7 +611,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             query: str,
             *,
             return_all: bool = False,
-            log: Logger = log,
         ) -> list[SearchResult]:
         """
         Search Plex for any Series matching the given query.
@@ -645,7 +619,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             query: Series name or substring to look up.
             return_all: Whether to return all Series, instead of those
                 returned by the given query.
-            log: Logger for all log messages.
 
         Returns:
             List of SearchResults for the given query. Results are from
@@ -713,7 +686,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             episode_info: EpisodeInfo,
             *,
             proxy_url: bool = False,
-            log: Logger = log,
         ) -> str | None:
         """
         Get the source image for the given episode within Plex.
@@ -723,7 +695,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             series_info: The series to get the source image of.
             episode_info: The episode to get the source image of.
             proxy_url: Whether to proxy the returned URL.
-            log: Logger for all log messages.
 
         Returns:
             URL to the thumbnail of the given Episode. None if the
@@ -731,11 +702,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         """
 
         # If the given library cannot be found, exit
-        if not (library := self.__get_library(library_name, log=log)):
+        if not (library := self.__get_library(library_name)):
             return None
 
         # If the given series cannot be found in this library, exit
-        if not (series := self.__get_series(library, series_info, log=log)):
+        if not (series := self.__get_series(library, series_info)):
             return None
 
         # Labels that will result in source skip
@@ -785,8 +756,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
     def get_series_poster(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> SourceImage:
         """
         Get the poster for the given Series.
@@ -794,7 +763,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         Args:
             library_name: Name of the library the series is under.
             series_info: The series to get the poster of.
-            log: Logger for all log messages.
 
         Returns:
             URL to the poster for the given series. None if the library,
@@ -802,11 +770,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         """
 
         # If the given library cannot be found, exit
-        if not (library := self.__get_library(library_name, log=log)):
+        if not (library := self.__get_library(library_name)):
             return None
 
         # If the given series cannot be found in this library, exit
-        if not (series := self.__get_series(library, series_info, log=log)):
+        if not (series := self.__get_series(library, series_info)):
             return None
 
         return series.thumbUrl
@@ -829,16 +797,16 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         ]
 
 
-    @retry(stop=stop_after_attempt(5),
-           wait=wait_fixed(3)+wait_exponential(min=1, max=32),
-           before_sleep=lambda _:log.warning('Cannot upload image, retrying..'),
-           reraise=True)
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(3)+wait_exponential(min=1, max=32),
+        before_sleep=lambda _:log.warning('Cannot upload image, retrying..'),
+        reraise=True
+    )
     def __retry_upload(self,
             entry: PlexShow | PlexSeason | PlexEpisode,
             image: str | Path,
             kind: Literal['art', 'poster'] = 'poster',
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Upload the given image to the given entry, retrying if it fails.
@@ -848,7 +816,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             image: URL or Path to the file to upload.
             kind: The kind of asset the given image is. This will
                 affect what kind of upload functin to call.
-            log: Logger for all log messages.
         """
 
         # Upload image as URL or file
@@ -859,14 +826,13 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             entry.uploadPoster(**kwargs)
 
 
-    def __add_exif_tag(self, image: Path, *, log: Logger = log) -> None:
+    def __add_exif_tag(self, image: Path) -> None:
         """
         Add an EXIF tag to the given image file. This adds "titlecard"
         at 0x4242, and overwrites the existing file.
 
         Args:
             image: Path to the Card file to modify.
-            log: Logger for all log messages.
         """
 
         # Create Image object, read EXIF data
@@ -895,8 +861,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 list[tuple['Episode', 'Card']],
                 list[tuple['Episode', 'Card', int]],
             ],
-            *,
-            log: Logger = log,
         ) -> list[tuple['Episode', 'Card']]:
         """
         Load the title cards for the given Series and Episodes.
@@ -907,7 +871,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             episode_and_cards: List of tuple of Episode and their
                 corresponding Card objects to load. Each tuple may
                 optionally include a UID to force load that Card into.
-            log: Logger for all log messages.
         """
 
         # No episodes to load, exit
@@ -916,11 +879,11 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             return []
 
         # If the given library cannot be found, exit
-        if not (library := self.__get_library(library_name, log=log)):
+        if not (library := self.__get_library(library_name)):
             return []
 
         # If the given series cannot be found in this library, exit
-        if not (series := self.__get_series(library, series_info, log=log)):
+        if not (series := self.__get_series(library, series_info)):
             return []
 
         # Find episodes which have a matching Card to load
@@ -981,21 +944,21 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         loaded: list[tuple['Episode', 'Card']] = []
         for plex_episode, episode, card in matched_episodes:
             # Shrink image if necesssary, skipping if uncompressable
-            if (image := self.compress_image(card.card_file, log=log)) is None:
+            if (image := self.compress_image(card.card_file)) is None:
                 continue
 
             # Upload card
             try:
                 # If integrating with Kometa, add EXIF data
                 if self.integrate_with_kometa:
-                    self.__add_exif_tag(image, log=log)
+                    self.__add_exif_tag(image)
 
                 # Upload card
-                self.__retry_upload(plex_episode, image.resolve(), log=log)
-                log.debug(
+                self.__retry_upload(plex_episode, image.resolve())
+                log.debug((
                     f'{series_info} {plex_episode.seasonEpisode} loaded Card '
                     f'"{image.name}" into "{library_name}"'
-                )
+                ))
             except Exception:
                 log.exception(
                     f'Unable to upload {image.resolve()} to {series_info}'
@@ -1015,8 +978,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             posters: dict[int, str | Path],
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Load the given season posters into Plex.
@@ -1027,7 +988,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             series_info: The series to update.
             posters: Dictionary of season numbers to poster URLs or
                 files to upload.
-            log: Logger for all log messages.
         """
 
         if (not posters
@@ -1053,7 +1013,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                     self.__add_exif_tag(poster)
 
                 # Upload poster
-                self.__retry_upload(season, poster, log=log)
+                self.__retry_upload(season, poster)
 
                 # If integrating with Kometa, remove label
                 if self.integrate_with_kometa:
@@ -1076,8 +1036,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             image: str | Path,
-            *,
-            log: Logger = log
         ) -> None:
         """
         Load the given series poster into Plex.
@@ -1087,7 +1045,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 update.
             series_info: The series to update.
             image: URL or Path to the file to upload.
-            log: Logger for all log messages.
         """
 
         if (not (library := self.__get_library(library_name))
@@ -1106,7 +1063,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 self.__add_exif_tag(image)
 
             # Upload poster
-            self.__retry_upload(series, image, log=log)
+            self.__retry_upload(series, image)
 
             # If integrating with Kometa, remove label
             if self.integrate_with_kometa:
@@ -1124,8 +1081,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             image: str | Path,
-            *,
-            log: Logger = log
         ) -> None:
         """
         Load the given series background image into Plex.
@@ -1135,7 +1090,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 update.
             series_info: The series to update.
             image: URL or Path to the file to upload.
-            log: Logger for all log messages.
         """
 
         if (not (library := self.__get_library(library_name))
@@ -1154,7 +1108,7 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 self.__add_exif_tag(image)
 
             # Upload poster
-            self.__retry_upload(series, image, kind='art', log=log)
+            self.__retry_upload(series, image, kind='art')
 
             # If integrating with Kometa, remove label
             if self.integrate_with_kometa:
@@ -1168,18 +1122,13 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
 
     @catch_and_log('Error getting rating key details')
-    def get_episode_details(self,
-            rating_key: int,
-            *,
-            log: Logger = log,
-        ) -> list[EpisodeDetails]:
+    def get_episode_details(self, rating_key: int) -> list[EpisodeDetails]:
         """
         Get all details for all episodes indicated by the given Plex
         rating key.
 
         Args:
             rating_key: Rating key used to fetch the item within Plex.
-            log: Logger for all log messages.
 
         Returns:
             List of tuples of the SeriesInfo, EpisodeInfo, and the watch
@@ -1282,8 +1231,6 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             library_name: str,
             series_info: SeriesInfo,
             labels: list[str] = ['TCM', 'Overlay'],
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Remove the given labels from all Episodes of the associated
@@ -1294,13 +1241,13 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             series_info: SeriesInfo whose Episodes' labels are being
                 removed.
             labels: List of labels to remove.
-            log: Logger for all log messages.
         """
 
         # Exit if no labels were provided or the library/series is not found
         if (not labels
-            or not (library := self.__get_library(library_name, log=log))
-            or not (series := self.__get_series(library, series_info, log=log))):
+            or not (library := self.__get_library(library_name))
+            or not (series := self.__get_series(library, series_info))
+        ):
             return None
 
         # Get all Episodes for batch edits

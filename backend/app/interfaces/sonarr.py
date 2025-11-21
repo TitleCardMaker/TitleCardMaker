@@ -21,7 +21,7 @@ from app.interfaces.base import EpisodeDataSource, SearchResult, WatchedStatus
 from app.interfaces.base import Interface, SyncInterface
 from app.interfaces.testing import testing_override
 from app.interfaces.web import WebSession
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.settings import settings
 
 
@@ -40,7 +40,6 @@ class TestingSonarrInterface:
             query: str,
             *,
             return_all: bool = False,
-            log: Logger = log,
         ) -> list[SearchResult]:
 
         if query == 'Test Series':
@@ -72,8 +71,6 @@ class TestingSonarrInterface:
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> None:
         return None
 
@@ -101,7 +98,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             downloaded_only: bool = True,
             *,
             interface_id: int = 0,
-            log: Logger = log,
             **_,
         ) -> None:
         """
@@ -114,7 +110,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             downloaded_only: Whether to ignore Episode that are not
                 downloaded when querying Sonarr for Episode data.
             interface_id: Interface ID of this interface.
-            log: Logger for all log messages.
 
         Raises:
             HTTPException (401): The Sonarr system status cannot be
@@ -137,16 +132,13 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             timeout=config.SONARR_REQUEST_TIMEOUT,
         )
 
-        self.__verify_connection(log=log)
+        self.__verify_connection()
         self.activate()
 
 
-    def __verify_connection(self, *, log: Logger = log) -> None:
+    def __verify_connection(self) -> None:
         """
         Verify that the connection to Sonarr is valid.
-
-        Args:
-            log: Logger for all log messages.
 
         Raises:
             HTTPException (401): The connection to Sonarr is invalid.
@@ -202,8 +194,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             required_series_type: SeriesType | None = None,
             excluded_series_type: SeriesType | None = None,
             required_root_folders: list[str] = [],
-            *,
-            log: Logger = log,
         ) -> list[tuple[SeriesInfo, str]]:
         """
         Get all the series within Sonarr, filtered by the given
@@ -224,7 +214,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
                 return.
             required_root_folders: List of root folders to filter the
                 returned series by.
-            log: Logger for all log messages.
 
         Returns:
             List of tuples. Tuple contains the SeriesInfo object for the
@@ -311,8 +300,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set the TVDb ID for the given SeriesInfo object.
@@ -320,7 +307,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
         Args:
             library_name: Unused argument.
             series_info: SeriesInfo to update.
-            log: Logger for all log messages.
         """
 
         # If all possible ID's are defined, exit
@@ -362,7 +348,7 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             )
 
             if this_series == series_info:
-                series_info.copy_ids(this_series, log=log)
+                series_info.copy_ids(this_series)
                 break
 
         return None
@@ -373,7 +359,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             query: str,
             *,
             return_all: bool = False,
-            log: Logger = log,
         ) -> list[SearchResult]:
         """
         Search Sonarr for any Series matching the given query.
@@ -382,7 +367,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             query: Series name or substring to look up.
             return_all: Whether to return all Series, instead of those
                 returned by the given query.
-            log: Logger for all log messages.
 
         Returns:
             List of SearchResults for the given query. Results include
@@ -445,8 +429,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
         """
         Gets all episode info for the given series. Only episodes that
@@ -455,7 +437,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
         Args:
             library_name: Unused argument.
             series_info: SeriesInfo for the entry.
-            log: Logger for all log messages.
 
         Returns:
             List of tuples of the EpisodeInfo objects and None (as the
@@ -465,7 +446,7 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
 
         # If no ID was returned, error and return an empty list
         if not series_info.sonarr_id.has_id(self.interface_id):
-            self.set_series_ids('', series_info, log=log)
+            self.set_series_ids('', series_info)
             if not series_info.sonarr_id.has_id(self.interface_id):
                 log.debug(f'Series "{series_info}" not found in Sonarr')
                 return []
@@ -537,8 +518,6 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             library_name: Any,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set all the episode ID's for the given list of EpisodeInfo
@@ -548,19 +527,16 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             library_name: Unused argument.
             series_info: SeriesInfo for the entry.
             episode_infos: List of EpisodeInfo objects to update.
-            log: Logger for all log messages.
         """
 
         # Get all episodes for this series
-        new_episode_infos = self.get_all_episodes(
-            library_name, series_info, log=log
-        )
+        new_episode_infos = self.get_all_episodes(library_name, series_info)
 
         # Match to existing info
         for old_episode_info in episode_infos:
             for new_episode_info, _ in new_episode_infos:
                 if old_episode_info == new_episode_info:
-                    old_episode_info.copy_ids(new_episode_info, log=log)
+                    old_episode_info.copy_ids(new_episode_info)
                     break
 
         return None

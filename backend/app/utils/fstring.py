@@ -7,7 +7,7 @@ from num2words import num2words
 from titlecase import titlecase
 
 from app.exceptions import InvalidFormatString
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.utils.paths import CleanPath
 
 
@@ -312,7 +312,6 @@ class FormatString:
             name: str,
             series: Any,
             episode: Any,
-            log: Logger = log,
         ) -> str:
         """
         Construct a new FormatString with the given string and data,
@@ -353,7 +352,6 @@ class FormatString:
             name: str,
             series: Any,
             episode: Any,
-            log: Logger = log,
         ) -> str:
         """
         Construct a new path-safe format string with the given string
@@ -363,6 +361,5 @@ class FormatString:
         return CleanPath.sanitize_name(
             FormatString.new(
                 fstring, data=data, name=name, series=series, episode=episode,
-                log=log,
             )
         )

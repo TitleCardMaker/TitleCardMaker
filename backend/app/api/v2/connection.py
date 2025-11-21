@@ -14,7 +14,6 @@ from app.dependencies import (
     get_database,
     get_emby_interfaces,
     get_jellyfin_interfaces,
-    get_logger,
     get_plex_interfaces,
     get_sonarr_interfaces,
     get_tmdb_interfaces,
@@ -29,7 +28,7 @@ from app.interfaces.v2 import (
     TMDbInterface,
     TVDbInterface,
 )
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.models.card import Card
 from app.models.connection import Connection
 from app.models.episode import Episode
@@ -79,7 +78,6 @@ def add_emby_connection(
         interface_group: (
             InterfaceGroup[int, EmbyInterface]
         ) = Depends(get_emby_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> EmbyConnection:
     """
     Create a new Connection to Emby; adding it to the Database and
@@ -88,7 +86,7 @@ def add_emby_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(db, new_connection, interface_group, log=log)
+    return add_connection(db, new_connection, interface_group)
 
 
 @connection_router.post('/jellyfin/new')
@@ -98,7 +96,6 @@ def add_jellyfin_connection(
         interface_group: (
             InterfaceGroup[int, EmbyInterface]
         ) = Depends(get_jellyfin_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> JellyfinConnection:
     """
     Create a new Connection to Jellyfin; adding it to the Database and
@@ -107,7 +104,7 @@ def add_jellyfin_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(db, new_connection, interface_group, log=log)
+    return add_connection(db, new_connection, interface_group)
 
 
 @connection_router.post('/plex/new')
@@ -117,7 +114,6 @@ def add_plex_connection(
         interface_group: (
             InterfaceGroup[int, EmbyInterface]
         ) = Depends(get_plex_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> PlexConnection:
     """
     Create a new Connection to Sonarr; adding it to the Database and
@@ -126,7 +122,7 @@ def add_plex_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(db, new_connection, interface_group, log=log)
+    return add_connection(db, new_connection, interface_group)
 
 
 @connection_router.post('/sonarr/new')
@@ -136,7 +132,6 @@ def add_sonarr_connection(
         interface_group: (
             InterfaceGroup[int, SonarrInterface]
         ) = Depends(get_sonarr_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> SonarrConnection:
     """
     Create a new Connection to sonarr; adding it to the Database and
@@ -145,7 +140,7 @@ def add_sonarr_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(db, new_connection, interface_group, log=log)
+    return add_connection(db, new_connection, interface_group)
 
 
 @connection_router.post('/tmdb/new')
@@ -155,7 +150,6 @@ def add_tmdb_connection(
         interface_group: (
             InterfaceGroup[int, TMDbInterface]
         ) = Depends(get_tmdb_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> TMDbConnection:
     """
     Create a new Connection to TMDb; adding it to the Database and
@@ -164,7 +158,7 @@ def add_tmdb_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(db, new_connection, interface_group, log=log)
+    return add_connection(db, new_connection, interface_group)
 
 
 @connection_router.post('/tvdb/new')
@@ -174,7 +168,6 @@ def add_tvdb_connection(
         interface_group: (
             InterfaceGroup[int, TVDbInterface]
         ) = Depends(get_tvdb_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> TVDbConnection:
     """
     Create a new Connection to TVDb; adding it to the Database and
@@ -183,7 +176,7 @@ def add_tvdb_connection(
     - new_connection: Details of the new Connection to add and create.
     """
 
-    return add_connection(db, new_connection, interface_group, log=log)
+    return add_connection(db, new_connection, interface_group)
 
 
 @connection_router.put('/{connection_type}/{interface_id}/{status}')
@@ -210,7 +203,6 @@ def enable_or_disable_connection_by_id(
         tvdb_interfaces: (
             InterfaceGroup[int, TVDbInterface]
         ) = Depends(get_tvdb_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> AnyConnection:
     """
     Set the enabled/disabled status of the given connection.
@@ -236,7 +228,7 @@ def enable_or_disable_connection_by_id(
 
     # Refresh or disable interface within group
     if connection.enabled:
-        group.refresh(interface_id, connection.interface_kwargs, log=log)
+        group.refresh(interface_id, connection.interface_kwargs)
     else:
         group.disable(interface_id)
 
@@ -258,9 +250,11 @@ def get_all_emby_connection_details(
     ) -> list[EmbyConnection]:
     """Get details for all defined Emby Connections."""
 
-    return db.query(Connection)\
-        .filter_by(interface_type='Emby')\
-        .all() # type: ignore
+    return [
+        EmbyConnection.model_validate(connection)
+        for connection in
+        db.query(Connection).filter_by(interface_type='Emby').all()
+    ]
 
 
 @connection_router.get('/emby/{interface_id}')
@@ -412,7 +406,6 @@ def update_emby_connection(
         emby_interfaces: (
             InterfaceGroup[int, EmbyInterface]
         ) = Depends(get_emby_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> EmbyConnection:
     """
     Update the Connection details for the given Emby interface.
@@ -422,7 +415,7 @@ def update_emby_connection(
     """
 
     return update_connection(
-        db, interface_id, emby_interfaces, update_object, log=log
+        db, interface_id, emby_interfaces, update_object
     ) # type: ignore
 
 
@@ -434,7 +427,6 @@ def update_jellyfin_connection(
         jellyfin_interfaces: InterfaceGroup[
             int, JellyfinInterface
         ] = Depends(get_jellyfin_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> JellyfinConnection:
     """
     Update the Connection details for the given Jellyfin interface.
@@ -444,7 +436,7 @@ def update_jellyfin_connection(
     """
 
     return update_connection(
-        db, interface_id, jellyfin_interfaces, update_object, log=log
+        db, interface_id, jellyfin_interfaces, update_object,
     )
 
 
@@ -453,7 +445,6 @@ def update_plex_connection(
         interface_id: int,
         update_object: UpdatePlex = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
         plex_interfaces: (
             InterfaceGroup[int, PlexInterface]
         ) = Depends(get_plex_interfaces),
@@ -466,7 +457,7 @@ def update_plex_connection(
     """
 
     return update_connection(
-        db, interface_id, plex_interfaces, update_object, log=log
+        db, interface_id, plex_interfaces, update_object
     ) # type: ignore
 
 
@@ -475,7 +466,6 @@ def update_sonarr_connection(
         interface_id: int,
         update_object: UpdateSonarr = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
         sonarr_interfaces: (
             InterfaceGroup[int, SonarrInterface]
         ) = Depends(get_sonarr_interfaces),
@@ -488,7 +478,7 @@ def update_sonarr_connection(
     """
 
     return update_connection(
-        db, interface_id, sonarr_interfaces, update_object, log=log
+        db, interface_id, sonarr_interfaces, update_object,
     ) # type: ignore
 
 
@@ -497,7 +487,6 @@ def update_tmdb_connection(
         interface_id: int,
         update_object: UpdateTMDb = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
         tmdb_interfaces: (
             InterfaceGroup[int, TMDbInterface]
         ) = Depends(get_tmdb_interfaces),
@@ -510,7 +499,7 @@ def update_tmdb_connection(
     """
 
     return update_connection(
-        db, interface_id, tmdb_interfaces, update_object, log=log
+        db, interface_id, tmdb_interfaces, update_object,
     ) # type: ignore
 
 
@@ -519,7 +508,6 @@ def update_tvdb_connection(
         interface_id: int,
         update_object: UpdateTVDb = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
         tvdb_interfaces: (
             InterfaceGroup[int, TVDbInterface]
         ) = Depends(get_tvdb_interfaces),
@@ -532,7 +520,7 @@ def update_tvdb_connection(
     """
 
     return update_connection(
-        db, interface_id, tvdb_interfaces, update_object, log=log
+        db, interface_id, tvdb_interfaces, update_object,
     ) # type: ignore
 
 
@@ -541,7 +529,6 @@ def delete_connection(
         interface_id: int,
         delete_title_cards: bool = Query(default=False),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
         emby_interfaces: (
             InterfaceGroup[int, EmbyInterface]
         ) = Depends(get_emby_interfaces),
@@ -671,7 +658,6 @@ def delete_connection(
             db,
             db.query(Card).filter_by(interface_id=interface_id),
             db.query(Loaded).filter_by(interface_id=interface_id),
-            log=log,
         )
         log.info(f'Deleted {len(deleted)} Title Cards')
     else:
@@ -684,7 +670,7 @@ def delete_connection(
     log.info(f'Deleting {connection}')
 
     # Commit changes to global options and Database
-    settings.commit(log=log)
+    settings.commit()
     db.commit()
 
 
@@ -719,7 +705,6 @@ def get_potential_sonarr_libraries(
 def check_tautulli_integration(
         tautulli_connection: NewTautulliConnection = Body(...),
         plex_interface_id: int = Query(...),
-        log: Logger = Depends(get_logger),
     ) -> TautulliIntegrationStatus:
     """
     Check whether Tautulli is integrated with TCM.
@@ -735,7 +720,6 @@ def check_tautulli_integration(
         plex_interface_id=plex_interface_id,
         use_ssl=tautulli_connection.use_ssl,
         agent_name=tautulli_connection.agent_name,
-        log=log,
     )
 
     status = interface.is_integrated()
@@ -749,7 +733,6 @@ def check_tautulli_integration(
 def add_tautulli_integration(
         tautulli_connection: NewTautulliConnection = Body(...),
         plex_interface_id: int = Query(...),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Integrate Tautulli with TitleCardMaker by creating a Notification
@@ -769,8 +752,7 @@ def add_tautulli_integration(
         agent_name=tautulli_connection.agent_name,
         trigger_watched=tautulli_connection.trigger_watched,
         username=tautulli_connection.username,
-        log=log,
-    ).integrate(log=log)
+    ).integrate()
 
 
 @connection_router.get('/{interface_id}/libraries')
@@ -840,7 +822,6 @@ def delete_interface_libraries(
         unlinked: bool = Query(default=False),
         library_name: str | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> int:
     """
     Delete any libraries associated with the given Connection which are
@@ -859,7 +840,7 @@ def delete_interface_libraries(
 
     # Perform backup if indicated
     if backup:
-        backup_data(settings.config.CURRENT_VERSION, log=log)
+        backup_data(settings.config.CURRENT_VERSION)
 
     # If deleting unlinked then query any Series with at least one library
     keep_list: list[str] = []

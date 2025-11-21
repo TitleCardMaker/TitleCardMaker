@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Annotated, Callable, Literal, Protocol
+from typing import Annotated, Any, Callable, Literal, Protocol
 
 from croniter import croniter
 from huey import crontab, SqliteHuey
@@ -19,11 +19,11 @@ from app.core.series import (
     load_all_media_servers,
     set_all_series_ids
 )
-from app.core.sources import download_all_series_logos
 from app.core.snapshot import add_task_duration, snapshot_database
+from app.core.sources import download_all_series_logos
 from app.core.sync import sync_all
 from app.dependencies import get_database
-from app.logging.logger import Logger, contextualize
+from app.logging.logger import contextualize
 from app.models.duration import TaskDuration
 from app.schemas.schedule import TaskDetails
 from app.settings import CONFIG_ROOT, settings
@@ -122,7 +122,7 @@ def is_task_running(task_id: TaskID, /) -> bool:
 
 
 class TaskFunction(Protocol):
-    def __call__(self, *, log: Logger) -> None:
+    def __call__(self) -> Any:
         ...
 
 class RecurringTask:
@@ -147,7 +147,7 @@ class RecurringTask:
     priority: int
     expires: timedelta
     internal: bool
-    wrapped_func: Callable[[Logger | None], None]
+    wrapped_func: Callable[[], None]
     huey_task: Callable[[], None]
 
 
@@ -194,50 +194,51 @@ class RecurringTask:
         self.huey_task = self._create_huey_task()
 
 
-    def _create_wrapped_function(self) -> Callable[[Logger | None], None]:
+    def _create_wrapped_function(self) -> Callable[[], None]:
         """
         Create a wrapped version of the Task function with logging and
         error handling.
         """
 
         @wraps(self.task_func)
-        def wrapper(log: Logger | None = None) -> None:
+        def wrapper() -> None:
             # Get/generate contextualized logger, log task start
-            log_: Logger = log or contextualize()
-            log_.info(f'Task[{self.task_id}] started execution')
+            with contextualize() as (contextualization, log_):
+                log_.info(f'Task[{self.task_id}] started execution')
 
-            # Exit if the task is already running
-            if _task_running_state.get(self.task_id, False):
-                log_.info((
-                    f'Task[{self.task_id}] finished execution - Task is '
-                    f'already running'
-                ))
+                # Exit if the task is already running
+                if _task_running_state.get(self.task_id, False):
+                    log_.info((
+                        f'Task[{self.task_id}] finished execution - Task is '
+                        f'already running'
+                    ))
+                    return None
+
+                # Mark task as running, log start time
+                start_time = settings.config.now()
+                _task_running_state[self.task_id] = True
+
+                # Run wrapped task
+                try:
+                    self.task_func()
+                # Any high-level exceptions should be caught
+                except Exception:
+                    log_.exception(self.error_message)
+
+                # Log task finishing
+                log_.info(f'Task[{self.task_id}] finished execution')
+                end_time = settings.config.now()
+                _task_running_state[self.task_id] = False
+
+                # Attempt to add TaskDuration record to database
+                try:
+                    with next(get_database()) as db:
+                        add_task_duration(db, self.task_id, start_time, end_time)
+                except Exception:
+                    pass
+
+                contextualization.log_execution()
                 return None
-
-            # Mark task as running, log start time
-            start_time = settings.config.now()
-            _task_running_state[self.task_id] = True
-
-            # Run wrapped task
-            try:
-                self.task_func(log=log_)
-            # Any high-level exceptions should be caught
-            except Exception:
-                log_.exception(self.error_message)
-
-            # Log task finishing
-            log_.info(f'Task[{self.task_id}] finished execution')
-            end_time = settings.config.now()
-            _task_running_state[self.task_id] = False
-
-            # Attempt to add TaskDuration record to database
-            try:
-                with next(get_database()) as db:
-                    add_task_duration(db, self.task_id, start_time, end_time)
-            except Exception:
-                pass
-
-            return None
 
         return wrapper
 
@@ -323,7 +324,7 @@ RecurringTasks: dict[TaskID, RecurringTask] = {
     ),
     JOB_BACKUP_DATABASE: RecurringTask(
         task_func=(
-            lambda log: backup_data(settings.config.CURRENT_VERSION, log=log)
+            lambda: backup_data(settings.config.CURRENT_VERSION)
         ),
         description='Backup the database and global settings',
         task_id=JOB_BACKUP_DATABASE,

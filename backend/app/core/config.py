@@ -59,6 +59,11 @@ class AppConfig(BaseSettings):
         'Level of logging verbosity to use in the frontend WebSocket'
     ] = Field(default='INFO')
 
+    CONSOLE_LOG_WIDTH: Annotated[
+        int,
+        'Width of the console log'
+    ] = Field(default=120, ge=40)
+
     INTERCEPT_PLEX_LOGS: Annotated[
         bool,
         'Whether to intercept Plex logs'

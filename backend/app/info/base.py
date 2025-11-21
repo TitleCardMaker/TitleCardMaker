@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Literal, TypeVar, overload
 
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 
 type ConnectionID = int | tuple[int, str]
@@ -606,11 +606,7 @@ class DatabaseInfoContainer(ABC):
         )
 
 
-    def copy_ids(self,
-            other: 'DatabaseInfoContainer',
-            *,
-            log: Logger = log,
-        ) -> None:
+    def copy_ids(self, other: 'DatabaseInfoContainer') -> None:
         """
         Copy the database ID's from another DatabaseInfoContainer into
         this object. Only updating the more precise ID's (e.g. this
@@ -618,7 +614,6 @@ class DatabaseInfoContainer(ABC):
 
         Args:
             other: Container whose ID's are being copied over.
-            log: Logger for all log messages.
         """
 
         # Go through all attributes of this object

@@ -5,7 +5,7 @@ from app.dependencies import get_imagemagick_interface
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.models.episode import Episode
 from app.models.font import Font
 from app.models.series import Series
@@ -67,7 +67,7 @@ def get_available_fonts(db: Session) -> list[ReturnAvailableFontSchema]:
     ]
 
 
-def delete_font_files(font: Font, *, log: Logger = log) -> None:
+def delete_font_files(font: Font) -> None:
     """
     Delete all files in the folder associated with the given Font. This
     is a recursive operation, deleting ANY files in the subfolder - not
@@ -75,7 +75,6 @@ def delete_font_files(font: Font, *, log: Logger = log) -> None:
 
     Args:
         font: Font whose files are being deleted.
-        log: Logger for all log messages.
 
     Raises:
         HTTPException (500): Some error occurred while deleting a file

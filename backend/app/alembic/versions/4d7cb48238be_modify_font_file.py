@@ -12,7 +12,7 @@ Create Date: 2023-09-11 20:20:14.124994
 from alembic import op
 import sqlalchemy as sa
 
-from app.logging.logger import contextualize
+from app.logging.logger import log
 
 # revision identifiers, used by Alembic.
 revision = '4d7cb48238be'
@@ -41,7 +41,6 @@ IS_DOCKER = environ.get('TCM_IS_DOCKER', 'false').lower() == 'true'
 
 
 def upgrade() -> None:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     with op.batch_alter_table('font', schema=None) as batch_op:
@@ -72,7 +71,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('font', schema=None) as batch_op:

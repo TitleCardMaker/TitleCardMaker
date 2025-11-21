@@ -27,7 +27,7 @@ from app.exceptions import (
     MissingSourceImage,
     UnknownCardType,
 )
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.font import Font
@@ -44,13 +44,10 @@ from app.utils.paths import CleanPath
 from app.utils.tiered_settings import TieredSettings
 
 
-def create_all_title_cards(*, log: Logger = log) -> None:
+def create_all_title_cards() -> None:
     """
     Schedule-able function to re/create all Title Cards for all Series
     and Episodes in the Database.
-
-    Args:
-        log: Logger for all log messages.
     """
 
     with next(get_database()) as db:
@@ -62,9 +59,7 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                 # Refresh Episode data if Series is monitored
                 if series.status == 'monitored':
                     try:
-                        refresh_episode_data(
-                            db, series, refresh_all_ids=True, log=log
-                        )
+                        refresh_episode_data(db, series, refresh_all_ids=True)
                     except HTTPException:
                         log.exception(f'Cannot refresh Episode data of {series}')
                 else:
@@ -75,7 +70,7 @@ def create_all_title_cards(*, log: Logger = log) -> None:
 
                 # Set watch statuses of all Episodes
                 try:
-                    get_watched_statuses(db, series,series.episodes,log=log)
+                    get_watched_statuses(db, series,series.episodes)
                 except HTTPException as exc:
                     log.debug(
                         f'Cannot query watched statuses of {series} - {exc}'
@@ -84,7 +79,7 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                 # Add translations if monitored
                 if series.status == 'monitored':
                     for episode in series.episodes:
-                        translate_episode(db, episode, commit=False, log=log)
+                        translate_episode(db, episode, commit=False)
                     db.commit()
                 else:
                     log.trace(f'{series} is unmonitored, skipping translations')
@@ -93,7 +88,7 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                 if series.status == 'monitored':
                     for episode in series.episodes:
                         download_episode_source_images(
-                            db, episode, raise_exc=False, log=log
+                            db, episode, raise_exc=False
                         )
                     db.commit()
                 else:
@@ -106,7 +101,7 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                 for episode in series.episodes:
                     try:
                         create_episode_cards(
-                            db, episode, raise_exc=False, log=log
+                            db, episode, raise_exc=False
                         )
                     except InvalidCardSettings:
                         log.trace(f'{episode} - skipping Card creation')
@@ -131,13 +126,10 @@ def create_all_title_cards(*, log: Logger = log) -> None:
                 sleep(10)
 
 
-def clean_database(*, log: Logger = log) -> None:
+def clean_database() -> None:
     """
     Schedule-able function to remove bad / stale Loaded objects from the
     database.
-
-    Args:
-        log: Logger for all log messages.
     """
 
     with next(get_database()) as db:
@@ -215,18 +207,15 @@ def clean_database(*, log: Logger = log) -> None:
             db.commit()
 
 
-def refresh_all_card_types(*, log: Logger = log) -> None:
+def refresh_all_card_types() -> None:
     """
     Schedule-able function to refresh all specified RemoteCardTypes.
-
-    Args:
-        log: Logger for all log messages.
     """
 
-    settings.parse_local_card_types(log=log)
+    settings.parse_local_card_types()
 
     with next(get_database()) as db:
-        refresh_remote_card_types(db, reset=True, log=log)
+        refresh_remote_card_types(db, reset=True)
 
 
 def get_active_card_identifiers(db: Session) -> set[str]:
@@ -265,12 +254,7 @@ def get_active_card_identifiers(db: Session) -> set[str]:
     )
 
 
-def refresh_remote_card_types(
-        db: Session,
-        reset: bool = False,
-        *,
-        log: Logger = log,
-    ) -> None:
+def refresh_remote_card_types(db: Session, reset: bool = False) -> None:
     """
     Refresh all specified RemoteCardTypes. This re-downloads all
     RemoteCardType and RemoteFile files.
@@ -278,7 +262,6 @@ def refresh_remote_card_types(
     Args:
         db: Database to query for remote card type identifiers.
         reset: Whether to reset the existing RemoteFile database.
-        log: Logger for all log messages.
     """
 
     # Reset loaded remote file(s)
@@ -300,7 +283,7 @@ def refresh_remote_card_types(
             continue
 
         # Get reference hash of card
-        if not (card_hash := get_remote_card_hash(card_identifier, log=log)):
+        if not (card_hash := get_remote_card_hash(card_identifier)):
             log.error(
                 f'Cannot validate Card Type ({card_identifier}) - skipping'
             )
@@ -308,7 +291,7 @@ def refresh_remote_card_types(
 
         # Load new type
         log.debug(f'Loading RemoteCardType[{card_identifier}]..')
-        card_type = RemoteCardType(card_identifier, card_hash, log=log)
+        card_type = RemoteCardType(card_identifier, card_hash)
         if card_type.valid and card_type is not None and card_type.card_class:
             settings.remote_card_types[card_identifier] =card_type.card_class
 
@@ -382,8 +365,6 @@ def add_card_to_database(
 
 def validate_card_type_model(
         card_settings: dict,
-        *,
-        log: Logger = log,
     ) -> tuple[type[BaseCardType], BaseCardModel]:
     """
     Validate the given Card settings into the associated Pydantic model
@@ -391,7 +372,6 @@ def validate_card_type_model(
 
     Args:
         card_settings: Dictionary of Card settings.
-        log: Logger for all log messages.
 
     Returns:
         Tuple of the `BaseCardType` class (to create the card) and the
@@ -400,7 +380,7 @@ def validate_card_type_model(
 
     # Initialize class of the card type being created
     CardClass = settings.get_card_type_class(
-        card_settings['card_type'], log=log
+        card_settings['card_type']
     )
     if CardClass is None:
         raise HTTPException(
@@ -428,9 +408,9 @@ def validate_card_type_model(
     except ValidationError as exc:
         log.exception('Card validation failed')
         raise HTTPException(
-            status_code=400,
-            detail=exc.errors(),
-        )
+            status_code=422,
+            detail=exc.errors(include_input=False, include_url=False),
+        ) from exc
     except Exception as exc:
         log.exception('Card validation failed')
         raise HTTPException(
@@ -445,8 +425,6 @@ def create_card(
         CardClass: type[BaseCardType],
         CardTypeModel: BaseCardModel,
         library: Library | None,
-        *,
-        log: Logger = log,
     ) -> Card | None:
     """
     Create the given Card, adding the resulting entry to the Database.
@@ -458,7 +436,6 @@ def create_card(
         CardTypeModel: Pydantic model for this Card to pass the
             attributes of to the CardClass.
         library: Library associated with Card.
-        log: Logger for all log messages.
 
     Returns:
         The created Card, or None if the Card creation failed.
@@ -478,15 +455,13 @@ def create_card(
         return card
 
     log.warning('Card creation failed')
-    card_maker.image_magick.print_command_history(log=log)
+    card_maker.image_magick.print_command_history()
     return None
 
 
 def _merge_card_settings(
         episode: Episode,
         library: Library | None = None,
-        *,
-        log: Logger = log,
     ) -> tuple[dict, type[BaseCardType]]:
     """
     Merge all settings for the given Episode. This does a tiered merge
@@ -497,7 +472,6 @@ def _merge_card_settings(
     Args:
         episode: Episode whose Card settings are being resolved.
         library: Library associated with this Card.
-        log: Logger for all log messages.
 
     Returns:
         A tuple of the resolved Card settings (as a dictionary) and the
@@ -601,7 +575,7 @@ def _merge_card_settings(
 
     # Get the effective card class
     CardClass = settings.get_card_type_class(
-        card_settings['card_type'], log=log
+        card_settings['card_type']
     )
     if CardClass is None:
         raise UnknownCardType(card_settings['card_type'])
@@ -611,7 +585,6 @@ def _merge_card_settings(
         series_info=series.as_series_info,
         episode_info=episode.as_episode_info,
         tmdb_interface=get_first_tmdb_interface(None),
-        log=log,
         **card_extras,
     )
     TieredSettings(card_settings, enriched_data)
@@ -622,8 +595,6 @@ def _merge_card_settings(
 def resolve_card_settings(
         episode: Episode,
         library: Library | None = None,
-        *,
-        log: Logger = log,
     ) -> dict:
     """
     Resolve the Title Card settings for the given Episode. This evalutes
@@ -632,7 +603,6 @@ def resolve_card_settings(
     Args:
         episode: Episode whose Card settings are being resolved.
         library: Library associated with this Card.
-        log: Logger for all log messages.
 
     Returns:
         The resolved Card settings as a dictionary.
@@ -647,7 +617,7 @@ def resolve_card_settings(
 
     # Get effective Template(s) for this Series and Episode
     series = episode.series
-    card_settings, CardClass = _merge_card_settings(episode, library, log=log)
+    card_settings, CardClass = _merge_card_settings(episode, library)
 
     # Resolve logo file format string if indicated
     logo_file = Path(card_settings['logo_file'])
@@ -655,7 +625,7 @@ def resolve_card_settings(
         logo_file.stem,
         data=card_settings,
         name='logo filename',
-        series=series, episode=episode, log=log,
+        series=series, episode=episode,
     )
     card_settings['logo_file'] = series.source_directory \
         / f'{filename}{logo_file.suffix}'
@@ -692,7 +662,6 @@ def resolve_card_settings(
             name='font color',
             series=series,
             episode=episode,
-            log=log,
         )
 
     # Apply Font pre-replacements
@@ -736,7 +705,7 @@ def resolve_card_settings(
     if (title_format := card_settings.pop('title_text_format', None)) is not None:
         card_settings['title_text'] = FormatString.new(
             title_format, data=card_settings,
-            name='title text format', series=series, episode=episode, log=log
+            name='title text format', series=series, episode=episode
         )
 
     # Add season title specification
@@ -744,7 +713,6 @@ def resolve_card_settings(
     season_title_ranges = SeasonTitleRanges(
         card_settings.get('season_titles', {}),
         fallback=getattr(CardClass, 'SEASON_TEXT_FORMATTER', None),
-        log=log,
     )
     card_settings['season_title'] = season_title_ranges.get_season_text(
         episode_info, card_settings,
@@ -759,7 +727,7 @@ def resolve_card_settings(
         if (stf := card_settings.pop('season_text_format', None)) is not None:
             card_settings['season_text'] = FormatString.new(
                 stf, data=card_settings, name='season text format',
-                series=series, episode=episode, log=log,
+                series=series, episode=episode,
             )
     card_settings['season_text'] = card_settings['season_text'].replace('\\n','\n')
 
@@ -770,7 +738,7 @@ def resolve_card_settings(
                 'episode_text_format', CardClass.CardConfig.episode_text_format,
             ),
             data=card_settings,
-            name='episode text format', series=series, episode=episode, log=log,
+            name='episode text format', series=series, episode=episode,
         )
     card_settings['episode_text'] = card_settings['episode_text'].replace('\\n','\n')
 
@@ -811,7 +779,6 @@ def resolve_card_settings(
                     name='source file format',
                     series=series,
                     episode=episode,
-                    log=log,
                 )
             ).sanitize()
 
@@ -835,7 +802,7 @@ def resolve_card_settings(
         card_settings['title'] = card_settings['title'].replace('\\n', '')
         filename = FormatString.new_path(
             card_settings.pop('card_filename_format'), data=card_settings,
-            name='title card filename', series=series, episode=episode, log=log,
+            name='title card filename', series=series, episode=episode,
         )
         # Add library-specific identifier to filename if indicated
         if library is not None and settings.library_unique_cards:
@@ -873,12 +840,11 @@ def resolve_card_settings(
                     name=key_name,
                     series=series,
                     episode=episode,
-                    log=log,
                 )
             except InvalidFormatString:
                 log.debug(f'Cannot parse {key_name} as a FormatString')
                 continue
-
+    log.trace(f'{episode} Card settings: {card_settings}')
     return card_settings
 
 
@@ -888,7 +854,6 @@ def create_episode_card(
         library: Library | None,
         *,
         raise_exc: bool = True,
-        log: Logger = log,
     ) -> Card | None:
     """
     Create the singular Title Card for the given Episode in the given
@@ -898,7 +863,6 @@ def create_episode_card(
         db: Database to query and update.
         episode: Episode whose Cards are being created.
         raise_exc: Whether to raise any HTTPExceptions.
-        log: Logger for all log messages.
 
     Returns:
         The created Card, or None if the Card creation failed.
@@ -913,14 +877,14 @@ def create_episode_card(
     # Resolve Card settings
     series = episode.series
     try:
-        card_settings = resolve_card_settings(episode, library, log=log)
+        card_settings = resolve_card_settings(episode, library)
     except (HTTPException, InvalidCardSettings) as exc:
         if raise_exc:
             raise exc
         return None
 
     # Get a validated card class, and card type Pydantic model
-    CardClass, CardTypeModel = validate_card_type_model(card_settings, log=log)
+    CardClass, CardTypeModel = validate_card_type_model(card_settings)
 
     # Create NewTitleCard object for these settings
     card = NewTitleCard(
@@ -952,14 +916,14 @@ def create_episode_card(
 
     # No existing Card, begin creation
     if not existing_card:
-        return create_card(db, card, CardClass, CardTypeModel, library, log=log)
+        return create_card(db, card, CardClass, CardTypeModel, library)
 
     # Existing Card file doesn't exist anymore, remove from db and recreate
     if not existing_card.exists:
         log.debug(f'{episode} Card not found - creating')
         db.delete(existing_card)
         db.commit()
-        return create_card(db, card, CardClass, CardTypeModel, library, log=log)
+        return create_card(db, card, CardClass, CardTypeModel, library)
 
     # Function to get the existing val
     def _get_existing(attribute: str) -> Any:
@@ -1009,7 +973,7 @@ def create_episode_card(
     db.delete(existing_card)
     db.commit()
 
-    return create_card(db, card, CardClass, CardTypeModel, library, log=log)
+    return create_card(db, card, CardClass, CardTypeModel, library)
 
 
 def create_episode_cards(
@@ -1017,7 +981,6 @@ def create_episode_cards(
         episode: Episode,
         *,
         raise_exc: bool = True,
-        log: Logger = log,
     ) -> bool:
     """
     Create all the Title Card for the given Episode.
@@ -1026,7 +989,6 @@ def create_episode_cards(
         db: Database to query and update.
         episode: Episode whose Cards are being created.
         raise_exc: Whether to raise any HTTPExceptions.
-        log: Logger for all log messages.
 
     Returns:
         True if any new Cards were created, False otherwise.
@@ -1043,18 +1005,18 @@ def create_episode_cards(
             changed = False
             for library in episode.series.libraries:
                 changed |= create_episode_card(
-                    db, episode, library, raise_exc=raise_exc, log=log
+                    db, episode, library, raise_exc=raise_exc
                 ) is not None
             return changed
 
         # Only create Card for primary library
         return create_episode_card(
             db, episode, episode.series.libraries[0],
-            raise_exc=raise_exc, log=log,
+            raise_exc=raise_exc,
         )
 
     return create_episode_card(
-        db, episode, None, raise_exc=raise_exc, log=log
+        db, episode, None, raise_exc=raise_exc
     )
 
 
@@ -1062,8 +1024,6 @@ def get_watched_statuses(
         db: Session,
         series: Series,
         episodes: list[Episode],
-        *,
-        log: Logger = log,
     ) -> None:
     """
     Update the watch statuses of the given Episodes for the given
@@ -1072,7 +1032,6 @@ def get_watched_statuses(
     Args:
         series: Series whose Episodes are being updated.
         episodes: List of Episodes to update the statuses of.
-        log: Logger for all log messages.
     """
 
     # Get statuses for each library of this Series
@@ -1081,7 +1040,7 @@ def get_watched_statuses(
         interface = get_media_interface(library['interface_id'],raise_exc=False)
         if interface:
             changed |= interface.update_watched_statuses(
-                library['name'], series.as_series_info, episodes, log=log,
+                library['name'], series.as_series_info, episodes,
             )
 
     if changed:
@@ -1094,7 +1053,6 @@ def delete_cards(
         loaded_query: Query | None = None,
         *,
         commit: bool = True,
-        log: Logger = log,
     ) -> list[str]:
     """
     Delete all Title Card files for the given card Query. Also remove
@@ -1106,7 +1064,6 @@ def delete_cards(
             Query contents itself are also deleted.
         loaded_query: SQL query for loaded assets to delete.
         commit: Whether to commit the deletion to the database.
-        log: Logger for all log messages.
 
     Returns:
         List of file names of the deleted cards.

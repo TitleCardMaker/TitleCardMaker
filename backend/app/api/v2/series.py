@@ -17,16 +17,15 @@ from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session, load_only
 from unidecode import unidecode
 
+from app import models
 from app.dependencies import (
     get_database,
-    get_logger,
     require_interface,
     require_tmdb_interface,
     TMDbInterface
 )
 from app.db.pagination import Page
 from app.db.query import get_interface, get_series, require_series
-from app import models
 from app.core.series import (
     add_series,
     delete_series,
@@ -39,7 +38,7 @@ from app.core.series import (
 from app.db.users import get_current_user
 from app.interfaces.plex import PlexInterface
 from app.interfaces.web import WebInterface
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.models.series import Series as SeriesModel
 from app.schemas.filter import SeriesFilter
 from app.schemas.series import (
@@ -51,6 +50,7 @@ from app.schemas.series import (
     SeriesOverview,
     SeriesOverviewWithCounts,
     SeriesSearchResult,
+    Status,
     UpdateSeries
 )
 from app.settings import settings
@@ -68,7 +68,6 @@ def get_all_series(
         db: Session = Depends(get_database),
         order_by: SeriesOrder = Query(default='alphabetical'),
         filter_: str = Query(alias='filter', default=None),
-        log: Logger = Depends(get_logger),
     ) -> Page[SeriesOverview]: # type: ignore
     """
     Get all defined Series.
@@ -88,9 +87,7 @@ def get_all_series(
         ) from exc
 
     return paginate_sequence(
-        query_and_filter_series(
-            db, filter, order_by=order_by, extended=False, log=log
-        )
+        query_and_filter_series(db, filter, order_by=order_by, extended=False)
     )
 
 
@@ -99,7 +96,6 @@ def get_all_series_including_counts(
         db: Session = Depends(get_database),
         order_by: SeriesOrder = Query(default='alphabetical'),
         filter_: str = Query(alias='filter', default=None),
-        log: Logger = Depends(get_logger),
     ) -> Page[SeriesOverviewWithCounts]: # type: ignore
     """
     Get all defined Series.
@@ -119,9 +115,7 @@ def get_all_series_including_counts(
         ) from exc
 
     return paginate_sequence(
-        query_and_filter_series(
-            db, filter, order_by=order_by, extended=True, log=log
-        )
+        query_and_filter_series(db, filter, order_by=order_by, extended=True)
     )
 
 
@@ -217,7 +211,6 @@ def add_new_series(
         background_tasks: BackgroundTasks,
         new_series: NewSeries = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Series:
     """
     Create a new Series. This also creates background tasks to set the
@@ -226,14 +219,13 @@ def add_new_series(
     - new_series: Series definition to create.
     """
 
-    return add_series(new_series, background_tasks, db, log=log)
+    return add_series(new_series, background_tasks, db)
 
 
 @series_router.delete('/series/{series_id}')
 def delete_series_(
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Series with the given ID. This also deletes the poster.
@@ -245,7 +237,7 @@ def delete_series_(
     series = get_series(db, series_id, raise_exc=True)
 
     # Delete Series and all child content
-    delete_series(db, series, log=log)
+    delete_series(db, series)
 
 
 @series_router.get('/search')
@@ -314,7 +306,6 @@ def lookup_new_series(
         name: str = Query(..., min_length=1),
         db: Session = Depends(get_database),
         interface = Depends(require_interface),
-        log: Logger = Depends(get_logger),
     ) -> Page[SearchResult]: # type: ignore
     """
     Look up the given Series name on the indicated Interface. Returned
@@ -325,7 +316,7 @@ def lookup_new_series(
     - interface_id: ID of the interface to query.
     """
 
-    return paginate_sequence(lookup_series(db, interface, name, log=log))
+    return paginate_sequence(lookup_series(db, interface, name))
 
 
 @series_router.get('/series/{series_id}')
@@ -347,7 +338,6 @@ def update_series(
         series_id: int,
         update: UpdateSeries = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Series:
     """
     Update the config of the given Series.
@@ -357,7 +347,7 @@ def update_series(
     """
 
     series = get_series(db, series_id, raise_exc=True)
-    update_series_config(db, series, update, commit=True, log=log)
+    update_series_config(db, series, update, commit=True)
 
     return series
 
@@ -369,7 +359,6 @@ def copy_series_config(
         reset_series: bool = Query(default=True),
         reset_episodes: bool = Query(default=False),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Series:
     """
 
@@ -426,7 +415,6 @@ def process_series_(
         background_tasks: BackgroundTasks,
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Completely process the given Series. This does all major "tasks,"
@@ -445,7 +433,6 @@ def process_series_(
         db,
         get_series(db, series_id, raise_exc=True),
         background_tasks,
-        log=log,
     )
 
 
@@ -456,7 +443,6 @@ def remove_series_labels(
         library_name: str = Query(...),
         labels: list[str] = Query(default=['TCM', 'Overlay']),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Remove the given labels from the given Series' Episodes within Plex.
@@ -480,7 +466,7 @@ def remove_series_labels(
 
     # Remove labels from specified library
     interface.remove_series_labels(
-        library_name, series.as_series_info, labels, log=log
+        library_name, series.as_series_info, labels
     )
 
 
@@ -488,7 +474,6 @@ def remove_series_labels(
 def download_series_poster_(
         series: SeriesModel = Depends(require_series),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> str:
     """
     Download a poster for the given Series.
@@ -496,7 +481,7 @@ def download_series_poster_(
     - series_id: ID of the Series whose poster to download.
     """
 
-    download_series_poster(db, series, log=log)
+    download_series_poster(db, series)
 
     return series.poster_url
 
@@ -539,7 +524,6 @@ async def set_series_poster(
         url: str | None = Form(default=None),
         file: UploadFile | None = None,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> str:
     """
     Set the poster for the given series.
@@ -577,7 +561,7 @@ async def set_series_poster(
 
     # If only URL was required, attempt to download, error if unable
     if url is not None:
-        poster_content = WebInterface.download_image_raw(url, log=log)
+        poster_content = WebInterface.download_image_raw(url)
         if poster_content is None:
             raise HTTPException(
                 status_code=400,
@@ -608,7 +592,6 @@ async def set_series_poster(
 def batch_update_series(
         updates: list[BatchUpdateSeries] = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> list[Series]:
     """
     Update the config of all the given Series.
@@ -625,9 +608,7 @@ def batch_update_series(
         all_series.append(series)
 
         # Update this Series
-        changed |= update_series_config(
-            db, series, update.update, commit=False, log=log
-        )
+        changed |= update_series_config(db, series, update.update, commit=False)
 
     # Commit changes to DB if necessary
     if changed:
@@ -640,7 +621,6 @@ def batch_update_series(
 def batch_monitor_series(
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> list[Series]:
     """
     Mark the Series with the given IDs as monitored.
@@ -667,7 +647,6 @@ def batch_monitor_series(
 def batch_unmonitor_series(
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> list[Series]:
     """
     Mark the Series with the given IDs as unmonitored.
@@ -692,10 +671,9 @@ def batch_unmonitor_series(
 
 @series_router.patch('/batch/status/{status}')
 def batch_update_series_status(
-        status: str,
+        status: Status,
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> list[Series]:
     """
     Update the status of all the given Series.
@@ -721,7 +699,6 @@ def batch_update_series_status(
 def batch_delete_series(
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Batch operation to delete all the given Series.
@@ -731,7 +708,7 @@ def batch_delete_series(
 
     for series_id in series_ids:
         series = get_series(db, series_id, raise_exc=True)
-        delete_series(db, series, log=log)
+        delete_series(db, series)
 
 
 @series_router.post('/batch/process')
@@ -739,7 +716,6 @@ def batch_process_series(
         background_tasks: BackgroundTasks,
         series_ids: list[int] = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Completely process all the given Series.
@@ -752,5 +728,4 @@ def batch_process_series(
             db,
             get_series(db, series_id, raise_exc=True),
             background_tasks,
-            log=log,
         )

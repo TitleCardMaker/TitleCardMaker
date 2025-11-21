@@ -22,7 +22,6 @@ from app.dependencies import (
     get_first_tmdb_interface,
     get_first_tvdb_interface,
     get_jellyfin_interfaces,
-    get_logger,
     get_plex_interfaces,
     get_tmdb_interfaces,
     get_tvdb_interfaces,
@@ -47,11 +46,11 @@ from app.interfaces.v2 import (
     TVDbInterface,
 )
 from app.interfaces.web import WebInterface
+from app.logging.logger import log
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
 from app.models.loaded import Loaded as LoadedModel
 from app.schemas.card import SourceImage, ExternalSourceImage
-from app.logging.logger import Logger
 
 
 source_router = APIRouter(
@@ -67,7 +66,6 @@ def download_series_source_images(
         series_id: int,
         # ignore_blacklist: bool = Query(default=False),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Download a Source image for all Episodes in the given Series. This
@@ -82,10 +80,8 @@ def download_series_source_images(
 
     for episode in get_series(db, series_id, raise_exc=True).episodes:
         background_tasks.add_task(
-            # Function
             download_episode_source_images,
-            # Arguments
-            db, episode, raise_exc=False, log=log,
+            db, episode, raise_exc=False
         )
 
 
@@ -97,7 +93,6 @@ def download_series_backdrop_from_tmdb(
         tmdb_interfaces: (
             InterfaceGroup[int, TMDbInterface]
         ) = Depends(get_tmdb_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> str:
     """
     Download a backdrop (art image) for the given Series from TMDb.
@@ -123,7 +118,7 @@ def download_series_backdrop_from_tmdb(
                 series.as_series_info, raise_exc=True,
             )
             if (backdrop
-                and WebInterface.download_image(backdrop,backdrop_file,log=log)):
+                and WebInterface.download_image(backdrop,backdrop_file)):
                 log.debug(f'{series} Downloaded backdrop from TMDb')
                 return f'/source/{series.path_safe_name}/backdrop.jpg'
 
@@ -140,7 +135,6 @@ def download_series_backdrop_from_tvdb(
         tvdb_interfaces: (
             InterfaceGroup[int, TVDbInterface]
         ) = Depends(get_tvdb_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> str:
     """
     Download a backdrop (art image) for the given Series from TVDb.
@@ -161,10 +155,10 @@ def download_series_backdrop_from_tvdb(
     if tvdb_interfaces:
         for _, interface in tvdb_interfaces:
             backdrop = interface.get_series_backdrop(
-                series.as_series_info, log=log
+                series.as_series_info
             )
             if (backdrop
-                and WebInterface.download_image(backdrop,backdrop_file,log=log)):
+                and WebInterface.download_image(backdrop,backdrop_file)):
                 log.debug(f'{series} Downloaded backdrop from TVDb')
                 return f'/source/{series.path_safe_name}/backdrop.jpg'
 
@@ -178,7 +172,6 @@ def download_series_backdrop_from_tvdb(
 def download_series_logo_(
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> str | None:
     """
     Download a logo for the given Series. This uses the most relevant
@@ -191,14 +184,13 @@ def download_series_logo_(
     # Get this Series, raise 404 if DNE
     series = get_series(db, series_id, raise_exc=True)
 
-    return download_series_logo(series, log=log)
+    return download_series_logo(series)
 
 
 @source_router.post('/episode/{episode_id}')
 def download_episode_source_images_(
         episode_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> list[str | None]:
     """
     Download the Source Images for the given Episode. This uses the most
@@ -211,7 +203,7 @@ def download_episode_source_images_(
     # Get the Episode with this ID, raise 404 if DNE
     episode = get_episode(db, episode_id, raise_exc=True)
 
-    return download_episode_source_images(db, episode, raise_exc=True, log=log)
+    return download_episode_source_images(db, episode, raise_exc=True)
 
 
 @source_router.get('/episode/{episode_id}/browse')
@@ -229,7 +221,6 @@ def get_all_episode_source_images(
         ) = Depends(get_plex_interfaces),
         tmdb_interface: TMDbInterface | None =Depends(get_first_tmdb_interface),
         tvdb_interface: TVDbInterface | None =Depends(get_first_tvdb_interface),
-        log: Logger = Depends(get_logger),
     ) -> list[ExternalSourceImage]:
     """
     Get all Source Images on all interfaces for the given Episode.
@@ -254,7 +245,6 @@ def get_all_episode_source_images(
                 episode.series.as_series_info,
                 episode.as_episode_info,
                 match_title=match_title,
-                log=log,
             ))
         except HTTPException:
             pass
@@ -264,7 +254,6 @@ def get_all_episode_source_images(
             episode.series.as_series_info,
             episode.as_episode_info,
             check_dimensions=False,
-            log=log,
         )
         if tvdb_image:
             images.append({'url': tvdb_image, 'interface_type': 'TVDb'})
@@ -282,7 +271,6 @@ def get_all_episode_source_images(
                 library['name'],
                 episode.series.as_series_info,
                 episode.as_episode_info,
-                log=log,
             )
             if image:
                 # Encode image bytes as Base64 string
@@ -304,7 +292,6 @@ def get_all_episode_source_images(
             episode.series.as_series_info,
             episode.as_episode_info,
             proxy_url=True,
-            log=log,
         )
         if url:
             images.append({'url': url, 'interface_type': 'Plex'})
@@ -319,7 +306,6 @@ def get_all_series_logos_on_tmdb(
         series_id: int,
         db: Session = Depends(get_database),
         tmdb_interface: TMDbInterface = Depends(require_tmdb_interface),
-        log: Logger = Depends(get_logger),
     ) -> list[ExternalSourceImage]:
     """
     Get a list of all the logos available for the specified Series on
@@ -333,7 +319,7 @@ def get_all_series_logos_on_tmdb(
     return [
         ExternalSourceImage.model_validate(logo)
         for logo in (
-            tmdb_interface.get_all_logos(series.as_series_info, log=log)
+            tmdb_interface.get_all_logos(series.as_series_info)
             or []
         )
     ]
@@ -344,7 +330,6 @@ def get_all_series_backdrops_on_tmdb(
         series_id: int,
         db: Session = Depends(get_database),
         tmdb_interface: TMDbInterface = Depends(require_tmdb_interface),
-        log: Logger = Depends(get_logger),
     ) -> list[ExternalSourceImage]:
     """
     Get a list of all the backdrops available for the specified Series
@@ -358,7 +343,7 @@ def get_all_series_backdrops_on_tmdb(
     return [
         ExternalSourceImage.model_validate(backdrop)
         for backdrop in (
-            tmdb_interface.get_all_backdrops(series.as_series_info,log=log)
+            tmdb_interface.get_all_backdrops(series.as_series_info)
             or []
         )
     ]
@@ -393,7 +378,6 @@ async def upload_series_source_images(
         series_id: int,
         images: list[UploadFile] = [],
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Process any of the given uploaded source images and write them to
@@ -429,7 +413,6 @@ async def upload_series_source_images(
 def delete_series_source_images(
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete all the Source Images for the given Series.
@@ -462,7 +445,6 @@ def get_existing_episode_source_image(
 def delete_episode_source_images(
         episode_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Source Image(s) for the given Episode.
@@ -492,7 +474,6 @@ async def set_episode_source_image(
         plex_interfaces: (
             InterfaceGroup[int, PlexInterface]
         ) = Depends(get_plex_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> SourceImage:
     """
     Set the Source Image for the given Episode. If there is an existing
@@ -567,7 +548,7 @@ async def set_episode_source_image(
                     + f'?X-Plex-Token={connection.decrypted_api_key}'
                 )
 
-        if not WebInterface.download_image(url, source_file, log=log):
+        if not WebInterface.download_image(url, source_file):
             raise HTTPException(
                 status_code=400,
                 detail='Unable to download image'
@@ -578,7 +559,6 @@ async def set_episode_source_image(
         db,
         db.query(CardModel).filter_by(episode_id=episode_id),
         db.query(LoadedModel).filter_by(episode_id=episode_id),
-        log=log,
     )
 
     # Return created Source Image
@@ -589,7 +569,6 @@ async def set_episode_source_image(
 def mirror_episode_source_image(
         episode_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> SourceImage:
     """
     Mirror the Source Image for the given Episode. This flips the image
@@ -618,7 +597,6 @@ def mirror_episode_source_image(
         db,
         db.query(CardModel).filter_by(episode_id=episode_id),
         db.query(LoadedModel).filter_by(episode_id=episode_id),
-        log=log,
     )
 
     return get_source_image(episode)
@@ -631,7 +609,6 @@ async def set_series_logo(
         file: UploadFile | None = None,
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Set the logo for the given Series. If there is an existing logo
@@ -677,10 +654,10 @@ async def set_series_logo(
     if url is not None:
         # If logo is SVG, handle separately
         if url.endswith('.svg'):
-            process_svg_logo(url, series, logo_file, log=log)
+            process_svg_logo(url, series, logo_file)
             return None
 
-        if (content := WebInterface.download_image_raw(url, log=log)) is None:
+        if (content := WebInterface.download_image_raw(url)) is None:
             raise HTTPException(
                 status_code=400,
                 detail='Unable to download image'
@@ -701,7 +678,6 @@ async def set_series_backdrop(
         file: UploadFile | None = None,
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Set the backdrop for the given Series. If there is an existing
@@ -745,7 +721,7 @@ async def set_series_backdrop(
 
     # If only URL was required, attempt to download, error if unable
     if url is not None:
-        if (content := WebInterface.download_image_raw(url, log=log)) is None:
+        if (content := WebInterface.download_image_raw(url)) is None:
             raise HTTPException(
                 status_code=400,
                 detail='Unable to download image'
@@ -763,7 +739,6 @@ def delete_series_logo(
         series_id: int,
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the logo for the given Series.
@@ -792,7 +767,6 @@ def delete_series_backdrop(
         series_id: int,
         season_number: int | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the backdrop for the given Series.
@@ -822,7 +796,6 @@ async def upload_episode_mask_image(
         episode_id: int,
         file: UploadFile,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Upload the mask image to the given Episode.
@@ -854,7 +827,6 @@ async def upload_episode_mask_image(
         db,
         db.query(CardModel).filter_by(episode_id=episode_id),
         db.query(LoadedModel).filter_by(episode_id=episode_id),
-        log=log,
     )
 
 
@@ -862,7 +834,6 @@ async def upload_episode_mask_image(
 def delete_episode_mask_image(
         episode_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the mask image for the given Episode.

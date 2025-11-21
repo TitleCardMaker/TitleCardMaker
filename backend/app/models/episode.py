@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
 
 from app.db.database import Base
 from app.info.episode import EpisodeInfo
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.models.template import EpisodeTemplates, Template
 from app.schemas.connection import ServerName
 from app.schemas.preferences import Style
@@ -119,11 +119,7 @@ class Episode(Base):
     )
 
 
-    def assign_templates(self,
-            templates: list[Template],
-            *,
-            log: Logger = log,
-        ) -> None:
+    def assign_templates(self, templates: list[Template]) -> None:
         """
         Assign the given Templates to this Episode. This updates the
         association table for Episode:Template relationships as needed.
@@ -133,7 +129,6 @@ class Episode(Base):
                 provided order is used for the creation of the
                 association table objects so that order is preserved
                 within the relationship.
-            log: Logger for all log messages.
         """
 
         # Reset existing assocations
@@ -319,11 +314,7 @@ class Episode(Base):
         )
 
 
-    def update_ids_from_info(self,
-            other: EpisodeInfo,
-            *,
-            log: Logger = log,
-        ) -> bool:
+    def update_ids_from_info(self, other: EpisodeInfo) -> bool:
         """
         Update this Episodes' database IDs from the given EpisodeInfo.
 
@@ -336,14 +327,13 @@ class Episode(Base):
 
         Args:
             other: Other set of info to merge into this.
-            log: Logger for all log messages.
 
         Returns:
             Whether this object was changed.
         """
 
         info = self.as_episode_info
-        info.copy_ids(other, log=log)
+        info.copy_ids(other)
 
         changed = False
         for id_type, id_ in info.ids.items():
@@ -358,18 +348,14 @@ class Episode(Base):
         return changed
 
 
-    def update_metadata_from_info(self,
-            episode_info: EpisodeInfo,
-            *,
-            log: Logger = log,
-        ) -> bool:
+    def update_metadata_from_info(self, episode_info: EpisodeInfo) -> bool:
         """
         Update the inherant metadata for this Episode from the given
         EpisodeInfo. This includes the season/episode/absolute numbers,
         titles, and airdate.
 
         Args:
-            log: Logger for all log messages.
+            episode_info: EpisodeInfo containing the metadata to update.
 
         Returns:
             Whether this Episode was modified at all.
@@ -534,18 +520,12 @@ class Episode(Base):
         return self.watched_statuses.get(f'{interface_id}:{library_name}')
 
 
-    def add_watched_status(self,
-            status: 'WatchedStatus',
-            /,
-            *,
-            log: Logger = log,
-        ) -> bool:
+    def add_watched_status(self, status: 'WatchedStatus', /) -> bool:
         """
         Add the given WatchedStatus to this Episode's watched statuses.
 
         Args:
             status: The WatchedStatus to update this object with.
-            log: Logger for all log messages.
 
         Returns:
             Whether this Episode's watched status was modified.
@@ -560,10 +540,10 @@ class Episode(Base):
             current = self.watched_statuses.get(key)
             self.watched_statuses[key] = status.status
             if current != status.status:
-                log.trace(
+                log.trace((
                     f'{self} updating watched status ({current} -> '
                     f'{status.status})'
-                )
+                ))
 
             return current != status.status
 

@@ -8,7 +8,7 @@ from sqlalchemy.orm.session import Session
 import starlette.background
 
 from app.db.database import Base as DatabaseBase, SessionLocal
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 
 class _Task(NamedTuple):
@@ -259,14 +259,6 @@ class BackgroundTasks(starlette.background.BackgroundTasks):
                 args_, kwargs_ = injector.args, injector.kwargs
                 func(*args_, **kwargs_)
             except Exception:
-                # Grab logger if present in kwargs of wrapped function
-                logger = log
-                if ('log' in kwargs_
-                    and hasattr(kwargs_['log'], 'error')
-                    and callable(kwargs_['log'].error)
-                ):
-                    logger: Logger = kwargs_['log']
-
                 # Create Console to print rich Traceback
                 file = StringIO()
                 console = Console(file=file)
@@ -283,7 +275,7 @@ class BackgroundTasks(starlette.background.BackgroundTasks):
                 )
 
                 # Log traceback of failed Task
-                logger.error((
+                log.error((
                     f'BackgroundTask {func.__name__}() failed:\n'
                     f'{file.getvalue()}'
                 ))

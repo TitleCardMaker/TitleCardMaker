@@ -5,7 +5,7 @@ from fastapi import HTTPException
 
 from app.interfaces.base import Interface
 from app.interfaces.web import WebInterface
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 
 class IntegratedStatus(NamedTuple):
@@ -38,8 +38,6 @@ class TautulliInterface(WebInterface, Interface):
             agent_name: str = DEFAULT_AGENT_NAME,
             trigger_watched: bool = True,
             username: str | None = None,
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Construct a new instance of an interface to Sonarr.
@@ -55,7 +53,6 @@ class TautulliInterface(WebInterface, Interface):
                 for recently watched episodes.
             username: User whose watched content should trigger the
                 recently watched agent (if indicated).
-            log: Logger for all log messages.
 
         Raises:
             HTTPException (400): Tautulli cannot be connected to.
@@ -148,13 +145,10 @@ class TautulliInterface(WebInterface, Interface):
         )
 
 
-    def __create_agent(self, *, log: Logger = log) -> int | None:
+    def __create_agent(self) -> int | None:
         """
         Create a new Notification Agent. The created agent will be blank
         and of the Webhook type.
-
-        Args:
-            log: Logger for all log messages.
 
         Returns:
             Notifier ID of created agent, None if agent was not created.
@@ -187,20 +181,17 @@ class TautulliInterface(WebInterface, Interface):
         return list(new_ids - existing_ids)[0]
 
 
-    def integrate(self, *, log: Logger = log) -> None:
+    def integrate(self) -> None:
         """
         Integrate this interface's instance of Tautulli with TCM. This
         configures a new notification agent if a valid one does not
         exist or cannot be identified.
-
-        Args:
-            log: Logger for all log messages.
         """
 
         integrated = self.is_integrated()
         if not integrated.recently_added:
             # Create Agent, raise if fails
-            if (created_id := self.__create_agent(log=log)) is None:
+            if (created_id := self.__create_agent()) is None:
                 raise HTTPException(
                     status_code=400,
                     detail='Failed to create Notification Agent',
@@ -241,7 +232,7 @@ class TautulliInterface(WebInterface, Interface):
 
         if self._trigger_watched and not integrated.watched:
             # Create Agent, raise if fails
-            if (created_id := self.__create_agent(log=log)) is None:
+            if (created_id := self.__create_agent()) is None:
                 raise HTTPException(
                     status_code=400,
                     detail='Failed to create Notification Agent',

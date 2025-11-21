@@ -15,7 +15,7 @@ from unidecode import unidecode
 
 from app.db.database import Base
 from app.info.series import SeriesInfo
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.models.template import SeriesTemplates, Template
 from app.schemas.connection import ServerName
 from app.settings import settings
@@ -195,11 +195,7 @@ class Series(Base):
         return [episode.id for episode in self.episodes]
 
 
-    def assign_templates(self,
-            templates: list[Template],
-            *,
-            log: Logger = log,
-        ) -> None:
+    def assign_templates(self, templates: list[Template]) -> None:
         """
         Assign the given Templates to this Series. This updates the
         association table for Series:Template relationships as needed.
@@ -209,7 +205,6 @@ class Series(Base):
                 provided order is used for the creation of the
                 association table objects so that order is preserved
                 within the relationship.
-            log: Logger for all log messages.
 
         Raises:
             ValueError: There is no active database connection to query
@@ -544,11 +539,7 @@ class Series(Base):
         )
 
 
-    def update_from_series_info(self,
-            other: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> bool:
+    def update_from_series_info(self, other: SeriesInfo) -> bool:
         """
         Update this Series' database IDs from the given SeriesInfo.
 
@@ -561,7 +552,6 @@ class Series(Base):
 
         Args:
             other: Other set of Series info to merge into this.
-            log: Logger for all log messages.
 
         Returns:
             True if any of this Series' underlying ID's were changed.
@@ -569,7 +559,7 @@ class Series(Base):
         """
 
         info = self.as_series_info
-        info.copy_ids(other, log=log)
+        info.copy_ids(other)
 
         changed = False
         for id_type, id_ in info.ids.items():
@@ -580,11 +570,7 @@ class Series(Base):
         return changed
 
 
-    def set_ids_from_series_info(self,
-            info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> bool:
+    def set_ids_from_series_info(self, info: SeriesInfo) -> bool:
         """
         Set all ID attributes of this object from the given SeriesInfo.
         This WILL override any existing ID information of this object,
@@ -592,7 +578,6 @@ class Series(Base):
 
         Args:
             info: SeriesInfo containing ID information to set.
-            log: Logger for all log messages.
 
         Returns:
             True if any of this Series' underlying ID's were changed.

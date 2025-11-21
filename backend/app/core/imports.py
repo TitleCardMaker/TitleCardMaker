@@ -18,7 +18,7 @@ from app.core.cards import (
 from app.db.query import get_media_interface
 from app.exceptions import InvalidCardSettings
 from app.interfaces.web import WebInterface
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.models.card import Card as CardModel
 from app.models.episode import Episode
 from app.models.series import Library, Series
@@ -36,8 +36,6 @@ def import_cards(
         directory: Path | None,
         image_extension: CardExtension,
         force_reload: bool,
-        *,
-        log: Logger = log,
     ) -> None:
     """
     Import any existing Title Cards for the given Series. This finds
@@ -52,7 +50,6 @@ def import_cards(
         image_extension: Extension of images to search for.
         force_reload: Whether to replace any existing Card entries for
             Episodes identified while importing.
-        log: Logger for all log messages.
     """
 
     # If explicit directory was not provided, use Series default
@@ -104,7 +101,7 @@ def import_cards(
 
         # Get finalized Card settings for this Episode, override card file
         try:
-            card_settings = resolve_card_settings(episode, log=log)
+            card_settings = resolve_card_settings(episode)
         except (HTTPException, InvalidCardSettings) as exc:
             log.exception(
                 f'{episode} Cannot import Card - settings are invalid {exc}'
@@ -112,7 +109,7 @@ def import_cards(
             continue
 
         # Get a validated card class, and card type Pydantic model
-        _, CardTypeModel = validate_card_type_model(card_settings, log=log)
+        _, CardTypeModel = validate_card_type_model(card_settings)
 
         # Card is valid, create and add to Database
         card_settings['card_file'] = image
@@ -140,8 +137,6 @@ def import_card_content(
         library: Library | None = None,
         force_reload: bool = True,
         as_textless: bool = False,
-        *,
-        log: Logger = log,
     ) -> None:
     """
     Import the Title Card files to the given Series.
@@ -155,7 +150,6 @@ def import_card_content(
             Episodes identified while importing.
         as_textless: Whether to set the imported Episode's card type to
             textless.
-        log: Logger for all log messages.
     """
 
     # For each image, identify associated Episode
@@ -208,14 +202,14 @@ def import_card_content(
 
         # Get finalized Card settings for this Episode
         try:
-            card_settings = resolve_card_settings(episode, library, log=log)
+            card_settings = resolve_card_settings(episode, library)
         except (HTTPException, InvalidCardSettings):
             log.exception(f'{episode} Cannot import Card - settings are invalid')
             continue
 
         # Get a validated card class, and card type Pydantic model
         try:
-            _, CardTypeModel = validate_card_type_model(card_settings, log=log)
+            _, CardTypeModel = validate_card_type_model(card_settings)
         except HTTPException:
             log.exception(f'{episode} Cannot import Card - settings are invalid')
             continue
@@ -250,8 +244,6 @@ def import_card_files(
         files: list[tuple[Episode, Path]],
         library: Library | None = None,
         force_reload: bool = True,
-        *,
-        log: Logger = log,
     ) -> None:
     """
     Import the Title Card files to the given Series.
@@ -262,7 +254,6 @@ def import_card_files(
         files: List of tuples of the Episode, and card files to import.
         force_reload: Whether to replace any existing Card entries for
             Episodes identified while importing.
-        log: Logger for all log messages.
     """
 
     # For each image, identify associated Episode
@@ -283,7 +274,7 @@ def import_card_files(
 
         # Get finalized Card settings for this Episode, override card file
         try:
-            card_settings = resolve_card_settings(episode, library, log=log)
+            card_settings = resolve_card_settings(episode, library)
         except (HTTPException, InvalidCardSettings) as exc:
             log.exception(
                 f'{episode} Cannot import Card - settings are invalid {exc}'
@@ -291,7 +282,7 @@ def import_card_files(
             continue
 
         # Get a validated card class, and card type Pydantic model
-        _, CardTypeModel = validate_card_type_model(card_settings, log=log)
+        _, CardTypeModel = validate_card_type_model(card_settings)
 
         # Rename existing Card to expected card location
         card_settings['card_file'].parent.mkdir(exist_ok=True, parents=True)
@@ -327,8 +318,6 @@ async def download_image(
         url: str,
         episode: Episode,
         temp_images: list[Path],
-        *,
-        log: Logger = log,
     ) -> tuple[Path, Episode] | None:
     """
     Asynchronously download the given URL with the given session.
@@ -339,7 +328,6 @@ async def download_image(
         episode: Episode associated with the URL being downloaded.
         temp_images: List of temporary image files to be cleaned up.
             This is added to.
-        log: Logger for all log messages.
 
     Returns:
         Tuple of the downloaded image path and the associated Episode.
@@ -363,7 +351,7 @@ async def download_image(
         WebInterface._TEMP_DIR / f'temp_{url[-5:]}', 'jpg'
     )
     temp_images.append(filename)
-    if WebInterface.download_image(response.content, filename, log=log):
+    if WebInterface.download_image(response.content, filename):
         return filename, episode
 
     return None
@@ -380,7 +368,6 @@ async def import_mediux_yaml(
         import_season_posters: bool = False,
         force_reload: bool = True,
         textless: bool = True,
-        log: Logger = log,
     ) -> None:
     """
     Import Cards, posters, and backgrounds from the given Kometa YAML
@@ -399,7 +386,6 @@ async def import_mediux_yaml(
         force_reload: Whether to replace any existing Cards.
         textless: Whether to change any affected Episode's card type to
             Textless.
-        log: Logger for all log messages.
     """
 
     # Get just the YAML after the TVDb ID
@@ -458,7 +444,6 @@ async def import_mediux_yaml(
                         str(episode_yaml.url_poster),
                         episode,
                         temp_images,
-                        log=log,
                     )
                 )
 
@@ -503,7 +488,7 @@ async def import_mediux_yaml(
 
         if cards:
             import_card_files(
-                db, series, cards, library, force_reload=force_reload, log=log,
+                db, series, cards, library, force_reload=force_reload,
             )
 
             # Load Cards into library
@@ -514,28 +499,26 @@ async def import_mediux_yaml(
                 db,
                 iface,
                 episodes=[episode for episode, _ in cards],
-                log=log,
             )
 
         # Load series backgrounds/poster, or season posters
         if background:
             iface.load_series_background(
-                library_name, series.as_series_info, background, log=log,                         
+                library_name, series.as_series_info, background,                         
             )
         if poster:
             iface.load_series_poster(
-                library_name, series.as_series_info, poster, log=log,
+                library_name, series.as_series_info, poster,
             )
         if season_posters:
             iface.load_season_posters(
                 library_name, series.as_series_info, season_posters, # type: ignore
-                log=log,
             )
 
     # No libraries specified import Cards without a library
     if not library_names:
         import_card_files(
-            db, series, cards, library=None, force_reload=force_reload, log=log,
+            db, series, cards, library=None, force_reload=force_reload,
         )
         if season_posters or poster or background:
             log.warning('Cannot import non-Card images without a library')

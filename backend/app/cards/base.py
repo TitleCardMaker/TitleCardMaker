@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
+from mimetypes import init
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any, Callable, ClassVar, Literal
 
-from pydantic import BaseModel, BeforeValidator, Field, FilePath
+from pydantic import BaseModel, BeforeValidator, Field, FilePath, ValidationError
+from pydantic_core import InitErrorDetails, PydanticCustomError
 from titlecase import titlecase
 
 from app.logging.logger import log
@@ -706,6 +708,50 @@ class BaseCardType(ImageMaker, ABC):
         intermediate files.
         """
         raise NotImplementedError
+
+
+def get_extra_validation_error(
+        title: str,
+        error_name: str,
+        error_template: str,
+        error_context: dict[str, Any],
+        error_location: str,
+        input: Any,
+    ) -> ValidationError:
+    """
+    Construct a ValidationError with a custom error type and message.
+    This allows for the custom error to appear like a built-in Pydantic
+    schema validation error.
+
+    >>> raise get_extra_validation_error(
+    ...     title='Cascade Transparency sequence is invalid',
+    ...     error_name='bad_sequence',
+    ...     error_template='Transparency sequence is invalid: {exc}}',
+    ...     error_context={'exc': str(exc)},
+    ...     error_location='cascase_transparencies',
+    ...     input=self.cascade_alphas,
+    ... )
+
+    Returns:
+        ValidationError with a custom error type and message.
+        This needs to be raised..
+    """
+
+    return ValidationError.from_exception_data(
+        title=title,
+        line_errors=[
+            InitErrorDetails(
+                type=PydanticCustomError(
+                    error_name, # type: ignore
+                    error_template, # type: ignore
+                    error_context,
+                ),
+                loc=(error_location, ),
+                input=input,
+                ctx={},
+            ),
+        ]
+    )
 
 
 class PreviewCard(BaseModel):

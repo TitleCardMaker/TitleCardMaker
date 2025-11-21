@@ -5,11 +5,11 @@ Revises: 2dc1e976a801
 Create Date: 2025-03-09 14:20:40.051130
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from alembic import op
 import sqlalchemy as sa
 
-from app.logging.logger import contextualize, Logger
+from app.logging.logger import log
 from app.settings import settings 
 
 # Revision identifiers, used by Alembic.
@@ -40,7 +40,6 @@ class Series(Base):
     created = sa.Column(sa.DateTime, nullable=True)
 
 def upgrade() -> None:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     # Begin initialization with columns as nullable so they can be migrated
@@ -101,7 +100,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('series', schema=None) as batch_op:

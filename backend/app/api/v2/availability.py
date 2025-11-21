@@ -6,7 +6,6 @@ from app.dependencies import (
     get_database,
     get_emby_interfaces,
     get_jellyfin_interfaces,
-    get_logger,
     get_plex_interfaces,
     get_sonarr_interfaces,
     require_emby_interface,
@@ -48,7 +47,6 @@ from app.schemas.preferences import StyleOption
 from app.schemas.series import MediaServerLibrary
 from app.schemas.sync import Tag
 from app.settings import settings
-from app.logging.logger import Logger
 from app.core.card_registry import LocalCards
 
 
@@ -95,18 +93,15 @@ availablility_router = APIRouter(
 
 
 @availablility_router.get('/version')
-def get_latest_available_version(
-        log: Logger = Depends(get_logger),
-    ) -> str:
+def get_latest_available_version() -> str:
     """Get the latest version number for TitleCardMaker."""
 
-    return str(get_latest_version(log=log))
+    return str(get_latest_version())
 
 
 @availablility_router.get('/card-types')
 def get_all_available_card_types(
         show_excluded: bool = Query(default=False),
-        log: Logger = Depends(get_logger),
     ) -> list[CardTypeDescription]:
     """
     Get a list of all available card types (local and remote).
@@ -115,7 +110,7 @@ def get_all_available_card_types(
     the returned list.
     """
 
-    all_cards = LocalCards + get_local_cards() + get_remote_cards(log=log)
+    all_cards = LocalCards + get_local_cards() + get_remote_cards()
 
     if show_excluded:
         return all_cards
@@ -142,11 +137,10 @@ def get_local_card_types_() -> list[LocalCardType]:
 
 @availablility_router.get('/card-types/remote', tags=['Title Cards'])
 def get_remote_card_types_(
-        log: Logger = Depends(get_logger),
     ) -> list[RemoteCardType]:
     """Get all available remote card types."""
 
-    return get_remote_cards(log=log)
+    return get_remote_cards()
 
 
 @availablility_router.get('/card-types/active', tags=['Title Cards'])
@@ -162,7 +156,6 @@ def get_active_card_types(db: Session = Depends(get_database)) -> list[str]:
 @availablility_router.get('/extras')
 def get_all_supported_extras(
         show_excluded: bool = Query(default=False),
-        log: Logger = Depends(get_logger),
     ) -> list[Extra]:
     """
     Get details of all the available Extras for local and remote card
@@ -187,7 +180,7 @@ def get_all_supported_extras(
             card_type=card_type.identifier,
             **extra.model_dump(),
         )
-        for card_type in LocalCards + get_remote_cards(log=log)
+        for card_type in LocalCards + get_remote_cards()
         if (show_excluded
             or card_type.identifier not in settings.excluded_card_types)
         for extra in card_type.supported_extras

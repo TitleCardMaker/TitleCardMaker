@@ -18,7 +18,7 @@ from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
 from app.interfaces.schemas.emby import ItemDetails
 from app.interfaces.schemas.sonarr import SeriesResource
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 if TYPE_CHECKING:
     from app.models.card import Card
@@ -241,8 +241,6 @@ class EpisodeDataSource(ABC):
     def set_series_ids(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> None:
         """Set the series ID's for the given SeriesInfo object."""
 
@@ -254,8 +252,6 @@ class EpisodeDataSource(ABC):
             library_name: str,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
-            *,
-            log: Logger = log,
         ) -> None:
         """Set the episode ID's for the given EpisodeInfo objects."""
 
@@ -266,8 +262,6 @@ class EpisodeDataSource(ABC):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
         """Get all the EpisodeInfo objects associated with the given series."""
 
@@ -275,11 +269,7 @@ class EpisodeDataSource(ABC):
 
 
     @abstractmethod
-    def query_series(self,
-            query: str,
-            *,
-            log: Logger = log,
-        ) -> list[SearchResult]:
+    def query_series(self, query: str) -> list[SearchResult]:
         """Query for a Series on this interface."""
 
         raise NotImplementedError
@@ -343,17 +333,12 @@ class MediaServer(ABC):
         self.filesize_limit = filesize_limit
 
 
-    def compress_image(self,
-            image: str | Path,
-            *,
-            log: Logger = log
-        ) -> Path | None:
+    def compress_image(self, image: str | Path) -> Path | None:
         """
         Compress the given image until below the filesize limit.
 
         Args:
             image: Path to the image to compress.
-            log: Logger for all log messages.
 
         Returns:
             Path to the compressed image, or None if the image could not
@@ -397,8 +382,6 @@ class MediaServer(ABC):
             library_name: str,
             series_info: SeriesInfo,
             episodes: list['Episode'],
-            *,
-            log: Logger = log,
         ) -> bool:
         """Method to get the watched statuses of Episodes."""
         raise NotImplementedError
@@ -412,8 +395,6 @@ class MediaServer(ABC):
                 list[tuple['Episode', 'Card']]
                 | list[tuple['Episode', 'Card', str]]
             ),
-            *,
-            log: Logger = log,
         ) -> list[tuple['Episode', 'Card']]:
         """
         Abstract method to load title cards within this MediaServer.
@@ -426,8 +407,6 @@ class MediaServer(ABC):
             library_name: str,
             series_info: SeriesInfo,
             posters: dict[int, str | Path],
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Abstract method to load season posters within this MediaServer.
@@ -440,8 +419,6 @@ class MediaServer(ABC):
             library_name: str,
             series_info: SeriesInfo,
             image: str | Path,
-            *,
-            log: Logger = log
         ) -> None:
         """
         Abstract method to load the given poster image within this
@@ -455,8 +432,6 @@ class MediaServer(ABC):
             library_name: str,
             series_info: SeriesInfo,
             image: str | Path,
-            *,
-            log: Logger = log
         ) -> None:
         """
         Abstract method to load the given background image within this
@@ -470,8 +445,6 @@ class MediaServer(ABC):
             library_name: str,
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
-            *,
-            log: Logger = log,
         ) -> SourceImage:
         """
         Abstract method to get textless source images from this
@@ -484,8 +457,6 @@ class MediaServer(ABC):
     def get_series_poster(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> SourceImage:
         """
         Abstract method to get a Series poster from this MediaServer.
@@ -685,8 +656,6 @@ class InterfaceGroup(
             cls: type['InterfaceGroup[int, _Interface]'],
             interface_cls: type[_Interface],
             interface_kwargs: Iterable[dict[str, Any]],
-            *,
-            log: Logger = log,
         ) -> 'InterfaceGroup[int, _Interface]':
         """
         Construct a new `InterfaceGroup` object of the given
@@ -704,7 +673,6 @@ class InterfaceGroup(
                 will map and initialize.
             interface_kwargs: Iterable of kwargs for initializing each
                 Interface object with.
-            log: Logger for all log messages.
 
         Returns:
             Initialized `InterfaceGroup` object containing initalized
@@ -714,9 +682,7 @@ class InterfaceGroup(
         interface_group = cls(interface_cls)
         for kwargs in interface_kwargs:
             interface_id = kwargs['interface_id']
-            interface_group.interfaces[interface_id] = interface_cls(
-                **kwargs, log=log,
-            )
+            interface_group.interfaces[interface_id] = interface_cls(**kwargs)
 
         return interface_group
 
@@ -724,8 +690,6 @@ class InterfaceGroup(
     def initialize_interface(self,
             interface_id: _InterfaceID,
             interface_kwargs: dict[str, Any],
-            *,
-            log: Logger = log,
         ) -> _Interface:
         """
         Construct and initialize the Interface with the given ID.
@@ -734,7 +698,6 @@ class InterfaceGroup(
             interface_id: ID of the Interface to initialize.
             interface_kwargs: Kwargs to pass to the Interface
                 initialization.
-            log: Logger for all log messages.
 
         Returns:
             Initialized Interface.
@@ -742,9 +705,7 @@ class InterfaceGroup(
 
         log.debug(f'Initializing {self.cls.__name__}[{interface_id}]..')
         try:
-            self.interfaces[interface_id] = self.cls(
-                **interface_kwargs, log=log
-            )
+            self.interfaces[interface_id] = self.cls(**interface_kwargs)
             self._uninitialized.pop(interface_id, None)
         except Exception as exc:
             self._uninitialized[interface_id] = interface_kwargs
@@ -757,8 +718,6 @@ class InterfaceGroup(
     def refresh(self,
             interface_id: _InterfaceID,
             interface_kwargs: dict[str, Any],
-            *,
-            log: Logger = log,
         ) -> _Interface:
         """
         Refresh the given interface.
@@ -767,13 +726,12 @@ class InterfaceGroup(
             interface_id: ID of the interface being refreshed.
             interface_kwargs: Keyword arguments to initialize the
                 Interface with.
-            log: Logger for all log messages.
 
         Returns:
             Interface initialized with the given arguments.
         """
 
-        self.interfaces[interface_id] = self.cls(**interface_kwargs, log=log)
+        self.interfaces[interface_id] = self.cls(**interface_kwargs)
 
         return self.interfaces[interface_id]
 

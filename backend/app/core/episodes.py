@@ -22,7 +22,7 @@ from app.interfaces.v2 import (
     TMDbInterface,
     TVDbInterface,
 )
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.models.card import Card
 from app.models.episode import Episode
 from app.models.series import Series
@@ -36,8 +36,6 @@ def set_episode_ids(
         db: Session,
         series: Series,
         episodes: Iterable[Episode],
-        *,
-        log: Logger = log,
     ) -> None:
     """
     Set the database IDs of the given Episodes.
@@ -46,7 +44,6 @@ def set_episode_ids(
         db: Database to read/update/modify.
         series: Series of the Episodes whose IDs are being set.
         episodes: Any Episodes to set the IDs of.
-        log: Logger for all log messages.
     """
 
     # Get corresponding EpisodeInfo object for this Episode
@@ -57,7 +54,7 @@ def set_episode_ids(
         interface = get_interface(library['interface_id'], raise_exc=False)
         if interface:
             interface.set_episode_ids(
-                library['name'], series.as_series_info, episode_infos, log=log,
+                library['name'], series.as_series_info, episode_infos,
             )
         else:
             log.debug(
@@ -68,26 +65,20 @@ def set_episode_ids(
     for _, interface in get_sonarr_interfaces():
         if not series.as_series_info.has_id('sonarr_id', interface.interface_id):
             continue
-        interface.set_episode_ids(
-            None, series.as_series_info, episode_infos, log=log
-        )
+        interface.set_episode_ids(None, series.as_series_info, episode_infos)
 
     # Set from the first TMDb and TVDb Connection
     for _, interface in get_tmdb_interfaces():
-        interface.set_episode_ids(
-            None, series.as_series_info, episode_infos, log=log
-        )
+        interface.set_episode_ids(None, series.as_series_info, episode_infos)
         break
     for _, interface in get_tvdb_interfaces():
-        interface.set_episode_ids(
-            None, series.as_series_info, episode_infos, log=log
-        )
+        interface.set_episode_ids(None, series.as_series_info, episode_infos)
         break
 
     # Update database if new ID's are available
     changed = False
     for episode, episode_info in zip(episodes, episode_infos):
-        changed |= episode.update_ids_from_info(episode_info, log=log)
+        changed |= episode.update_ids_from_info(episode_info)
 
     # Write any changes to the DB
     if changed:
@@ -98,7 +89,6 @@ def get_all_episode_data(
         series: Series,
         *,
         raise_exc: bool = True,
-        log: Logger = log,
     ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
     """
     Get all EpisodeInfo for the given Series from it's indicated Episode
@@ -108,7 +98,6 @@ def get_all_episode_data(
         series: Series whose Episode data is being queried.
         raise_exc: Whether to raise any HTTPExceptions caused by
             disabled interfaces or missing libraries.
-        log: Logger for all log messages.
 
     Returns:
         List of tuples of the EpisodeInfo from the given Series' episode
@@ -152,7 +141,7 @@ def get_all_episode_data(
 
     # Query Connections which do not have libraries
     if isinstance(interface, (SonarrInterface, TMDbInterface, TVDbInterface)):
-        return interface.get_all_episodes('', series.as_series_info, log=log)
+        return interface.get_all_episodes('', series.as_series_info)
 
     # Verify Series has an associated Library if EDS is a media server
     if not (libraries := list(series.get_libraries(interface_id))):
@@ -171,7 +160,7 @@ def get_all_episode_data(
 
     # Get Episodes from the Series' first (primary) library
     return interface.get_all_episodes(
-        libraries[0][1], series.as_series_info, log=log
+        libraries[0][1], series.as_series_info
     )
 
 
@@ -180,7 +169,6 @@ def refresh_episode_data(
         series: Series,
         *,
         refresh_all_ids: bool = False,
-        log: Logger = log,
     ) -> list[Episode]:
     """
     Refresh the episode data for the given Series. This adds any new
@@ -193,7 +181,6 @@ def refresh_episode_data(
         series: Series whose episodes are being refreshed.
         refresh_all_ids: Whether to refresh all Episode ID's, not just
             those of new Episodes, after querying data.
-        log: Logger for all log messages.
 
     Returns:
         List of any newly added Episodes. Empty list of no new Episodes
@@ -206,7 +193,7 @@ def refresh_episode_data(
     """
 
     # Get all Episodes for this Series from the Episode data source
-    all_episodes = get_all_episode_data(series, raise_exc=True, log=log)
+    all_episodes = get_all_episode_data(series, raise_exc=True)
 
     # Get effective sync specials toggle
     global_template, series_template, _ = get_effective_templates(series)
@@ -251,8 +238,8 @@ def refresh_episode_data(
             new_episodes.append(episode)
         # Episode exists, update metadata and watched statuses
         else:
-            changed |= existing.update_metadata_from_info(episode_info, log=log)
-            changed |= existing.add_watched_status(watched, log=log)
+            changed |= existing.update_metadata_from_info(episode_info)
+            changed |= existing.add_watched_status(watched)
 
     # Get existing Episodes
     if settings.delete_missing_episodes:
@@ -297,7 +284,7 @@ def refresh_episode_data(
 
     # Set Episode ID's for all/new Episodes
     if (id_episodes := series.episodes if refresh_all_ids else new_episodes):
-        set_episode_ids(db, series, id_episodes, log=log)
+        set_episode_ids(db, series, id_episodes)
 
     return new_episodes
 
@@ -306,8 +293,6 @@ def update_episode_config(
         db: Session,
         episode: Episode,
         update_episode: UpdateEpisode,
-        *,
-        log: Logger = log,
     ) -> bool:
     """
     Update the given Episode.
@@ -317,7 +302,6 @@ def update_episode_config(
         episode: Episode to update.
         update_episode: Objet detailing which attributes of the given
             Episode to update.
-        log: Logger for all log messages.
 
     Returns:
         True if the given Episode was modified, False otherwise.
@@ -333,7 +317,7 @@ def update_episode_config(
         not in (None, UNSPECIFIED)):
         if episode.template_ids != template_ids:
             templates = get_all_templates(db, update_episode_dict)
-            episode.assign_templates(templates, log=log)
+            episode.assign_templates(templates)
             changed = True
 
     # Update each attribute of the object

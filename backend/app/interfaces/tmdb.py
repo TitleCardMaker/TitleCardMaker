@@ -25,7 +25,7 @@ from app.interfaces.base import (
 )
 from app.interfaces.testing import testing_override
 from app.interfaces.web import WebInterface
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 
 def catch_and_log(
@@ -53,18 +53,10 @@ def catch_and_log(
             try:
                 return function(*args, **kwargs)
             except TMDbException:
-                # Get contextual logger if provided as argument to function
-                if ('log' in kwargs
-                    and hasattr(kwargs['log'], 'error')
-                    and callable(kwargs['log'].error)):
-                    clog = kwargs['log']
-                else:
-                    clog = log
-
-                # Log message and exception
-                clog.error(message)
-                clog.exception(f'TMDbException from {function.__name__}'
-                                f'({args}, {kwargs})')
+                log.error(message)
+                log.exception(
+                    f'TMDbException from {function.__name__}({args}, {kwargs})'
+                )
                 return default
 
         return inner
@@ -108,17 +100,10 @@ class DecoratedAPI:
             except (NotFound, TMDbException) as exc:
                 raise exc
             except Exception as exc:
-                # Get contextual logger if provided as argument to function
-                if 'log' in kwargs and hasattr(kwargs['log'], 'debug'):
-                    clog = kwargs['log']
-                else:
-                    clog = log
-
-                # Log message and exception
-                clog.debug(
+                log.debug((
                     f'Uncaught Exception from {function}({args}, {kwargs})',
                     exc
-                )
+                ))
                 raise TMDbException from exc
 
         return wrapper
@@ -141,15 +126,11 @@ class TestingTMDBInterface:
     def set_series_ids(self,
             library_name: Any,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> None:
         return None
 
     def query_series(self,
             query: str,
-            *,
-            log: Logger = log,
         ) -> list[SearchResult]:
 
         if query == 'Mr. Robot':
@@ -204,8 +185,6 @@ class TestingTMDBInterface:
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
 
         data: list[tuple[tuple[str, int, int, str | None], dict[str, Any]]] = []
@@ -259,7 +238,6 @@ class TestingTMDBInterface:
             episode_info: EpisodeInfo,
             *,
             match_title: bool = True,
-            log: Logger = log,
         ) -> list[TMDbStill]:
 
         if series_info.name == 'Mr. Robot':
@@ -291,11 +269,7 @@ class TestingTMDBInterface:
 
         return []
 
-    def get_all_logos(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> list[TMDbStill] | None:
+    def get_all_logos(self, series_info: SeriesInfo) -> list[TMDbStill] | None:
 
         if series_info.name == 'Mr. Robot':
             return [
@@ -344,8 +318,6 @@ class TestingTMDBInterface:
 
     def get_all_backdrops(self,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[TMDbStill] | None:
 
         if series_info.name == 'Mr. Robot':
@@ -380,11 +352,7 @@ class TestingTMDBInterface:
 
         return []
 
-    def get_series_logo(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> str | None:
+    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
         if series_info.name == 'Mr. Robot':
             return (
                 'https://image.tmdb.org/t/p/'
@@ -408,11 +376,7 @@ class TestingTMDBInterface:
 
         return None
 
-    def get_series_poster(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> str | None:
+    def get_series_poster(self, series_info: SeriesInfo) -> str | None:
 
         if series_info.name == 'Mr. Robot':
             return (
@@ -560,7 +524,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             language_priority: list[str] = ['en'],
             *,
             interface_id: int = 0,
-            log: Logger = log,
         ) -> None:
         """
         Construct a new instance of an interface to TMDb.
@@ -573,13 +536,12 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                 for source images.
             language_priority: Priority which localized should be
                 evaluated at.
-            log: Logger for all log messages.
 
         Raises:
             HTTPException (401): The API key is invalid.
         """
 
-        super().__init__('TMDb', log=log)
+        super().__init__('TMDb')
 
         # Store attributes
         self.minimum_source_width = minimum_source_width
@@ -642,8 +604,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
     def set_series_ids(self,
             library_name: Any,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set all possible series ID's for the given SeriesInfo object.
@@ -651,7 +611,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         Args:
             library_name: Unused argument.
             series_info: SeriesInfo to update.
-            log: Logger for all log messages.
         """
 
         # If all possible ID's are defined
@@ -726,17 +685,12 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     @testing_override(TestingTMDBInterface.query_series)
     @catch_and_log('Error querying for series', default=[])
-    def query_series(self,
-            query: str,
-            *,
-            log: Logger = log,
-        ) -> list[SearchResult]:
+    def query_series(self, query: str) -> list[SearchResult]:
         """
         Search TMDb for any Series matching the given query.
 
         Args:
             query: Series name or substring to look up.
-            log: Logger for all log messages.
 
         Returns:
             List of SearchResults for the given query.
@@ -770,8 +724,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
     def get_all_episodes(self,
             library_name: str,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[tuple[EpisodeInfo, WatchedStatus]]:
         """
         Gets all episode info for the given series. Only episodes that
@@ -780,7 +732,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         Args:
             library_name: Unused argument.
             series_info: Series to get the episodes of.
-            log: Logger for all log messages.
 
         Returns:
             List of EpisodeInfo objects and None (as watched statuses
@@ -842,8 +793,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
             title_match: bool = True,
-            *,
-            log: Logger = log
         ) -> TMDbEpisode | TMDbMovie | None:
         """
         Finds the episode index for the given entry. Searching is done
@@ -864,7 +813,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             episode_info: The episode information.
             title_match: Whether to require the title within
                 episode_info to match the title on TMDb.
-            log: Logger for all log messages.
 
         Returns:
             Dictionary of the index for the given entry. This dictionary
@@ -1037,8 +985,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             library_name: Any,
             series_info: SeriesInfo,
             episode_infos: list[EpisodeInfo],
-            *,
-            log: Logger = log,
         ) -> None:
         """
         Set all the episode ID's for the given list of EpisodeInfo
@@ -1049,19 +995,18 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             library_name: Unused argument.
             series_info: SeriesInfo for the entry.
             infos: List of EpisodeInfo objects to update.
-            log: Logger for all log messages.
         """
 
         # Get all episodes for this series
         new_episode_infos = self.get_all_episodes(
-            library_name, series_info, log=log
+            library_name, series_info
         )
 
         # Match to existing info
         for old_episode_info in episode_infos:
             for new_episode_info, _ in new_episode_infos:
                 if old_episode_info == new_episode_info:
-                    old_episode_info.copy_ids(new_episode_info, log=log)
+                    old_episode_info.copy_ids(new_episode_info)
                     break
 
 
@@ -1125,7 +1070,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             episode_info: EpisodeInfo,
             *,
             match_title: bool = True,
-            log: Logger = log,
         ) -> list[TMDbStill]:
         """
         Get all source images for the requested entry.
@@ -1135,7 +1079,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             episode_info: EpisodeInfo for this entry.
             match_title:  Whether to require the episode title
                 to match when querying TMDb.
-            log: Logger for all log messages.
 
         Returns:
             List of tmdbapis.objs.image.Still objects. If the episode is
@@ -1144,7 +1087,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Get Episode object for this episode
         episode = self.__find_episode(
-            series_info, episode_info, match_title, log=log,
+            series_info, episode_info, match_title,
         )
         if episode is None:
             log.warning(f'"{series_info}" {episode_info} not found on TMDb')
@@ -1161,17 +1104,12 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     @testing_override(TestingTMDBInterface.get_all_logos)
     @catch_and_log('Error getting all logos', default=None)
-    def get_all_logos(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> list[TMDbStill] | None:
+    def get_all_logos(self, series_info: SeriesInfo) -> list[TMDbStill] | None:
         """
         Get all logos for the requested series.
 
         Args:
             series_info: SeriesInfo for this entry.
-            log: Logger for all log messages.
 
         Returns:
             List of `tmdbapis.objs.image.Still` objects. If the series
@@ -1203,15 +1141,12 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
     @catch_and_log('Error getting all backdrops', default=None)
     def get_all_backdrops(self,
             series_info: SeriesInfo,
-            *,
-            log: Logger = log,
         ) -> list[TMDbStill] | None:
         """
         Get all backdrops for the requested series.
 
         Args:
             series_info: SeriesInfo for this entry.
-            log: Logger for all log messages.
 
         Returns:
             List of `tmdbapis.objs.image.Still` objects.
@@ -1246,7 +1181,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             match_title: bool = True,
             skip_localized_images: bool = False,
             raise_exc: bool = True,
-            log: Logger = log,
         ) -> str | None:
         """
         Get the best source image for the requested entry.
@@ -1260,7 +1194,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                 a non-null language code - i.e. skipping localized
                 images.
             raise_exc: Whether to raise any HTTPExceptions that arise.
-            log: Logger for all log messages.
 
         Returns:
             URL to the 'best' source image for the requested entry. None
@@ -1269,7 +1202,7 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
         # Get all images for this episode
         all_images = self.get_all_source_images(
-            series_info, episode_info, match_title=match_title, log=log,
+            series_info, episode_info, match_title=match_title,
         )
 
         # Exit if no images for this Episode
@@ -1278,10 +1211,10 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             return None
 
         # Get the best image for this Episode
-        log.trace(
+        log.trace((
             f'TMDb has {len(all_images)} images for "{series_info}" '
             f'{episode_info}'
-        )
+        ))
         kwargs = {
             'is_source_image': True,
             'skip_localized': skip_localized_images
@@ -1289,10 +1222,10 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         if (best_image := self.__determine_best_image(all_images, **kwargs)):
             return best_image.url
 
-        log.debug(
+        log.debug((
             f'TMDb images for "{series_info}" {episode_info} do not meet '
             f'dimensional requirements'
-        )
+        ))
         return None
 
 
@@ -1335,8 +1268,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
             language_code: str = 'en-US',
-            *,
-            log: Logger = log,
         ) -> str | None:
         """
         Get the episode title for the given entry for the given language.
@@ -1345,14 +1276,13 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
             series_info: SeriesInfo for the entry.
             episode_info: EpisodeInfo for the entry.
             language_code: The language code for the desired title.
-            log: Logger for all log messages.
 
         Args:
             The episode title, None if it cannot be found.
         """
 
         # Get episode
-        episode = self.__find_episode(series_info, episode_info, log=log)
+        episode = self.__find_episode(series_info, episode_info)
         if episode is None:
             log.debug(f'{series_info} {episode_info} not found - skipping')
             return None
@@ -1392,8 +1322,6 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
     def get_episode_description(self,
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
-            *,
-            log: Logger = log,
         ) -> str | None:
         """
         Get the episode description for the given entry.
@@ -1401,14 +1329,13 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         Args:
             series_info: SeriesInfo for the entry.
             episode_info: EpisodeInfo for the entry.
-            log: Logger for all log messages.
 
         Returns:
             The episode description, None if it cannot be found.
         """
 
         # Get episode
-        episode = self.__find_episode(series_info, episode_info, log=log)
+        episode = self.__find_episode(series_info, episode_info)
         if episode is None:
             log.debug(f'{series_info} {episode_info} not found - skipping')
             return None
@@ -1417,17 +1344,12 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     @testing_override(TestingTMDBInterface.get_series_logo)
     @catch_and_log('Error getting series logo', default=None)
-    def get_series_logo(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> str | None:
+    def get_series_logo(self, series_info: SeriesInfo) -> str | None:
         """
         Get the best logo for the given series.
 
         Args:
             series_info: Series to get the logo of.
-            log: Logger for all log messages.
 
         Returns:
             URL to the 'best' logo for the given series, and None if no
@@ -1540,17 +1462,12 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     @testing_override(TestingTMDBInterface.get_series_poster)
     @catch_and_log('Error getting series poster', default=None)
-    def get_series_poster(self,
-            series_info: SeriesInfo,
-            *,
-            log: Logger = log,
-        ) -> str | None:
+    def get_series_poster(self, series_info: SeriesInfo) -> str | None:
         """
         Get the best poster for the given series.
 
         Args:
             series_info: Series to get the poster of.
-            log: Logger for all log messages.
 
         Returns:
             URL to the 'best' poster for the given series, and None if

@@ -31,14 +31,12 @@ from app.dependencies import (
     get_plex_interfaces,
     InterfaceGroup,
 )
-from app.dependencies import get_logger
 from app.db.users import get_current_user
 from app.interfaces.v2 import (
     EmbyInterface,
     JellyfinInterface,
     PlexInterface,
 )
-from app.logging.logger import Logger
 from app.models.card import Card
 from app.models.episode import Episode as EpisodeModel
 from app.models.loaded import Loaded
@@ -67,7 +65,6 @@ episodes_router = APIRouter(
 def add_new_episode(
         new_episode: NewEpisode = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Episode:
     """
     Add a new episode to the given series.
@@ -89,14 +86,14 @@ def add_new_episode(
     db.commit()
 
     # Assign Templates
-    episode.assign_templates(templates, log=log)
+    episode.assign_templates(templates)
     db.commit()
 
     # Refresh card types in case new remote type was specified
-    refresh_remote_card_types(db, log=log)
+    refresh_remote_card_types(db)
 
     # Add ID's for this Episode
-    set_episode_ids(db, series, [episode], log=log)
+    set_episode_ids(db, series, [episode])
 
     return episode
 
@@ -105,7 +102,6 @@ def add_new_episode(
 def get_episode_by_id(
         episode_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Episode:
     """
     Get the Episode with the given ID.
@@ -163,7 +159,6 @@ def search_episodes(
 def delete_episode(
         episode_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Episode with the ID.
@@ -179,7 +174,6 @@ def delete_episode(
         db,
         db.query(Card).filter_by(episode_id=episode_id),
         db.query(Loaded).filter_by(episode_id=episode_id),
-        log=log,
     )
 
     # Delete Episode itself
@@ -191,7 +185,6 @@ def delete_episode(
 def delete_all_series_episodes(
         series_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> list[int]:
     """
     Delete all Episodes for the Series with the given ID.
@@ -208,7 +201,6 @@ def delete_all_series_episodes(
         db,
         db.query(Card).filter_by(series_id=series_id),
         db.query(Loaded).filter_by(series_id=series_id),
-        log=log,
     )
 
     # Delete all associated Episodes
@@ -223,7 +215,6 @@ def refresh_episode_data_(
         series_id: int,
         db: Session = Depends(get_database),
         refresh_all_ids: bool = Query(default=True),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Refresh the episode data associated with the given series. This
@@ -242,7 +233,6 @@ def refresh_episode_data_(
         db,
         series,
         refresh_all_ids=refresh_all_ids,
-        log=log
     )
 
 
@@ -250,7 +240,6 @@ def refresh_episode_data_(
 def update_multiple_episode_configs(
         update_episodes: list[BatchUpdateEpisode] = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> list[Episode]:
     """
     Update all the Epiodes at once. Only provided fields are updated.
@@ -267,7 +256,7 @@ def update_multiple_episode_configs(
 
         # Apply changes
         changed |= update_episode_config(
-            db, episode, update_obj.update_episode, log=log
+            db, episode, update_obj.update_episode
         )
 
         # Append updated Episode
@@ -276,7 +265,7 @@ def update_multiple_episode_configs(
     # If any values were changed, commit to database; refresh card types
     if changed:
         db.commit()
-        refresh_remote_card_types(db, log=log)
+        refresh_remote_card_types(db)
 
     return episodes
 
@@ -286,7 +275,6 @@ def update_episode_config_(
         episode_id: int,
         update_episode: UpdateEpisode = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Episode:
     """
     Update the Epiode with the given ID. Only provided fields are
@@ -300,11 +288,11 @@ def update_episode_config_(
     episode = get_episode(db, episode_id, raise_exc=True)
 
     # If any values were changed, commit to database
-    if update_episode_config(db, episode, update_episode, log=log):
+    if update_episode_config(db, episode, update_episode):
         db.commit()
 
         # Refresh card types in case new remote type was specified
-        refresh_remote_card_types(db, log=log)
+        refresh_remote_card_types(db)
 
     return episode
 
@@ -442,7 +430,6 @@ def batch_delete_episodes(
         series_ids: list[int] = Body(...),
         delete_title_cards: bool = Query(default=True),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Perform a batch operation to delete all the Episodes, Cards, and
@@ -455,7 +442,6 @@ def batch_delete_episodes(
                 db,
                 db.query(Card).filter_by(series_id=series.id),
                 db.query(Loaded).filter_by(series_id=series.id),
-                log=log,
             )
         db.query(EpisodeModel).filter_by(series_id=series.id).delete()
     db.commit()
@@ -479,7 +465,6 @@ def get_all_episodes_on_connection(
         plex_interfaces: (
             InterfaceGroup[int, PlexInterface]
         ) = Depends(get_plex_interfaces),
-        log: Logger = Depends(get_logger),
     ) -> list[EpisodeData]:
     """
     Get a list of all episode data for the given Series on the given
@@ -531,6 +516,5 @@ def get_all_episodes_on_connection(
         for episode_info, _ in interface.get_all_episodes(
             library_name,
             series.as_series_info,
-            log=log,
         )
     ]

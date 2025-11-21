@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_tmdb_interfaces
 from app.core.templates import get_effective_templates
 from app.models.episode import Episode
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.utils.tiered_settings import TieredSettings
 
 
@@ -12,7 +12,6 @@ def translate_episode(
         episode: Episode,
         *,
         commit: bool = True,
-        log: Logger = log,
     ) -> None:
     """
     Add the given Episode's translations to the Database.
@@ -23,7 +22,6 @@ def translate_episode(
             translations.
         episode: Episode to translate and add translations to.
         commit: Whether to commit the translations to the database.
-        log: Logger for all log messages.
     """
 
     # Skip if there are no TMDbInterfaces
@@ -64,8 +62,9 @@ def translate_episode(
             # Get new translation from TMDb, add to Episode
             for _, interface in get_tmdb_interfaces():
                 translation = interface.get_episode_title(
-                    series.as_series_info, episode.as_episode_info,
-                    language_code, log=log,
+                    series.as_series_info,
+                    episode.as_episode_info,
+                    language_code,
                 )
                 if (translation is None
                     or translation.lower() == episode.title.lower()):

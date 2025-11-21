@@ -13,7 +13,7 @@ from requests import JSONDecodeError, ReadTimeout, Response, get, Session
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 import urllib3
 
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 
 class CachedResult(TypedDict):
@@ -52,7 +52,6 @@ class WebInterface:
             *,
             cache: bool = True,
             cache_age: timedelta = timedelta(minutes=20),
-            log: Logger = log,
         ) -> None:
         """
         Construct a new instance of a WebInterface. This creates creates
@@ -66,7 +65,6 @@ class WebInterface:
             cache: Whether to cache requests with this interface.
             cache_age: Maximum duration to cache an individual request
                 (if enabled).
-            log: Logger for all log messages.
         """
 
         # Store name of this interface
@@ -144,13 +142,12 @@ class WebInterface:
 
 
     @staticmethod
-    def get_image_size(url: str, *, log: Logger = log) -> tuple[int, int]:
+    def get_image_size(url: str) -> tuple[int, int]:
         """
         Get the size of the image at the given URL.
 
         Args:
             url: URL of the image to get the dimensions of.
-            log: Logger for all log messages.
 
         Returns:
             Tuple of the image dimensions (width, height) in pixels.
@@ -236,12 +233,7 @@ class WebInterface:
 
 
     @staticmethod
-    def download_image(
-            image: str | bytes,
-            destination: Path,
-            *,
-            log: Logger = log,
-        ) -> bool:
+    def download_image(image: str | bytes, destination: Path) -> bool:
         """
         Download the provided image to the destination filepath.
 
@@ -249,7 +241,6 @@ class WebInterface:
             image: URL to the image to download, or bytes of the image
                 to write.
             destination: Destination path to download the image to.
-            log: Logger for all log messages.
 
         Returns:
             Whether the image was successfully downloaded.
@@ -286,17 +277,12 @@ class WebInterface:
 
 
     @staticmethod
-    def download_image_raw(
-            image: str,
-            *,
-            log: Logger = log,
-        ) -> bytes | None:
+    def download_image_raw(image: str) -> bytes | None:
         """
         Download and return the provided image URL.
 
         Args:
             image: URL to the image to download.
-            log: Logger for all log messages.
 
         Returns:
             The bytes of the downloaded image. None if the image could
@@ -412,7 +398,6 @@ class WebSession:
             *,
             parameters: dict[str, Any] = {},
             response_model: type[ModelType],
-            log: Logger = log,
         ) -> ModelType | None: ...
 
     @overload
@@ -421,7 +406,6 @@ class WebSession:
             *,
             parameters: dict[str, Any] = {},
             response_model: type[list[ModelType]],
-            log: Logger = log,
         ) -> list[ModelType] | None: ...
 
     def get(self,
@@ -433,7 +417,6 @@ class WebSession:
                 | type[list[ModelType]]
                 | None
             ) = None,
-            log: Logger = log,
         ) -> ModelType | list[ModelType] | None:
         """
         Submit a GET request to the given endpoint with the given

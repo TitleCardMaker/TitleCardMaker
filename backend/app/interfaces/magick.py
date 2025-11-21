@@ -13,7 +13,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 
 
 """Regex to extract the width/height from a command output"""
@@ -300,7 +300,7 @@ class ImageMagickInterface:
                 image.unlink(missing_ok=True)
 
 
-    def print_command_history(self, *, log: Logger = log) -> None:
+    def print_command_history(self) -> None:
         """Print the command history of this Interface."""
 
         console = Console(width=100, record=True)

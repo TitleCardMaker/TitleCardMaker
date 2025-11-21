@@ -11,8 +11,7 @@ from app.core.backup import (
 )
 from app.db.database import engine
 from app.db.users import get_current_user
-from app.dependencies import get_logger
-from app.logging.logger import ACTIVE_WEBSOCKETS, Logger
+from app.logging.logger import ACTIVE_WEBSOCKETS, log
 from app.schemas.preferences import SystemBackup
 from app.settings import settings
 from app.utils.tasks import task_queue
@@ -27,26 +26,23 @@ backup_router = APIRouter(
 
 
 @backup_router.get('/all')
-def get_available_system_backups(
-        log: Logger = Depends(get_logger),
-    ) -> list[SystemBackup]:
+def get_available_system_backups() -> list[SystemBackup]:
     """Get a list detailing all the available system backups."""
 
-    return list_available_backups(log=log)
+    return list_available_backups()
 
 
 @backup_router.post('/backup')
-def perform_backup(log: Logger = Depends(get_logger)) -> None:
+def perform_backup() -> None:
     """Perform a backup of the SQL database and global settings."""
 
-    backup_data(settings.config.CURRENT_VERSION, log=log)
+    backup_data(settings.config.CURRENT_VERSION)
 
 
 @backup_router.post('/restore/{folder}')
 async def restore_from_backup(
         folder: str,
         bypass: bool = Query(default=False),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
 
@@ -61,7 +57,7 @@ async def restore_from_backup(
                 'performing backup to prevent data loss'
             ))
             log.trace(f'TaskQueue: {task_queue}\nPool: {engine.pool}')
-            _ = backup_data(settings.config.CURRENT_VERSION, log=log)
+            _ = backup_data(settings.config.CURRENT_VERSION)
         else:
             raise HTTPException(
                 status_code=400,
@@ -69,7 +65,7 @@ async def restore_from_backup(
             )
 
     # Restore from backup
-    restore_backup(folder, log=log)
+    restore_backup(folder)
 
     # Kill any active websockets
     for connection in list(ACTIVE_WEBSOCKETS):
@@ -85,25 +81,22 @@ async def restore_from_backup(
 
 
 @backup_router.delete('/outdated')
-def delete_outdated_backups(log: Logger = Depends(get_logger)) -> None:
+def delete_outdated_backups() -> None:
     """
     Delete all backups older than the globally configured retention
     policy. This is adjusted with the `TCM_BACKUP_RETENTION` environment
     variable (integer number of days).
     """
 
-    delete_old_backups(log=log)
+    delete_old_backups()
 
 
 @backup_router.delete('/backup/{folder}')
-def delete_backup_folder(
-        folder: str,
-        log: Logger = Depends(get_logger),
-    ) -> None:
+def delete_backup_folder(folder: str) -> None:
     """
     Delete the backup data located in the given folder.
 
     - folder: Folder to delete.
     """
 
-    delete_backup(folder, log=log)
+    delete_backup(folder)

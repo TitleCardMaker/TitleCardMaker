@@ -16,9 +16,9 @@ from sqlalchemy.orm import Session
 
 from app.db.pagination import Page
 from app.db.users import get_current_user
-from app.dependencies import get_log_database, get_logger
+from app.dependencies import get_log_database
 from app.logging.database import LOGS_DATABASE_PATH
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.logging.models import Log as LogModel
 from app.schemas.logs import LogEntry, LogInternalServerError, LogLevel
 from app.settings import settings
@@ -124,12 +124,11 @@ def get_internal_server_errors(
 @log_router.get('/database-zip')
 def get_database_zip(
         background_tasks: BackgroundTasks,
-        log: Logger = Depends(get_logger),
     ) -> FileResponse:
     """Get a zip of the log database."""
 
     # Add log file to a temporary directory
     tzip = TemporaryZip(settings.temporary_directory, background_tasks)
-    tzip.add_file(LOGS_DATABASE_PATH, 'logs.sqlite', log=log)
+    tzip.add_file(LOGS_DATABASE_PATH, 'logs.sqlite')
 
-    return FileResponse(tzip.zip(log=log))
+    return FileResponse(tzip.zip())

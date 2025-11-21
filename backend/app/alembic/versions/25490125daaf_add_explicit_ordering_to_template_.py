@@ -9,7 +9,7 @@ Create Date: 2023-10-13 16:32:20.795747
 from alembic import op
 import sqlalchemy as sa
 
-from app.logging.logger import contextualize
+from app.logging.logger import log
 
 # revision identifiers, used by Alembic.
 revision = '25490125daaf'
@@ -104,7 +104,6 @@ class Template(Base):
 
 
 def upgrade() -> None:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     with op.batch_alter_table('episode_templates', schema=None) as batch_op:
@@ -158,7 +157,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('sync_templates', schema=None) as batch_op:

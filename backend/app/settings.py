@@ -4,15 +4,15 @@ from pathlib import Path
 from pickle import Unpickler
 from typing import Annotated, Any, Literal
 
+from app.cards.base import BaseCardType
+from app.cards.loader import RemoteCardType
+from app.cards.types import BUILTIN_CARD_TYPES
 from app.core.config import AppConfig, config as app_config
 from app.info.episode import EpisodeInfo
 from app.interfaces.magick import ImageMagickInterface
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.schemas.preferences import CardExtension, Style
-from app.cards.types import BUILTIN_CARD_TYPES
-from app.cards.base import BaseCardType
 from app.utils.fstring import FormatString
-from app.cards.loader import RemoteCardType
 from app.utils.serialization import SerializationExclusion, SerializationMixin
 
 
@@ -274,7 +274,7 @@ class Settings(SerializationMixin):
         self.server_boot_time = datetime.now(tz=self.config.TIMEZONE)
 
 
-    def commit(self, *, log: Logger = log) -> None:
+    def commit(self) -> None:
         """Commit current settings to JSON file."""
 
         if self._preferences_file:
@@ -290,7 +290,7 @@ class Settings(SerializationMixin):
                 log.exception(f'Error occurred while saving JSON settings: {e}')
 
 
-    def update_values(self, *, log: Logger = log, **update_kwargs: Any) -> None:
+    def update_values(self, **update_kwargs: Any) -> None:
         """Update multiple values at once and commit changes."""
 
         for name, value in update_kwargs.items():
@@ -300,7 +300,7 @@ class Settings(SerializationMixin):
             ):
                 setattr(self, name, value)
                 log.debug(f'Settings.{name} = {value}')
-        self.commit(log=log)
+        self.commit()
 
 
     def get_folder_format(self, episode_info: EpisodeInfo) -> str:
@@ -314,11 +314,7 @@ class Settings(SerializationMixin):
         return FormatString(fstring, data=episode_info.indices).result[:254]
 
 
-    def get_card_type_class(self,
-            identifier: str,
-            *,
-            log: Logger = log,
-        ) -> type[BaseCardType] | None:
+    def get_card_type_class(self, identifier: str) -> type[BaseCardType] | None:
         """Get the CardType class for the given card type identifier."""
 
         if identifier in BUILTIN_CARD_TYPES:
@@ -332,11 +328,11 @@ class Settings(SerializationMixin):
         return None
 
 
-    def parse_local_card_types(self, *, log: Logger = log) -> None:
+    def parse_local_card_types(self) -> None:
         """Parse all locally specified CardType Python files."""
 
         for file in self.card_type_directory.glob('*.py'):
-            if not (card_type := RemoteCardType(file, log=log)).valid:
+            if not (card_type := RemoteCardType(file)).valid:
                 log.critical('Error reading local CardType')
                 continue
             if not card_type.card_class:
@@ -346,13 +342,10 @@ class Settings(SerializationMixin):
             log.debug(f'Parsed local CardType[{details.identifier}]')
 
 
-    def determine_imagemagick_prefix(self, log: Logger = log) -> None:
+    def determine_imagemagick_prefix(self) -> None:
         """
         Determine whether to use the "magick " prefix for ImageMagick
         commands.
-
-        Args:
-            log: Logger to use for logging.
         """
 
         if self.config.IS_DOCKER:
@@ -372,16 +365,16 @@ class Settings(SerializationMixin):
                     + ('the primary thread' if use_magick else 'all threads')
                 ))
                 return
-            interface.print_command_history(log=log)
+            interface.print_command_history()
 
         log.critical("ImageMagick doesn't appear to be installed")
 
 
-    def log_startup(self, *, log: Logger = log) -> None:
+    def log_startup(self) -> None:
         """Log the startup details of TCM."""
 
         log.info(f'Starting TitleCardMaker ({self.config.CURRENT_VERSION})')
-        self.determine_imagemagick_prefix(log=log)
+        self.determine_imagemagick_prefix()
 
 
     @staticmethod
@@ -440,13 +433,8 @@ class Settings(SerializationMixin):
 settings: Annotated[Settings, 'Global settings instance'] = Settings()
 
 
-def reset_settings(*, log: Logger = log) -> Settings:
-    """
-    Reset the settings to their default values.
-
-    Args:
-        log: Logger to use for logging.
-    """
+def reset_settings() -> Settings:
+    """Reset the settings to their default values."""
 
     global settings
 
@@ -478,7 +466,7 @@ def reset_settings(*, log: Logger = log) -> Settings:
             setattr(settings, attr_name, attr_value)
 
     # Commit the reset settings
-    settings.commit(log=log)
+    settings.commit()
     settings.__init__()
 
     return settings

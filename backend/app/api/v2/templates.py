@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.core.cards import refresh_remote_card_types
 from app.db.query import get_connection, get_font, get_template
-from app.dependencies import get_database, get_logger
+from app.dependencies import get_database
 from app.db.users import get_current_user
-from app.logging.logger import Logger
+from app.logging.logger import log
 from app.models.template import Template as TemplateModel
 from app.schemas.base import UNSPECIFIED
 from app.schemas.series import NewTemplate, Template, UpdateTemplate
@@ -45,7 +45,6 @@ def get_all_templates(
 def create_template(
         new_template: NewTemplate = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Template:
     """
     Create a new Template. Any referenced font_id must exist.
@@ -61,7 +60,7 @@ def create_template(
     db.commit()
 
     # Refresh card types in case new remote type was specified
-    refresh_remote_card_types(db, log=log)
+    refresh_remote_card_types(db)
 
     return template
 
@@ -85,7 +84,6 @@ def update_template_(
         template_id: int,
         update_template: UpdateTemplate = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> Template:
     """
     Update the Template with the given ID. Only provided fields are
@@ -118,7 +116,7 @@ def update_template_(
         db.commit()
 
     # Refresh card types in case new remote type was specified
-    refresh_remote_card_types(db, log=log)
+    refresh_remote_card_types(db)
 
     return template
 
@@ -127,7 +125,6 @@ def update_template_(
 def delete_template(
         template_id: int,
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the specified Template.
@@ -143,7 +140,7 @@ def delete_template(
         settings.default_templates = [
             tid for tid in settings.default_templates if tid != template_id
         ]
-        settings.commit(log=log)
+        settings.commit()
 
     # Delete Template from database
     db.delete(get_template(db, template_id, raise_exc=True))

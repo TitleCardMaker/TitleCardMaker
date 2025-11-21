@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Iterator, TypeVar
 
-from fastapi import HTTPException, Query, Request
+from fastapi import HTTPException, Query
 from huey import SqliteHuey
 from requests import get
 from sqlalchemy.orm import Session
@@ -28,7 +28,7 @@ from app.interfaces.v2 import (
     TVDbInterface,
 )
 from app.logging.database import LogsSessionLocal
-from app.logging.logger import Logger, log
+from app.logging.logger import log
 from app.settings import settings
 
 
@@ -61,13 +61,10 @@ def get_log_database() -> Iterator[Session]:
         db.close()
 
 
-def download_blueprint_database(*, log: Logger = log) -> None:
+def download_blueprint_database() -> None:
     """
     Download the Blueprint SQL database from the GitHub repository and
     then write its contents locally.
-
-    Args:
-        log: Logger for all log messages.
 
     Raises:
         HTTPException (404): There is no blueprint database file at the
@@ -101,7 +98,6 @@ def download_blueprint_database(*, log: Logger = log) -> None:
 
 _db_expiration = datetime.now()
 def get_blueprint_database(
-        request: Request,
         allow_refresh: bool = Query(default=True),
         force_refresh: bool = Query(default=False),
     ) -> Iterator[Session]:
@@ -117,16 +113,13 @@ def get_blueprint_database(
         A Session to the database which is closed afterwards.
     """
 
-    # Get contextual logger
-    log: Logger = request.state.log
-
     # If refreshing db, database DNE, or file has expired, re-download
     global _db_expiration # pylint: disable=global-statement
     if (force_refresh
         or not BLUEPRINT_DATABASE_FILE.exists()
         or (allow_refresh and _db_expiration <= datetime.now())
     ):
-        download_blueprint_database(log=log)
+        download_blueprint_database()
         log.debug('Downloaded Blueprint database')
         _db_expiration = datetime.now() + timedelta(hours=2)
 
@@ -147,18 +140,6 @@ def get_scheduler() -> SqliteHuey:
 
     from app.core.schedule import huey
     return huey
-
-
-def get_logger(request: Request) -> Logger:
-    """
-    Get the contextualized Logger from the Request object.
-
-    Returns:
-        Contextualized logger with a (pseudo)random context ID for this
-        request.
-    """
-
-    return getattr(request.state, 'log', log)
 
 
 _InterfaceType = TypeVar('_InterfaceType', bound=Interface)
@@ -247,9 +228,6 @@ def refresh_imagemagick_interface() -> None:
     """
     Refresh the global interface to ImageMagick. This reinitializes and
     overrides the object.
-
-    Args:
-        log: Logger for all log messages.
     """
 
     global ImageMagickInterfaceLocal
@@ -555,7 +533,6 @@ __all__ = [
     'get_imagemagick_interface',
     'get_first_tvdb_interface',
     'get_jellyfin_interfaces',
-    'get_logger',
     'get_plex_interfaces',
     'get_sonarr_interfaces',
     'get_tmdb_interfaces',

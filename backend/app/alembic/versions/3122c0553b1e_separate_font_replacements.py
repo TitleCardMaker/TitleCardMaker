@@ -14,7 +14,7 @@ Create Date: 2024-01-24 18:33:29.692652
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import sqlite
-from app.logging.logger import contextualize
+from app.logging.logger import log
 
 # revision identifiers, used by Alembic.
 revision = '3122c0553b1e'
@@ -74,7 +74,6 @@ _conversions = {
 
 
 def upgrade() -> None:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     # Add new column
@@ -128,7 +127,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
 
     with op.batch_alter_table('font', schema=None) as batch_op:

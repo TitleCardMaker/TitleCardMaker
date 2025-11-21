@@ -5,23 +5,18 @@ from fastapi import HTTPException
 from requests import JSONDecodeError, get
 
 from app.core.config import config
-from app.logging.logger import log, Logger
+from app.logging.logger import log
 from app.settings import settings
 from app.schemas.card import LocalCardType, RemoteCardType
 from app.utils.version import Version
 
-def get_latest_version(
-        raise_exc: bool = True,
-        *,
-        log: Logger = log,
-    ) -> Version | None:
+def get_latest_version(raise_exc: bool = True) -> Version | None:
     """
     Get the latest version of TitleCardMaker available.
 
     Args:
         raise_exc: Whether to raise an HTTPException if getting the
             latest version fails for any reason.
-        log: Logger for all log messages.
 
     Returns:
         The Version of the latest release. If unable to determine, and
@@ -69,14 +64,11 @@ def get_local_cards() -> list[LocalCardType]:
 
 
 _cache = {'content': [], 'expires': datetime.now()}
-def get_remote_cards(*, log: Logger = log) -> list[RemoteCardType]:
+def get_remote_cards() -> list[RemoteCardType]:
     """
     Get the list of available RemoteCardTypes. This will cache results
     for 30 minutes. If the available data is older than 12 hours, the
     GitHub is re-queried.
-
-    Args:
-        log: Logger for all log messages.
 
     Returns:
         List of RemoteCardTypes.
@@ -108,17 +100,12 @@ def get_remote_cards(*, log: Logger = log) -> list[RemoteCardType]:
     return [RemoteCardType(**card) for card in response]
 
 
-def get_remote_card_hash(
-        identifier: str,
-        *,
-        log: Logger = log,
-    ) -> str | None:    
+def get_remote_card_hash(identifier: str) -> str | None:    
     """
     Get the MD5 hash of the Card with the given identifier.
 
     Args:
         identifier: CardType identifier.
-        log: Logger for all log messages.
 
     Returns:
         MD5 hash of the card with the given identifier. None if one is
@@ -126,7 +113,7 @@ def get_remote_card_hash(
     """
 
     try:
-        for card_type in get_remote_cards(log=log):
+        for card_type in get_remote_cards():
             if card_type.identifier == identifier:
                 return card_type.hash
     except JSONDecodeError:

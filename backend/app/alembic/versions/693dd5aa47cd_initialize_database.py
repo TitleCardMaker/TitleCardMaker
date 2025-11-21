@@ -9,7 +9,7 @@ Create Date: 2023-05-18 17:56:58.518419
 from alembic import op
 import sqlalchemy as sa
 
-from app.logging.logger import contextualize
+from app.logging.logger import log
 
 # revision identifiers, used by Alembic.
 revision = '693dd5aa47cd'
@@ -19,7 +19,6 @@ depends_on = None
 
 
 def upgrade() -> None:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
 
     op.create_table('font',

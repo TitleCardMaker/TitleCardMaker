@@ -30,7 +30,6 @@ from app.core.webhooks import process_rating_key
 from app.db.query import get_episode, get_media_interface
 from app.dependencies import (
     get_database,
-    get_logger,
     get_sonarr_interfaces,
     require_plex_interface,
     InterfaceGroup,
@@ -40,6 +39,7 @@ from app.dependencies import (
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
 from app.interfaces.base import WatchedStatus
+from app.logging.logger import log
 from app.models.card import Card
 from app.models.connection import Connection
 from app.models.episode import Episode
@@ -47,7 +47,6 @@ from app.models.loaded import Loaded
 from app.models.series import Library as SeriesLibrary, Series
 from app.schemas.series import NewSeries
 from app.schemas.webhooks import PlexWebhook, SonarrWebhook
-from app.logging.logger import Logger
 
 
 # Create sub router for all /webhooks API requests
@@ -63,7 +62,6 @@ def create_cards_for_plex_rating_key(
         snapshot: bool = Query(default=True),
         db: Session = Depends(get_database),
         plex_interface: PlexInterface = Depends(require_plex_interface),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Create the Title Card for the item associated with the given Plex
@@ -79,9 +77,7 @@ def create_cards_for_plex_rating_key(
     have been processed.
     """
 
-    return process_rating_key(
-        db, plex_interface, key, snapshot=snapshot, log=log
-    )
+    return process_rating_key(db, plex_interface, key, snapshot=snapshot)
 
 
 @webhook_router.post('/plex', tags=['Plex'])
@@ -96,7 +92,6 @@ async def process_plex_webhook(
         timeout: int = Query(min=5, max=600, default=300),
         db: Session = Depends(get_database),
         plex_interface: PlexInterface = Depends(require_plex_interface),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Process the items defined in the given Plex Webhook. The Webhook
@@ -147,7 +142,6 @@ async def process_plex_webhook(
                 webhook.Metadata.ratingKey,
                 new_only=webhook.event == 'library.new',
                 snapshot=snapshot,
-                log=log,
             ),
             timeout=timeout,
         )
@@ -163,7 +157,6 @@ async def process_plex_webhook(
 def create_cards_for_sonarr_webhook(
         webhook: SonarrWebhook = Body(...),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Create the Title Card for the items associated with the given Sonarr
@@ -188,9 +181,11 @@ def create_cards_for_sonarr_webhook(
     )
 
     # Search for this Series
-    series = db.query(Series)\
-        .filter(series_info.filter_conditions(Series))\
-        .first()
+    series = (
+        db.query(Series)
+            .filter(series_info.filter_conditions(Series))
+            .first()
+    )
 
     # Series is not found, exit
     if series is None:
@@ -218,7 +213,7 @@ def create_cards_for_sonarr_webhook(
             # Sleep and re-query Episode data
             log.debug('Cannot find Episode, waiting..')
             sleep(15)
-            refresh_episode_data(db, series, log=log)
+            refresh_episode_data(db, series)
 
         return None
 
@@ -242,16 +237,16 @@ def create_cards_for_sonarr_webhook(
             iid, name = library['interface_id'], library['name']
             if episode.get_watched_status(iid, name) is None:
                 episode.add_watched_status(
-                    WatchedStatus(iid, name, False), log=log
+                    WatchedStatus(iid, name, False)
                 )
 
         # Look for source, add translation, create Card if source exists
-        images = download_episode_source_images(db, episode, log=log)
-        translate_episode(db, episode, log=log)
+        images = download_episode_source_images(db, episode)
+        translate_episode(db, episode)
         if not images:
             log.info(f'{episode} has no source image - skipping')
             continue
-        create_episode_cards(db, episode, log=log)
+        create_episode_cards(db, episode)
 
         # Refresh this Episode so that relational Card objects are
         # updated, preventing stale (deleted) Cards from being used in
@@ -271,13 +266,12 @@ def create_cards_for_sonarr_webhook(
                     iid,
                     interface,
                     attempts=6,
-                    log=log,
                 )
             else:
-                log.debug(
+                log.debug((
                     f'Not loading {series_info} {episode_info} into library '
                     f'"{library["name"]}" - no valid Connection'
-                )
+                ))
                 continue
 
     return None
@@ -288,7 +282,6 @@ def delete_series_via_sonarr_webhook(
         webhook: SonarrWebhook,
         delete_title_cards: bool = Query(default=True),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> None:
     """
     Delete the Series defined in the given Webhook.
@@ -312,9 +305,11 @@ def delete_series_via_sonarr_webhook(
     )
 
     # Search for this Series
-    series = db.query(Series)\
-        .filter(series_info.filter_conditions(Series))\
-        .first()
+    series = (
+        db.query(Series)
+            .filter(series_info.filter_conditions(Series))
+            .first()
+    )
 
     # Series is not found, exit
     if series is None:
@@ -329,9 +324,8 @@ def delete_series_via_sonarr_webhook(
             db,
             db.query(Card).filter_by(series_id=series.id),
             db.query(Loaded).filter_by(series_id=series.id),
-            log=log,
         )
-    delete_series(db, series, log=log)
+    delete_series(db, series)
     return None
 
 
@@ -341,7 +335,6 @@ def add_series_via_sonarr_webhook(
         webhook: SonarrWebhook,
         connection_id: int | None = Query(default=None),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
         sonarr_interfaces: InterfaceGroup[int, SonarrInterface] = Depends(
             get_sonarr_interfaces
         ),
@@ -377,7 +370,7 @@ def add_series_via_sonarr_webhook(
             log.error(f'Series with ID {webhook.series.id} not found')
             return []
 
-        return get_sonarr_libraries(db, directory, connection, log=log)
+        return get_sonarr_libraries(db, directory, connection)
 
     # Add Series
     add_series(
@@ -391,7 +384,6 @@ def add_series_via_sonarr_webhook(
         ),
         background_tasks=background_tasks,
         db=db,
-        log=log
     )
 
     return None
@@ -405,7 +397,6 @@ def remove_image_background(
         url: str = Query(...),
         timeout: int = Query(default=30, min=5, max=240),
         db: Session = Depends(get_database),
-        log: Logger = Depends(get_logger),
     ) -> StreamingResponse:
     """"""
 
