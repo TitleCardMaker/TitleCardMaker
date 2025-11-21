@@ -17,6 +17,8 @@ def wrapped_default(self, obj):
         return str(obj.resolve())
     if isinstance(obj, datetime):
         return obj.strftime('%Y-%m-%dT%H:%M:%S%z') # ISO-8601
+    if isinstance(obj, Exception):
+        return str(obj)
     return getattr(obj.__class__, '__json__', wrapped_default.default)(obj)
 wrapped_default.default = JSONEncoder().default # type: ignore
 JSONEncoder.original_default = JSONEncoder.default # type: ignore
