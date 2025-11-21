@@ -352,7 +352,7 @@ class contextualize_request:
         )
 
         center_width = (
-            config.CONSOLE_LOG_WIDTH
+            (config.CONSOLE_LOG_WIDTH or Console().size.width)
             - (
                 self.PANEL_MARGIN
                 + len(level)
@@ -402,7 +402,10 @@ class contextualize_request:
             text.append(message)
             # Add separator until the last message
             if idx < len(self._log_buffer) - 1:
-                inner_width = config.CONSOLE_LOG_WIDTH - (self.PANEL_MARGIN * 2)
+                inner_width = (
+                    (config.CONSOLE_LOG_WIDTH or Console().size.width)
+                    - (self.PANEL_MARGIN * 2)
+                )
                 text.append(f'\n{"-" * inner_width}\n', style='dim')
 
         return Panel(
@@ -436,7 +439,8 @@ class contextualize_request:
 
         combined = Group(*(panel for panel in panels if panel is not None))
 
-        Console(width=config.CONSOLE_LOG_WIDTH).print(
+        width = config.CONSOLE_LOG_WIDTH or Console().size.width
+        Console(width=width).print(
             Panel(
                 combined,
                 title=f'Request Log ({self._context_id})',
@@ -476,7 +480,8 @@ class contextualize(contextualize_request):
         if (logs_panel := self._get_logs_panel()) is None:
             return None
 
-        Console(width=config.CONSOLE_LOG_WIDTH).print(logs_panel)
+        width = config.CONSOLE_LOG_WIDTH or Console().size.width
+        Console(width=width).print(logs_panel)
 
 
 # IMPORTANT

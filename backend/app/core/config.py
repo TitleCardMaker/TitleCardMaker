@@ -60,9 +60,9 @@ class AppConfig(BaseSettings):
     ] = Field(default='INFO')
 
     CONSOLE_LOG_WIDTH: Annotated[
-        int,
+        int | None,
         'Width of the console log'
-    ] = Field(default=120, ge=40)
+    ] = Field(default=None, ge=40)
 
     INTERCEPT_PLEX_LOGS: Annotated[
         bool,
