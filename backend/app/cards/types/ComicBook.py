@@ -13,11 +13,14 @@ from pydantic import (
 
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     Coordinate,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    PreviewCard,
+    add_cli,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
@@ -709,3 +712,14 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    ComicBookTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={},
+        cards=[]
+    )
+)
