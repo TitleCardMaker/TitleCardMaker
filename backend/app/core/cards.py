@@ -844,7 +844,7 @@ def resolve_card_settings(
             except InvalidFormatString:
                 log.debug(f'Cannot parse {key_name} as a FormatString')
                 continue
-    log.trace(f'{episode} Card settings: {card_settings}')
+
     return card_settings
 
 
