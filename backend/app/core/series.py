@@ -359,7 +359,7 @@ def download_series_poster(
 def process_series(
         db: Session,
         series: Series,
-        background_tasks: BackgroundTasks,
+        background_tasks: BackgroundTasks | None,
     ) -> None:
     """
     Completely process the given Series. This does all Title-Card tasks
@@ -368,7 +368,8 @@ def process_series(
     Args:
         db: Database connection.
         series: Series being processed.
-        background_tasks: BackgroundTasks to queue processing into.
+        background_tasks: BackgroundTasks to queue processing into. If
+            omitted, the processing is run synchronously.
     """
 
     # Nothing to process if disabled
@@ -385,20 +386,26 @@ def process_series(
     # Update watch statuses
     get_watched_statuses(db, series, series.episodes)
 
+    def add_task(func: Callable, *args: Any, **kwargs: Any) -> None:
+        if background_tasks:
+            background_tasks.add_task(func, *args, **kwargs)
+        else:
+            func(*args, **kwargs)
+
     # Begin downloading Source images
     if series.status == 'monitored':
         log.debug(f'{series} Started downloading source images')
         for episode in series.episodes:
-            background_tasks.add_task(
+            add_task(
                 download_episode_source_images,
-                db, episode, raise_exc=False,
+                db, episode, raise_exc=False
             )
 
     # Begin Episode translation
     if series.status == 'monitored':
         log.debug(f'{series} Started adding translations')
         for episode in series.episodes:
-            background_tasks.add_task(
+            add_task(
                 translate_episode,
                 db, episode, commit=True,
             )
@@ -406,9 +413,9 @@ def process_series(
     # Begin Card creation
     log.debug(f'{series} Starting Card creation')
     for episode in series.episodes:
-        background_tasks.add_task(
+        add_task(
             create_episode_cards,
-            db, episode, raise_exc=False
+            db, episode, raise_exc=False,
         )
 
     return None

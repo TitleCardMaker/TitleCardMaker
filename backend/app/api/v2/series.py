@@ -412,7 +412,6 @@ def toggle_series_monitored_status(
 
 @series_router.post('/series/{series_id}/process')
 def process_series_(
-        background_tasks: BackgroundTasks,
         series_id: int,
         db: Session = Depends(get_database),
     ) -> None:
@@ -432,7 +431,7 @@ def process_series_(
     process_series(
         db,
         get_series(db, series_id, raise_exc=True),
-        background_tasks,
+        None,
     )
 
 
