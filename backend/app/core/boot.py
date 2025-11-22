@@ -26,8 +26,8 @@ from app.dependencies import get_database
 from app.logging.database import logs_engine, LOGS_DATABASE_URL
 from app.logging.logger import (
     contextualize,
-    get_contextualized_logger,
     set_contextualized_logger,
+    log,
 )
 from app.models.user import User
 from app.settings import BACKEND_ROOT, FRONTEND_ROOT, settings
@@ -44,8 +44,6 @@ def initialize_root_directories() -> None:
     Initialize the root directories for the application. This creates
     the required `/config` directories if running on Docker.
     """
-
-    log = get_contextualized_logger()
 
     for directory in [
         settings.asset_directory,
@@ -80,8 +78,6 @@ def mount_static_app_directories(app: FastAPI) -> None:
         app: The FastAPI application to mount the directories into.
     """
 
-    log = get_contextualized_logger()
-
     for (mount, directory) in (
         ('/css', FRONTEND_ROOT / 'css'),
         ('/js', FRONTEND_ROOT / 'js'),
@@ -102,8 +98,6 @@ def mount_static_app_directories(app: FastAPI) -> None:
 
 def perform_database_migrations() -> None:
     """Perform the database migrations."""
-
-    log = get_contextualized_logger()
 
     def store_db_schema(engine: Engine, db_attribute: str) -> None:
         with engine.begin() as connection:
@@ -174,8 +168,6 @@ def disable_authentication(db: Session) -> None:
     Args:
         db: The database session to use.
     """
-
-    log = get_contextualized_logger()
 
     if not settings.config.DISABLE_AUTH:
         return None

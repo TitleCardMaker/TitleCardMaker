@@ -26,7 +26,7 @@ from app.schemas.connection import (
     UpdateTMDb,
     UpdateTVDb,
 )
-from app.logging.logger import SECRETS, get_contextualized_logger, log
+from app.logging.logger import SECRETS, log
 from app.interfaces.base import InterfaceGroup
 from app.interfaces.v2 import (
     EmbyInterface,
@@ -64,8 +64,6 @@ def initialize_connections(db: Session) -> None:
     Args:
         db: Database with Connection definitions to query.
     """
-
-    log = get_contextualized_logger()
 
     # Initialize each type of Interface
     for interface_group, interface_type in (
@@ -140,8 +138,6 @@ def add_connection(
         Newly created Connection.
     """
 
-    log = get_contextualized_logger()
-
     # Convert AnyUrl to string for database storage
     connection_data = new_connection.model_dump()
     if 'url' in connection_data and connection_data['url'] is not None:
@@ -206,8 +202,6 @@ def update_connection(
     Raises:
         HTTPException (404): There is no Connection with the given ID.
     """
-
-    log = get_contextualized_logger()
 
     # Get existing Connection
     connection = get_connection(db, interface_id, raise_exc=True)
