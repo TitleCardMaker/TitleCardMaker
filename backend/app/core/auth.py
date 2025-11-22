@@ -11,7 +11,7 @@ from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import CONFIG_ROOT, config
-from app.logging.logger import get_contextualized_logger
+from app.logging.logger import log
 
 
 """File where the private key is stored"""
@@ -23,6 +23,12 @@ else:
 """Only log passlib errors so that bcrypt.__version__ boot warning is ignored"""
 getLogger('passlib').setLevel(ERROR)
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+
+_BAD_ENCRYPTION_KEY = (
+    f'Invalid encryption key - consider regenerating the encryption '
+    f'key by deleting the key file ({KEY_FILE.resolve()}), restarting '
+    f'the server, and then re-entering your Connection details'
+)
 
 
 def generate_secret_key() -> bytes:
@@ -60,8 +66,6 @@ def get_secret_key() -> bytes:
     Returns:
         Bytes of the secret key.
     """
-
-    log = get_contextualized_logger()
 
     # File exists, read
     if KEY_FILE.exists():
@@ -127,17 +131,10 @@ def encrypt(plaintext: str) -> str:
         Encrypted text.
     """
 
-    log = get_contextualized_logger()
-
     try:
         return Fernet(get_secret_key()).encrypt(plaintext.encode()).decode()
     except InvalidToken:
-        log.exception('Invalid encryption key')
-        log.error((
-            f'Consider regenerating the encryption key by deleting the key file'
-            f' ({KEY_FILE.resolve()}), restarting the server, and then '
-            f're-entering your Connection details'
-        ))
+        log.error(_BAD_ENCRYPTION_KEY)
         return plaintext
 
 
@@ -152,17 +149,10 @@ def decrypt(encrypted_text: str) -> str:
         Plain decrypted text.
     """
 
-    log = get_contextualized_logger()
-
     try:
         return Fernet(get_secret_key()).decrypt(encrypted_text).decode()
     except InvalidToken:
-        log.exception('Invalid encryption key')
-        log.error((
-            f'Consider regenerating the encryption key by deleting the key file'
-            f' ({KEY_FILE.resolve()}), restarting the server, and then '
-            f're-entering your Connection details'
-        ))
+        log.error(_BAD_ENCRYPTION_KEY)
         return encrypted_text
 
 
