@@ -7,7 +7,6 @@ import sys
 from time import time as current_time
 from types import TracebackType
 from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Self
-from uuid import uuid4
 
 import better_exceptions
 from fastapi import Request, Response, WebSocket
@@ -257,24 +256,12 @@ def set_contextualized_logger() -> tuple[Logger, str]:
         Tuple containing the contextualized logger and the context ID.
     """
 
-    context_id = uuid4().hex[:6]
+    context_id = generate_context_id()
     context_logger = _global_log.bind(context_id=context_id)
 
     rlv.set(context_logger)
 
     return context_logger, context_id
-
-
-def get_contextualized_logger() -> Logger:
-    """
-    Get the contextualized Logger from the Request object.
-
-    Returns:
-        Contextualized logger with a (pseudo)random context ID for this
-        request.
-    """
-
-    return rlv.get(_global_log)
 
 
 class contextualize_request:
@@ -299,13 +286,15 @@ class contextualize_request:
         self._last_message_time = current_time()
         self._sink_id: int | None = None
 
-
     def __enter__(self) -> tuple[Self, Logger]:
         self._logger = _global_log.bind(context_id=self._context_id)
         rlv.set(self._logger)
 
         def sink(message: 'Message') -> None:
-            self._log_buffer.append(self._format_record(message.record))
+            # Only capture messages that belong to this context
+            record_context_id = message.record['extra'].get('context_id')
+            if record_context_id == self._context_id:
+                self._log_buffer.append(self._format_record(message.record))
 
         self._sink_id = _global_log.add(sink, level='TRACE')
 
@@ -325,6 +314,11 @@ class contextualize_request:
             self._logger.remove(self._sink_id)
 
         return False
+
+
+    @property
+    def console_width(self) -> int:
+        return config.CONSOLE_LOG_WIDTH or Console().size.width
 
 
     def _format_record(self, record: 'Record') -> str:
@@ -352,7 +346,7 @@ class contextualize_request:
         )
 
         center_width = (
-            (config.CONSOLE_LOG_WIDTH or Console().size.width)
+            self.console_width
             - (
                 self.PANEL_MARGIN
                 + len(level)
@@ -402,10 +396,7 @@ class contextualize_request:
             text.append(message)
             # Add separator until the last message
             if idx < len(self._log_buffer) - 1:
-                inner_width = (
-                    (config.CONSOLE_LOG_WIDTH or Console().size.width)
-                    - (self.PANEL_MARGIN * 2)
-                )
+                inner_width = self.console_width - (self.PANEL_MARGIN * 2)
                 text.append(f'\n{"-" * inner_width}\n', style='dim')
 
         return Panel(
@@ -429,25 +420,79 @@ class contextualize_request:
         )
 
 
-    def log_response(self, response: Response) -> None:
+    def _get_simplified_display(self, response: Response) -> Panel:
+        """
+        Get a simplified single-line display for successful requests
+        with no logs.
 
-        panels = [
-            self._get_request_panel(),
-            self._get_logs_panel(),
-            self._get_response_panel(response),
-        ]
+        Args:
+            response: The response object.
 
-        combined = Group(*(panel for panel in panels if panel is not None))
+        Returns:
+            A simplified Panel with request and response info in one
+            line.
+        """
 
-        width = config.CONSOLE_LOG_WIDTH or Console().size.width
-        Console(width=width).print(
-            Panel(
-                combined,
-                title=f'Request Log ({self._context_id})',
-                border_style='magenta',
-                padding=1,
+        response_time_ms = (current_time() - self._request_start_time) * 1000
+        url_path = (
+            self._request.url.path
+            + (
+                '?' + self._request.url.query
+                if self._request.url.query
+                else ''
             )
         )
+        method = self._request.method
+
+        simplified_text = Text()
+        simplified_text.append(f'{method} ', style='bold yellow')
+        simplified_text.append(f'{url_path} ', style='cyan')
+        simplified_text.append('→ ', style='dim')
+        simplified_text.append(f'{response.status_code} ', style='bold green')
+        simplified_text.append(f'({response_time_ms:.1f}ms)', style='dim')
+
+        return Panel(
+            simplified_text,
+            title=f'Request ({self._context_id})',
+            border_style='green',
+            padding=(0, 1),
+        )
+
+
+    def log_response(self, response: Response) -> None:
+        """
+        Log the response. Uses a simplified display if the request was
+        successful and there are no log messages, otherwise shows the
+        full detailed view.
+        """
+
+        # Check if we should use simplified display
+        is_success = 200 <= response.status_code < 300
+        has_no_logs = not self._log_buffer
+
+        if is_success and has_no_logs:
+            # Use simplified display
+            Console(width=self.console_width).print(
+                self._get_simplified_display(response)
+            )
+        else:
+            # Use full detailed display
+            panels = [
+                self._get_request_panel(),
+                self._get_logs_panel(),
+                self._get_response_panel(response),
+            ]
+
+            combined = Group(*(panel for panel in panels if panel is not None))
+
+            Console(width=self.console_width).print(
+                Panel(
+                    combined,
+                    title=f'Request Log ({self._context_id})',
+                    border_style='magenta',
+                    padding=1,
+                )
+            )
 
 
 class contextualize(contextualize_request):
@@ -457,14 +502,14 @@ class contextualize(contextualize_request):
     Panel.
     
     >>> with contextualize() as (contextualization, log):
-    >>>     log.info('Hello, world!')
-    >>>     contextualization.log_execution()
+    ...     log.info('Hello, world!')
+    ...     contextualization.log_execution()
     """
 
     PANEL_MARGIN: ClassVar[int] = 2
 
     def __init__(self) -> None:
-        self._context_id = uuid4().hex[:8]
+        self._context_id = generate_context_id()
         self._logger = _global_log
         self._log_buffer: list[str] = []
         self._start_time = current_time()
@@ -489,7 +534,11 @@ class contextualize(contextualize_request):
 # the contextualized logger for the current scope
 class ContextLogProxy:
     def __getattr__(self, name: str) -> Any:
-        return getattr(get_contextualized_logger(), name)
+        try:
+            return getattr(rlv.get(), name)
+        except LookupError:
+            logger, _ = set_contextualized_logger()
+        return getattr(logger, name)
 
 if TYPE_CHECKING:
     log = _global_log
