@@ -8,6 +8,7 @@ from string import hexdigits, whitespace
 from subprocess import Popen, PIPE, TimeoutExpired
 from typing import Annotated, ClassVar, Literal, NamedTuple, overload
 
+from app.core.config import config
 from imagesize import get as im_get
 from rich.console import Console
 from rich.panel import Panel
@@ -303,7 +304,8 @@ class ImageMagickInterface:
     def print_command_history(self) -> None:
         """Print the command history of this Interface."""
 
-        console = Console(width=100, record=True)
+        console_width = (config.CONSOLE_LOG_WIDTH or Console().size.width) - 20
+        console = Console(width=console_width, record=True)
 
         def pretty_print(command: str, stdout: bytes, stderr: bytes) -> None:
             out, err = stdout.decode(), stderr.decode()

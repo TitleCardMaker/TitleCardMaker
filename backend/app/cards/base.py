@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from mimetypes import init
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any, Callable, ClassVar, Literal
 
