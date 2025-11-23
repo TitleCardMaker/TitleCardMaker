@@ -167,7 +167,7 @@ class InsetTitleCard(BaseCardType):
         self.font_interword_spacing = font_interword_spacing
         self.font_kerning = font_kerning
         self.font_size = font_size
-        self.font_vertical_shift = font_vertical_shift
+        self.font_vertical_shift = 75 + font_vertical_shift
 
         # Optional extras
         self.episode_text_color = episode_text_color
@@ -200,6 +200,7 @@ class InsetTitleCard(BaseCardType):
                 f'-kerning {self.font_kerning}',
                 f'-fill "{self.font_color}"',
                 f'label:"{self.title_text}"',
+                f'-trim',
             fr'\)',
             f'-gravity south',
         ]
@@ -207,7 +208,7 @@ class InsetTitleCard(BaseCardType):
 
     @property
     def title_height(self) -> int | float:
-        """The height of the title text."""
+        """The height of the bottom line of text."""
 
         # No title, zero height
         if not self.title_text:
@@ -218,12 +219,12 @@ class InsetTitleCard(BaseCardType):
             # Utilize only the bottom line of text for the line height
             bottom_line = self.title_text.splitlines()[-1]
             modified_commands = self.title_text_commands
-            modified_commands[-2] = f'label:"{bottom_line}"'
+            modified_commands[
+                modified_commands.index(f'label:"{self.title_text}"')
+            ] = f'label:"{bottom_line}"'
 
-            _, self._title_height = self.image_magick.get_text_dimensions(
+            _, self._title_height = self.image_magick.get_text_label_dimensions(
                 modified_commands,
-                interline_spacing=self.font_interline_spacing,
-                line_count=1,
             )
 
         return self._title_height
@@ -243,8 +244,9 @@ class InsetTitleCard(BaseCardType):
         elif self.hide_episode_text:
             index_text = self.season_text
         else:
-            index_text =\
+            index_text = (
                 f'{self.season_text} {self.separator} {self.episode_text}'
+            )
 
         size = 75 * self.episode_text_font_size # 1-3-1/4 font size base
 
@@ -257,15 +259,20 @@ class InsetTitleCard(BaseCardType):
                 f'-pointsize {size}',
                 f'-gravity south',
                 f'label:"{index_text}"',
+                f'-trim',
             fr'\)',
         ]
-        index_width, index_height = self.image_magick.get_text_dimensions(
+        index_width, index_height = self.image_magick.get_text_label_dimensions(
             index_text_commands
         )
-        crop_width = index_width + 40 # Increase margin
-        crop_height = index_height - 20 # Reduce margin
-        crop_y = self.font_vertical_shift + (self.title_height / 2) \
-            - (index_height / 2) + 30
+        crop_width = index_width + 40 # Padding around text
+        crop_height = index_height + 10 # Padding around text
+        crop_y = ( # Y-coordinate of the bottom of the cropping
+            self.font_vertical_shift # Bottom of title text
+            + (self.title_height / 2) # Middle of bottom line of text
+            - 10 # Offset as default text is visually bottom heavy
+            - 6 # Account for offset from drop shadow composition
+        )
 
         return [
             # Copy source image
@@ -284,16 +291,20 @@ class InsetTitleCard(BaseCardType):
                 f'-crop {crop_width}x{crop_height}+0+{crop_y:.0f}',
                 f'-gravity center',
                 # Increase canvas size so blurring can extend beyond bounds
-                f'-extent {crop_width+20}x{crop_height+20}',
+                f'-extent {crop_width+40:.0f}x{crop_height+40:.0f}',
                 # Blur edges so cropping is not so sharp
                 f'-blur 0x7',
                 f'-gravity south',
             fr'\)',
-            f'-geometry +0+{crop_y-10:.0f}',
+            # Additional y offset must be half of the canvas extension
+            f'-geometry +0+{crop_y - 20:.0f}',
             f'-composite',
             # Add index text with a drop shadow
             *self.add_drop_shadow(
-                index_text_commands, '95x4-6+6', x=3, y=crop_y - 15 - 6,
+                index_text_commands,
+                Shadow(opacity=95, sigma=4, x=-6, y=6),
+                x=3,
+                y=crop_y - 6, # Undo drop shadow y-offset
             ),
         ]
 
@@ -315,7 +326,8 @@ class InsetTitleCard(BaseCardType):
         """Create this object's defined Title Card."""
 
         self.image_magick.run([
-            f'convert "{self.source_file.resolve()}"',
+            f'convert',
+            f'"{self.source_file.resolve()}"',
             # Resize and apply styles to source image
             *self.resize_and_style,
             # Add gradient overlay
@@ -324,7 +336,8 @@ class InsetTitleCard(BaseCardType):
             *self.add_drop_shadow(
                 self.title_text_commands,
                 Shadow(opacity=95, sigma=6, x=-12, y=12),
-                x=0, y=self.font_vertical_shift,
+                x=0,
+                y=self.font_vertical_shift,
             ),
             # Add index text
             *self.index_text_commands,
