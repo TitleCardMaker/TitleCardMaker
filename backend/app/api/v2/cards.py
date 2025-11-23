@@ -129,6 +129,7 @@ def create_preview_card_for_episode(
 
     # Determine appropriate Source and Output file
     if not (source := episode.get_source_file('unique')).exists():
+        log.debug('Source image does not exist, using fallback')
         source = INTERNAL_ASSET_DIRECTORY / 'preview' / 'unique.jpg'
     episode.source_file = str(source)
     output = (
