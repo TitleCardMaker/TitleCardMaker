@@ -511,7 +511,7 @@ def get_all_episodes_on_connection(
             season_number=episode_info.season_number,
             episode_number=episode_info.episode_number,
             title=episode_info.title,
-            uid=getattr(episode_info, uid_attr)[interface_id, library_name]
+            uid=getattr(episode_info, uid_attr).get_id(interface_id, library_name)
         )
         for episode_info, _ in interface.get_all_episodes(
             library_name,
