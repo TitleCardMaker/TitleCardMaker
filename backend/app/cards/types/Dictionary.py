@@ -262,12 +262,11 @@ class DictionaryTitleCard(BaseCardType):
                 determined.
 
         Returns:
-            'Specials' if the season number is 0; otherwise the cardinal
-            version of the season number. If that's not possible, then
-            just 'Season {x}'.
+            Season text for the given episode (which is just the season
+            number as a string).
         """
 
-        return '{season_number}'
+        return str(episode_info.season_number)
 
 
     def __init__(self, *,
