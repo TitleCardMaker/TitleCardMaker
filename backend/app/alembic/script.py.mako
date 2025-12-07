@@ -8,7 +8,7 @@ Create Date: ${create_date}
 from alembic import op
 import sqlalchemy as sa
 ${imports if imports else ""}
-${"from app.logging.logger import contextualize" if upgrades or downgrades else ""}
+${"from app.logging.logger import log" if upgrades or downgrades else ""}
 
 # Revision identifiers, used by Alembic.
 revision = ${repr(up_revision)}
@@ -19,7 +19,6 @@ depends_on = ${repr(depends_on)}
 
 def upgrade() -> None:
     % if upgrades:
-    log = contextualize()
     log.debug(f'Upgrading SQL Schema to Version[{revision}]..')
     ${upgrades}
     log.debug(f'Upgraded SQL Schema to Version[{revision}]')
@@ -30,7 +29,6 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     % if downgrades:
-    log = contextualize()
     log.debug(f'Downgrading SQL Schema to Version[{down_revision}]..')
     ${downgrades}
     log.debug(f'Downgraded SQL Schema to Version[{down_revision}]')
