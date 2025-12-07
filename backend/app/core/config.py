@@ -79,6 +79,11 @@ class AppConfig(BaseSettings):
         'How many days to keep logs'
     ] = Field(default=7, ge=1)
 
+    UNSYNCED_SERIES_RETENTION_DAYS: Annotated[
+        int,
+        'How many days to keep unsynced Series'
+    ] = Field(default=10, ge=1)
+
     _TIMEZONE: ZoneInfo | None = None
 
     @property

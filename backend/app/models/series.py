@@ -178,6 +178,8 @@ class Series(Base):
         default=None,
     )
 
+    last_synced: Mapped[datetime | None] = mapped_column(default=None)
+
 
     def __repr__(self) -> str:
         """Returns an unambiguous string representation of the object."""

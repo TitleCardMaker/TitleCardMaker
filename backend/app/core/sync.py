@@ -1,3 +1,4 @@
+from datetime import timedelta
 from time import sleep
 
 from fastapi import BackgroundTasks, HTTPException
@@ -57,10 +58,20 @@ def sync_all() -> None:
 
         # Remove un-synced Series if toggled
         if settings.delete_unsynced_series:
+            # Require Series to be unsynced for the configured number of
+            # days
+            cutoff = (
+                settings.config.now()
+                - timedelta(days=settings.config.UNSYNCED_SERIES_RETENTION_DAYS)
+            )
+
             # Delete all Series which do not have an associated Sync
-            to_delete = db.query(Series)\
-                .filter(Series.sync_id.is_(None))\
-                .all()
+            to_delete = (
+                db.query(Series)
+                    .filter(Series.sync_id.is_(None))
+                    .filter(Series.last_synced < cutoff)
+                    .all()
+            )
             for series in to_delete:
                 # Delete Cards and Loaded objects
                 delete_cards(
@@ -212,6 +223,7 @@ def run_sync(
             existing_series.add(existing)
             # Assign Sync ID if one does not already exist
             existing.sync_id = existing.sync_id or sync.id
+            existing.last_synced = settings.config.now()
 
             # Add any new libraries
             for new in libraries:
@@ -236,13 +248,14 @@ def run_sync(
                 libraries=libraries,
                 **series_info.ids,
                 sync_id=sync.id, template_ids=sync.template_ids,
+                last_synced=settings.config.now(),
             ))
 
     # Nothing added, log
     if not added:
         log.info(f'{sync} no new Series synced')
 
-    # Clear the Sync ID of all Series which were not in the latest sync
+    # Clear the Sync ID of all Series which were not in the latest Sync
     if settings.delete_unsynced_series:
         for series in sync.series:
             if series not in existing_series:

@@ -161,6 +161,7 @@ class NewTemplate(BaseTemplate):
 
 class NewSeries(BaseSeries):
     sync_id: int | None = None
+    last_synced: datetime | None = None
 
     @validator('template_ids', pre=False)
     def validate_unique_template_ids(cls, val: list[int]) -> list[int]:
