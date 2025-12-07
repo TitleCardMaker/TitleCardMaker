@@ -122,9 +122,7 @@ def get_internal_server_errors(
 
 
 @log_router.get('/database-zip')
-def get_database_zip(
-        background_tasks: BackgroundTasks,
-    ) -> FileResponse:
+def get_database_zip(background_tasks: BackgroundTasks) -> FileResponse:
     """Get a zip of the log database."""
 
     # Add log file to a temporary directory
@@ -132,3 +130,19 @@ def get_database_zip(
     tzip.add_file(LOGS_DATABASE_PATH, 'logs.sqlite')
 
     return FileResponse(tzip.zip())
+
+
+@log_router.delete('/prune')
+def prune_logs(
+        log_db: Session = Depends(get_log_database),
+        delete_before: datetime = Query(...),
+    ) -> None:
+    """Prune old logs from the database.
+    
+    - delete_before: Delete logs before this date.
+    """
+
+    log_query = log_db.query(LogModel).filter(LogModel.timestamp < delete_before)
+    log.debug(f'Pruning {log_query.count()} logs')
+    log_query.delete()
+    log_db.commit()
