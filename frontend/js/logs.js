@@ -330,6 +330,27 @@ function runCleanDatabaseTask() {
     complete: () => removeLoadingIcon($icon),
   });
 }
+
+/**
+ * Download the log database as a zip file.
+ */
+function downloadLogDatabase() {
+  const $label = $('.label[onclick="downloadLogDatabase();"]');
+  const $icon = setLoadingIcon($label.find('.icon'));
+  
+  $.ajax({
+    type: 'GET',
+    url: '/api/v2/logs/database-zip',
+    xhrFields: {responseType: 'blob'},
+    success: logBlob => {
+      downloadFileBlob('log_db.zip', logBlob);
+      showInfoToast('Log database downloaded');
+    },
+    error: response => showErrorToast({title: 'Error downloading log database', response}),
+    complete: () => removeLoadingIcon($icon),
+  });
+}
+
 /**
  * Prune logs before the selected date.
  */
