@@ -79,7 +79,7 @@ class DictionaryTitleCard(BaseCardType):
             ),
             Extra(
                 name='Definition Text Language',
-                identifier='episode_description_language',
+                identifier='definition_text_language',
                 description='Language of the episode description to query.',
                 tooltip=(
                     'The language name of the description to utilize. Check '
@@ -371,7 +371,7 @@ class DictionaryTitleCard(BaseCardType):
             episode_info: 'EpisodeInfo',
             *,
             episode_description: str = '{episode_description}',
-            episode_description_language: str = 'English',
+            definition_text_language: str = 'English',
             tmdb_interface: 'TMDbInterface | None' = None,
             **unused: Any,
         ) -> dict[str, Any]:
@@ -383,7 +383,7 @@ class DictionaryTitleCard(BaseCardType):
             episode_info: EpisodeInfo for the episode being processed.
             episode_description: The value of the episode description
                 extra.
-            episode_description_language: Language of the episode
+            definition_text_language: Language of the episode
                 description to query.
             tmdb_interface: TMDbInterface if available, None otherwise.
 
@@ -401,7 +401,7 @@ class DictionaryTitleCard(BaseCardType):
             description = tmdb_interface.get_episode_description(
                 series_info,
                 episode_info,
-                language=episode_description_language,
+                language=definition_text_language,
             ) or '' # Coerce None to an empty string
 
         return {'episode_description': description}
@@ -664,7 +664,7 @@ def get_validator_model() -> type[BaseCardModel]:
         italicize_definition: bool = True
         quote_definition: bool = True
         definition_text: str = '{episode_description}'
-        episode_description_language: str = 'English'
+        definition_text_language: str = 'English'
         definition_color: str | None = None
         definition_line_limit: Annotated[int, Field(ge=1, le=24)] = 4
         definition_size: FontSize = 1.0
@@ -762,6 +762,13 @@ add_cli(
             PreviewCard(
                 filename='definition_text',
                 variables={'definition_text': 'example text'},
+            ),
+            PreviewCard(
+                filename='definition_text_language',
+                variables={'definition_text': (
+                    'De retour au bureau, Mark fait face à une nouvelle '
+                    'réalité. Des secrets du monde extérieur sont révélés.'
+                )},
             ),
             PreviewCard(
                 filename='position',

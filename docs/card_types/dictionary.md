@@ -168,6 +168,34 @@ The text itself can be adjusted with the _Defintion Text_ extra.
         <img src="../assets/dictionary.webp"/>
     </div>
 
+### Language
+
+The language of the text pulled from TMDb can be adjusted with the _Definition
+Text Language_ extra. This __does not__ perform any actual translation, and only
+adjusts which text is pulled from TMDb __if available__. If the indicated
+language is not available, then English will be used instead.
+
+This can be the English language name - i.e. `Chinese`, `Danish`, etc. - or the
+international language code - i.e. `fr-FR`, `ko-KR`, etc. If you type an
+unsupported language, take a look at the [logs](../user_guide/logs.md), as TCM
+will log the names of the languages which are supported for the Episode.
+
+!!! warning "Non-English Character Support"
+
+    Because the font used for the definition text is a roman character based
+    Font, there is no guarantee that languages with non-roman character sets
+    (like Chinese, Arabic, etc.) will work.
+
+??? example "Example"
+
+    <div class="image-compare example-card"
+        data-starting-point="27.07"
+        data-left-label="French"
+        data-right-label="English">
+        <img src="../assets/dictionary/definition_text_language.webp"/>
+        <img src="../assets/dictionary.webp"/>
+    </div>
+
 ## Position
 
 The overall position of the background and all text elements can be adjusted
