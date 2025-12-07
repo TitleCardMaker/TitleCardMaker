@@ -1322,6 +1322,8 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
     def get_episode_description(self,
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
+            *,
+            language: str = 'English',
         ) -> str | None:
         """
         Get the episode description for the given entry.
@@ -1329,6 +1331,9 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         Args:
             series_info: SeriesInfo for the entry.
             episode_info: EpisodeInfo for the entry.
+            language: The language of the episode description to query.
+                This can be the full language code (ISO-639-1) or the
+                English language name (i.e. `Spanish`).
 
         Returns:
             The episode description, None if it cannot be found.
@@ -1339,6 +1344,26 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         if episode is None:
             log.debug(f'{series_info} {episode_info} not found - skipping')
             return None
+
+        # English language requested, do not need to comb through
+        # translations
+        if language in ('English', 'en'):
+            return str(episode.overview)
+
+        # Look for the requested language in the translations
+        for translation in episode.translations:
+            if language in (
+                translation.english_language_name,
+                translation.iso_639_1,
+                translation.language,
+            ):
+                return translation.overview
+
+        languages = ', '.join([t.t.english_language_name for t in translations])
+        log.warning((
+            f'{series_info} {episode_info} has no description for {language}, '
+            f'the available languages are: {languages}'
+        ))
 
         return str(episode.overview)
 

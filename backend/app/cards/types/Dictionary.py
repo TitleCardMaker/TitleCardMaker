@@ -78,6 +78,17 @@ class DictionaryTitleCard(BaseCardType):
                 default='{episode_description}',
             ),
             Extra(
+                name='Definition Text Language',
+                identifier='episode_description_language',
+                description='Language of the episode description to query.',
+                tooltip=(
+                    'The language name of the description to utilize. Check '
+                    'the documentation or logs for the list of available '
+                    'language names. Default is <v>English</v>.'
+                ),
+                default='English',
+            ),
+            Extra(
                 name='Definition Color',
                 identifier='definition_color',
                 description='Color of the definition text',
@@ -360,6 +371,7 @@ class DictionaryTitleCard(BaseCardType):
             episode_info: 'EpisodeInfo',
             *,
             episode_description: str = '{episode_description}',
+            episode_description_language: str = 'English',
             tmdb_interface: 'TMDbInterface | None' = None,
             **unused: Any,
         ) -> dict[str, Any]:
@@ -371,6 +383,8 @@ class DictionaryTitleCard(BaseCardType):
             episode_info: EpisodeInfo for the episode being processed.
             episode_description: The value of the episode description
                 extra.
+            episode_description_language: Language of the episode
+                description to query.
             tmdb_interface: TMDbInterface if available, None otherwise.
 
         Returns:
@@ -380,12 +394,14 @@ class DictionaryTitleCard(BaseCardType):
         description = ''
 
         # If the episode description is a format string, query
-        if (all(char in episode_description
+        if (tmdb_interface # TMDb is required to query description
+            and all(char in episode_description
                 for char in ('{', '}', 'episode_description'))
-            and tmdb_interface # TMDb is required to query description
         ):
             description = tmdb_interface.get_episode_description(
-                series_info, episode_info,
+                series_info,
+                episode_info,
+                language=episode_description_language,
             ) or '' # Coerce None to an empty string
 
         return {'episode_description': description}
@@ -648,6 +664,7 @@ def get_validator_model() -> type[BaseCardModel]:
         italicize_definition: bool = True
         quote_definition: bool = True
         definition_text: str = '{episode_description}'
+        episode_description_language: str = 'English'
         definition_color: str | None = None
         definition_line_limit: Annotated[int, Field(ge=1, le=24)] = 4
         definition_size: FontSize = 1.0
