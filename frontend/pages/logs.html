@@ -210,6 +210,42 @@
         </table>
       </div>
 
+      <!-- Log pruning -->
+      <div class="ui segment">
+        <div class="ui header">
+          <i class="trash icon"></i>
+          <div class="content">
+            Prune Log Database
+            <div class="sub header">
+              Remove old logs from the database to free up space
+            </div>
+          </div>
+        </div>
+
+        <div class="ui form">
+          <div class="field">
+            <label>Delete logs before:</label>
+            <div class="ui calendar" id="prune-date">
+              <div class="ui input left icon">
+                <i class="calendar icon"></i>
+                <input type="text" id="prune-date-input" placeholder="Select date">
+              </div>
+            </div>
+            <p class="help">Select a date to remove all logs before that date, or use the Clean Database task to remove logs based on the configured retention period.</p>
+          </div>
+          <div class="field">
+            <button class="ui blue button" onclick="runCleanDatabaseTask();">
+              <i class="play icon"></i>
+              Run Clean Database Task
+            </button>
+            <button class="ui red button" onclick="pruneLogsByDate();">
+              <i class="trash icon"></i>
+              Prune Logs
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Internal server errors -->
       <div class="ui segment">
         <h2 class="ui header">

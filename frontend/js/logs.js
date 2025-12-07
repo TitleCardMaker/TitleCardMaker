@@ -312,6 +312,75 @@ function queryLogErrors() {
 }
 
 /**
+ * Run the "Clean Database" scheduler task to prune old logs.
+ */
+function runCleanDatabaseTask() {
+  const $button = $('button[onclick="runCleanDatabaseTask();"]');
+  const $icon = setLoadingIcon($button.find('.icon'));
+  
+  $.ajax({
+    type: 'PUT',
+    url: '/api/v2/scheduler/task/ClearOldLogs',
+    success: () => {
+      showInfoToast('Clean Database task completed');
+      // Refresh logs after pruning
+      setTimeout(() => queryForLogs(), 1000);
+    },
+    error: response => showErrorToast({title: 'Error running Clean Database task', response}),
+    complete: () => removeLoadingIcon($icon),
+  });
+}
+/**
+ * Prune logs before the selected date.
+ */
+function pruneLogsByDate() {
+  const dateInput = document.getElementById('prune-date-input');
+  const selectedDate = dateInput.value;
+  
+  if (!selectedDate) {
+    showErrorToast({title: 'No date selected', message: 'Please select a date before pruning logs.'});
+    return;
+  }
+  
+  // The Semantic UI calendar outputs in 'YYYY-MM-DDTHH:mm:ss' format (ISO 8601 without timezone)
+  // FastAPI can parse this format directly, but we'll ensure it's valid
+  let dateToPrune;
+  try {
+    // Try parsing the date to validate it
+    const date = new Date(selectedDate);
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+    // Use the date string directly if it's already in ISO format, otherwise convert
+    // The calendar formatter outputs 'YYYY-MM-DDTHH:mm:ss' which is valid ISO 8601
+    if (selectedDate.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
+      dateToPrune = selectedDate;
+    } else {
+      // Fallback: convert to ISO 8601
+      dateToPrune = date.toISOString();
+    }
+  } catch (error) {
+    showErrorToast({title: 'Invalid date', message: 'Please select a valid date.'});
+    return;
+  }
+  
+  const $button = $('button[onclick="pruneLogsByDate();"]');
+  const $icon = setLoadingIcon($button.find('.icon'));
+  
+  $.ajax({
+    type: 'DELETE',
+    url: `/api/v2/logs/prune?delete_before=${encodeURIComponent(dateToPrune)}`,
+    success: () => {
+      showInfoToast('Logs pruned successfully');
+      // Refresh logs after pruning
+      setTimeout(() => queryForLogs(), 1000);
+    },
+    error: response => showErrorToast({title: 'Error pruning logs', response}),
+    complete: () => removeLoadingIcon($icon),
+  });
+}
+
+/**
  * Initialize the page. This queries for logs, initializes dropdowns, and
  * initializes the after/before calendar inputs.
  */
@@ -332,6 +401,15 @@ function initAll() {
   $('#date-before').calendar({
     type: 'datetime',
     startCalendar: $('#date-after'),
+    maxDate: new Date(), // Cannot select dates after today
+    formatter: {
+      datetime: 'YYYY-MM-DDTHH:mm:ss', // ISO 8601
+    }
+  });
+  
+  // Initialize prune date calendar
+  $('#prune-date').calendar({
+    type: 'datetime',
     maxDate: new Date(), // Cannot select dates after today
     formatter: {
       datetime: 'YYYY-MM-DDTHH:mm:ss', // ISO 8601
