@@ -3,7 +3,7 @@ from math import tan, pi as PI
 from pathlib import Path
 from random import choice as random_choice, randint
 from re import IGNORECASE, compile as re_compile
-from typing import Annotated, Any, Literal, Sequence
+from typing import Annotated, Any, Literal, Sequence, Union
 
 from pydantic import (
     Field,
@@ -787,12 +787,14 @@ def get_validator_model() -> type[BaseCardModel]:
     kwargs = {'strip_whitespace': True, 'to_lower': True}
     PolygonDefintion = Annotated[
         str,
-        StringConstraints(**kwargs, pattern=r'^random\[[sml]+\]$'),
-        StringConstraints(**kwargs, pattern=r'^random\[(\d+,?)+\]$'),
-        StringConstraints(**kwargs, pattern=r'^random\[(\d+-\d+,?)+\]$'),
-        StringConstraints(**kwargs, pattern=r'^[sml]+\+?$'),
-        StringConstraints(**kwargs, pattern=r'^(\d+,?)+\+?$'),
-        StringConstraints(**kwargs, pattern=r'^(\d+-\d+,?)+\+?$'),
+        Union[
+            StringConstraints(**kwargs, pattern=r'^random\[[sml]+\]$'),
+            StringConstraints(**kwargs, pattern=r'^random\[(\d+,?)+\]$'),
+            StringConstraints(**kwargs, pattern=r'^random\[(\d+-\d+,?)+\]$'),
+            StringConstraints(**kwargs, pattern=r'^[sml]+\+?$'),
+            StringConstraints(**kwargs, pattern=r'^(\d+,?)+\+?$'),
+            StringConstraints(**kwargs, pattern=r'^(\d+-\d+,?)+\+?$'),
+        ]
     ]
 
     class CardModel(BaseCardTypeAllText):
