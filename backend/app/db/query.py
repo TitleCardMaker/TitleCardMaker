@@ -332,7 +332,7 @@ def get_sync(
 
 @overload
 def get_template(
-        db: Session, template_id: int, *, raise_exc: Literal[True],
+        db: Session, template_id: int, *, raise_exc: Literal[True] = True,
     ) -> Template:
     ...
 
