@@ -580,8 +580,8 @@ class TVDbInterface(EpisodeDataSource, WebInterface, Interface):
             )
             for episode in self.__get_all_episodes(tvdb_id)
             if (
-                (self._include_movies or not episode.isMovie)
-                and episode.name
+                episode.name
+                and (self._include_movies or not episode.isMovie)
             )
         ]
 
