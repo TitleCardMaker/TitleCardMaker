@@ -152,7 +152,7 @@ class SearchResultResponse(BaseModel):
     data: list[SearchResult] = []
 
 class SeriesSearchResult(SearchResult):
-    status: StatusType
+    status: StatusType # type: ignore
 
 class Alias(BaseModel):
     language: str
@@ -164,32 +164,9 @@ class Status(BaseModel):
     recordType: str = ''
     keepUpdated: bool = False
 
-class SeriesBaseRecord(BaseModel):
-    # aliases: list[Alias] = []
-    # averageRuntime: int | None = None
-    # country: str | None = None
-    # defaultSeasonType: int
-    # episodes: list[EpisodeBaseRecord] = []
-    # firstAired: date
-    id: int
-    # image: str
-    # isOrderRandomized: bool
-    # lastAired: date
-    # lastUpdated: datetime
-    # name: str
-    # nameTranslations: list[str] = []
-    # nextAired: date | Literal[''] = ''
-    # originalCountry: str
-    # originalLanguage: str
-    # overviewTranslations: list[str] = []
-    # score: int
-    # slug: str
-    # status: Status
-    # year: int
-
 class EpisodeBaseRecord(BaseModel):
     # absoluteNumber: int | None = None
-    # aired: date
+    aired: datetime | Literal[''] | None = None
     # airsAfterSeason: int | None = None
     # airsBeforeEpisode: int | None = None
     # airsBeforeSeason: int | None = None
@@ -197,32 +174,20 @@ class EpisodeBaseRecord(BaseModel):
     id: int
     # image: str | None = None
     # imageType: int | None = None
-    # isMovie: Literal[0, 1] = 0
+    isMovie: Literal[0, 1] = 0
     # lastUpdated: datetime
     # linkedMovie: int | None = None
-    # name: str | None = None
+    name: str | None = None
     # nameTranslations: list[str] | None = None
-    # number: int | None = None
-    # overview: str | None = None
+    number: int
+    # overview: str
     # overviewTranslations: list[str] | None = None
-    # runtime: int | None = None
-    # seasonNumber: int | None = None
-    # seasons: list[SeasonBaseRecord] | None = None
+    # runtime: int
+    seasonNumber: int
+    # seasons: SeasonBaseRecord | None = None
     # seriesId: int
     # seasonName: str | None = None
     # year: int | None = None
-
-class SearchByRemoteIdResult(BaseModel):
-    series: SeriesBaseRecord | None = None
-    # people: PeopleBaseRecord | None = None
-    # movie: MovieBaseRecord | None = None
-    episode: EpisodeBaseRecord | None = None
-    # company: Company | None = None
-
-class RemoteIDSearchResult(BaseModel):
-    status: Literal['success', 'failure']
-    message: str | None = None
-    data: list[SearchByRemoteIdResult] | None = None
 
 class SeriesBaseRecord(BaseModel):
     aliases: list[Alias] = []
@@ -246,30 +211,17 @@ class SeriesBaseRecord(BaseModel):
     status: Status
     year: int
 
-class EpisodeBaseRecord(BaseModel):
-    # absoluteNumber: int | None = None
-    aired: datetime | Literal[''] = ''
-    # airsAfterSeason: int | None = None
-    # airsBeforeEpisode: int | None = None
-    # airsBeforeSeason: int | None = None
-    # finaleType: str | None = None
-    id: int
-    # image: str | None = None
-    # imageType: int | None = None
-    isMovie: Literal[0, 1] = 0
-    # lastUpdated: datetime
-    # linkedMovie: int | None = None
-    name: str
-    # nameTranslations: list[str] | None = None
-    number: int
-    # overview: str
-    # overviewTranslations: list[str] | None = None
-    # runtime: int
-    seasonNumber: int
-    # seasons: SeasonBaseRecord | None = None
-    # seriesId: int
-    # seasonName: str | None = None
-    # year: int | None = None
+class SearchByRemoteIdResult(BaseModel):
+    series: SeriesBaseRecord | None = None
+    # people: PeopleBaseRecord | None = None
+    # movie: MovieBaseRecord | None = None
+    episode: EpisodeBaseRecord | None = None
+    # company: Company | None = None
+
+class RemoteIDSearchResult(BaseModel):
+    status: Literal['success', 'failure']
+    message: str | None = None
+    data: list[SearchByRemoteIdResult] | None = None
 
 class SeriesEpisodeData(BaseModel):
     series: SeriesBaseRecord
