@@ -1,4 +1,6 @@
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 from fastapi import (
     APIRouter,
@@ -18,7 +20,8 @@ from app.db.query import (
     get_episode,
     get_font,
     get_interface,
-    get_series
+    get_series,
+    get_template
 )
 from app.db.pagination import Page
 from app.dependencies import get_database
@@ -57,7 +60,7 @@ from app.schemas.card import (
 )
 from app.schemas.episode import UpdateEpisode
 from app.schemas.font import UpdateNamedFont
-from app.schemas.series import UpdateSeries
+from app.schemas.series import UpdateSeries, UpdateTemplate
 from app.settings import settings
 from app.utils.tzip import TemporaryZip
 
@@ -80,10 +83,15 @@ def create_preview_card_for_episode(
         db: Session = Depends(get_database),
     ) -> str:
     """
-    Create a preview Title Card for the given Episode.
+    Create a preview Title Card for the given Episode. This allows for
+    previewing live-edits to the given Episode, Series, or Font. Any
+    changes made to these objects in the given body will be reflected in
+    the card, but will not be saved to the database.
 
     - episode_id: ID of the Episode to create the Title Card for.
-    
+    - update_episode: UpdateEpisode containing fields to update.
+    - update_series: UpdateSeries containing fields to update.
+    - update_font: UpdateNamedFont containing fields to update.
     - query_watched_statuses: Whether to query the watched statuses
     associated with this Episode.
     """
@@ -177,6 +185,121 @@ def create_preview_card_for_episode(
         return f'/public/preview/{output.name}'
 
     card_maker.image_magick.print_command_history()
+    raise HTTPException(
+        status_code=500,
+        detail='Failed to create preview card'
+    )
+
+
+@card_router.post(
+    '/preview/episode/{episode_id}/template/{template_id}',
+    tags=['Templates']
+)
+def create_preview_card_for_template(
+        episode_id: int,
+        template_id: int,
+        update_template: UpdateTemplate = Body(...),
+        db: Session = Depends(get_database),
+    ) -> str:
+    """
+    Create a preview Title Card for the given Episode, reflecting the
+    changes to the given Template. These changes will not be saved to
+    the database. This Template will be added to the Episode and
+    temporarily commited to the database (necessary to update the
+    association table for Episode:Template relationships), but any
+    commits will be reverted after the card is created. Changes to the
+    Template will also be reverted.
+
+    - episode_id: ID of the Episode to create the Title Card for.
+    - template_id: ID of the Template to create the Title Card for.
+    - update_template: UpdateTemplate containing fields to update.
+    """
+
+    episode = get_episode(db, episode_id)
+    template = get_template(db, template_id)
+
+    # Apply temporary changes to the Template
+    reversions: dict[str, Any] = {}
+    update_model = update_template.model_dump(exclude_unset=True)
+    for attribute, value in update_model.items():
+        if getattr(template, attribute) != value:
+            reversions[attribute] = getattr(template, attribute)
+            setattr(template, attribute, value)
+            log.debug(f'Template[{template.id}].{attribute} = {value}')
+
+    # This whole block should be wrapped in a try/except block
+    # so that any errors result in the Template assignment being reverted
+    episode_template_ids = episode.template_ids
+    output: Path | None = None
+    try:
+        # Add the Template to the Episode IF it is not already assigned to
+        # the Episode or the parent Series
+        if (template_id not in episode.template_ids
+            and template_id not in episode.series.template_ids):
+            log.debug(f'Adding Template[{template.id}] to Episode[{episode.id}]')
+            episode.assign_templates([template])
+            db.commit()
+
+        # Determine appropriate Source and Output file
+        if not (source := episode.get_source_file('unique')).exists():
+            log.debug('Source image does not exist, using fallback')
+            source = INTERNAL_ASSET_DIRECTORY / 'preview' / 'unique.jpg'
+        episode.source_file = str(source)
+        output = (
+            INTERNAL_ASSET_DIRECTORY
+            / 'preview'
+            / f'card-unique{settings.card_extension}'
+        )
+        output.unlink(missing_ok=True)
+
+        # If a library is available, use the first one
+        library = None
+        if episode.series.libraries:
+            library = episode.series.libraries[0]
+
+        # Create Card for this Episode
+        try:
+            card_settings = resolve_card_settings(episode, library)
+            card_settings['card_file'] = output
+        except UnknownCardType as exc:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    'Preview cards cannot be created from un-initialized card '
+                    'types - save the card type and try again'
+                )
+            ) from exc
+        except MissingSourceImage as exc:
+            raise HTTPException(
+                status_code=404,
+                detail='Missing the required Source Image',
+            ) from exc
+        except (HTTPException, InvalidCardSettings) as exc:
+            raise HTTPException(
+                status_code=400,
+                detail='Invalid Card settings',
+            ) from exc
+
+        # Delete output if it exists, then create Card
+        CardClass, CardTypeModel = validate_card_type_model(card_settings)
+        card_maker = CardClass(**CardTypeModel.model_dump(), preferences=settings)
+        card_maker.create()
+    # Post Card creation, revert Template assignment if needed
+    finally:
+        for attribute, value in reversions.items():
+            setattr(template, attribute, value)
+            log.debug(f'Template[{template.id}].{attribute} = {value}')
+
+        if episode.template_ids != episode_template_ids:
+            episode.assign_templates([
+                get_template(db, tid) for tid in episode_template_ids
+            ])
+            db.commit()
+
+    # Card created, return URI
+    if output is not None and output.exists():
+        return f'/public/preview/{output.name}'
+
     raise HTTPException(
         status_code=500,
         detail='Failed to create preview card'
