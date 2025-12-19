@@ -128,38 +128,36 @@
                 <input name="name" type="text">
               </div>
 
-              <h4 class="ui horizontal middle aligned divider header">Previews</h4>
+              <h4 class="ui horizontal middle aligned divider header">Preview</h4>
 
-              <div data-action="refresh" class="ui blue tertiary compact button">
-                <i class="redo icon"></i>
-                Refresh Previews
-              </div>
+              <div class="ui two column grid">
+                <div class="column">
+                  <form data-value="preview-form" class="ui form">
+                    <div class="field">
+                      <label>Preview Episode</label>
+                      <div class="ui search selection clearable dropdown episode-search" data-value="episode_id">
+                        <input name="episode_id" type="hidden">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">Search Episodes..</div>
+                        <div class="menu"></div>
+                      </div>
+                    </div>
+                  </form>
 
-              <div class="ui grid">
-                <div class="eight wide column">
-                  <h3 class="ui header">Watched Content</h3>
-                  <div content-type="watched" class="ui fluid preview card">
+                  <div data-action="refresh" class="ui blue tertiary compact button">
+                    <i class="redo icon"></i>
+                    Refresh Preview
+                  </div>
+                </div>
+
+                <div class="column">
+                  <div class="ui fluid preview card">
                     <div class="content">
-                      <img content-type="watched" src="/public/blank.png" loading="lazy">
+                      <img src="/public/blank.png" loading="lazy">
                     </div>
                   </div>
                 </div>
-  
-                <div class="eight wide column">
-                  <h3 class="ui header">Unwatched Content</h3>
-                  <div content-type="unwatched" class="ui fluid preview card">
-                    <div class="content">
-                      <img content-type="unwatched" src="/public/blank.png" loading="lazy">
-                    </div>
-                  </div>
-                </div>
               </div>
-  
-              <div class="ui visible floating warning message">
-                <i class="exclamation triangle icon"></i>
-                Custom season titles are not reflected in the live preview.
-              </div>
-
               <h4 class="ui horizontal middle aligned divider header">Filters</h4>
 
               <div data-label="filters">

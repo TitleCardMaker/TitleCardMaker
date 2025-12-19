@@ -295,7 +295,8 @@ def update_episode_config(
         update_episode: UpdateEpisode,
     ) -> bool:
     """
-    Update the given Episode.
+    Update the given Episode. This does not commit the changes to the
+    database.
 
     Args:
         db: Database to query for Fonts or Templates if indicated.

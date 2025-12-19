@@ -123,7 +123,6 @@ def search_episodes(
     - search: Search string to query against Series name or Episode title.
     """
 
-    # Query episodes with a join to Series
     query = (
         db.query(EpisodeModel)
             .options(
@@ -134,9 +133,7 @@ def search_episodes(
                     EpisodeModel.episode_number,
                     EpisodeModel.title,
                 ),
-                joinedload(EpisodeModel.series).load_only(
-                    Series.name,
-                ),
+                joinedload(EpisodeModel.series).load_only(Series.name),
             )
             .join(Series)
             .filter(

@@ -45,19 +45,26 @@ function addTemplate() {
 
 /**
  * Reload the preview image.
- * @param {"watched" | "unwatched"} watchStatus - The type of preview being
- * generated.
  * @param {string} templateElementId - Element ID of the template whose preview
  * is being generated.
- * @param {HTMLElement} cardElement 
- * @param {HTMLElement} imgElement 
+ * @param {HTMLElement} cardElement - The preview card element
+ * @param {HTMLElement} imgElement - The preview image element
+ * @param {HTMLElement} previewForm - Preview form element containing episode selection
  */
-function reloadPreview(watchStatus, templateElementId, cardElement, imgElement) {
-  /** @type {Style} Effective style */
-  const style = watchStatus === 'watched'
-    ? $(`#${templateElementId} input[name="watched_style"]`).val() || '{{preferences.default_watched_style}}'
-    : $(`#${templateElementId} input[name="unwatched_style"]`).val() || '{{preferences.default_unwatched_style}}'
-  ;
+function reloadPreview(templateElementId, cardElement, imgElement, previewForm) {
+  // Check if an episode is selected to determine watched status
+  const previewFormObj = previewForm ? new FormData(previewForm) : null;
+  const episodeId = previewFormObj ? previewFormObj.get('episode_id') : null;
+  
+  // Default to unwatched if no episode is selected
+  // If episode is selected, we'll determine watched status from the episode data
+  let isWatched = false;
+  
+  /** @type {Style} Effective style - default to unwatched style */
+  let style = $(`#${templateElementId} input[name="unwatched_style"]`).val() || '{{preferences.default_unwatched_style}}';
+  
+  // If episode is selected, we'll use the episode's actual watched status
+  // For now, default to unwatched style for preview
 
   const extras = {};
   $(`#${templateElementId} section[aria-label="extras"] input`).each(function() {
@@ -66,30 +73,104 @@ function reloadPreview(watchStatus, templateElementId, cardElement, imgElement) 
     }
   });
 
-  // Generate preview card data
-  /** @type {PreviewTitleCard} */
-  const previewCard = {
-    card_type: $(`#${templateElementId} input[name="card_type"]`).val() || "{{preferences.default_card_type.lower()}}",
-    // title_text:
-    // season_text: 
-    hide_season_text: $(`#${templateElementId} input[name="hide_season_text"]`).val() || false,
-    // episode_text: 
-    hide_episode_text: $(`#${templateElementId} input[name="hide_episode_text"]`).val() || false,
-    episode_text_format: $(`#${templateElementId} input[name="episode_text_format"]`).val() || null,
-    blur: style.includes('blur'),
-    grayscale: style.includes('grayscale'),
-    watched: watchStatus === 'wached',
-    style: style,
-    font_id: $(`#${templateElementId} input[name="font_id"]`).val() || null,
-    extras: extras,
+  if (!episodeId) {
+    showErrorToast({title: 'Select Episode to display preview of'});
+    return;
+  }
+  // Extract template ID from templateElementId (format: "template-id{id}")
+  const templateId = parseInt(templateElementId.replace('template-id', ''));
+
+  // Helper function to convert string booleans to actual booleans
+  const toBool = (val) => {
+    if (val === 'True') return true;
+    if (val === 'False') return false;
+    return val || null;
   };
+
+  // Build UpdateTemplate object - include both watched and unwatched styles
+  const updateTemplate = {
+    card_type: $(`#${templateElementId} input[name="card_type"]`).val() || null,
+    font_id: $(`#${templateElementId} input[name="font_id"]`).val() || null,
+    watched_style: $(`#${templateElementId} input[name="watched_style"]`).val() || null,
+    unwatched_style: $(`#${templateElementId} input[name="unwatched_style"]`).val() || null,
+    hide_season_text: toBool($(`#${templateElementId} input[name="hide_season_text"]`).val()),
+    hide_episode_text: toBool($(`#${templateElementId} input[name="hide_episode_text"]`).val()),
+    episode_text_format: $(`#${templateElementId} input[name="episode_text_format"]`).val() || null,
+    data_source_id: $(`#${templateElementId} input[name="data_source_id"]`).val() || null,
+    image_source_priority: $(`#${templateElementId} input[name="image_source_priority"]`).val() ? 
+      $(`#${templateElementId} input[name="image_source_priority"]`).val().split(',').filter(id => id !== '') : null,
+    sync_specials: toBool($(`#${templateElementId} input[name="sync_specials"]`).val()),
+    skip_localized_images: toBool($(`#${templateElementId} input[name="skip_localized_images"]`).val()),
+  };
+  console.log(updateTemplate);
+
+  // Add extras to update_template
+  if (Object.keys(extras).length > 0) {
+    updateTemplate.extras = extras;
+  }
+
+  // Build filters array
+  const filters = [];
+  $(`#${templateElementId} input[name="argument"]`).each(function(index) {
+    const argument = $(this).val();
+    const operation = $(`#${templateElementId} input[name="operation"]`).eq(index).val();
+    const reference = $(`#${templateElementId} input[name="reference"]`).eq(index).val();
+    if (argument && operation) {
+      filters.push({
+        argument: argument,
+        operation: operation,
+        reference: reference || null,
+      });
+    }
+  });
+  if (filters.length > 0) {
+    updateTemplate.filters = filters;
+  }
+
+  // Build translations array
+  const translations = [];
+  $(`#${templateElementId} input[name="language_code"]`).each(function(index) {
+    const languageCode = $(this).val();
+    const dataKey = $(`#${templateElementId} input[name="data_key"]`).eq(index).val();
+    if (languageCode && dataKey) {
+      translations.push({
+        language_code: languageCode,
+        data_key: dataKey,
+      });
+    }
+  });
+  if (translations.length > 0) {
+    updateTemplate.translations = translations;
+  }
+
+  // Build season_titles dict
+  const seasonTitles = {};
+  $(`#${templateElementId} input[name="season_title_ranges"]`).each(function(index) {
+    const range = $(this).val();
+    const value = $(`#${templateElementId} input[name="season_title_values"]`).eq(index).val();
+    if (range && value) {
+      seasonTitles[range] = value;
+    }
+  });
+  if (Object.keys(seasonTitles).length > 0) {
+    updateTemplate.season_titles = seasonTitles;
+  }
+
+  // Remove undefined values
+  Object.keys(updateTemplate).forEach(key => {
+    if (updateTemplate[key] === undefined || updateTemplate[key] === '') {
+      delete updateTemplate[key];
+    }
+  });
+
+  // const previewData = { update_template: updateTemplate };
 
   // Submit API request
   cardElement.classList.add('loading');
   $.ajax({
     type: 'POST',
-    url: '/api/v2/cards/preview',
-    data: JSON.stringify(previewCard),
+    url: `/api/v2/cards/preview/episode/${episodeId}/template/${templateId}`,
+    data: JSON.stringify(updateTemplate),
     contentType: 'application/json',
     /**
      * Preview created - update the image src.
@@ -417,17 +498,15 @@ async function getAllTemplates() {
         base.querySelectorAll(`section[aria-label="extras"] input[name="${identifier}"]`).forEach(input => input.value = value);
       }
     }
-    // Update card preview(s)
-    const watchedCard = base.querySelector('.card[content-type="watched"]'),
-        unwatchedCard = base.querySelector('.card[content-type="unwatched"]');
-    const watchedImg = base.querySelector('img[content-type="watched"]'),
-        unwatchedImg = base.querySelector('img[content-type="unwatched"]');
+    // Update card preview
+    const previewCard = base.querySelector('.preview.card');
+    const previewImg = base.querySelector('.preview.card img');
+    const previewForm = base.querySelector('form[data-value="preview-form"]');
     base.querySelector('.button[data-action="refresh"]').onclick = () => {
-      reloadPreview('watched', templateElementId, watchedCard, watchedImg);
-      reloadPreview('unwatched', templateElementId, unwatchedCard, unwatchedImg);
+      reloadPreview(templateElementId, previewCard, previewImg, previewForm);
     };
-    watchedCard.onclick = () => reloadPreview('watched', templateElementId, watchedCard, watchedImg);
-    unwatchedCard.onclick = () => reloadPreview('unwatched', templateElementId, unwatchedCard, unwatchedImg);
+    previewCard.onclick = () => reloadPreview(templateElementId, previewCard, previewImg, previewForm);
+
 
     // Update Templates
     base.querySelector('button[button-type="submit"]').onclick = (event) => {
@@ -481,6 +560,43 @@ async function getAllTemplates() {
   $('.field[data-value="season-titles"] label i').popup({
     popup: '#season-title-popup',
     position: 'right center',
+  });
+
+  // Initialize episode search dropdowns after general dropdown initialization
+  // This must be done after elements are in the DOM and after general dropdown init
+  allTemplates.forEach(templateObj => {
+    const templateElementId = `template-id${templateObj.id}`;
+    const episodeDropdown = document.querySelector(`#${templateElementId} .dropdown.episode-search`);
+    if (episodeDropdown) {
+      const previewCard = document.querySelector(`#${templateElementId} .preview.card`);
+      const previewImg = document.querySelector(`#${templateElementId} .preview.card img`);
+      const previewForm = document.querySelector(`#${templateElementId} form[data-value="preview-form"]`);
+      
+      $(episodeDropdown).dropdown({
+        clearable: true,
+        placeholder: 'Search for episode...',
+        fullTextSearch: true,
+        forceSelection: false,
+        apiSettings: {
+          url: '/api/v2/episodes/search?search={query}&page=1&limit=20',
+          onResponse: function(response) {
+            const items = response.items.map(episode => ({
+              name: `${episode.series.name} - ${episode.title} (S${episode.season_number.toString().padStart(2, '0')}E${episode.episode_number.toString().padStart(2, '0')})`,
+              value: episode.id,
+            }));
+            return {
+              success: true,
+              results: items,
+            };
+          },
+        },
+        minCharacters: 2,
+        onChange: function(value) {
+          // Refresh preview when episode is selected or cleared
+          reloadPreview(templateElementId, previewCard, previewImg, previewForm);
+        },
+      });
+    }
   });
 
   // Refresh theme for any newly added HTML
