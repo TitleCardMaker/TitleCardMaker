@@ -37,7 +37,7 @@ class JellyfinInterface(EpisodeDataSource, MediaServer, SyncInterface):
     SERIES_IDS = ('imdb_id', 'jellyfin_id', 'tmdb_id', 'tvdb_id')
 
     """Datetime format string for airdates reported by Jellyfin"""
-    AIRDATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f000000Z'
+    AIRDATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 
     def __init__(self,
