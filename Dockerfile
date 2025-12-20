@@ -6,7 +6,7 @@ FROM python:3.11-slim AS pipenv
 COPY Pipfile Pipfile.lock ./
 
 # Install pipenv and convert to requirements.txt
-RUN pip3 install --no-cache-dir --upgrade pipenv; \
+RUN pip3 install --no-cache-dir --upgrade pipenv && \
     pipenv requirements > requirements.txt
 
 FROM python:3.11-slim AS python-reqs
@@ -41,13 +41,15 @@ ENV TCM_PREFERENCES=/config/preferences.yml \
 # Install imagemagick
 # Clean up apt cache
 # Override default ImageMagick policy XML file
-RUN set -eux; \
-    rm -f Pipfile Pipfile.lock; \
-    groupadd -g 99 titlecardmaker; \
-    useradd -u 100 -g 99 titlecardmaker; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends imagemagick libmagickcore-6.q16-6-extra; \
-    rm -rf /var/lib/apt/lists/*; \
+RUN \
+    set -eux && \
+    rm -f Pipfile Pipfile.lock && \
+    groupadd -g 99 titlecardmaker && \
+    useradd -u 100 -g 99 titlecardmaker && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        imagemagick libmagickcore-6.q16-6-extra && \
+    rm -rf /var/lib/apt/lists/* && \
     cp modules/ref/policy.xml /etc/ImageMagick-6/policy.xml
 
 VOLUME [ "/config" ]
