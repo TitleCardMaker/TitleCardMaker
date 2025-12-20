@@ -48,9 +48,9 @@ RUN \
     useradd -u 100 -g 99 titlecardmaker && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        imagemagick libmagickcore-6.q16-6-extra && \
+        imagemagick && \
     rm -rf /var/lib/apt/lists/* && \
-    cp modules/ref/policy.xml /etc/ImageMagick-6/policy.xml
+    cp modules/ref/policy.xml /etc/ImageMagick-7/policy.xml
 
 VOLUME [ "/config" ]
 
