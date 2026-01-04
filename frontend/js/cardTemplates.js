@@ -102,7 +102,6 @@ function reloadPreview(templateElementId, cardElement, imgElement, previewForm) 
     sync_specials: toBool($(`#${templateElementId} input[name="sync_specials"]`).val()),
     skip_localized_images: toBool($(`#${templateElementId} input[name="skip_localized_images"]`).val()),
   };
-  console.log(updateTemplate);
 
   // Add extras to update_template
   if (Object.keys(extras).length > 0) {
