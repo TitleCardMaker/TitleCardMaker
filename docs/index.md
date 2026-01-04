@@ -99,8 +99,8 @@ TitleCardMaker:
       </a>
     </figure>
     <figure data-label="Formula 1">
-      <a data-label="Formula 1" href="./card_types/formula">
-        <img class="no-lightbox" src="./card_types/assets/formula.webp" loading="lazy">
+      <a data-label="Formula 1" href="./card_types/f1">
+        <img class="no-lightbox" src="./card_types/assets/f1.webp" loading="lazy">
       </a>
     </figure>
     <figure data-label="Frame">

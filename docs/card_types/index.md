@@ -76,8 +76,8 @@ TitleCardMaker currently has the following built-in card types:
 -   <img src="./assets/fade.webp">
     [Fade](./fade.md)
 
--   <img src="./assets/formula.webp">
-    [Formula 1](./formula_1.md)
+-   <img src="./assets/f1.webp">
+    [Formula 1](./f1.md)
 
 -   <img src="./assets/frame.webp">
     [Frame](./frame.md)

@@ -229,7 +229,7 @@ nav:
       - Dictionary: card_types/dictionary.md
       - Divider: card_types/divider.md
       - Fade: card_types/fade.md
-      - Formula 1: card_types/formula1.md
+      - Formula 1: card_types/f1.md
       - Frame: card_types/frame.md
       - Graph: card_types/graph.md
       - Inset: card_types/inset.md
