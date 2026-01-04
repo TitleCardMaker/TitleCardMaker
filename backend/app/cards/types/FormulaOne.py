@@ -97,7 +97,7 @@ class FormulaOneTitleCard(BaseCardType):
                 description='Which frame year to utilize',
                 tooltip=(
                     'Default is the year the Episode aired - or, if that is '
-                    'not available, <v>2024</v>.'
+                    'not available, <v>2026</v>.'
                 ),
             ),
         ],
@@ -445,7 +445,7 @@ def get_validator_model() -> type[BaseCardModel]:
                 if self.airdate:
                     self.frame_year = self.airdate.year
                 else:
-                    self.frame_year = 2024
+                    self.frame_year = 2026
             return self
 
     return CardModel
