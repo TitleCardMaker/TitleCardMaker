@@ -252,6 +252,33 @@ Unraid users can directly add the container as a "template" within the UI.
 
 === ":material-language-python: Non-Docker"
 
+    ### Downloading Python
+
+    === ":material-linux: Linux"
+
+        Depending on your Linux distro, Python may already be installed. If not,
+        most likely you able to install Python on your own.
+
+    === ":material-apple: MacOS"
+
+        Python comes pre-installed in MacOS.
+
+    === ":material-powershell: Windows (Powershell)"
+
+        Download the latest version of Python from
+        [python.org](https://www.python.org/downloads/). Be sure to download
+        the "latest version" listed at the top, not necessarily the latest one
+        listed in the release table, as that table includes pre-release
+        versions.
+
+    === ":material-microsoft-windows: Windows (Non-Powershell)"
+
+        Download the latest version of Python from
+        [python.org](https://www.python.org/downloads/). Be sure to download
+        the "latest version" listed at the top, not necessarily the latest one
+        listed in the release table, as that table includes pre-release
+        versions.
+
     ### Downloading ImageMagick
 
     === ":material-linux: Linux"
