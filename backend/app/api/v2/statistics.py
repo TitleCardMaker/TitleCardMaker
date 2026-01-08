@@ -30,7 +30,8 @@ from app.settings import settings
 statistics_router = APIRouter(
     prefix='/statistics',
     tags=['Statistics'],
-    dependencies=[Depends(get_current_user)],
+    # Dependencies should not be added to the router since the system
+    # statistics endpoint is public
 )
 
 
@@ -112,7 +113,10 @@ def get_system_statistics(
     ]
 
 
-@statistics_router.get('/series/{series_id}')
+@statistics_router.get(
+    '/series/{series_id}',
+    dependencies=[Depends(get_current_user)],
+)
 def get_series_statistics(
         series_id: int,
         db: Session = Depends(get_database),
@@ -147,7 +151,10 @@ def get_series_statistics(
     ]
 
 
-@statistics_router.get('/snapshots')
+@statistics_router.get(
+    '/snapshots',
+    dependencies=[Depends(get_current_user)],
+)
 def get_snapshots(
         start: datetime | None = Query(
             default_factory=lambda: datetime.now() - timedelta(days=14)
@@ -197,7 +204,10 @@ def get_snapshots(
     return db.query(subquery).filter(subquery.c.row % slice_ == 0).all()
 
 
-@statistics_router.get('/task-durations')
+@statistics_router.get(
+    '/task-durations',
+    dependencies=[Depends(get_current_user)],
+)
 def get_task_durations(
         after: datetime = Query(default=datetime.now() - timedelta(days=7)),
         task_name: str | None = Query(default=None),
