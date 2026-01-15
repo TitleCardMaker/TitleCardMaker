@@ -644,8 +644,8 @@ def get_validator_model() -> type[BaseCardModel]:
         title_text: str
         episode_text: Annotated[str, StringConstraints(to_upper=True)]
         hide_episode_text: bool = False
-        font_color: str
-        font_file: FilePath
+        font_color: str = GraphTitleCard.CardConfig.font_color
+        font_file: FilePath = GraphTitleCard.CardConfig.font_file
         font_interline_spacing: int = 0
         font_interword_spacing: int = 0
         font_kerning: float = 1.0
