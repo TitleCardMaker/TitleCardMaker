@@ -7,12 +7,15 @@ from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     Coordinate,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     Line,
+    PreviewCard,
+    add_cli,
 )
 from app.schemas.base import BaseCardModel, FontSize
 
@@ -696,3 +699,54 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    GraphTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'Spoonful',
+            'episode_text': '3 / 8',
+        },
+        cards=[
+            PreviewCard(
+                filename='graph_background_color',
+                variables={'graph_background_color': 'rgba(37, 43, 39, 0.75)'},
+            ),
+            PreviewCard(
+                filename='graph_color',
+                variables={'graph_color': 'gold'},
+            ),
+            PreviewCard(
+                filename='graph_inset',
+                variables={'graph_inset': 25},
+            ),
+            PreviewCard(
+                filename='graph_radius',
+                variables={'graph_radius': 125},
+            ),
+            PreviewCard(
+                filename='graph_text_font_size',
+                variables={'graph_text_font_size': 1.2},
+            ),
+            PreviewCard(
+                filename='graph_width',
+                variables={'graph_width': 40},
+            ),
+            PreviewCard(
+                filename='fill_scale',
+                variables={'fill_scale': 0.4},
+            ),
+            PreviewCard(
+                filename='omit_gradient',
+                variables={'omit_gradient': True},
+            ),
+            PreviewCard(
+                filename='text_position',
+                variables={'text_position': 'lower right'},
+            ),
+        ]
+    ),
+)
