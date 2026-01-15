@@ -7,6 +7,7 @@ from rich.console import Console
 from rich.traceback import Traceback
 
 from app.logging.logger import log
+from app.core.config import config
 import app.utils.tasks
 
 
@@ -26,9 +27,10 @@ async def log_internal_server_errors(
     except Exception as exc:
         output = StringIO()
         console = Console(file=output)
+        width = (config.CONSOLE_LOG_WIDTH or Console().size.width) - 20
         console.print(
             Traceback(
-                width=120, # Use a wider width
+                width=width,
                 show_locals=True,
                 locals_max_length=32, # Display up to 32 local items
                 locals_max_string=1024,
@@ -38,9 +40,7 @@ async def log_internal_server_errors(
             )
         )
         # Try and use contextual logger if attached to Request state
-        getattr(request.state, 'log', log).exception(
-            f'Internal Server Error\n{output.getvalue()}'
-        )
+        log.exception(f'Internal Server Error\n{output.getvalue()}')
         raise exc
 
     return response 
