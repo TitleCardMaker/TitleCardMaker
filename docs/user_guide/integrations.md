@@ -206,8 +206,8 @@ Depending on the type of integration you would like to enable, do the following:
 === "New Episode(s)"
 
     1. To configure Sonarr to instruct TCM to create Cards for new Episodes as
-    they're added to Sonarr, de-select all triggers except `On Import Complete`
-    and `On File Upgrade`.
+    they're added to Sonarr, de-select all triggers except `On Import Complete`,
+    `On File Import`, and `On File Upgrade`.
 
     2. Enter the URL of your TCM server (including the port), followed by
     `/api/v2/webhooks/sonarr/cards`.
