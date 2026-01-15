@@ -22,6 +22,10 @@ around the title in various ways.
   ![Example Frame Card](../assets/frame.webp)
 </figure>
 
+??? note "Labeled Card Elements"
+
+    ![Labeled Frame Card Elements](./assets/frame/labeled.webp)
+
 ## Episode Text Position
 
 The position of the season and episode text relative to the title text can be
