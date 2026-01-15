@@ -148,7 +148,7 @@ class GraphTitleCard(BaseCardType):
                 identifier='graph_radius',
                 description='Radius of the graph',
                 tooltip=(
-                    'Number between <v>0</v> and <v>900</v>. Default is '
+                    'Number between <v>50</v> and <v>900</v>. Default is '
                     '<v>175</v>. Unit is pixels.'
                 ),
                 default=175,
