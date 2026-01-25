@@ -271,7 +271,7 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
                     required_root_folders
                     and (
                         series.root_folder_path is None
-                        or any(
+                        or not any(
                             series.root_folder_path.startswith(folder)
                             for folder in required_root_folders
                         )
