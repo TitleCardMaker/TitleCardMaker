@@ -26,7 +26,7 @@ the graph.
 
 ??? note "Labeled Card Elements"
 
-    ![Labeled Graph Card Elements](./assets/graph/v2/labeled.webp)
+    ![Labeled Graph Card Elements](./assets/graph/labeled.webp)
 
 ## Episode Text
 
@@ -152,7 +152,7 @@ horizontal and vertical inset towards the center of the image.
 
 The radius (size) of the graph can be adjusted with the _Graph Radius_ extra.
 Adjusting this value will also dynamically adjust the size of the contained
-[Episode Text](#episode-text) __unless_ the [Graph Text Font Size](#font-size)
+[Episode Text](#episode-text) __unless__ the [Graph Text Font Size](#font-size)
 is explicity specified.
 
 ??? example "Example"
