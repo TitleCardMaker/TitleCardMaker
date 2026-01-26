@@ -7,6 +7,14 @@ from app.interfaces.magick import Dimensions, ImageMagickInterface
 type ImageMagickCommands = list[str]
 
 
+def ImageStack(*commands: str) -> ImageMagickCommands:
+    """
+    Wrap a list of ImageMagick commands in parentheses.
+    """
+
+    return [fr'\(', *commands, fr'\)']
+
+
 class ImageMaker(ABC):
     """
     Abstract class that outlines the necessary attributes for any class

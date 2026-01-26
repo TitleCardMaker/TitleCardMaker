@@ -8,7 +8,12 @@ from pydantic_core import InitErrorDetails, PydanticCustomError
 from titlecase import titlecase
 
 from app.logging.logger import log
-from app.magick.base import Dimensions, ImageMaker, ImageMagickCommands
+from app.magick.base import (
+    Dimensions,
+    ImageMaker,
+    ImageMagickCommands,
+    ImageStack,
+)
 from app.schemas.base import BaseCardModel
 from app.schemas.card import CardTypeDescription, Extra
 
@@ -889,6 +894,7 @@ __all__ = [
     'Extra',
     'ImageMagickCommands',
     'ImageMaker',
+    'ImageStack',
     'Rectangle',
     'TextCase',
 ]
