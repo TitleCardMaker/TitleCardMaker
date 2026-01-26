@@ -5,11 +5,14 @@ from pydantic import FilePath, Field
 
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    PreviewCard,
     Shadow,
+    add_cli,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 
@@ -367,3 +370,39 @@ def get_validator_model() -> type[BaseCardModel]:
         transparency: Annotated[float, Field(ge=0.0, le=1.0)] = 1.0
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    InsetTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'Beginnings\nand Endings'.upper(),
+            'season_text': 'Season 2',
+            'episode_text': 'Episode 1',
+        },
+        cards=[
+            PreviewCard(
+                filename='episode_text_color',
+                variables={'episode_text_color': 'gold'},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 1.2},
+            ),
+            PreviewCard(
+                filename='separator',
+                variables={'separator': '//'},
+            ),
+            PreviewCard(
+                filename='transparency',
+                variables={'transparency': 0.5},
+            ),
+            PreviewCard(
+                filename='omit_gradient',
+                variables={'omit_gradient': True},
+            ),
+        ]
+    ),
+)
