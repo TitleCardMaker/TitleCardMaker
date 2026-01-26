@@ -13,11 +13,15 @@ from pydantic import (
 
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
+    PreviewCard,
     Shadow,
+    add_cli,
 )
 from app.schemas.base import BaseCardModel, FontSize
 
@@ -307,19 +311,17 @@ class LandscapeTitleCard(BaseCardType):
 
         return [
             # Create image the size of the title card filled with darken color
-            fr'\(',
+            *ImageStack(
                 f'-size "{self.TITLE_CARD_SIZE}"',
                 f'xc:"{self.darken_color}"',
-            fr'\)',
+            ),
             # Compose atop of source image
             f'-gravity center',
             f'-composite',
         ]
 
 
-    def blur_commands(self,
-            coordinates: BoxCoordinates,
-        ) -> ImageMagickCommands:
+    def blur_commands(self, coordinates: BoxCoordinates) -> ImageMagickCommands:
         """
         Subcommand to add the blurred image behind the bounding box.
 
@@ -337,11 +339,11 @@ class LandscapeTitleCard(BaseCardType):
         x_start, y_start, x_end, y_end = coordinates
 
         return  [
-            fr'\(',
+            *ImageStack(
                 f'-clone 0',
                 f'-crop {x_end - x_start}x{y_end - y_start}+0+0',
                 f'-blur {self.box_blur_profile}',
-            fr'\)',
+            ),
             f'-geometry -{self.box_width / 2}-20',
             f'-composite',
         ]
@@ -549,3 +551,66 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    LandscapeTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={'title_text': 'MOUNTAINS'},
+        cards=[
+            PreviewCard(filename='landscape', variables={}),
+            PreviewCard(
+                filename='add_bounding_box',
+                variables={'add_bounding_box': 'False'},
+            ),
+            PreviewCard(
+                filename='box_color',
+                variables={'box_color': 'gold'},
+            ),
+            PreviewCard(
+                filename='box_width',
+                variables={'box_width': 4},
+            ),
+            PreviewCard(
+                filename='blur_box',
+                variables={'blur_box': 'True'},
+            ),
+            PreviewCard(
+                filename='box_blur_profile',
+                variables={
+                    'blur_box': 'True',
+                    'box_blur_profile': '0x3',
+                },
+            ),
+            PreviewCard(
+                filename='box_adjustments',
+                variables={'box_adjustments': '-30 40 -20 40'},
+            ),
+            PreviewCard(
+                filename='rounding_radius',
+                variables={'rounding_radius': 50},
+            ),
+            PreviewCard(
+                filename='darken',
+                variables={'darken': 'all'},
+            ),
+            PreviewCard(
+                filename='darken',
+                variables={'darken': 'all'},
+            ),
+            PreviewCard(
+                filename='darken_color',
+                variables={
+                    'darken': 'box',
+                    'darken_color': '#00000080'
+                },
+            ),
+            PreviewCard(
+                filename='shadow_color',
+                variables={'shadow_color': 'skyblue'},
+            ),
+        ]
+    ),
+)
