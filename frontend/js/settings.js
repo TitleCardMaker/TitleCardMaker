@@ -262,7 +262,7 @@ function initializeBlurProfiles(allCardTypes) {
 function updatePreviewTitleCard(allCards, previewCardType) {
   const supportedHtml = '<i class="green check icon"></i> Supported';
   const notSupportedHtml = '<i class="red times icon"></i> Not Supported';
-  
+
   for (let cardType of allCards) {
     if (cardType.identifier == previewCardType) {
       const previewCard = document.getElementById('card-type-preview');
@@ -276,8 +276,12 @@ function updatePreviewTitleCard(allCards, previewCardType) {
       }
       // Update the documentation link
       const docsLink = nameHeader.querySelector('[data-label="docs-link"]');
-      if (docsLink) {
-        docsLink.href = `https://titlecardmaker.com/card_types/${cardType.identifier}`;
+      if (cardType.source === 'builtin' && docsLink) {
+        docsLink.href = `https://titlecardmaker.com/card_types/${cardType.identifier.replace(' ', '_')}`;
+        docsLink.classList.remove('disabled');
+      } else if (docsLink) {
+        docsLink.href = '';
+        docsLink.classList.add('disabled');
       }
       previewCard.querySelector('[data-label="creators"]').innerText = 'by ' + cardType.creators.join(', ');
       previewCard.querySelector('[data-label="supports_custom_fonts"] .description').innerHTML = cardType.supports_custom_fonts ? supportedHtml : notSupportedHtml;
@@ -285,7 +289,7 @@ function updatePreviewTitleCard(allCards, previewCardType) {
       const extrasElement = previewCard.querySelector('[data-label="supported_extras"]');
       const extrasCount = cardType.supported_extras ? cardType.supported_extras.length : 0;
       extrasElement.querySelector('strong').innerText = extrasCount;
-      
+
       // Update extras popup content
       const extrasList = document.getElementById('extras-list');
       if (extrasCount > 0 && cardType.supported_extras) {
@@ -295,7 +299,7 @@ function updatePreviewTitleCard(allCards, previewCardType) {
       } else {
         extrasList.innerHTML = '<div class="item"><div class="content">No extras available</div></div>';
       }
-      
+
       previewCard.querySelector('[data-label="description"]').innerHTML = '<p>' + cardType.description.join('</p><p>') + '</p>';
       break;
     }
