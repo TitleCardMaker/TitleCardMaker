@@ -77,7 +77,7 @@ def add_new_episode(
     series = get_series(db, new_episode.series_id, raise_exc=True)
 
     # Get dictionary of object and all associated Templates
-    new_episode_dict = new_episode.dict()
+    new_episode_dict = new_episode.model_dump(exclude_unset=True)
     templates = get_all_templates(db, new_episode_dict)
 
     # Create new entry, add to database

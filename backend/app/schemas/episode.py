@@ -28,13 +28,13 @@ class NewEpisode(Base):
     match_title: bool | None = None
     auto_split_title: bool | None = None
 
-    card_type: str | None
-    hide_season_text: bool | None
-    season_text: str | None
-    hide_episode_text: bool | None
-    episode_text: str | None
-    unwatched_style: Style | None
-    watched_style: Style | None
+    card_type: str | None = None
+    hide_season_text: bool | None = None
+    season_text: str | None = None
+    hide_episode_text: bool | None = None
+    episode_text: str | None = None
+    unwatched_style: Style | None = None
+    watched_style: Style | None = None
 
     font_color: str | None = None
     font_size: Annotated[float, Field(ge=0.0)] | None = None

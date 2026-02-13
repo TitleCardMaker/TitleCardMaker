@@ -101,9 +101,9 @@ class Episode(Base):
     font_interword_spacing: Mapped[int | None]
     font_vertical_shift: Mapped[int | None]
 
-    emby_id: Mapped[str]
+    emby_id: Mapped[str] = mapped_column(String, default='')
     imdb_id: Mapped[str | None]
-    jellyfin_id: Mapped[str]
+    jellyfin_id: Mapped[str] = mapped_column(String, default='')
     tmdb_id: Mapped[int | None]
     tvdb_id: Mapped[int | None]
     tvrage_id: Mapped[int | None]
