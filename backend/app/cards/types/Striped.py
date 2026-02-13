@@ -785,17 +785,6 @@ def get_validator_model() -> type[BaseCardModel]:
 
     # Regex to match all supported types of polygon definitions
     kwargs = {'strip_whitespace': True, 'to_lower': True}
-    PolygonDefintion = Annotated[
-        str,
-        Union[
-            StringConstraints(**kwargs, pattern=r'^random\[[sml]+\]$'),
-            StringConstraints(**kwargs, pattern=r'^random\[(\d+,?)+\]$'),
-            StringConstraints(**kwargs, pattern=r'^random\[(\d+-\d+,?)+\]$'),
-            StringConstraints(**kwargs, pattern=r'^[sml]+\+?$'),
-            StringConstraints(**kwargs, pattern=r'^(\d+,?)+\+?$'),
-            StringConstraints(**kwargs, pattern=r'^(\d+-\d+,?)+\+?$'),
-        ]
-    ]
 
     class CardModel(BaseCardTypeAllText):
         season_text: str
@@ -826,7 +815,17 @@ def get_validator_model() -> type[BaseCardModel]:
             Field(ge=0, le=800)
         ] = StripedTitleCard.DEFAULT_INTER_STRIPE_SPACING
         overlay_color: str = StripedTitleCard.DEFAULT_OVERLAY_COLOR
-        polygons: PolygonDefintion = StripedTitleCard.DEFAULT_POLYGON_STRING
+        polygons: Annotated[
+            str,
+            Union[
+                StringConstraints(**kwargs, pattern=r'^random\[[sml]+\]$'),
+                StringConstraints(**kwargs, pattern=r'^random\[(\d+,?)+\]$'),
+                StringConstraints(**kwargs, pattern=r'^random\[(\d+-\d+,?)+\]$'),
+                StringConstraints(**kwargs, pattern=r'^[sml]+\+?$'),
+                StringConstraints(**kwargs, pattern=r'^(\d+,?)+\+?$'),
+                StringConstraints(**kwargs, pattern=r'^(\d+-\d+,?)+\+?$'),
+            ]
+        ] = StripedTitleCard.DEFAULT_POLYGON_STRING
         separator: str = ' - '
         text_position: TextPosition = StripedTitleCard.DEFAULT_TEXT_POSITION
 
