@@ -416,38 +416,47 @@ function getAllSyncs() {
           clone.querySelector('.sync-meta').innerText = `Sync ID ${sync.id}`;
 
           // Populate required tags
-          const requiredTags = sync.required_tags && sync.required_tags.length > 0 
-            ? sync.required_tags.join(', ') 
-            : 'None';
-          clone.querySelector('[data-value="required_tags"]').innerText = requiredTags;
+          if (sync.required_tags && sync.required_tags.length > 0) {
+            clone.querySelector('[data-label="required_tags"]').innerText = sync.required_tags.join(', ');
+          } else {
+            clone.querySelector('[data-label="required_tags"]').parentElement.remove();
+          }
 
           // Populate required libraries
           if (sync.required_libraries && sync.required_libraries.length) {
             const requiredLibraries = sync.required_libraries && sync.required_libraries.length > 0 
               ? sync.required_libraries.join(', ') 
               : 'All Libraries';
-            clone.querySelector('[data-value="required_libraries"]').innerText = requiredLibraries;
+            clone.querySelector('[data-label="required_libraries"]').innerText = requiredLibraries;
           } else {
-            clone.querySelector('p[data-label="required_libraries"]').remove()
+            clone.querySelector('[data-label="required_libraries"]').parentElement.remove()
           }
 
           // Populate excluded tags
-          const excludedTags = sync.excluded_tags && sync.excluded_tags.length > 0 
-            ? sync.excluded_tags.join(', ') 
-            : 'None';
-          clone.querySelector('[data-value="excluded_tags"]').innerText = excludedTags;
+          if (sync.excluded_tags && sync.excluded_tags.length > 0) {
+            clone.querySelector('[data-label="excluded_tags"]').innerText = sync.excluded_tags.join(', ');
+          } else {
+            clone.querySelector('[data-label="excluded_tags"]').parentElement.remove();
+          }
 
           // Populate excluded libraries
-          const excludedLibraries = sync.excluded_libraries && sync.excluded_libraries.length > 0 
-            ? sync.excluded_libraries.join(', ') 
-            : 'None';
-          clone.querySelector('[data-value="excluded_libraries"]').innerText = excludedLibraries;
+          if (sync.excluded_libraries && sync.excluded_libraries.length > 0) {
+            clone.querySelector('[data-label="excluded_libraries"]').innerText = sync.excluded_libraries.join(', ');
+          } else {
+            clone.querySelector('[data-label="excluded_libraries"]').parentElement.remove();
+          }
 
           // Populate templates
-          const templates = sync.template_ids && sync.template_ids.length > 0 
-            ? `${sync.template_ids.length} template(s)` 
-            : 'None';
-          clone.querySelector('[data-value="templates"]').innerText = templates;
+          if (sync.template_ids && sync.template_ids.length > 0) {
+            clone.querySelector('[data-label="templates"]').innerText = `${sync.template_ids.length} Template(s)`;
+          } else {
+            clone.querySelector('[data-label="templates"]').parentElement.remove();
+          }
+
+          // Add placeholder text if no details are present
+          if (clone.querySelector('.sync-details').childElementCount === 0) {
+            clone.querySelector('.sync-details').innerHTML = '<p><i>No customized settings<i/></p>';
+          }
 
           // Add toggle details functionality
           const toggleButton = clone.querySelector('[data-action="toggle-details"]');
