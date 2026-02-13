@@ -250,6 +250,8 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
             else:
                 log.exception('Error querying tags from Sonarr')
 
+        def with_suffix(path: str, /, suffix: str = '/') -> str:
+            return f'{path.removesuffix("/")}/'
 
         def is_excluded(series: SeriesResource, /) -> bool:
             """Determine if the given series is to be excluded."""
@@ -272,7 +274,9 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
                     and (
                         series.root_folder_path is None
                         or not any(
-                            series.root_folder_path.startswith(folder)
+                            with_suffix(series.root_folder_path).startswith(
+                                with_suffix(folder)
+                            )
                             for folder in required_root_folders
                         )
                     )
