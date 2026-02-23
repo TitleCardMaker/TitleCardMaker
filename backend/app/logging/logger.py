@@ -306,9 +306,7 @@ class contextualize_request:
             exc_value: BaseException | None,
             exc_traceback: TracebackType | None,
         ) -> bool:
-        """
-        Exit the contextualized logger context.
-        """
+        """Exit the contextualized logger context."""
 
         if self._sink_id is not None:
             self._logger.remove(self._sink_id)

@@ -1,11 +1,13 @@
 from datetime import datetime
 from json import dumps, JSONEncoder
 from pathlib import Path
-from typing import Any, Callable, ParamSpec, TypeVar
+from pytz import timezone as pytz_timezone
+from typing import Any, Callable, Literal, ParamSpec, TypeVar
 
 from num2words import num2words
 from titlecase import titlecase
 
+from app.core.config import config
 from app.exceptions import InvalidFormatString
 from app.logging.logger import log
 from app.utils.paths import CleanPath
@@ -181,7 +183,13 @@ def to_short_ordinal(number: int, /, lang: str = 'en') -> str:
     return num2words(number, lang=lang, to='ordinal_num')
 
 @register_builtin()
-def format_date(date: datetime, fmt: str, /) -> str:
+def format_date(
+        date: datetime,
+        fmt: str,
+        /,
+        *,
+        timezone: Literal['local'] | str | None = None
+    ) -> str:
     """
     Format the given date with the given format string. This is just a
     wrapper for `date.strftime(fmt)`.
@@ -190,10 +198,21 @@ def format_date(date: datetime, fmt: str, /) -> str:
         date: Datetime being formatted.
         fmt: Format string to format the date with. See strftime.org for
             more.
+        timezone: Timezone to format the date in. If not provided, the
+            date will be formatted in the local timezone.
 
     Returns:
         Formatted string of the given date.
     """
+
+    # If a timezone is provided, convert the date to the target timezone
+    if timezone is not None:
+        target_timezone = (
+            config.TIMEZONE
+            if timezone == 'local'
+            else pytz_timezone(timezone)
+        )
+        date = date.astimezone(target_timezone)
 
     return date.strftime(fmt)
 
