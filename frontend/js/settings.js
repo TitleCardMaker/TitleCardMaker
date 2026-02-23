@@ -306,165 +306,6 @@ function updatePreviewTitleCard(allCards, previewCardType) {
   }
 }
 
-/** @type {CardTypeDescription[]} */
-let allCardTypesForModal = [];
-
-/**
- * Populate the all card types modal with details of all available card types.
- * Groups card types by source (builtin, local, remote) and displays them
- * in a scrollable list.
- * 
- * @param {CardTypeDescription[]} allCards List of all card types.
- * @param {string} filterText Optional filter text to filter by card type name.
- */
-function populateAllCardTypesModal(allCards, filterText = '') {
-  const contentDiv = document.getElementById('card-types-content');
-  if (!contentDiv || !allCards || allCards.length === 0) {
-    contentDiv.innerHTML = '<div class="ui message">No card types available.</div>';
-    return;
-  }
-
-  // Store the full list for filtering
-  allCardTypesForModal = allCards;
-
-  const supportedHtml = '<i class="green check icon"></i> Supported';
-  const notSupportedHtml = '<i class="red times icon"></i> Not Supported';
-
-  // Filter card types by name if filter text is provided
-  let filteredCards = allCards;
-  if (filterText && filterText.trim() !== '') {
-    const filterLower = filterText.toLowerCase().trim();
-    filteredCards = allCards.filter(card => 
-      card.name.toLowerCase().includes(filterLower) ||
-      card.identifier.toLowerCase().includes(filterLower) ||
-      card.creators.some(creator => creator.toLowerCase().includes(filterLower))
-    );
-  }
-
-  // Group card types by source
-  const builtinCards = filteredCards.filter(card => card.source === 'builtin');
-  const localCards = filteredCards.filter(card => card.source === 'local');
-  const remoteCards = filteredCards.filter(card => card.source === 'remote');
-
-  let html = '';
-
-  // Helper function to create card type card HTML
-  const createCardTypeHTML = (cardType) => {
-    return `
-      <div class="ui horizontal raised fluid card" style="margin: 1em 0;">
-        <div class="image" style="max-width: 300px;">
-          <img src="${cardType.example}" alt="${cardType.name} example" style="object-fit: contain;">
-        </div>
-        <div class="content" style="flex: 1;">
-          <div class="header">
-            ${cardType.name}
-            ${cardType.source === 'builtin'
-              && (
-                `<a href="https://titlecardmaker.com/card_types/${cardType.identifier}" target="_blank" class="ui blue tertiary icon button" style="float: right; margin-left: 0.5em;" title="View Documentation">
-                  Documentation <i class="external link icon"></i>
-                </a>`
-              )
-            }
-          </div>
-          <div class="meta">
-            <span class="date">by ${cardType.creators.join(', ')}</span>
-            <br>
-            <div class="ui divided horizontal list">
-              <div class="item">
-                <div class="content">
-                  <div class="header">Custom Fonts</div>
-                  <div class="description">
-                    ${cardType.supports_custom_fonts ? supportedHtml : notSupportedHtml}
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="content">
-                  <div class="header">Custom Season Titles</div>
-                  <div class="description">
-                    ${cardType.supports_custom_seasons ? supportedHtml : notSupportedHtml}
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="content">
-                  <div class="header">Extras</div>
-                  <div class="description">
-                    <i class="options icon"></i>
-                    <strong>${cardType.supported_extras ? cardType.supported_extras.length : 0}</strong> Available
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="description">
-            ${cardType.description.map(desc => `<p>${desc}</p>`).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-  };
-
-  // Show message if no results match filter
-  if (filteredCards.length === 0) {
-    html = `<div class="ui message">
-      <i class="info circle icon"></i>
-      No card types found matching "${filterText}"
-    </div>`;
-  } else {
-    // Build-in card types section
-    if (builtinCards.length > 0) {
-      html += `
-        <h2 class="ui dividing header">
-          <i class="building icon"></i>
-          <div class="content">
-            Built-in Card Types
-            <div class="sub header">${builtinCards.length} card type${builtinCards.length !== 1 ? 's' : ''}</div>
-          </div>
-        </h2>
-        <div class="ui segment">
-          ${builtinCards.map(createCardTypeHTML).join('')}
-        </div>
-      `;
-    }
-
-    // Local card types section
-    if (localCards.length > 0) {
-      html += `
-        <h2 class="ui dividing header" style="margin-top: 2em;">
-          <i class="folder icon"></i>
-          <div class="content">
-            Local Card Types
-            <div class="sub header">${localCards.length} card type${localCards.length !== 1 ? 's' : ''}</div>
-          </div>
-        </h2>
-        <div class="ui segment">
-          ${localCards.map(createCardTypeHTML).join('')}
-        </div>
-      `;
-    }
-
-    // Remote card types section
-    if (remoteCards.length > 0) {
-      html += `
-        <h2 class="ui dividing header" style="margin-top: 2em;">
-          <i class="cloud download icon"></i>
-          <div class="content">
-            Remote Card Types
-            <div class="sub header">${remoteCards.length} card type${remoteCards.length !== 1 ? 's' : ''}</div>
-          </div>
-        </h2>
-        <div class="ui segment">
-          ${remoteCards.map(createCardTypeHTML).join('')}
-        </div>
-      `;
-    }
-  }
-
-  contentDiv.innerHTML = html;
-  refreshTheme();
-}
-
 /**
  * Submit an API request to set/update all global settings. This parses the
  * settings form into an object, and then submits a PATCH request. A toast is
@@ -661,12 +502,6 @@ async function initAll() {
     .modal('setting', 'transition', 'fade up')
     .modal({blurring: true});
 
-  // Launch all card types modal
-  $('#all-card-types-modal')
-    .modal('attach events', '#view-all-card-types', 'show')
-    .modal('setting', 'transition', 'fade up')
-    .modal({blurring: true});
-
   // Toggle card extension warning on input
   $('#card-extension')
     .dropdown()
@@ -729,12 +564,12 @@ async function initAll() {
     updatePreviewTitleCard(allCards, '{{preferences.default_card_type}}');
     initializeGlobalFonts(allCards);
     initializeBlurProfiles(allCards);
-    populateAllCardTypesModal(allCards, '');
 
-    // Add filter functionality
-    $('#card-type-filter').on('input', function() {
-      const filterText = $(this).val();
-      populateAllCardTypesModal(allCardTypesForModal, filterText);
-    });
+    const parseListString = (val) => val === '' ? [] : val.split(',');
+    if (window.AvailableCardTypesModal) {
+      window.AvailableCardTypesModal.init(allCards, () =>
+        parseListString($('input[name="excluded_card_types"]').val())
+      );
+    }
   })()
 }

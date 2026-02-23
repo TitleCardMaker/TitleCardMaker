@@ -13,6 +13,9 @@
   <script src="/js/editableMask.js"></script>
 
   <script type="text/javascript">
+    {% include "/js/components/available_card_types_modal.js" %}
+  </script>
+  <script type="text/javascript">
     {% include "/js/series.js" %}
   </script>
 
@@ -835,7 +838,7 @@
                 <!-- Card type and font -->
                 <div class="ui two fields">
                   <div class="field">
-                    <label>Card Type</label>
+                    <label>Card Type <i class="question circle outline icon" id="series-card-type-help" style="cursor: pointer; margin-left: 0.25em;" title="View all card types"></i></label>
                     <div data-value="card-types" class="ui long selection clearable search dropdown">
                       <input name="card_type" type="hidden">
                       <i class="dropdown icon"></i>
@@ -2047,7 +2050,7 @@
       </div>
     </div>
 
-
+    {% include "/pages/components/available_card_types_modal.html" %}
   </div>
 </body>
 

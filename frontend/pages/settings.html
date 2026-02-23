@@ -7,6 +7,9 @@
   <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script>
 
   <script type="text/javascript">
+    {% include "/js/components/available_card_types_modal.js" %}
+  </script>
+  <script type="text/javascript">
     {% include "/js/settings.js" %}
   </script>
 
@@ -734,28 +737,7 @@
       </div>
     </div>
 
-    <!-- All card types modal -->
-    <div id="all-card-types-modal" class="ui large scrolling modal">
-      <i class="close icon"></i>
-      <div class="header">
-        <i class="images icon"></i>
-        Available Card Types
-      </div>
-      <div class="content">
-        <div class="ui fluid icon input" style="margin-bottom: 1em;">
-          <input type="text" id="card-type-filter" placeholder="Filter card types by name...">
-          <i class="search icon"></i>
-        </div>
-        <div id="card-types-content">
-          <!-- Populated dynamically -->
-        </div>
-      </div>
-      <div class="actions">
-        <div class="ui button" onclick="$('#all-card-types-modal').modal('hide');">
-          Close
-        </div>
-      </div>
-    </div>
+    {% include "/pages/components/available_card_types_modal.html" %}
   </div>
 
   <script>

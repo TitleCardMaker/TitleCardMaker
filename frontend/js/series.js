@@ -366,7 +366,7 @@ async function initializeSeriesConfig() {
   });
 
   // Card types
-  await loadCardTypes({
+  const allCards = await loadCardTypes({
     element: '#card-config-form .dropdown[data-value="card-types"]',
     isSelected: (identifier) => identifier === '{{ series.card_type }}',
     showExcluded: false,
@@ -393,6 +393,9 @@ async function initializeSeriesConfig() {
       }
     }
   });
+  if (window.AvailableCardTypesModal) {
+    window.AvailableCardTypesModal.init(allCards, () => [], '#series-card-type-help');
+  }
   // Font color
   $('#card-config-form input[name="font_color"]').on('input', function () {
     document.querySelector('#card-config-form .field[data-value="font_color"] .color.circle').style.setProperty('--color', $(this).val());
