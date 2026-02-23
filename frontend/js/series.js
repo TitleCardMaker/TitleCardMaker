@@ -2945,6 +2945,54 @@ function dropHandler(event) {
   refreshTheme();
 }
 
+const IMPORT_MEDIUX_MODAL_STORAGE_KEY = 'importMediuxModalSettings';
+
+/**
+ * Load saved Import MediUX modal settings from localStorage and apply them to
+ * the form. Called when the modal is opened.
+ */
+function loadImportMediuxModalSettings() {
+  try {
+    const raw = window.localStorage.getItem(IMPORT_MEDIUX_MODAL_STORAGE_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    const $m = $('#import-mediux-modal');
+    if (typeof s.force_reload === 'boolean') $m.find('input[name="force_reload"]').prop('checked', s.force_reload);
+    if (typeof s.import_poster === 'boolean') $m.find('input[name="import_poster"]').prop('checked', s.import_poster);
+    if (typeof s.import_backdrop === 'boolean') $m.find('input[name="import_backdrop"]').prop('checked', s.import_backdrop);
+    if (typeof s.import_season_posters === 'boolean') $m.find('input[name="import_season_posters"]').prop('checked', s.import_season_posters);
+    if (typeof s.libraries === 'string' && s.libraries) {
+      const values = s.libraries.split(',').map(v => v.trim()).filter(Boolean);
+      $m.find('.dropdown[data-value="libraries"]').dropdown('set selected', values);
+    }
+  } catch (_) {}
+}
+
+/**
+ * Open the Import MediUX modal: restore saved settings then show the modal.
+ */
+function openImportMediuxModal() {
+  loadImportMediuxModalSettings();
+  $('#import-mediux-modal').modal({ blurring: true }).modal('show');
+}
+
+/**
+ * Save current Import MediUX modal settings to localStorage.
+ */
+function saveImportMediuxModalSettings() {
+  const $m = $('#import-mediux-modal');
+  const s = {
+    force_reload: $m.find('input[name="force_reload"]').is(':checked'),
+    import_poster: $m.find('input[name="import_poster"]').is(':checked'),
+    import_backdrop: $m.find('input[name="import_backdrop"]').is(':checked'),
+    import_season_posters: $m.find('input[name="import_season_posters"]').is(':checked'),
+    libraries: ($m.find('input[name="libraries"]').val() || '').trim(),
+  };
+  try {
+    window.localStorage.setItem(IMPORT_MEDIUX_MODAL_STORAGE_KEY, JSON.stringify(s));
+  } catch (_) {}
+}
+
 /**
  * Submit an API request to parse, download, and import the cards from the
  * indicated Kometa YAML.
@@ -2952,6 +3000,9 @@ function dropHandler(event) {
  */
 function importMediuxYaml(event) {
   event.preventDefault();
+
+  // Persist current settings for next time
+  saveImportMediuxModalSettings();
 
   // Generate data and query params
   const data = JSON.stringify($('#import-mediux-modal textarea[name="yaml"]').val() || '');
