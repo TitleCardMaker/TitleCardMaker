@@ -19,7 +19,7 @@ For reference, each variable example is shown for the same
 [Episode](https://www.imdb.com/title/tt1232253/) of Breaking Bad with some
 hypothetical TCM customizations.
 
-=== "Inherent Metadata"
+=== ":material-information-outline: Inherent Metadata"
 
     | Variable Name             | Description             | Example                |
     | ------------------------- | ----------------------- | ---------------------- |
@@ -34,7 +34,7 @@ hypothetical TCM customizations.
     | `airdate`                 | Episode airdate[^3]     | `2009-04-12`           |
     | `watched`                 | Whether the Episode is watched or not | `true`   |
 
-=== "Text Variables"
+=== ":material-format-title: Text Variables"
 
     | Variable Name       | Description                          | Example     |
     | ------------------- | ------------------------------------ | ----------- |
@@ -45,7 +45,7 @@ hypothetical TCM customizations.
     | `season_text`       | The season text of the Card          | `Season 2`  |
     | `episode_text`      | The episode text of the Card         | `Episode 6` |
 
-=== "Cardinal and Ordinal Numbers"
+=== ":material-alert-outline: Cardinal and Ordinal Numbers"
 
     !!! warning "Deprecated Variables"
 
@@ -54,7 +54,7 @@ hypothetical TCM customizations.
         These are now accessed by the `to_cardinal()` and `to_ordinal()`
         functions. See [here](#function-reference).
 
-=== "Calculated Metadata"
+=== ":material-calculator-variant: Calculated Metadata"
 
     | Variable Name          | Description                                   | Example |
     | ---------------------- | --------------------------------------------- | ------- |
@@ -78,7 +78,7 @@ hypothetical TCM customizations.
 
         The same logic is true for their absolute-number equivalents.
 
-=== "Fonts"
+=== ":material-format-font-size-increase: Fonts"
 
     | Variable Name            | Description                | Example  |
     | ------------------------ | -------------------------- | -------- |
@@ -91,9 +91,10 @@ hypothetical TCM customizations.
     | `font_interword_spacing` | Font interword spacing     | `20`     |
     | `font_vertical_shift`    | Font vertical shift        | `20`     |
 
-=== "Files"
+=== ":material-folder-open: Files"
 
-    For more information on the logo color attributes, see [here]()
+    For more information on the logo color attributes, see `get_image_color`
+    under [Function Reference](#function-reference) > Date & Color for details.
 
     | Variable Name         | Description                           | Example |
     | --------------------- | ------------------------------------- | --------|
@@ -106,7 +107,7 @@ hypothetical TCM customizations.
     | `logo_color`          | Primary color of the logo             | `green` |
     | `logo_color_no_white` | Primary (non-white) color of the logo | `green` |
 
-=== "Database IDs"
+=== ":material-database-outline: Database IDs"
 
     | Variable Name        | Description               | Example             |
     | -------------------- |-------------------------- | ------------------- |
@@ -129,7 +130,7 @@ hypothetical TCM customizations.
         The IDs of Emby, Jellyfin, and Sonarr are all unique to your server(s)
         and libraries.
 
-=== "Internal Data"
+=== ":material-code-braces: Internal Data"
 
     | Variable Name | Description                            | Example     |
     | ------------- | -------------------------------------- | ----------- |
@@ -145,158 +146,261 @@ hypothetical TCM customizations.
 ## Function Reference
 
 In addition to defining many variables which can be used, TCM also implements
-many functions which allow for more customization. Each is described below.
+many functions which allow for more customization. Examples below use the same
+[Breaking Bad episode](https://www.imdb.com/title/tt1232253/) as the variable
+reference: Season 2, Episode 6, airdate `2009-04-12`, title "Peekaboo".
 
-| Function Name        | Description                                              | Example Format String                      | Example Output  |
-| -------------------- | -------------------------------------------------------- | ------------------------------------------ | --------------- |
-| `titlecase()`        | Write the number in "titlecase" - e.g. "Season"          | `{titlecase(to_cardinal(season_number))}`  | `Two`           |
-| `to_cardinal()`      | Convert the given number to its cardinal spelling        | `{to_cardinal(episode_number)}`            | `two`           |
-| `to_cardinal()`      | _See above_, but in another language[^2]                 | `{to_cardinal(episode_number, 'fr')}`      | `deux`          |
-| `to_ordinal()`       | Convert the given number to its ordinal spelling         | `{to_ordinal(episode_number)}`             | `sixth`         |
-| `to_ordinal()`       | _See above_, but in another language[^2]                 | `{to_cardinal(episode_number, 'es')}`      | `sexto`         |
-| `to_short_ordinal()` | Convert the given number to a shorthand ordinal spelling | `{to_short_ordinal(season_number)}`        | `2nd`           |
-| `to_short_ordinal()` | _See above_, but in another language[^2]                 | `{to_short_ordinal(season_number, 'ja')}`  | `13番目`         |
-| `to_roman_numeral()` | Convert the given number to a roman numeral[^4]          | `{to_roman_numeral(episode_number)}`       | `VI`            |
-| `format_date()`      | Write the given date in some specific format[^3]         | `{format_date(airdate, 'Week %-U of 52')}` | `Week 02 of 52` |
-| `get_image_color()`  | See [here](#parse-image-color)                           | `{get_image_color(logo_file)}`             | `rgb(12,20,12)` |
+For more details on the available functions, see the following sections of 
 
-??? note "Supported Language Codes"
+=== ":material-format-letter-case: Text Capitalization"
 
-    | Code    | Language             |
-    | ------- | -------------------- |
-    | `am`    | Amharic              |
-    | `ar`    | Arabic               |
-    | `cz`    | Czech                |
-    | `da`    | Danish               |
-    | `de`    | German               |
-    | `en`    | English (the default)|
-    | `eo`    | Esperanto            |
-    | `es`    | Spanish              |
-    | `fa`    | Farsi                |
-    | `fi`    | Finnish              |
-    | `fr`    | French               |
-    | `fr_BE` | French (Belgium)     |
-    | `fr_CH` | French (Switzerland) |
-    | `he`    | Hebrew               |
-    | `hu`    | Hungarian            |
-    | `id`    | Indonesian           |
-    | `it`    | Italian              |
-    | `ja`    | Japanese             |
-    | `kn`    | Kannada              |
-    | `ko`    | Korean               |
-    | `kz`    | Kazakh               |
-    | `lt`    | Lithuanian           |
-    | `lv`    | Latvian              |
-    | `nl`    | Dutch                |
-    | `no`    | Norwegian            |
-    | `pl`    | Polish               |
-    | `pt`    | Portuguese           |
-    | `pt_BR` | Portuguese (Brazil)  |
-    | `ro`    | Romanian             |
-    | `ru`    | Russian              |
-    | `sl`    | Slovenian            |
-    | `sr`    | Serbian              |
-    | `sv`    | Swedish              |
-    | `te`    | Telugu               |
-    | `tg`    | Tajik                |
-    | `th`    | Thai                 |
-    | `tr`    | Turkish              |
-    | `uk`    | Ukrainian            |
-    | `vi`    | Vietnamese           |
+    === "`titlecase`"
 
-!!! tip "Cardinal vs. Ordinal Mnemonic"
+        Converts the given text to title case (capitalize the principal words).
+        Useful for capitalizing cardinal or ordinal words, or episode titles.
 
-    An easy way to remember whether you want the cardinal or ordinal text is
-    that ++c++ardinal starts with a ++c++ like ++c++ount - so one, two, three,
-    etc.; while ++o++ordinal starts with ++o++ like ++o++rder - so first,
-    second, third, etc.
+        | Example Format string                     | Output             |
+        | ----------------------------------------- | ------------------ |
+        | `{titlecase(to_cardinal(season_number))}` | `Two`              |
+        | `{titlecase(to_ordinal(episode_number))}` | `Sixth`            |
+        | `{titlecase(title)}`                      | `Peekaboo`         |
+        | `{titlecase("the great escape")}`         | `The Great Escape` |
 
-### Parse Image Color
+    === "`to_lowercase`"
 
-TCM has the ability to parse images for primary colors and use those in place of
-variables. This is similiar to the in-UI `Analyze Pallette` button. This
-functionality can be used with the `get_image_color()` function, which takes the
-form of:
+        Converts the given text to lowercase.
 
-```python
-get_image_color(
-    image: Path,
-    /,
-    fallback: str,
-    index: int = 0,
-    *,
-    colors: int = 8,
-    alpha_threshold: int = 70,
-    black_threshold: int = 40,
-    white_threshold: int = 256,
-)
-```
+        | Example Format string         | Output         |
+        | ----------------------------- | -------------- |
+        | `{to_lowercase(title)}`       | `peekaboo`     |
+        | `{to_lowercase(series_name)}` | `breaking bad` |
+        | `{to_lowercase("UPPERCASE")}` | `uppercase`    |
 
-If the above function signature does not make sense to you, see the provided
-examples for detail; or use the simplified `{logo_color}` or
-`{logo_color_no_white}` variables to avoid the function call altogether. Each
-available argument is described below:
+    === "`to_uppercase`"
 
-1. `image` The file to analyze. See the list of [File](#__tabbed_1_6) variables
-for all available options, but generally this is `logo_file` to match the color
-of the logo.
-2. `fallback` The fallback color to use if the color analysis did not yield any
-meaningful results. This can occur if the specified file does not exist or if
-there was no color at the given `index`.
-3. `index` Which color number to return, zero-indexed. `0` meaning the first
-(most primary) color, `1` being the second, etc.
-4. `colors` The number of colors to group the image into. The higher the number
-the finer gradiations in color TCM will determine, which will result in more
-pixel-accurate matches - however this can also mean sequential colors may be
-different variations in the same color (e.g. light green, dark green, etc.). A
-lower number will result in TCM bucketing similiar colors together.
-5. `alpha_threshold` The transparency threshold which to remove colors from the
-analysis. Pixels which are _more_ transparent than this will be removed - for
-example, if set to `75`, pixels which are >25% transparent are ignored. This is
-a number between `0` and `100`.
-6. `black_threshold` The RGB value threshold for determining if a color is
-black. Colors where all RGB values are below this threshold are considered black
-and ignored. This is a value between `0` and `255`. For example, if set to `40`,
-colors like `rgb(30,30,30)` would be ignored.
-7. `white_threshold` The RGB value threshold for determining if a color is
-white. Colors where all RGB values are above this threshold are considered white
-and ignored. This is a value between `0` and `255`. For example, if set to `210`,
-colors like `rgb(220,220,220)` would be ignored. The default being `256` means
-that no white colors are ignored.
+        Converts the given text to uppercase.
 
-=== "Simple Example"
+        | Example Format string                         | Output         |
+        | --------------------------------------------- | -------------- |
+        | `{to_uppercase(title)}`                       | `PEEKABOO`     |
+        | `{to_uppercase(series_name)}`                 | `BREAKING BAD` |
+        | `{to_uppercase(to_cardinal(episode_number))}` | `SIX`          |
 
-    The following usage will get the single most prominent color of the logo and
-    fallback to `red` if one is not available.
+=== ":material-numeric: Number wording"
 
-    ```python
-    get_image_color(logo_file, fallback="red")
-    ```
+    === "`to_cardinal`"
 
-=== "Secondary Color"
+        Converts the given number to its cardinal spelling (one, two, three,
+        ...)[^2].
 
-    The following usage will get the second most common color of the logo.
+        | Example Format string                 | Output         |
+        | ------------------------------------- | -------------- |
+        | `{to_cardinal(episode_number)}`       | `six`          |
+        | `{to_cardinal(season_number)}`        | `two`          |
+        | `{to_cardinal(episode_number, 'fr')}` | `six` (French) |
+        | `{to_cardinal(13, 'es')}`             | `trece`        |
 
-    ```python
-    get_image_color(logo_file, fallback="blue", index=1)
-    ```
+    === "`to_ordinal`"
 
-=== "Ignore White Colors"
+        Converts the given number to its ordinal spelling (first, second, third,
+        ...)[^2].
 
-    The following usage will get the primary color of the poster, ignoring
-    predominately white images.
+        | Format string                        | Output       |
+        | ------------------------------------ | ------------ |
+        | `{to_ordinal(episode_number)}`       | `sixth`      |
+        | `{to_ordinal(season_number)}`        | `second`     |
+        | `{to_ordinal(episode_number, 'es')}` | `sexto`      |
+        | `{to_ordinal(absolute_number)}`      | `thirteenth` |
 
-    ```python
-    get_image_color(poster_file, fallback="white", white_threshold=210)
-    ```
+    === "`to_short_ordinal`"
+
+        Converts the given number to a shorthand ordinal (1st, 2nd, 3rd,
+        ...)[^2].
+
+        | Format string                             | Output |
+        | ----------------------------------------- | ------ |
+        | `{to_short_ordinal(season_number)}`       | `2nd`  |
+        | `{to_short_ordinal(episode_number)}`      | `6th`  |
+        | `{to_short_ordinal(season_number, 'ja')}` | `2番目` |
+        | `{to_short_ordinal(13)}`                  | `13th` |
+
+    === "`to_roman_numeral`"
+
+        Converts the given number to a Roman numeral (I, II, III, ...). Only
+        supports numbers from 1 to 3999[^4].
+
+        | Format string                        | Output   |
+        | ------------------------------------ | -------- |
+        | `{to_roman_numeral(episode_number)}` | `VI`     |
+        | `{to_roman_numeral(season_number)}`  | `II`     |
+        | `{to_roman_numeral(13)}`             | `XIII`   |
+        | `{to_roman_numeral(2024)}`           | `MMXXIV` |
+
+    ??? note "Supported Language Codes"
+
+        | Code    | Language             |
+        | ------- | -------------------- |
+        | `am`    | Amharic              |
+        | `ar`    | Arabic               |
+        | `cz`    | Czech                |
+        | `da`    | Danish               |
+        | `de`    | German               |
+        | `en`    | English (the default)|
+        | `eo`    | Esperanto            |
+        | `es`    | Spanish              |
+        | `fa`    | Farsi                |
+        | `fi`    | Finnish              |
+        | `fr`    | French               |
+        | `fr_BE` | French (Belgium)     |
+        | `fr_CH` | French (Switzerland) |
+        | `he`    | Hebrew               |
+        | `hu`    | Hungarian            |
+        | `id`    | Indonesian           |
+        | `it`    | Italian              |
+        | `ja`    | Japanese             |
+        | `kn`    | Kannada              |
+        | `ko`    | Korean               |
+        | `kz`    | Kazakh               |
+        | `lt`    | Lithuanian           |
+        | `lv`    | Latvian              |
+        | `nl`    | Dutch                |
+        | `no`    | Norwegian            |
+        | `pl`    | Polish               |
+        | `pt`    | Portuguese           |
+        | `pt_BR` | Portuguese (Brazil)  |
+        | `ro`    | Romanian             |
+        | `ru`    | Russian              |
+        | `sl`    | Slovenian            |
+        | `sr`    | Serbian              |
+        | `sv`    | Swedish              |
+        | `te`    | Telugu               |
+        | `tg`    | Tajik                |
+        | `th`    | Thai                 |
+        | `tr`    | Turkish              |
+        | `uk`    | Ukrainian            |
+        | `vi`    | Vietnamese           |
+
+    !!! tip "Cardinal vs. Ordinal Mnemonic"
+
+        An easy way to remember whether you want the cardinal or ordinal text is
+        that ++c++ardinal starts with a ++c++ like ++c++ount - so one, two, three,
+        etc.; while ++o++ordinal starts with ++o++ like ++o++rder - so first,
+        second, third, etc.
+
+=== ":material-calendar-clock: Date & color"
+
+    === "`format_date`"
+
+        Formats the given date using a [strftime](https://strftime.org/)-style
+        format string[^3]. Optional `timezone` can be `'local'` or a timezone
+        name (e.g. `'America/New_York'`).
+
+        | Format string                              | Output           |
+        | ------------------------------------------ | ---------------- |
+        | `{format_date(airdate, '%B %d, %Y')}`      | `April 12, 2009` |
+        | `{format_date(airdate, 'Week %-U of 52')}` | `Week 15 of 52`  |
+        | `{format_date(airdate, '%Y-%m-%d')}`       | `2009-04-12`     |
+        | `{format_date(airdate, '%A')}`             | `Sunday`         |
+
+    === "`get_image_color`"
+
+        TCM can parse images for primary colors and use those in place of
+        variables— similar to the in-UI **Analyze Palette** button. This
+        function returns a color from any given image (e.g. logo or poster). See
+        below for full details and arguments.
+
+        !!! example "Examples"
+
+            === "Simple Example"
+
+                The following usage will get the single most prominent color of
+                the logo and fallback to `red` if one is not available.
+
+                ```python
+                get_image_color(logo_file, fallback="red")
+                ```
+
+            === "Secondary Color"
+
+                The following usage will get the second most common color of the
+                logo. This is useful if you want to automatically utilize an
+                accent color.
+
+                ```python
+                get_image_color(logo_file, fallback="blue", index=1)
+                ```
+
+            === "Ignore White Colors"
+
+                The following usage will get the primary color of the poster,
+                ignoring predominately white images.
+
+                ```python
+                get_image_color(poster_file, fallback="white", white_threshold=210)
+                ```
+
+        The complete function signature is: 
+
+        ```python
+        get_image_color(
+            image: Path,
+            /,
+            fallback: str,
+            index: int = 0,
+            *,
+            colors: int = 8,
+            alpha_threshold: int = 70,
+            black_threshold: int = 40,
+            white_threshold: int = 256,
+        )
+        ```
+
+        If the above text does not make sense to you, see the provided examples
+        for detail; or use the simplified `{logo_color}` or
+        `{logo_color_no_white}` variables to avoid the function call altogether.
+
+        **Arguments**
+
+        `image`
+        :   The file to analyze. See the **Files** tab in the
+            [Variable Reference](#variable-reference) above for options; generally use
+            `logo_file` to match the logo color.
+
+        `fallback`
+        :   The fallback color if analysis yields no meaningful results (e.g. file
+            missing or no color at the given `index`).
+
+        `index`
+        :   Which color to return, zero-indexed. `0` = first (most primary) color,
+            `1` = second, etc. Default: `0`.
+
+        `colors`
+        :   Number of colors to group the image into. Higher = finer gradations (more
+            pixel-accurate but possibly similar shades); lower = similar colors bucketed
+            together. Default: `8`.
+
+        `alpha_threshold`
+        :   Transparency threshold; pixels _more_ transparent than this are ignored
+            (e.g. `75` ignores pixels &gt;25% transparent). Range: `0`–`100`. Default:
+            `70`.
+
+        `black_threshold`
+        :   RGB threshold below which a color is treated as black and ignored
+            (e.g. `40` ignores `rgb(30,30,30)`). Range: `0`–`255`. Default: `40`.
+
+        `white_threshold`
+        :   RGB threshold above which a color is treated as white and ignored
+            (e.g. `210` ignores `rgb(220,220,220)`). Range: `0`–`255`. Default: `256`
+            (no white filtering).
 
 ### Built-in Functions
 
-Beyond the TCM-defined functions, all methods of built-in Python types - e.g.
-strings, lists, datetime, etc. - can also be used. See
-[the Python docs](https://docs.python.org/3/library/stdtypes.html) for a
-complete reference; you can also ask on
-[the Discord](https://discord.gg/bJ3bHtw8wH), or use an "AI" bot like ChatGPT.
+!!! info "Python built-ins"
+
+    Beyond the TCM-defined functions above, you can use methods of built-in
+    Python types (strings, lists, datetime, etc.). See
+    [the Python docs](https://docs.python.org/3/library/stdtypes.html) for a
+    complete reference, or ask on [the Discord](https://discord.gg/bJ3bHtw8wH).
 
 [^1]: This is _after_ any Font replacements, font case functions, and line
 splitting.
