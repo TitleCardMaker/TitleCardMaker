@@ -6,6 +6,9 @@
   {% include "/pages/html_boilerplate.html" %}
 
   <script type="text/javascript">
+    {% include "/js/components/available_card_types_modal.js" %}
+  </script>
+  <script type="text/javascript">
     {% include "/js/cardTemplates.js" %}
   </script>
 
@@ -181,7 +184,7 @@
 
               <div class="two fluid fields">
                 <div class="field">
-                  <label>Card Type</label>
+                  <label>Card Type <i class="question circle outline icon card-type-help" style="cursor: pointer; margin-left: 0.25em;" title="View all card types"></i></label>
                   <div data-value="card_type" class="ui long selection search clearable dropdown">
                     <input name="card_type" type="hidden">
                     <i class="dropdown icon"></i>
@@ -462,6 +465,7 @@
       </div>
     </div>
 
+    {% include "/pages/components/available_card_types_modal.html" %}
   </div>
 </body>
 

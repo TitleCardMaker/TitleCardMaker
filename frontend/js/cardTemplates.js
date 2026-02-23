@@ -538,18 +538,21 @@ async function getAllTemplates() {
     },
   });
 
-  // Fill in fancy values  
+  // Fill in fancy values
   await getAllCardTypes();
-  allTemplates.forEach(templateObj => {
-    // Card type
+  const cardTypeLoads = allTemplates.map(templateObj =>
     loadCardTypes({
       element: `#template-id${templateObj.id} .dropdown[data-value="card_type"]`,
       isSelected: (identifier) => identifier === templateObj.card_type,
       dropdownArgs: {
         placeholder: 'Global Default',
       }
-    });
-  });
+    })
+  );
+  const cardTypeResults = await Promise.all(cardTypeLoads);
+  if (window.AvailableCardTypesModal && cardTypeResults[0]) {
+    window.AvailableCardTypesModal.init(cardTypeResults[0], () => [], '.card-type-help');
+  }
 
   // Enable accordion/dropdown/checkbox elements
   document.getElementById('loader')?.remove();
