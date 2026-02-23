@@ -137,6 +137,7 @@ hypothetical TCM customizations.
     | `extras`      | Any assigned extras                    | _See below_ |
     | `NEWLINE`     | A character to move text to a new line | `\n`        |
     | `BACKSLASH`   | The ++backslash++ character            | `\`         |
+    | `BLANK`       | Blank text[^6]                         | ``          |
 
     Any assigned extras are added as their variable name. For example, if I
     specify the "Episode Text Color" extra for the Series, then the variable
@@ -363,35 +364,36 @@ For more details on the available functions, see the following sections of
 
         `image`
         :   The file to analyze. See the **Files** tab in the
-            [Variable Reference](#variable-reference) above for options; generally use
-            `logo_file` to match the logo color.
+            [Variable Reference](#variable-reference) above for options;
+            generally use `logo_file` to match the logo color.
 
         `fallback`
-        :   The fallback color if analysis yields no meaningful results (e.g. file
-            missing or no color at the given `index`).
+        :   The fallback color if analysis yields no meaningful results (e.g.
+            file missing or no color at the given `index`).
 
         `index`
-        :   Which color to return, zero-indexed. `0` = first (most primary) color,
-            `1` = second, etc. Default: `0`.
+        :   Which color to return, zero-indexed. `0` = first (most primary)
+            color, `1` = second, etc. Default: `0`.
 
         `colors`
-        :   Number of colors to group the image into. Higher = finer gradations (more
-            pixel-accurate but possibly similar shades); lower = similar colors bucketed
-            together. Default: `8`.
+        :   Number of colors to group the image into. Higher = finer gradations
+            (more pixel-accurate but possibly similar shades); lower = similar
+            colors bucketed together. Default: `8`.
 
         `alpha_threshold`
-        :   Transparency threshold; pixels _more_ transparent than this are ignored
-            (e.g. `75` ignores pixels &gt;25% transparent). Range: `0`–`100`. Default:
-            `70`.
+        :   Transparency threshold; pixels _more_ transparent than this are
+            ignored (e.g. `75` ignores pixels &gt;25% transparent). Range:
+            `0`–`100`. Default: `70`.
 
         `black_threshold`
         :   RGB threshold below which a color is treated as black and ignored
-            (e.g. `40` ignores `rgb(30,30,30)`). Range: `0`–`255`. Default: `40`.
+            (e.g. `40` ignores `rgb(30,30,30)`). Range: `0`–`255`. Default:
+            `40`.
 
         `white_threshold`
         :   RGB threshold above which a color is treated as white and ignored
-            (e.g. `210` ignores `rgb(220,220,220)`). Range: `0`–`255`. Default: `256`
-            (no white filtering).
+            (e.g. `210` ignores `rgb(220,220,220)`). Range: `0`–`255`.
+            Default: `256` (no white filtering).
 
 ### Built-in Functions
 
@@ -418,3 +420,6 @@ Romans). These will raise an error during Card creation.
 
 [^5]: If per-season assets are [enabled](...) for the Series __and__ exist,
 these will be used. Otherwise these are the Series-wide assets.
+
+[^6]: This is generally used if you want to _not_ display any text in a
+particular field. This can also be done by specifying `{""}`.
