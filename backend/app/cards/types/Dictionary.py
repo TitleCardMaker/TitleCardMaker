@@ -13,6 +13,7 @@ from app.cards.base import (
     Dimensions,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     PreviewCard,
     Rectangle,
     add_cli,
@@ -24,6 +25,7 @@ from app.schemas.base import (
     FontSize,
     ShadowDefinition,
 )
+from app.logging.logger import log
 from app.utils.fstring import FormatString
 
 if TYPE_CHECKING:
@@ -415,9 +417,6 @@ class DictionaryTitleCard(BaseCardType):
         the definition text.
         """
 
-        if not self.word_text:
-            return Dimensions(0, 0)
-
         word_width, word_height = self.__word_dimensions
         label_width, label_height = self.__label_dimensions
 
@@ -488,7 +487,7 @@ class DictionaryTitleCard(BaseCardType):
         """Subcommands to add the background to the image."""
 
         # Get the dimensions of the background rectangle
-        top_width, top_height = self.background_dimensions
+        top_width, _ = self.background_dimensions
 
         # Get the dimensions of the definition text
         definition_dimensions = self._fit_definition_text(top_width)
@@ -499,9 +498,16 @@ class DictionaryTitleCard(BaseCardType):
             + definition_dimensions.height
             + self.SMUSH_SPACING
             + self.__label_dimensions.height
-            + self.SMUSH_SPACING
-            + self.__word_dimensions.height
-            - (self.__word_dimensions.height * 0.55)
+            + (
+                (
+                    + self.SMUSH_SPACING
+                    + self.__word_dimensions.height
+                    - (self.__word_dimensions.height * 0.55)
+                )
+                if self.word_text
+                # There is no word text, just add half-margin
+                else self.SMUSH_SPACING / 2
+            )
         )
 
         # Start 35px below and to the left of the reference coordinate
@@ -528,20 +534,21 @@ class DictionaryTitleCard(BaseCardType):
     def word_text_commands(self) -> ImageMagickCommands:
         """Subcommands to add the word text to the image."""
 
+        if not self.word_text:
+            return []
+
         return self.add_drop_shadow(
-            commands=[
-                fr'\(',
-                    f'-background none',
-                    f'-gravity center',
-                    f'-interword-spacing 100',
-                    f'-kerning -10.0',
-                    f'-font "{self.WORD_FONT.resolve()}"',
-                    f'-fill "{self.word_color}"',
-                    f'-pointsize {225 * self.word_size:.1f}',
-                    f'label:"{self.word_text}"',
-                    f'-trim',
-                fr'\)',
-            ],
+            commands=ImageStack(
+                f'-background none',
+                f'-gravity center',
+                f'-interword-spacing 100',
+                f'-kerning -10.0',
+                f'-font "{self.WORD_FONT.resolve()}"',
+                f'-fill "{self.word_color}"',
+                f'-pointsize {225 * self.word_size:.1f}',
+                f'label:"{self.word_text}"',
+                f'-trim',
+            ),
             # If no shadow definition is provided, use the default shadow
             shadow=self.shadow_definition,
             shadow_color=self.shadow_color,
@@ -563,19 +570,17 @@ class DictionaryTitleCard(BaseCardType):
             if text
         )
 
-        return [
-            fr'\(',
-                f'-background none',
-                f'-gravity center',
-                f'-interword-spacing {20 + self.font_interword_spacing}',
-                f'-kerning {3 * self.font_kerning:.1f}',
-                f'-font "{self.font_file}"',
-                f'-fill "{self.font_color}"',
-                f'-pointsize {50 * self.font_size:.1f}',
-                f'label:"{label_text}"',
-                f'-trim',
-            fr'\)',
-        ]
+        return ImageStack(
+            f'-background none',
+            f'-gravity center',
+            f'-interword-spacing {20 + self.font_interword_spacing}',
+            f'-kerning {3 * self.font_kerning:.1f}',
+            f'-font "{self.font_file}"',
+            f'-fill "{self.font_color}"',
+            f'-pointsize {50 * self.font_size:.1f}',
+            f'label:"{label_text}"',
+            f'-trim',
+        )
 
 
     @property
@@ -593,30 +598,31 @@ class DictionaryTitleCard(BaseCardType):
         if self.quote_definition:
             text = fr'\"{self.definition_text}\"'
 
-        return [
-            fr'\(',
-                f'-background none',
-                f'-gravity west',
-                f'-font "{file.resolve()}"',
-                f'-fill "{self.definition_color}"',
-                f'-pointsize {45 * self.definition_size:.1f}',
-                # Reset carry over font characteristics
-                f'+interline-spacing',
-                f'+interword-spacing',
-                f'+kerning',
-                fr'label:"{text}"',
-                f'-trim',
-            fr'\)',
-        ]
+        return ImageStack(
+            f'-background none',
+            f'-gravity west',
+            f'-font "{file.resolve()}"',
+            f'-fill "{self.definition_color}"',
+            f'-pointsize {45 * self.definition_size:.1f}',
+            # Reset carry over font characteristics
+            f'+interline-spacing',
+            f'+interword-spacing',
+            f'+kerning',
+            fr'label:"{text}"',
+            f'-trim',
+        )
 
 
     def create(self) -> None:
         """Create this object's defined Title Card."""
 
-        self.__word_dimensions = self.image_magick.get_text_label_dimensions(
-            self.word_text_commands,
-            density=100,
-        )
+        if self.word_text:
+            self.__word_dimensions = self.image_magick.get_text_label_dimensions(
+                self.word_text_commands,
+                density=100,
+            )
+        else:
+            self.__word_dimensions = Dimensions(0, 0)
 
         self.__label_dimensions = self.image_magick.get_text_label_dimensions(
             self.label_text_commands,
@@ -630,13 +636,13 @@ class DictionaryTitleCard(BaseCardType):
             f'"{self.source_file.resolve()}"',
             *self.resize_and_style,
             *self.background_commands,
-            fr'\(',
+            *ImageStack(
                 *self.word_text_commands,
                 *self.label_text_commands,
                 *self.definition_text_commands,
                 f'-gravity west',
                 f'-smush {self.SMUSH_SPACING}',
-            fr'\)',
+            ),
             f'-gravity southwest',
             f'-geometry {self.__reference.x:+}{self.__reference.y:+}',
             f'-composite',
