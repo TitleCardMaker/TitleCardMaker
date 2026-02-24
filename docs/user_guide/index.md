@@ -91,7 +91,7 @@ your version of TCM.
             # etc.
             environment:
               - TZ=America/Los_Angeles
-              - TCM_LOG_STDOUT=WARNING
+              - TCM_CONSOLE_LOG_LEVEL=WARNING
             # etc.
         ```
 
@@ -101,7 +101,7 @@ your version of TCM.
         run command, like so:
 
         ```bash
-        -e TZ=America/Los_Angeles -e TCM_LOG_STDOUT=WARNING
+        -e TZ=America/Los_Angeles -e TCM_CONSOLE_LOG_LEVEL=WARNING
         ```
 
     === ":material-language-python: Non-Docker"
@@ -111,79 +111,128 @@ your version of TCM.
 
         ```ini title=".env"
         TZ=America/Los_Angeles
-        TCM_LOG_STDOUT=WARNING
+        TCM_CONSOLE_LOG_LEVEL=WARNING
         ```
 
-While a vast majority of TCM's behavior can be adjusted within the UI, there are
-a few options which can only be adjusted with environment variables. These are
-described below:
+All configuration that can be set via environment variables uses the `TCM_` prefix.
+Variables are read from the process environment and, when present, from a `.env` file
+in the application root. The following reference documents every available variable.
 
-`TCM_BACKUP_RETENTION`
+### Application & runtime
 
-:   How long to keep old backups before deleting them. This is an integer number
-    of days. The default is `21`.
+`TCM_IS_DOCKER`
 
-`TCM_IM_DOCKER`
+:   Set to `TRUE` when TCM is running inside Docker (e.g. for paths and behavior).
+    Usually set by the image; you typically do not need to set this yourself.
 
-:   Name of a standalone Docker container to execute ImageMagick commands
-    within. This is only required if TCM is __not__ executing within Docker, but
-    ImageMagick is. This is unspecified by default.
+`TCM_TESTING`
 
-`TCM_LOG`
+:   Set to `TRUE` to enable testing mode. Default is `FALSE`.
 
-:   _This has been deprecated in place of `TCM_LOG_STDOUT`._
-
-`TCM_LOG_STDOUT`
-
-:   The minimum log level for the standard (console) output. Log messages at a
-    level _lower_ than this will not be transmitted. This can be either `TRACE`,
-    `DEBUG`, `INFO`, `WARNING`, `ERROR`, or `CRITICAL`. The default is `INFO`.
-
-`TCM_LOG_FILE`
-
-:   The minimum log level for the logging file output. Log messages at a level
-    _lower_ than this will not be written to any log files. This can be either
-    `TRACE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`, or `CRITICAL`. The default is
-    `TRACE` and it is __not recommended__ to change this, as it can make it much
-    more difficult to diagnose or debug issues.
-
-`TCM_LOG_WEBSOCKET`
-
-:   The minimum log level for live messages which appear in the UI (toggled
-    [here](./settings.md#display-live-log-messages)). Log messages at a level
-    _lower_ than this will not be displayed in the UI. This can be either
-    `TRACE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`, or `CRITICAL`. The default is
-    `INFO`.
-
-`TCM_LOG_RETENTION`
-
-:   How long to keep log files before they are deleted. This can be any human-
-    readable duration - e.g. `2 days`, `3 weeks`, etc. The default is `7 days`.
-
-`TCM_NEW_SERIES_VIEW`
-
-:   _As of `v2.0-alpha.10.0`, this setting is no longer requires as the "old"
-    Series view has been removed._
-
-`TCM_PLEX_LOGGING`
-
-:   Set to `TRUE` to reroute all Plex API log messages to TCM's internal logging
-    mechanism. Plex can be fine-tuned, see [below](#plex-variables).
-
-`TZ`
-
-:   The timezone which is used for all local time reporting (most notably
-    logging). To determine your timezone, a full list is available
-    [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). You
-    will want to take note of the text in the _TZ Identifer_ column. The default
-    is `UTC`.
+### Authentication
 
 `TCM_DISABLE_AUTH`
 
-:   Whether to reset and disable authentication access to the TCM UI. This is
-    only read when TCM first boots, and if set to `TRUE` then your previously
-    established username and password will be deleted. For more details, see
-    [here](./connections.md#forgotten-login). This is unspecified by default.
+:   When set to `TRUE`, authentication is disabled and existing users are removed.
+    Only read at startup. For details, see [Connections — Forgotten login](./connections.md#forgotten-login).
+    Default is `FALSE`.
+
+`TCM_AUTH_EXPIRATION_DAYS`
+
+:   Number of days authentication tokens remain valid. Integer between 1 and 120.
+    Default is `7`.
+
+`TCM_CRYPTO_ALGORITHM`
+
+:   Algorithm used for token signing. Default is `HS256`.
+
+### Backups
+
+`TCM_BACKUP_RETENTION_DAYS`
+
+:   Number of days to keep backups before they are deleted. Integer ≥ 1.
+    Default is `21`.
+
+`TCM_BACKUP_DT_FORMAT`
+
+:   Strftime-style format for backup folder names. Default is `%Y-%m-%d_%H-%M-%S`.
+
+### Logging
+
+`TCM_CONSOLE_LOG_LEVEL`
+
+:   Minimum log level for console (stdout) output. One of: `TRACE`, `DEBUG`, `INFO`,
+    `WARNING`, `ERROR`, `CRITICAL`. Default is `INFO`.
+
+`TCM_DATABASE_LOG_LEVEL`
+
+:   Minimum log level for messages stored in the logging database. Same level
+    options as above. Default is `TRACE`; changing this can make debugging harder.
+
+`TCM_WEBSOCKET_LOG_LEVEL`
+
+:   Minimum log level for live log messages in the UI (see
+    [Settings — Display live log messages](./settings.md#display-live-log-messages)).
+    Same level options as above. Default is `INFO`.
+
+`TCM_CONSOLE_LOG_WIDTH`
+
+:   Width of console log output in characters. Integer ≥ 40, or leave unset for
+    automatic width.
+
+`TCM_INTERCEPT_PLEX_LOGS`
+
+:   Set to `TRUE` to send Plex API log messages through TCM’s logging. Default is
+    `FALSE`. For more Plex options, see [Plex variables](#plex-variables).
+
+`TCM_PACKAGE_LOGGING`
+
+:   Comma-separated list of package names whose loggers should be intercepted by
+    TCM’s logging. Empty by default.
+
+`TCM_LOG_RETENTION_DAYS`
+
+:   Number of days to keep log files before deletion. Integer ≥ 1. Default is `7`.
+
+### Data retention
+
+`TCM_UNSYNCED_SERIES_RETENTION_DAYS`
+
+:   Number of days to keep series that have not been synced. Integer ≥ 1.
+    Default is `10`.
+
+### Integrations & card types
+
+`TCM_SONARR_REQUEST_TIMEOUT`
+
+:   Sonarr request timeout in seconds. Integer between 10 and 10000. Default is `500`.
+
+`TCM_CARD_TYPE_REPOSITORY`
+
+:   Base URL of the card type repository (e.g. GitHub raw URL). Default points to
+    the official TitleCardMaker/CardTypes repository branch for your version.
+
+`TCM_IMAGEMAGICK_CONTAINER`
+
+:   Name or ID of a Docker container used to run ImageMagick commands. Use when
+    TCM runs on the host but ImageMagick runs in a container. Unset by default.
+
+### ImageMagick (optional)
+
+`TCM_IM_PATH`
+
+:   Path to the ImageMagick executable (e.g. `convert` or `magick`) when not
+    using the default on `PATH` or a Docker container. Can also be set via
+    [Settings](./settings.md). Unset by default.
+
+### Timezone
+
+`TZ`
+
+:   Timezone used for local time (e.g. in logs and UI). Standard timezone name
+    (e.g. `America/Los_Angeles`). A list is available
+    [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If unset,
+    the system local timezone is used, or `UTC` as fallback.
 
 ### Plex Variables
 

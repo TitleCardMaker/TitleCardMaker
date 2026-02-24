@@ -63,3 +63,6 @@ _TZ Identifier_ column for a reference list.
 
 6. Uncomment these lines as needed __if__ you want the TitlecardMaker container
 to be dependant upon these services (for a cleaner boot).
+
+For a full list of supported `TCM_*` and other environment variables, see
+[User Guide — Environment Variables](../user_guide/index.md#environment-variables).
