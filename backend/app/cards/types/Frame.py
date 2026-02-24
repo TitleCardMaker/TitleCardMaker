@@ -11,6 +11,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     PreviewCard,
     add_cli,
 )
@@ -219,14 +220,14 @@ class FrameTitleCard(BaseCardType):
             return [
                 # Align text and image based on positioning
                 f'-gravity {gravity}',
-                fr'\(',
+                *ImageStack(
                     # Add index texts
                     *self._index_font_attributes,
                     f'label:"{self.season_text}"' if not self.hide_season else '',
                     f'label:"{self.episode_text}"' if not self.hide_episode else '',
                     # Smush vertically
                     f'-smush 25',
-                fr'\)',
+                ),
                 # Overlay on left/right of the title text
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
@@ -240,10 +241,10 @@ class FrameTitleCard(BaseCardType):
         if not self.hide_season:
             season_command = [
                 f'-gravity east',
-                fr'\(',
+                *ImageStack(
                     *self._index_font_attributes,
                     f'label:"{self.season_text}"',
-                fr'\)',
+                ),
                 f'-gravity east',
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
@@ -254,10 +255,10 @@ class FrameTitleCard(BaseCardType):
         if not self.hide_episode:
             episode_command = [
                 f'-gravity west',
-                fr'\(',
+                *ImageStack(
                     *self._index_font_attributes,
                     f'label:"{self.episode_text}"',
-                fr'\)',
+                ),
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
             ]

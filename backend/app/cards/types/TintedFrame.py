@@ -12,6 +12,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     Rectangle,
     Shadow,
 )
@@ -391,12 +392,12 @@ class TintedFrameTitleCard(BaseCardType):
             f'-blur 0x20',
             # Crop out center area of the source image
             f'-gravity center',
-            fr'\(',
+            *ImageStack(
                 f'"{self.source_file.resolve()}"',
                 *self.resize_and_style,
                 f'-crop {crop_width}x{crop_height}+0+0',
                 f'+repage',
-            fr'\)',
+            ),
             # Overlay unblurred center area
             f'-composite',
         ]
@@ -518,10 +519,10 @@ class TintedFrameTitleCard(BaseCardType):
 
         return self.add_drop_shadow(
             [
-                fr'\(',
+                *ImageStack(
                     f'"{self.logo.resolve()}"',
                     *resize_command,
-                fr'\)',
+                ),
                 f'-gravity center',
             ],
             shadow=Shadow(opacity=85, sigma=4),

@@ -11,6 +11,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     PreviewCard,
     add_cli,
 )
@@ -303,14 +304,12 @@ class BannerTitleCard(BaseCardType):
 
         # Determine the width of the title text
         top_y = self.banner_height + self.font_vertical_shift - 60
-        top_text_commands = [
-            fr'\(',
-                f'-background none',
-                *base_commands,
-                f'-gravity southwest',
-                f'label:"{self.top_title_text}"',
-            fr'\)',
-        ]
+        top_text_commands = ImageStack(
+            f'-background none',
+            *base_commands,
+            f'-gravity southwest',
+            f'label:"{self.top_title_text}"',
+        )
         top_width, _ = self.image_magick.get_text_dimensions(top_text_commands)
 
         # Determine commands for the bottom line of text
@@ -325,8 +324,13 @@ class BannerTitleCard(BaseCardType):
 
             # Positioning the bottom line of text 300px within from end of top
             bottom_x = self.x_offset + top_width - 300
-            bottom_y = self.HEIGHT - self.banner_height \
-                - self.font_vertical_shift - 90 + self.font_interline_spacing
+            bottom_y = (
+                self.HEIGHT
+                - self.banner_height
+                - self.font_vertical_shift
+                - 90
+                + self.font_interline_spacing
+            )
 
             # Determine the width of the text to avoid overlap
             left_boundary = self.x_offset + self.index_text_width

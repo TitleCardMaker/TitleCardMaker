@@ -14,6 +14,7 @@ from app.cards.base import (
     Dimensions,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     PreviewCard,
     Shadow,
     add_cli,
@@ -339,12 +340,10 @@ class CalligraphyTitleCard(BaseCardType):
         # If randomizing the texture, scale by random value
         if self.randomize_texture:
             random_height = (random() + 1.0) * self.HEIGHT
-            texture_command = [
-                fr'\(',
-                    f'"{self.TEXTURE_IMAGE.resolve()}"',
-                    f'-resize x{random_height}',
-                fr'\)',
-            ]
+            texture_command = ImageStack(
+                f'"{self.TEXTURE_IMAGE.resolve()}"',
+                f'-resize x{random_height}',
+            )
 
         return [
             *texture_command,

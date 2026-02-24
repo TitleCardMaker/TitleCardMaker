@@ -9,6 +9,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
 )
 from app.schemas.base import (
     BaseCardModel,
@@ -227,9 +228,7 @@ class OlivierTitleCard(BaseCardType):
                 gradient_command = [f'"{self._ALT_GRADIENT.resolve()}"']
 
             return [
-                fr'\(',
-                    *gradient_command,
-                fr'\)',
+                *ImageStack(*gradient_command),
                 f'-geometry -{(self.WIDTH - self.HEIGHT) / 2}+0',
                 f'-composite',
             ]
@@ -248,8 +247,8 @@ class OlivierTitleCard(BaseCardType):
         interline_spacing = -20 + self.font_interline_spacing
         vertical_shift = 785 + self.font_vertical_shift
 
-        return [
-            fr'\(',
+        return (
+            ImageStack(
                 f'-font "{self.font_file}"',
                 f'-gravity northwest',
                 f'-pointsize {font_size}',
@@ -260,14 +259,13 @@ class OlivierTitleCard(BaseCardType):
                 f'-stroke "{self.stroke_color}"',
                 f'-strokewidth {stroke_width}',
                 f'-annotate +320+{vertical_shift} "{self.title_text}"',
-            fr'\)',
-            fr'\(',
+            ) + ImageStack(
                 f'-fill "{self.font_color}"',
                 f'-stroke "{self.font_color}"',
                 f'-strokewidth 0',
                 f'-annotate +320+{vertical_shift} "{self.title_text}"',
-            fr'\)',
-        ]
+            )
+        )
 
 
     @property

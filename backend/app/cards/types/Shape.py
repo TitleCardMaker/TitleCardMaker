@@ -24,6 +24,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 
@@ -438,10 +439,10 @@ class ShapeTitleCard(BaseCardType):
             geometry = f'+{(self.WIDTH - self.HEIGHT) / 2}+0'
 
         return [
-            fr'\(',
+            *ImageStack(
                 f'"{self.GRADIENT.resolve()}"',
                 fr'-rotate {rotation}',
-            fr'\)',
+            ),
             f'-geometry {geometry}',
             f'-composite',
         ]

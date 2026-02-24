@@ -9,6 +9,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
 )
 from app.schemas.base import BaseCardModel
 
@@ -305,12 +306,7 @@ class CutoutTitleCard(BaseCardType):
             return [f'"{self.__text_mask.resolve()}"']
 
         # No cutout shift, can generate mask on-the-fly
-        return [
-            fr'\(',
-                *text_commands,
-                blur,
-            fr'\)'
-        ]
+        return ImageStack(*text_commands, blur)
 
 
     @property
@@ -323,7 +319,7 @@ class CutoutTitleCard(BaseCardType):
 
         return [
             # Add source image
-            fr'\(',
+            *ImageStack(
                 f'"{self.source_file.resolve()}"',
                 # Scale the alpha channel by the given transparency
                 f'-alpha set',
@@ -332,7 +328,7 @@ class CutoutTitleCard(BaseCardType):
                 f'+channel',
                 # Apply styling
                 *self.resize_and_style,
-            fr'\)',
+            ),
             # Add semi-transparent source on top of composition
             f'-composite',
         ]
@@ -348,15 +344,15 @@ class CutoutTitleCard(BaseCardType):
             f'convert',
             f'-set colorspace sRGB',
             # Create solid-color overlay
-            fr'\(',
+            *ImageStack(
                 f'-size "{self.TITLE_CARD_SIZE}"',
                 f'xc:"{self.overlay_color}"',
-            fr'\)',
+            ),
             # Resize and optionally blur source image
-            fr'\(',
+            *ImageStack(
                 f'"{self.source_file.resolve()}"',
                 *self.resize_and_style,
-            fr'\)',
+            ),
             # Create/add cutout of episode text
             *self.episode_text_mask,
             # Use masked alpha composition to combine images

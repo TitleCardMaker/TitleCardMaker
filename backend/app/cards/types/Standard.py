@@ -9,6 +9,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
 )
 from app.logging.logger import log # noqa: F401
 from app.schemas.base import (
@@ -269,7 +270,7 @@ class StandardTitleCard(BaseCardType):
             *base_commands,
             f'-gravity center',
             # Stroke behind primary text
-            fr'\(',
+            *ImageStack(
                 f'-fill "{self.episode_text_stroke_color}"',
                 f'-stroke "{self.episode_text_stroke_color}"',
                 f'-strokewidth 6',
@@ -281,14 +282,14 @@ class StandardTitleCard(BaseCardType):
                 f'label:"{self.episode_text}"',
                 # Combine season+episode text into one "image"
                 f'+smush 25',
-            fr'\)',
+            ),
             # Add season+episode text "image" to source image
             f'-gravity north',
             f'-geometry +0{y:+}',
             f'-composite',
             # Primary text
             f'-gravity center',
-            fr'\(',
+            *ImageStack(
                 f'-fill "{self.episode_text_color}"',
                 f'-stroke "{self.episode_text_color}"',
                 f'-strokewidth 0.75',
@@ -299,7 +300,7 @@ class StandardTitleCard(BaseCardType):
                 f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
                 f'label:"{self.episode_text}"',
                 f'+smush 30',
-            fr'\)',
+            ),
             # Add text to source image
             f'-gravity north',
             f'-geometry +0{y+2:+}',

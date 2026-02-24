@@ -10,6 +10,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
 )
 
 
@@ -309,10 +310,10 @@ class DividerTitleCard(BaseCardType):
             return []
 
         return [
-            fr'\(',
+            *ImageStack(
                 f'-size {self.divider_width}x{divider_height + 25}',
                 f'xc:"{color}"',
-            fr'\)',
+            ),
             f'+size',
             f'-gravity center',
             f'+smush 25',
@@ -387,7 +388,7 @@ class DividerTitleCard(BaseCardType):
             f'-strokewidth {stroke_width}',
             f'-interline-spacing {self.font_interline_spacing}',
             f'-interword-spacing {self.font_interword_spacing}',
-            fr'\(',
+            *ImageStack(
                 f'-stroke "{self.stroke_color}"',
                 *self.text_command(divider_height, is_stroke_text=True),
                 # Combine text images
@@ -395,19 +396,19 @@ class DividerTitleCard(BaseCardType):
                 # Add border so the blurred text doesn't get sharply cut off
                 f'-border 50x{50+self.font_vertical_shift}',
                 f'-blur 0x5',
-            fr'\)',
+            ),
             # Overlay blurred text in correct position
             f'-gravity {gravity}',
             f'-composite',
             # Add title text
-            fr'\(',
+            *ImageStack(
                 f'-fill "{self.font_color}"',
                 # Use basically transparent color so text spacing matches
                 f'-stroke "rgba(1, 1, 1, 0.01)"',
                 *self.text_command(divider_height, is_stroke_text=False),
                 f'+smush 25',
                 f'-border 50x{50+self.font_vertical_shift}',
-            fr'\)',
+            ),
             # Overlay title text in correct position
             f'-gravity {gravity}',
             f'-composite',

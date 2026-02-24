@@ -10,6 +10,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     Shadow,
 )
 from app.info.episode import EpisodeInfo
@@ -22,10 +23,6 @@ Variation = Literal['left', 'surround', 'right', 'random']
 
 
 class ScoreTitleCard(BaseCardType):
-    """
-    CardType that produces title cards ... TODO
-    """
-
     """API Parameters"""
     API_DETAILS = CardTypeDescription(
         name='Score',
@@ -306,11 +303,11 @@ class ScoreTitleCard(BaseCardType):
         rotation = 180 if self.placement == 'top' else 0
 
         return [
-            fr'\(',
+            *ImageStack(
                 f'"{self._GRADIENT_IMAGE.resolve()}"',
                 f'-gravity center',
                 f'-rotate {rotation}',
-            fr'\)',
+            ),
             f'-composite',
         ]
 
@@ -359,17 +356,15 @@ class ScoreTitleCard(BaseCardType):
         ]
 
         return self.add_drop_shadow(
-            [
-                fr'\(',
-                    f'-background transparent',
-                    f'-font "{self.EPISODE_TEXT_FONT}"',
-                    *(prefix_cmds if self.label_placement == 'above' else number_cmds),
-                    *(number_cmds if self.label_placement == 'above' else prefix_cmds),
-                    # Combine two text images (vertically)
-                    f'-gravity center',
-                    f'-smush 15' if prefix else '',
-                fr'\)',
-            ],
+            ImageStack(
+                f'-background transparent',
+                f'-font "{self.EPISODE_TEXT_FONT}"',
+                *(prefix_cmds if self.label_placement == 'above' else number_cmds),
+                *(number_cmds if self.label_placement == 'above' else prefix_cmds),
+                # Combine two text images (vertically)
+                f'-gravity center',
+                f'-smush 15' if prefix else '',
+            ),
             Shadow(opacity=90, sigma=2, x=7, y=7),
             shadow_color=self.stroke_color,
             compose=False,
@@ -420,17 +415,15 @@ class ScoreTitleCard(BaseCardType):
         ]
 
         return self.add_drop_shadow(
-            [
-                fr'\(',
-                    f'-background transparent',
-                    f'-font "{self.EPISODE_TEXT_FONT}"',
-                    *(prefix_cmds if self.label_placement == 'above' else number_cmds),
-                    *(number_cmds if self.label_placement == 'above' else prefix_cmds),
-                    # Combine two text images (vertically)
-                    f'-gravity center',
-                    f'-smush 15' if prefix else '',
-                fr'\)',
-            ],
+            ImageStack(
+                f'-background transparent',
+                f'-font "{self.EPISODE_TEXT_FONT}"',
+                *(prefix_cmds if self.label_placement == 'above' else number_cmds),
+                *(number_cmds if self.label_placement == 'above' else prefix_cmds),
+                # Combine two text images (vertically)
+                f'-gravity center',
+                f'-smush 15' if prefix else '',
+            ),
             Shadow(opacity=90, sigma=2, x=7, y=7),
             shadow_color=self.stroke_color,
             compose=False,
@@ -481,12 +474,12 @@ class ScoreTitleCard(BaseCardType):
         # Left style is [ season / episode / title ]
         if self.variation == 'left':
             return [
-                fr'\(',
+                *ImageStack(
                     *self._season_text_commands,
                     *self._episode_text_commands,
                     f'-gravity west',
                     f'+smush 65',
-                fr'\)',
+                ),
                 f'-gravity {gravity_prefix}west',
                 f'-geometry {x:+}{y:+}',
                 f'-composite',
@@ -494,12 +487,12 @@ class ScoreTitleCard(BaseCardType):
 
         # Right style is [ title / season / episode ]
         return [
-            fr'\(',
+            *ImageStack(
                 *self._season_text_commands,
                 *self._episode_text_commands,
                 f'-gravity east',
                 f'+smush 65',
-            fr'\)',
+            ),
             f'-gravity {gravity_prefix}east',
             f'-geometry {x:+}{y:+}',
             f'-composite',

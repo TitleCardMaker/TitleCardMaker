@@ -10,6 +10,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     add_cli,
 )
 from app.schemas.base import BaseCardModel, FontSize
@@ -333,16 +334,16 @@ class NegativeSpaceTitleCard(BaseCardType):
             f'-size "{self.TITLE_CARD_SIZE}"',
             # First image is the filled number mask where white is the
             # episode number, and the background is black
-            fr'\(',
+            *ImageStack(
                 f'xc:black',
                 *self.numeral_commands('white'),
-            fr'\)',
+            ),
             # Second image is the filled title mask where black is the
             # title text, and the background is white
-            fr'\(',
+            *ImageStack(
                 f'xc:white',
                 *self.title_text_commands('black'),
-            fr'\)',
+            ),
             # Create difference composite mask of the two images
             f'-compose difference',
             f'-composite',
@@ -367,11 +368,11 @@ class NegativeSpaceTitleCard(BaseCardType):
             # Layer 0 is the text
             f'"{text_image.resolve()}"',
             # Layer 1 is the source image
-            fr'\(',
+            *ImageStack(
                 f'"{self.source_file.resolve()}"',
                 # Resize and apply styles to source image
                 *self.resize_and_style,
-            fr'\)',
+            ),
             # Layer 2 is the mask
             f'"{difference_mask.resolve()}"',
             # Use masked alpha composition to combine images

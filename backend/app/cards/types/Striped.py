@@ -19,6 +19,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     SplitStyle,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
@@ -760,10 +761,10 @@ class StripedTitleCard(BaseCardType):
             # Resize and apply styles to source image
             *self.resize_and_style,
             # Create mask
-            fr'\(',
+            *ImageStack(
                 f'-size "{self.TITLE_CARD_SIZE}"',
                 f'xc:"{self.overlay_color}"',
-            fr'\)',
+            ),
             # Use mask composition
             f'"{mask.resolve()}"',
             f'-composite',

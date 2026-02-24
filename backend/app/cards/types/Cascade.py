@@ -14,6 +14,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     PreviewCard,
     Rectangle,
     add_cli,
@@ -530,7 +531,7 @@ class CascadeTitleCard(BaseCardType):
 
         return [
             # Blur rectangle in the given bounds
-            fr'\(',
+            *ImageStack(
                 f'-clone 0',
                 f'-fill white',
                 f'-colorize 100',
@@ -539,7 +540,7 @@ class CascadeTitleCard(BaseCardType):
                 f'-alpha off',
                 f'-write mpr:mask',
                 f'+delete',
-            fr'\)',
+            ),
             f'-mask mpr:mask',
             f'' if self.blur else f'-blur 0x12',
             f'+mask',
@@ -561,25 +562,23 @@ class CascadeTitleCard(BaseCardType):
             return []
 
         # Both text modes need a reference image for the top line
-        commands = [
-            fr'\(',
-                f'-background none',
-                f'-fill "{self.cascade_fill_color}"',
-                f'-stroke "{self.cascade_outline_color}"',
-                f'-strokewidth {self.cascade_width}',
-                f'label:"{self.title_text.splitlines()[0]}"',
-                # Remove any white space padding
-                f'-trim',
-                # Repage so that future crops aren't misaligned
-                f'+repage',
-            fr'\)',
-        ]
+        commands = ImageStack(
+            f'-background none',
+            f'-fill "{self.cascade_fill_color}"',
+            f'-stroke "{self.cascade_outline_color}"',
+            f'-strokewidth {self.cascade_width}',
+            f'label:"{self.title_text.splitlines()[0]}"',
+            # Remove any white space padding
+            f'-trim',
+            # Repage so that future crops aren't misaligned
+            f'+repage',
+        )
         # Multiple lines of text: Create two reference images; one for
         # the top line of text, the other for the last. These need to be
         # deleted from the final image by deleting indices 1 and 2.
         if self.__multiline_mode:
-            commands.extend([
-                fr'\(',
+            commands.extend(
+                ImageStack(
                     f'-background none',
                     f'-fill "{self.cascade_fill_color}"',
                     f'-stroke "{self.cascade_outline_color}"',
@@ -589,8 +588,8 @@ class CascadeTitleCard(BaseCardType):
                     f'-trim',
                     # Repage so that future crops aren't misaligned
                     f'+repage',
-                fr'\)',
-            ])
+                )
+            )
         # Single line of text: Create one reference image as the entire
         # title text. This needs to be deleted from the final image by
         # deleting index 1.
@@ -624,9 +623,9 @@ class CascadeTitleCard(BaseCardType):
 
             # Add top cascade
             top_reference_id = 1
-            commands.extend([
+            commands.extend(
                 # Add a new image to the stack
-                fr'\(',
+                ImageStack(
                     # Clone the reference outline image
                     f'-clone {top_reference_id}',
                     # Crop the top part of the reference image
@@ -644,14 +643,14 @@ class CascadeTitleCard(BaseCardType):
                     f'-gravity center',
                     f'-geometry +0-{top_dy}',
                     f'-composite',
-                fr'\)',
-            ])
+                )
+            )
 
             # Add bottom cascade
             bottom_reference_id = 2 if self.__multiline_mode else 1
-            commands.extend([
+            commands.extend(
                 # Add a new image to the stack
-                fr'\(',
+                ImageStack(
                     # Clone the reference outline image
                     f'-clone {bottom_reference_id}',
                     # Crop the bottom part of the reference image
@@ -668,8 +667,8 @@ class CascadeTitleCard(BaseCardType):
                     f'-gravity center',
                     f'-geometry +0+{bottom_dy}',
                     f'-composite',
-                fr'\)',
-            ])
+                )
+            )
 
         # Delete the original base image (as its now merged in the last
         # cascade on the stack), and the reference cascade image(s)
@@ -826,7 +825,7 @@ class CascadeTitleCard(BaseCardType):
             file = self.font_file
 
         return [
-            fr'\(',
+            *ImageStack(
                 f'-background none',
                 f'-fill "{self.font_color}"',
                 f'-font "{file}"',
@@ -838,7 +837,7 @@ class CascadeTitleCard(BaseCardType):
                 f'label:"{text}"',
                 # Remove any white space padding
                 f'-trim',
-            fr'\)',
+            ),
             f'-geometry +0{y_pos:+}',
             # Add to image
             f'-composite',

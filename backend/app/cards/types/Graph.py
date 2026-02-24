@@ -13,6 +13,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     Line,
     PreviewCard,
     add_cli,
@@ -363,10 +364,10 @@ class GraphTitleCard(BaseCardType):
             geometry = f'+{(self.WIDTH - self.HEIGHT) / 2}+0'
 
         return [
-            fr'\(',
+            *ImageStack(
                 f'"{self.GRADIENT.resolve()}"',
                 f'-rotate {rotation}',
-            fr'\)',
+            ),
             f'-geometry {geometry}',
             f'-composite',
         ]

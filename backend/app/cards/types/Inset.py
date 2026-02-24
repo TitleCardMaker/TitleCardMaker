@@ -10,6 +10,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     PreviewCard,
     Shadow,
     add_cli,
@@ -194,7 +195,7 @@ class InsetTitleCard(BaseCardType):
         size = 250 * self.font_size
 
         return [
-            fr'\(',
+            *ImageStack(
                 f'-background none',
                 f'-pointsize {size}',
                 f'-font "{self.font_file}"',
@@ -204,7 +205,7 @@ class InsetTitleCard(BaseCardType):
                 f'-fill "{self.font_color}"',
                 f'label:"{self.title_text}"',
                 f'-trim',
-            fr'\)',
+            ),
             f'-gravity south',
         ]
 
@@ -253,18 +254,16 @@ class InsetTitleCard(BaseCardType):
 
         size = 75 * self.episode_text_font_size # 1-3-1/4 font size base
 
-        index_text_commands = [
-            fr'\(',
-                f'-background none',
-                f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
-                f'+interline-spacing',
-                f'-fill "{self.episode_text_color}"',
-                f'-pointsize {size}',
-                f'-gravity south',
-                f'label:"{index_text}"',
-                f'-trim',
-            fr'\)',
-        ]
+        index_text_commands = ImageStack(
+            f'-background none',
+            f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
+            f'+interline-spacing',
+            f'-fill "{self.episode_text_color}"',
+            f'-pointsize {size}',
+            f'-gravity south',
+            f'label:"{index_text}"',
+            f'-trim',
+        )
         index_width, index_height = self.image_magick.get_text_label_dimensions(
             index_text_commands
         )
@@ -279,7 +278,7 @@ class InsetTitleCard(BaseCardType):
 
         return [
             # Copy source image
-            fr'\(',
+            *ImageStack(
                 f'"{self.source_file.resolve()}"',
                 # Make source transparent (according to transparency)
                 f'-alpha set',
@@ -298,7 +297,7 @@ class InsetTitleCard(BaseCardType):
                 # Blur edges so cropping is not so sharp
                 f'-blur 0x7',
                 f'-gravity south',
-            fr'\)',
+            ),
             # Additional y offset must be half of the canvas extension
             f'-geometry +0+{crop_y - 20:.0f}',
             f'-composite',

@@ -17,6 +17,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontNoText
 
@@ -235,7 +236,7 @@ class TintedGlassTitleCard(BaseCardType):
 
         return [
             # Blur rectangle in the given bounds
-            fr'\(',
+            *ImageStack(
                 f'-clone 0',
                 f'-fill white',
                 f'-colorize 100',
@@ -244,7 +245,7 @@ class TintedGlassTitleCard(BaseCardType):
                 f'-alpha off',
                 f'-write mpr:mask',
                 f'+delete',
-            fr'\)',
+            ),
             f'-mask mpr:mask',
             f'-blur {self.TEXT_BLUR_PROFILE}' if not self.blur else '',
             f'+mask',

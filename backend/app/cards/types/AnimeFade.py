@@ -10,6 +10,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     PreviewCard,
     add_cli,
 )
@@ -260,41 +261,35 @@ class AnimeFadeTitleCard(BaseCardType):
         ]
 
         if self.hide_episode_text:
-            return [
-                fr'\(',
-                    *base_commands,
-                    f'-fill "{self.season_text_color}"',
-                    f'-stroke "{self.season_text_color}"',
-                    f'-strokewidth 2',
-                    f'label:"{self.season_text}"',
-                fr'\)',
-            ]
-
-        if self.hide_season_text:
-            return [
-                fr'\(',
-                    *base_commands,
-                    f'-fill "{self.episode_text_color}"',
-                    f'-stroke "{self.episode_text_color}"',
-                    f'-strokewidth 0',
-                    f'label:"{self.episode_text}"',
-                fr'\)',
-            ]
-
-        return [
-            fr'\(',
+            return ImageStack(
                 *base_commands,
                 f'-fill "{self.season_text_color}"',
                 f'-stroke "{self.season_text_color}"',
                 f'-strokewidth 2',
-                f'label:"{self.season_text} {self.separator}"',
-                f'-strokewidth 0',
+                f'label:"{self.season_text}"',
+            )
+
+        if self.hide_season_text:
+            return ImageStack(
+                *base_commands,
                 f'-fill "{self.episode_text_color}"',
                 f'-stroke "{self.episode_text_color}"',
+                f'-strokewidth 0',
                 f'label:"{self.episode_text}"',
-                fr'+smush 30',
-            fr'\)',
-        ]
+            )
+
+        return ImageStack(
+            *base_commands,
+            f'-fill "{self.season_text_color}"',
+            f'-stroke "{self.season_text_color}"',
+            f'-strokewidth 2',
+            f'label:"{self.season_text} {self.separator}"',
+            f'-strokewidth 0',
+            f'-fill "{self.episode_text_color}"',
+            f'-stroke "{self.episode_text_color}"',
+            f'label:"{self.episode_text}"',
+            fr'+smush 30',
+        )
 
 
     @property
@@ -308,19 +303,17 @@ class AnimeFadeTitleCard(BaseCardType):
         # Subcommands for kanji text
         kanji_commands = []
         if self.use_kanji:
-            kanji_commands = [
-                fr'\(',
-                    f'-font "{self.KANJI_FONT.resolve()}"',
-                    f'-kerning 2',
-                    f'-pointsize {68 * self.kanji_font_size}',
-                    f'-fill "{self.kanji_color}"',
-                    f'label:"{self.kanji}"',
-                fr'\)',
-            ]
+            kanji_commands = ImageStack(
+                f'-font "{self.KANJI_FONT.resolve()}"',
+                f'-kerning 2',
+                f'-pointsize {68 * self.kanji_font_size}',
+                f'-fill "{self.kanji_color}"',
+                f'label:"{self.kanji}"',
+            )
 
         return [
             # Create image stack from top to bottom
-            fr'\(',
+            *ImageStack(
                 f'-gravity southwest',
                 # Ensure all label images are transparent and dynamically sized
                 f'-background transparent',
@@ -328,7 +321,7 @@ class AnimeFadeTitleCard(BaseCardType):
                 # Kanji Text
                 *kanji_commands,
                 # Title Text
-                fr'\(',
+                *ImageStack(
                     f'-fill "{self.font_color}"',
                     f'-font "{self.font_file}"',
                     f'-kerning {self.font_kerning}',
@@ -337,12 +330,12 @@ class AnimeFadeTitleCard(BaseCardType):
                     f'-pointsize {112 * self.font_size}',
                     f'-gravity southwest',
                     f'label:"{self.title_text}"',
-                fr'\)',
+                ),
                 # Index Text
                 *self.index_text_command,
                 # Vertically stack kanji / title / index
                 f'-smush 45',
-            fr'\)',
+            ),
             f'-gravity {gravity}',
             f'-geometry +75+175',
             f'-composite',
@@ -364,11 +357,11 @@ class AnimeFadeTitleCard(BaseCardType):
         logo_size = 500 * self.logo_size
 
         return [
-            fr'\(',
+            *ImageStack(
                 f'"{self.logo_file.resolve()}"',
                 f'-resize 900x',
                 fr'-resize x{logo_size}\>',
-            fr'\)',
+            ),
             f'-gravity west',
             f'-geometry +100-550',
             f'-composite',
@@ -385,11 +378,11 @@ class AnimeFadeTitleCard(BaseCardType):
             f'-size "{self.TITLE_CARD_SIZE}"',
             f'xc:None',
             # Resize source to subsection of card
-            fr'\(',
+            *ImageStack(
                 f'"{self.source_file.resolve()}"',
                 f'-resize x1525',
                 *self.style,
-            fr'\)',
+            ),
             # Compose source onto proper place on canvas (100px from right)
             f'-gravity east',
             f'-geometry +100+0',
@@ -425,7 +418,6 @@ def get_validator_model() -> type[BaseCardModel]:
         logo_size: Annotated[float, Field(ge=0.0)] = 1.0
         episode_text_color: str = AnimeFadeTitleCard.EPISODE_TEXT_COLOR
         episode_text_font_size: Annotated[float, Field(ge=0.0)] = 1.0
-        logo_size: Annotated[float, Field(ge=0.0)] = 1.0
         season_text_color: str | None = None
         text_position: TextPosition = 'bottom'
 

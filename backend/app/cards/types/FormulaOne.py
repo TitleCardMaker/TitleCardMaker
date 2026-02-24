@@ -17,6 +17,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
     PreviewCard,
     add_cli,
 )
@@ -259,10 +260,10 @@ class FormulaOneTitleCard(BaseCardType):
         return [
             # Create dark overlay
             f'-gravity center',
-            fr'\(',
+            *ImageStack(
                 f'-size {self.TITLE_CARD_SIZE}',
                 f'xc:"{self.DARKEN_COLOR}"',
-            fr'\)',
+            ),
             f'-composite',
             # Add frame
             f'"{self.FRAME.resolve()}"',

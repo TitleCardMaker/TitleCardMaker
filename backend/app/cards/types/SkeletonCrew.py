@@ -11,6 +11,7 @@ from app.cards.base import (
     DefaultCardConfig,
     ImageMagickCommands,
     Extra,
+    ImageStack,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
 
@@ -497,6 +498,14 @@ class SkeletonCrewTitleCard(BaseCardType):
                 f'-strokewidth {4 * self.font_stroke_width}',
             ]
 
+        bottom_title_text_commands = []
+        if title_bottom_text:
+            bottom_title_text_commands = [
+                f'-font "{self.TITLE_FONT_BOTTOM.resolve()}"',
+                f'label:"{title_bottom_text}"',
+                f'-append',
+            ]
+
         return [
             # Add title text
             f'-font "{self.CardConfig.font_file.resolve()}"',
@@ -504,17 +513,12 @@ class SkeletonCrewTitleCard(BaseCardType):
             f'-pointsize {font_size}',
             f'-background transparent',
             f'-fill "{self.font_color}"',
-            fr'\(',
+            *ImageStack(
                 f'-font "{self.CardConfig.font_file.resolve()}"',
                 *stroke_commands,
                 f'label:"{title_main_text}"',
-        ] + ([
-                # Conditionally add bottom title text if it exists
-                f'-font "{self.TITLE_FONT_BOTTOM.resolve()}"',
-                f'label:"{title_bottom_text}"',
-                f'-append',
-        ] if title_bottom_text else []) + [
-            fr'\)',
+                *bottom_title_text_commands,
+            ),
             f'-geometry +0{y:+}',
             f'-composite',
         ]
@@ -597,11 +601,11 @@ class SkeletonCrewTitleCard(BaseCardType):
         self.image_magick.run([
             f'convert',
             # Layer 0 is the source image which will be the background
-            fr'\(',
+            *ImageStack(
                 f'"{self.source_file.resolve()}"',
                 # Resize and apply styles to source image
                 *self.resize_and_style,
-            fr'\)',
+            ),
             # Layer 1 is the overlay image
             f'"{overlay_image.resolve()}"',
             # Use compose over to combine

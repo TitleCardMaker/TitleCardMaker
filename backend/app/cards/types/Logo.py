@@ -9,6 +9,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
@@ -295,11 +296,11 @@ class LogoTitleCard(BaseCardType):
 
         return [
             f'-gravity north',
-            fr'\(',
+            *ImageStack(
                 f'"{self.logo.resolve()}"',
                 f'-resize x{max_height}',
                 fr'-resize {max_width}x{max_height}\>',
-            fr'\)',
+            ),
             f'-geometry {self.logo_horizontal_shift:+}{offset:+}',
             f'-composite',
         ]
@@ -358,7 +359,7 @@ class LogoTitleCard(BaseCardType):
             f'-pointsize 67.75',
             f'-interword-spacing 14.5',
             # Black stroke behind primary text
-            fr'\(',
+            *ImageStack(
                 f'-fill black',
                 f'-stroke black',
                 f'-strokewidth 6',
@@ -370,12 +371,12 @@ class LogoTitleCard(BaseCardType):
                 f'label:"{self.episode_text}"',
                 # Combine season+episode text into one "image"
                 f'+smush 25',
-            fr'\)',
+            ),
             # Add season+episode text "image" to source image
             f'-geometry +0{y:+}',
             f'-composite',
             # Primary text
-            fr'\(',
+            *ImageStack(
                 f'-fill "{self.episode_text_color}"',
                 f'-stroke "{self.episode_text_color}"',
                 f'-strokewidth 0.75',
@@ -386,7 +387,7 @@ class LogoTitleCard(BaseCardType):
                 f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
                 f'label:"{self.episode_text}"',
                 f'+smush 30',
-            fr'\)',
+            ),
             # Add text to source image
             f'-geometry +0{y:+}',
             f'-composite',

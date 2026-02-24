@@ -9,6 +9,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    ImageStack,
 )
 from app.schemas.base import BaseCardModel, FontSize
 
@@ -184,7 +185,7 @@ class StarWarsTitleCard(BaseCardType):
             f'-fill "{self.episode_text_color}"',
             f'-background transparent',
             # Create prefix text
-            fr'\(',
+            *ImageStack(
                 f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
                 f'label:"{self.episode_prefix}"',
                 # Create actual episode text
@@ -192,7 +193,7 @@ class StarWarsTitleCard(BaseCardType):
                 f'label:"{self.episode_text}"',
                 # Combine prefix and episode text
                 f'+smush 65',
-            fr'\)',
+            ),
             # Add combined text to image
             f'-geometry +325-140',
             f'-composite',
