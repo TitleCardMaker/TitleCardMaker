@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Literal, TypeVar, overload
+from collections.abc import Callable
+from typing import Any, Literal, TypeVar, overload
 
 from app.logging.logger import log
 
@@ -354,11 +355,10 @@ class InterfaceID:
         """
 
         changed = False
-        for key in self._id_map:
-            if key == str(connection_id):
-                del self._id_map[key]
-                changed = True
-            elif key.startswith(f'{connection_id}:'):
+        # Copy the ID map to avoid modifying the original while
+        # iterating
+        for key in self._id_map.copy():
+            if key == str(connection_id) or key.startswith(f'{connection_id}:'):
                 del self._id_map[key]
                 changed = True
 

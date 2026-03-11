@@ -51,9 +51,9 @@ def get_missing_cards(
                 ),
             )
             .outerjoin(EpisodeModel.series)
-            .filter(not_(EpisodeModel.id.in_(
-                db.query(CardModel.episode_id).distinct()
-            )))
+            .filter(
+                EpisodeModel.id.not_in(db.query(CardModel.episode_id).distinct())
+            )
             .order_by(
                 EpisodeModel.series_id,
                 EpisodeModel.season_number,
