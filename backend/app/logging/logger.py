@@ -53,18 +53,20 @@ def _sqlalchemy_sink(message: 'Message') -> None:
     """Write log messages to SQLAlchemy database."""
 
     record = message.record
-    
+
+    # Add exception formatting
     exc_type = None
     exc_value = None
     exc_traceback = None
     if record['exception'] is not None and len(base_logger._core.handlers) > 2:
         exc_type = str(record['exception'].type)
-        exc_value = str(record['exception'].value)
+        exc_value = _redact_secrets(str(record['exception'].value))
         tb = base_logger._core.handlers[2]._exception_formatter.format_exception(
             *record['exception']
         )
         exc_traceback = _redact_secrets(''.join(tb))
 
+    # Create new log entry
     log_entry = Log(
         timestamp=record['time'],
         level_name=record['level'].name,
@@ -78,6 +80,7 @@ def _sqlalchemy_sink(message: 'Message') -> None:
         exception_traceback=exc_traceback
     )
 
+    # Add log entry to the database, commit and close the session
     db = LogsSessionLocal()
     try:
         db.add(log_entry)
@@ -287,6 +290,9 @@ class contextualize_request:
         self._sink_id: int | None = None
 
     def __enter__(self) -> tuple[Self, Logger]:
+        """Enter the contextualized logger context."""
+
+        # Bind the context ID to the logger
         self._logger = _global_log.bind(context_id=self._context_id)
         rlv.set(self._logger)
 
