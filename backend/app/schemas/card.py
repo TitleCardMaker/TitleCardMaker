@@ -196,8 +196,8 @@ class ReturnUnloadedCardSchema(Base):
     id: int
     series_id: int
     series: _SeriesData
-    episode_id: int
-    episode: EpisodeData
+    episode_id: int | None
+    episode: EpisodeData | None
     file_url: str
     # card_file: str
     # filesize: int

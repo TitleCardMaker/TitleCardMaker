@@ -204,6 +204,16 @@ class Page {
  */
 
 /**
+ * @typedef {Object} ReturnUnloadedCardSchema
+ * @property {number} id
+ * @property {number} series_id
+ * @property {_SeriesData} series
+ * @property {number | null} episode_id
+ * @property {EpisodeData | null} episode
+ * @property {string} file_url
+ */
+
+/**
  * @typedef {Object} TitleCard
  * @property {number} id
  * @property {number} series_id

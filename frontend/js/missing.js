@@ -3,6 +3,7 @@ import {
   Episode,
   Page,
   ReducedEpisodeData,
+  ReturnUnloadedCardSchema,
   Series
 } from './.types.js';
 {% endif %}
@@ -168,10 +169,10 @@ function queryUnloadedCards(page=1) {
       // Templates
       const table = document.getElementById('unloaded-cards');
       const tbody = table.querySelector('tbody');
-      
+
       // Clear all existing content and reset any expanded states
       tbody.replaceChildren();
-      
+
       const template = document.getElementById('unloaded-card-template');
       const detailTemplate = document.getElementById('unloaded-card-detail-template');
       const imageTemplate = document.getElementById('unloaded-card-image-template');
@@ -184,21 +185,21 @@ function queryUnloadedCards(page=1) {
         row.querySelector('td[data-row="series"] [data-value="name"]').innerText = cards[0].series.name;
         row.querySelector('td[data-row="series"] img').src = `/assets/${series_id}/poster-750.jpg`;
         row.querySelector('td[data-row="count"]').innerText = cards.length;
-        
+
         // Add expand/collapse functionality
         const expandButton = row.querySelector('[data-action="expand"]');
         expandButton.onclick = (event) => {
           event.stopPropagation();
           toggleUnloadedCards(series_id, cards, expandButton);
         };
-        
+
         // Add load cards functionality
         const loadButton = row.querySelector('[data-action="load"]');
         loadButton.onclick = (event) => {
           event.stopPropagation();
           loadSeriesCards(series_id, loadButton);
         };
-        
+
         tbody.appendChild(row);
 
         // Create detail row for cards
@@ -212,10 +213,13 @@ function queryUnloadedCards(page=1) {
           const cardElement = imageTemplate.content.cloneNode(true);
           cardElement.querySelector('.image img').src = card.file_url;
           cardElement.querySelector('[data-row="episode-info"]').innerText = 
-            `Season ${card.episode.season_number} Episode ${card.episode.episode_number}`;
+            card.episode
+            ? `Season ${card.episode.season_number} Episode ${card.episode.episode_number}`
+            : 'No Episode Data'
+          ;
           cardsContainer.appendChild(cardElement);
         });
-        
+
         tbody.appendChild(detailTr);
       }
 
