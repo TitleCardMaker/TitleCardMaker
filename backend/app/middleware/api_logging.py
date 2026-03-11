@@ -38,6 +38,7 @@ async def contextualize_api_requests(
 
     response = Response()
     with contextualize_request(request) as (api_contextualization, logger):
+        logger.trace(f'Starting {request.method} {request.url.path}')
         response = await call_next(request)
         api_contextualization.log_response(response)
         duration = (
