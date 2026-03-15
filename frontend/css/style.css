@@ -163,6 +163,38 @@ img ~ .color.palette {
 #page-header > [data-position="right"] >* {
   margin-right: 10px;
 }
+
+/* Supporter thanks text - random rating/thank-you in header */
+.supporter-thanks {
+  font-size: 0.85rem;
+  color: var(--sidebar-text-color-light, rgba(255, 255, 255, 0.9));
+  white-space: nowrap;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 6px;
+  transition: opacity 0.4s ease;
+}
+.supporter-thanks.supporter-thanks-fade-out {
+  opacity: 0;
+}
+@media (max-width: 768px) {
+  .supporter-thanks {
+    display: none;
+  }
+}
+.supporter-thanks .supporter-name {
+  font-weight: bold;
+  color: inherit;
+}
+.supporter-thanks .supporter-name-super .supporter-text-super,
+.supporter-thanks .supporter-text-super {
+  color: #d4af37 !important; /* gold */
+}
+body.dark .supporter-thanks {
+  color: var(--sidebar-text-color-dark, rgba(255, 255, 255, 0.9));
+}
+
 #tcm-logo {
   /* Pad the entire width of the sidebar */
   flex: 0 0 94px; /* 0 0 109px */
