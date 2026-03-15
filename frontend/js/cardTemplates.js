@@ -610,6 +610,15 @@ function initAll() {
 }
 
 /**
+ * Remove a filter condition row from the template.
+ * @param {HTMLButtonElement} button The remove button that was clicked.
+ */
+function removeFilterCondition(button) {
+  button.closest('.filter-condition-row').remove();
+  refreshTheme();
+}
+
+/**
  * Add a new blank filter set to the template containing the initiating button.
  * @param {HTMLDivElement} addButton Initiating add button which was clicked.
  */

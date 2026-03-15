@@ -15,7 +15,7 @@
   <link rel="stylesheet" type="text/css" href="/css/cardTemplates.css?{{preferences.config.CURRENT_VERSION}}"/>
 
   <template id="filter-template">
-    <div class="ui three fields">
+    <div class="ui three fields filter-condition-row">
       <div class="ui field">
         <div class="ui clearable selection dropdown" data-value="filter-arguments">
           <input name="argument" type="hidden">
@@ -73,8 +73,11 @@
         </div>
       </div>
       <div class="ui field">
-        <div class="ui input">
+        <div class="ui action input">
           <input data-value="filter-reference" name="reference" type="text" placeholder="Reference Value">
+          <button type="button" class="ui mini icon red button" data-action="remove-filter" onclick="removeFilterCondition(this);" title="Remove condition">
+            <i class="trash icon"></i>
+          </button>
         </div>
       </div>
     </div>
