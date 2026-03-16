@@ -62,6 +62,7 @@
                   "v2.0-alpha.14.0",
                   "v2.0-alpha.14.1",
                   "v2.0-alpha.15.0",
+                  "v2.16.0",
                 ] %}
                 {% for version in versions[::-1] %}
                   <div class="item" data-id="{{version}}">{{version}}</div>
@@ -71,6 +72,342 @@
           </div>
         </div>
       </h1>
+
+      <h2 id="v2.16.0" class="ui top attached header">
+        v2.16.0
+        <div class="sub header">Released March 15, 2026</div>
+      </h2>
+      <div data-version="v2.16.0" class="ui bottom attached segment">
+        <h3>Major Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Completely rewrite the program structure to closer align with a standard Python project layout
+            <div class="list">
+              <div class="item"><b>IMPORTANT</b>: All non-Docker users need to update their launch command to start TCM. See <a href="https://titlecardmaker.com/#updating" target="_blank">the docs</a> for details.</div>
+              <div class="item">Move the <b>app</b> folder into <b>backend</b>, remove the <b>modules</b> folder </div>
+              <div class="item">Move the <b>app/templates</b> folder into <b>frontend</b></div>
+              <div class="item">Move the <b>cypress</b> testing directory into <b>tests/cypress</b></div>
+              <div class="item">Rewrite all application logging (see below)</div>
+              <div class="item">Change all API routes to be versioned and include <b>/v2/</b></div>
+              <div class="item">Move all card type assets to <b>backend/assets/...</b> - if you have developed a custom card type file these references will need to be updated (I have already updated all those which were submitted to the Card Type repository)</div>
+            </div>
+          </div>
+          <div class="item">Completely overhaul the Scheduler to use <b>huey</b> instead of <b>apscheduler</b>
+            <div class="list">
+              <div class="item"><b>apscheduler</b> was prone to "breaking" by locking a Task's next execution in the past, and did not have nice-to-have features like thread locking, state persistence, etc.</div>
+              <div class="item">The Scheduler will now run in a separate thread from the main TCM server</div>
+              <div class="item">No longer allow scheduling Task frequencies with basic intervals (i.e. <b>5 hours</b>) in basic mode; instead all scheduling must be done with crontab strings</div>
+            </div>
+          </div>
+          <div class="item">Various improvements to the Add Series page
+            <div class="list">
+              <div class="item">Improve page layout with more consistent styling and positioning of various buttons</div>
+              <div class="item">Add help messages to each section to guide new users</div>
+              <div class="item">Redesign the Blueprint HTML elements to use popups instead of unexplained buttons
+            <div class="list">
+              <img width="50%" src="https://github.com/user-attachments/assets/a16d7165-bf47-4ab5-ba10-a517e9e6d796">
+            </div>
+          </div>
+            </div>
+          </div>
+          <div class="item">Various improvements to the home page filters
+            <div class="list">
+              <div class="item">Preserve the currently applied filter between reloads</div>
+              <div class="item">Add the ability to stop applying all filters on the home page</div>
+              <div class="item">Add the ability to delete a single filter condition from the home page</div>
+              <div class="item">Add length filter conditions - i.e. <b>has more items than</b>, and <b>has less items than</b> for filtering by list length and <b>text is longer than</b> and <b>text is shorter than</b> for filtering by string length</div>
+            </div>
+          </div>
+          <div class="item">Create new <i>Dictionary</i> card type
+            <div class="list">
+              <div class="item">All documentation is available <a href="https://titlecardmaker.com/card_types/dictionary/" target="_blank">here</a>
+            <div class="list">
+              <img width="50%" src="https://titlecardmaker.com/card_types/assets/dictionary.webp">
+            </div>
+          </div>
+            </div>
+          </div>
+          <div class="item">Create new <i>Anime Fade</i> card type - this was requested by user drewstopherlee
+            <div class="list">
+              <div class="item">All documentation is available <a href="https://titlecardmaker.com/card_types/anime_fade/" target="_blank">here</a>
+            <div class="list">
+              <img width="50%" src="https://titlecardmaker.com/card_types/assets/anime_fade.webp">
+            </div>
+          </div>
+            </div>
+          </div>
+          <div class="item">Improve the Graphs page
+            <div class="list">
+              <div class="item">Add an improved filter options section</div>
+              <div class="item">Label each graph
+            <div class="list">
+              <img width="50%" src="https://github.com/user-attachments/assets/31222926-a167-4c9c-a034-5c60a7208954">
+            </div>
+          </div>
+            </div>
+          </div>
+          <div class="item">Various improvements to the Recent page
+            <div class="list">
+              <div class="item">Add buttons to quickly display Cards created in the last 6 hours, 24 hours, or 7 days</div>
+              <div class="item">Now display recently added Series, in addition to recently created Title Cards</div>
+            </div>
+          </div>
+          <div class="item">Change the default card type to <i>Tinted Frame</i> - this is (seemingly) the most popular card design. This change only affects new TCM users, and does not change the default card type of existing users</div>
+          <div class="item">No longer "pickle" global settings - these are now stored as plain JSON at <b>config/settings.json</b></div>
+          <div class="item">Add the ability to selectively re/load Cards for entire <i>seasons</i>, as opposed to individual Episodes or the entire show</div>
+          <div class="item">Display the temporary credentials within the UI when first enabling authentication</div>
+          <div class="item">Add some commonly useful system actions to the home page - these currently are starting Card creation, Card loading, and importing Kometa YAML</div>
+          <div class="item">Display unloaded Cards on the frontend on the Missing page</div>
+          <div class="item">Significantly improve the performance of the SQL query when displaying Series with the associated Episode/Loaded counts - this should be an approximate 100x performance increase</div>
+          <div class="item">Completely remove all v1/YAML-related code
+            <div class="list">
+              <div class="item">This removes all backwards compatibility with those running v1 on the v2 repository</div>
+              <div class="item">This was done in order to significantly simplify the codebase</div>
+            </div>
+          </div>
+          <div class="item">Rewrite all environment variables used to significantly change the behavior of TCM - see <a href="TODO" target="_blank">docs</a> for more details</div>
+          <div class="item">Update the Font and Template Card previews to select a specific Episode to preview, so Series and Episode level customizations can be viewed concurrently</div>
+          <div class="item">Update the Font missing character analysis to utilize ImageMagick to actually check for empty or missing character bitmaps, rather than looking at the character definition table (as some Fonts would "define" a blank character which would not be reported missing)</div>
+          <div class="item">Completely rewrite application logging
+            <div class="list">
+              <div class="item">Log to an SQL database, not JSONL files - this will significantly improve performance when querying logs</div>
+              <div class="item">Remove hard-coded contextualized logger arguments in all functions, rather attach log objects directly to the process using the builtin <b>contextvars</b> package - this effectively adds auto contextualization across the entire application</div>
+              <div class="item">Display a 'pretty' log message table for STDOUT logs</div>
+              <div class="item">Add the ability to prune (delete) logs from the frontend to aid in sending large log databases via Discord or GitHub</div>
+            </div>
+          </div>
+          <div class="item">Do not immediately delete un-Synched Series (when enabled on the Settings page) until <i>_10 days_</i> (this can be changed via an environment variable) of being gone. This is enabled to prevent database "blips" from Sonarr/Plex/etc. from resulting in TCM completely deleting a large number of Series</div>
+          <div class="item">Add a "thank you" banner to the page header to show thanks to all the wonderful supports of this project</div>
+        </div>
+        <h3>Major Fixes </h3>
+        <div class="ui ordered list">
+          <div class="item">Allow selecting the <b>does not equal</b> filter condition on the home page</div>
+          <div class="item">Handle Title Cards without an assigned Series or Episode on the Recently Added page</div>
+          <div class="item">Fix season poster loading For Emby - was incorrectly loading Season 0 into 1, 1 into 2, etc, if there was no Specials season</div>
+          <div class="item">Fix editing the currently assigned Templates for a given Sync via the API - was incorrectly resetting the Template ID assignments with each edit</div>
+          <div class="item">Properly display the Image Source Priority setting in the correct ID order, not ascending - i.e. <b>2,1,3</b> was displaying as <b>1,2,3</b></div>
+          <div class="item">Properly delete existing Episodes from season 0 when these are disabled for a given Series <i>but</i> still present in the assigned Episode Data Source</div>
+          <div class="item">Reduce false positive Series and Episode matches by modifying the match algorithm to require one of:
+            <div class="list">
+              <div class="item">Any <i>two</i> database ID matches</div>
+              <div class="item">An exact name and year match</div>
+              <div class="item">Any single database ID match <i>and</i> either an exact name or year match</div>
+            </div>
+          </div>
+          <div class="item">Fix uploading per-season backdrop assets via the UI</div>
+          <div class="item">Prevent significant page flashes from white to black when swapping pages in the UI </div>
+          <div class="item">Pin documentation build workflow Python version to 3.13.7 (3.14 is not supported by Pillow)</div>
+          <div class="item">Handle exceptions due to bad image downloads for posters/logos when adding a Series</div>
+          <div class="item">Completely rewrite the Emby, Jellyfin, and Sonarr API interface classes to work on validated Pydantic models to improve reliability</div>
+          <div class="item">Fix required root folder Sync filters for syncing from Sonarr</div>
+        </div>
+        <h3>Minor Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Use Python 3.13 in the Docker container instead of 3.11 - I recommend non-Docker users update to 3.13 as well</div>
+          <div class="item">Add keyboard navigation to the Episode Data table on the Series page - use tab, shift+tab, up arrow, and down arrow to navigate between columns/rows of the table</div>
+          <div class="item">Store the uploaded file as the Source Image (in addition to the card file) when uploading cards as "textless"</div>
+          <div class="item">Allow directly adding a library to a Series when added via the add-Series Sonarr webhook by including the <b>connection_id</b> query parameter to the Webhook URL</div>
+          <div class="item">Display a page loader to the Recently Created page while Cards are being queried</div>
+          <div class="item">Use improved Episode data endpoints on the Series page to improve performance especially when using simplified data tables</div>
+          <div class="item">Use reduced data queried on the Missing Cards page to improve performance</div>
+          <div class="item">No longer allow sorting <i>just</i> the currently visible page of Series on the home page</div>
+          <div class="item">Print ImageMagick command history when booting and determining command prefix</div>
+          <div class="item">Log remote file download failures</div>
+          <div class="item">Upgrade <b>pydantic</b> dependency to v2</div>
+          <div class="item">Rewrite command line scripts to work with <b>click</b>, rather than builtin <b>argparse</b></div>
+          <div class="item">Improve the performance on the Fonts page for very large setups by only initializing the Font accordions for elements as they are expanded</div>
+          <div class="item">Log bad format strings as DEBUG messages, not ERROR</div>
+          <div class="item">Modify the Add Series and Settings pages to provide visual feedback if no Connections have been defined yet</div>
+          <div class="item">Store how long each Task takes in the database</div>
+          <div class="item">Remove the Import page from the front end</div>
+          <div class="item">Display a message when there are no recently made Title Cards on the Recent page</div>
+          <div class="item">Improve the navigation layout on the Changelog page</div>
+          <div class="item">Add the ability to delete a Series' logo on the front end</div>
+          <div class="item">Improve the layout of the Sync page by displaying some details in an expandable details section for each Sync </div>
+          <div class="item">Query card type data from the appropriate develop-specific branch when TCM is on the develop branch; this will enable future flexibility for modifying Card Types on the fly without affecting stable users</div>
+          <div class="item">Change the default log level to TRACE when first loading the logs page</div>
+          <div class="item">Change the available page size options on the logs page</div>
+          <div class="item">Display Connection validation errors in the form when bad parameters are submitted</div>
+          <div class="item">Change the toolbar theme/logs/help button sizes</div>
+          <div class="item">Completely rewrite the TVDb interface to work with validated data models and significantly improve reliability and uncaught exceptions due to bad data</div>
+          <div class="item">Delete a Series' card directory (if empty) when deleting a Series</div>
+          <div class="item">Add the ability to download a zip of a Series' Title Cards directly from the frontend</div>
+          <div class="item">Add new format string functions and variables
+            <div class="list">
+              <div class="item"><b>to_lowercase(...)</b> as an alternate to <b>str.lower()</b></div>
+              <div class="item"><b>to_uppercase(...)</b> as an alternate to <b>str.upper()</b></div>
+              <div class="item"><b>{</b> and <b>}</b> as <b>OPEN_BRACKET</b> and <b>CLOSE_BRACKET</b></div>
+              <div class="item">Blank text (<b>{""}</b>) as <b>BLANK</b></div>
+              <div class="item">Add a new <b>timezone</b> argument to the <b>format_date</b> function</div>
+            </div>
+          </div>
+          <div class="item">Improve the extra accordions on the Series page by only displaying the card types which are currently "active" (i.e. selected by any Series/Template/etc.)</div>
+          <div class="item">Use an improved formatting (using <b>rich</b>) to log ImageMagick command histories</div>
+          <div class="item">Improve the error messages displayed for invalid extras when using custom validator logic</div>
+          <div class="item">Improve the logging when launching the program with a bad encryption key</div>
+          <div class="item">Stop using animated save/submit buttons</div>
+          <div class="item">Add a "helper" for available card type details to the Series and Template pages</div>
+          <div class="item">Add a <b>timezone</b> argument for the <b>format_date</b> format string function - see the docs for details</div>
+          <div class="item">Keep the last-used MediUX import settings between reloads (stored in the browser)</div>
+          <div class="item">Add a <b>BLANK</b> variable for use in format strings that is equivalent to <b>{""}</b></div>
+          <div class="item">Add a button to delete a Template condition - the previous method was to just leave this blank</div>
+        </div>
+        <h3>Minor Fixes</h3>
+        <div class="ui ordered list">
+          <div class="item">Do not remove the missing Card table headers when populating the missing Cards table</div>
+          <div class="item">Do not stop all Card imports if an OS error occurs for any single file</div>
+          <div class="item">Handle YAML imports without backdrop/poster URLs</div>
+          <div class="item">Properly remove deleted Series from the page when bulk-deleting Series on the home page</div>
+          <div class="item">Do not reject matching library path names for Sonarr Connections if they are for the same library</div>
+          <div class="item">Improve handling of TVDb API errors when querying Episode data (usually caused by bad TVDb IDs)</div>
+          <div class="item">Do not query all "duplicate" interfaces for database IDs - just query the first Sonarr, TMDb, and TVDb interface</div>
+          <div class="item">Display missing Title Cards in improved order - these were being returned by the SQL default order (Episode ID) - now these are sorted by Series, then index</div>
+          <div class="item">Improve the <b>start.sh</b> script handling of being launched as a non-root user</div>
+          <div class="item">Handle empty string URLs when uploading Source Images via the frontend</div>
+          <div class="item">Properly reset the Episode Data table pagination when all Episodes are deleted on the frontend</div>
+          <div class="item">Properly query Series-related log messages using the <b>|</b> separator</div>
+          <div class="item">Pin Python version between 3.12 and 3.13 as 3.14 has not been supported by a few dependent packages</div>
+          <div class="item">Do not require a TMDb connection to browse Source Images on the frontend</div>
+          <div class="item">Do not throw errors when visiting the Add Series page with no defined Connections</div>
+          <div class="item">Fix downloading Source Images from Emby or Jellyfin via the UI</div>
+          <div class="item">Handle MediUX error strings in image downloading</div>
+          <div class="item">Allow resetting non-list fields to their default value when editing Syncs on the frontend</div>
+          <div class="item">Do not raise an error for disabled/bad library Connections when downloading a Series poster or logo</div>
+          <div class="item">Add some logic to prevent adding Series which already exist in the database (should prevent some duplication when incorrectly running multiple Syncs at once)</div>
+          <div class="item">Prevent displaying "stale" extra info when editing an Episode's extras by navigating back-and-forth between modals</div>
+          <div class="item">Change the MediUX download timeout to 15 seconds</div>
+          <div class="item">Allow deleting a Font's character replacement by clearing the input string box</div>
+        </div>
+        <h3>Title Card Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">All Card Types
+            <div class="list">
+              <div class="item">Add a pre-card creation "hook" (like React) so custom card types may implement <b>enrich_card_data()</b> as a static method to add arbitrary dynamic extras to a Card</div>
+              <div class="item">This is currently used in the Dictionary card to automatically pull in an Episode's overview</div>
+            </div>
+          </div>
+          <div class="item">Create new <i>Anime Fade<b> and </b>Dictionary</i> card types</div>
+          <div class="item">Cascade
+            <div class="list">
+              <div class="item">Properly handle characters which need escaping (<b>"</b>, <b>\</b>, etc.) in the alternate text</div>
+            </div>
+          </div>
+          <div class="item">Divider
+            <div class="list">
+              <div class="item">Rename the Title Text Position extra to Title Text Side to improve clarity</div>
+              <div class="item">Add new Divider Width extra</div>
+              <div class="item">Improve divider height calculation algorithm to be more accurate for multi-line text</div>
+            </div>
+          </div>
+          <div class="item">Formula 1
+            <div class="list">
+              <div class="item">Change the default frame year to 2026</div>
+            </div>
+          </div>
+          <div class="item">Inset
+            <div class="list">
+              <div class="item">Improve the positioning of inset text - this <i>was</i> being positioned using the "old" annotation text measurement method, but now uses the explicit image size measurement algorithm to exactly center the text</div>
+            </div>
+          </div>
+          <div class="item">Landscape
+            <div class="list">
+              <div class="item">Add blur box, rounding radius, and box blur extras</div>
+              <div class="item">Use improved text measurement algorithm to improve dynamic padding when using non-default Fonts</div>
+            </div>
+          </div>
+          <div class="item">Poster
+            <div class="list">
+              <div class="item">Add "Episode Text Font Size" extra</div>
+            </div>
+          </div>
+          <div class="item">Roman Numeral
+            <div class="list">
+              <div class="item">Add season text size extra</div>
+            </div>
+          </div>
+          <div class="item">Tinted Frame
+            <div class="list">
+              <div class="item">Prefer <b>{font_file}</b> in the Episode Text Font File extra instead of <b>{title_font}</b> - the "old" <b>{title_font}</b> is still supported for backwards compatibility, but will log a message</div>
+            </div>
+          </div>
+          <div class="item">Remote Card Type Changes
+            <div class="list">
+              <div class="item">Create a helper <b>RemoteDirectory</b> class for easily referencing a directory on the Card Type repository and using it for multiple files</div>
+              <div class="item">Move the Card Type repository to the TitleCardMaker organization - the new repository is <a href="https://github.com/TitleCardMaker/CardTypes" target="_blank">here</a></div>
+              <div class="item">Rewrite how all custom card types need to define their default card settings, see the documentation for details</div>
+            </div>
+          </div>
+        </div>
+        <h3>Documentation Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Document all remaining card types</div>
+          <div class="item">Adjust recommended Sync source from Sonarr to your primary media server - this is because many users incorrectly set up the library setting for Sonarr, which can lead to confusion</div>
+          <div class="item">Document the recently added Logo-related extras for the Anime card type</div>
+          <div class="item">Add step to install Python to the Getting Started docs</div>
+          <div class="item">Correct webhook docs for Sonarr integration to reference the "On File Import" section</div>
+          <div class="item">Finish documenting the Series page</div>
+          <div class="item">Document all available environment variables</div>
+        </div>
+        <h3>API Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Modify the add-Series webhook (<b>/api/webhooks/sonarr/series/add</b> or <b>/api/v2/webhooks/sonarr/series/add</b>) to take the <b>connection_id</b> URL query parameter</div>
+          <div class="item">Remove deprecated <b>GET</b> <b>/api/cards/missing</b> - use the <b>GET</b> <b>/api/v2/missing/cards</b> endpoint instead
+            <div class="list">
+              <div class="item">This endpoint now returns the revised <b>ReducedEpisodeData</b> schema (for faster loads)</div>
+            </div>
+          </div>
+          <div class="item">Remove deprecated <b>GET</b> <b>/api/settings/backups</b> - use the <b>GET</b> <b>/api/v2/backups/all</b> endpoint instead</div>
+          <div class="item">Remove deprecated <b>PUT</b> <b>/api/cards/series/{series_id}/load/library</b> endpoint</div>
+          <div class="item">Create new API endpoints to get a Series' Episode data
+            <div class="list">
+              <div class="item">Deprecate the <b>GET</b> <b>/api/episodes/series/{series_id}</b> endpoint</div>
+              <div class="item">Create <b>GET</b> <b>/api/v2/episodes/series/{series_id}/extended</b> to get "extended" Episode data which has all fields of all Episodes</div>
+              <div class="item">Create <b>GET</b> <b>/api/v2/episodes/series/{series_id}/simplified</b> to get simplified data</div>
+              <div class="item">Remove <b>cards</b> attribute from Episode return schema</div>
+            </div>
+          </div>
+          <div class="item">Add <b>sort_name</b> to the Font and Template availability API endpoints</div>
+          <div class="item">Standardize various Font and Template API endpoints
+            <div class="list">
+              <div class="item"><b>POST</b> <b>/api/fonts/new</b> is now <b>POST</b> <b>/api/v2/fonts/font/new</b></div>
+              <div class="item"><b>PUT</b> <b>/api/fonts/{font_id}/file</b> is now <b>PUT</b> <b>/api/v2/fonts/font/{font_id}/file</b></div>
+              <div class="item"><b>DELETE</b> <b>/api/fonts/{font_id}/file</b> is now <b>DELETE</b> <b>/api/v2/fonts/font/{font_id}/file</b></div>
+              <div class="item"><b>PATCH</b> <b>/api/fonts/{font_id}</b> is now <b>PATCH</b> <b>/api/v2/fonts/font/{font_id}</b></div>
+              <div class="item"><b>GET</b> <b>/api/fonts/{font_id}</b> is now <b>GET</b> <b>/api/v2/fonts/font/{font_id}</b></div>
+              <div class="item"><b>GET</b> <b>/api/fonts/{font_id}/analysis</b> is now <b>GET</b> <b>/api/v2/fonts/font/{font_id}/analysis</b></div>
+              <div class="item">Similar endpoint revisions have been made to the Templates router</div>
+            </div>
+          </div>
+          <div class="item">Revise the Series/Episode schemas to combine the <b>extras</b> and <b>season_titles</b> fields, rather than have separate fields which are processed into one</div>
+          <div class="item">Do not paginate the get all Templates API endpoint</div>
+          <div class="item">Update the <b>GET</b> <b>/api/statistics/snapshots</b> endpoint
+            <div class="list">
+              <div class="item">New endpoint is <b>GET</b> <b>/api/v2/statistics/snapshots</b></div>
+              <div class="item">Remove the <b>previous_days</b> and <b>previous_hours</b> query parameters</div>
+              <div class="item">Add new <b>start</b> and <b>end</b> query parameters</div>
+            </div>
+          </div>
+          <div class="item">Create new <b>GET</b> <b>/api/v2/logs/database-zip</b> endpoint to get a zip of the log database</div>
+          <div class="item">Rename <b>/schedule/</b> router to <b>/scheduler/</b> - this affects all endpoints</div>
+          <div class="item">Create new <b>GET</b> <b>/api/v2/missing/cards-without-loaded</b> endpoint to get all Cards which do not have an associated Loaded asset</div>
+          <div class="item">Excluded "blacklisted" Blueprints from the Blueprint query by info API endpoint</div>
+          <div class="item">Add <b>order_by</b> query parameter to the <b>GET</b> <b>/api/v2/blueprints/query/series</b> endpoint to order by the creation date or Series name</div>
+          <div class="item">Create new <b>GET</b> <b>/api/v2/series/recent</b> API endpoint to get all the Series added after a given datetime</div>
+          <div class="item">Properly raise an 404 error when querying by a Title Card ID which does not exist</div>
+          <div class="item">Properly implement the pipe (<b>|</b>) separator when querying for logs which contain a specific substring</div>
+          <div class="item">Create new <b>POST</b> <b>/api/v2/import/mediux</b> endpoint to import arbitrary Kometa/MediUX YAML via the builtin TVDB ID</div>
+          <div class="item">Create new <b>DELETE</b> <b>/api/v2/logs/prune</b> endpoint to prune old log messages from the database to reduce the log database size - this is also done within a scheduled Task</div>
+          <div class="item">Remove all v1/YAML-import related API endpoints</div>
+          <div class="item">Create new <b>POST</b> <b>/api/v2/cards/preview/episode/{episode_id}</b> and <b>/api/v2/cards/preview/episode/{episode_id}/template/{template_id}</b> endpoints to get a Card preview for the changes to a specific Episode <i>or_ Template - the old <b>/api/cards/preview</b> endpoint has been __removed_</i> (not deprecated)</div>
+        </div>
+        <h3>Testing Changes</h3>
+        <div class="ui ordered list">
+          <div class="item">Create spoofed Interface returns for use in frontend tests - these are dynamically injected into the Interface classes when test mode is enabled</div>
+          <div class="item">Rewrite scheduler tests to work with the new crontab style of scheduling Tasks</div>
+          <div class="item">Remove navigation tests related to the Import page</div>
+          <div class="item">Write tests for the Connections, Settings, Sync, Add Series / Blueprint, and Font pages</div>
+          <div class="item">Change the default dimensions of the testing viewport to 1920x1080</div>
+        </div>
+      </div>
 
       <h2 id="v2.0-alpha.15.0" class="ui top attached header">
         v2.0-alpha.15.0
