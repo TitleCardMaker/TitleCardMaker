@@ -312,5 +312,5 @@ TCM, then you need to do the following:
     4. Re-launch TitleCardMaker.
 
         ```bash
-        uv run uvicorn app-main:app --host "0.0.0.0" --port 4242
+        uv run uvicorn server:app --host "0.0.0.0" --port 4242
         ```
