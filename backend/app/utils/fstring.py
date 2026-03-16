@@ -316,7 +316,10 @@ class FormatString:
                 {'__builtins__': _BUILTINS},
                 data,
             )
-            log.trace(f'"{fstring}" -> "{self.result}"')
+
+            # Only log the evaluation if it was non-trivial
+            if fstring != self.result:
+                log.trace(f'"{fstring}" -> "{self.result}"')
         except (NameError, SyntaxError, NotImplementedError, KeyError) as exc:
             log.debug(
                 f'Error evaluating ({fstring}) with ({dumps(data, indent=2)})'
