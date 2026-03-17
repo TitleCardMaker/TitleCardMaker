@@ -309,8 +309,9 @@ TCM, then you need to do the following:
         git pull
         ```
 
-    4. Re-launch TitleCardMaker.
+    4. Re-launch TitleCardMaker from within the `backend` directory:
 
         ```bash
+        cd backend
         uv run uvicorn server:app --host "0.0.0.0" --port 4242
         ```
