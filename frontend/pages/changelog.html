@@ -175,7 +175,7 @@
               <div class="item">Add the ability to prune (delete) logs from the frontend to aid in sending large log databases via Discord or GitHub</div>
             </div>
           </div>
-          <div class="item">Do not immediately delete un-Synched Series (when enabled on the Settings page) until <i>_10 days_</i> (this can be changed via an environment variable) of being gone. This is enabled to prevent database "blips" from Sonarr/Plex/etc. from resulting in TCM completely deleting a large number of Series</div>
+          <div class="item">Do not immediately delete un-Synched Series (when enabled on the Settings page) until <i>10 days</i> (this can be changed via an environment variable) of being gone. This is enabled to prevent database "blips" from Sonarr/Plex/etc. from resulting in TCM completely deleting a large number of Series</div>
           <div class="item">Add a "thank you" banner to the page header to show thanks to all the wonderful supports of this project</div>
         </div>
         <h3>Major Fixes </h3>
@@ -206,9 +206,9 @@
           <div class="item">Add keyboard navigation to the Episode Data table on the Series page - use tab, shift+tab, up arrow, and down arrow to navigate between columns/rows of the table</div>
           <div class="item">Store the uploaded file as the Source Image (in addition to the card file) when uploading cards as "textless"</div>
           <div class="item">Allow directly adding a library to a Series when added via the add-Series Sonarr webhook by including the <b>connection_id</b> query parameter to the Webhook URL</div>
-          <div class="item">Display a page loader to the Recently Created page while Cards are being queried</div>
+          <div class="item">Display a page loader on the Recently Created page while Cards are being queried</div>
           <div class="item">Use improved Episode data endpoints on the Series page to improve performance especially when using simplified data tables</div>
-          <div class="item">Use reduced data queried on the Missing Cards page to improve performance</div>
+          <div class="item">Use reduced data queries on the Missing Cards page to improve performance</div>
           <div class="item">No longer allow sorting <i>just</i> the currently visible page of Series on the home page</div>
           <div class="item">Print ImageMagick command history when booting and determining command prefix</div>
           <div class="item">Log remote file download failures</div>
@@ -237,7 +237,7 @@
               <div class="item"><b>to_uppercase(...)</b> as an alternate to <b>str.upper()</b></div>
               <div class="item"><b>{</b> and <b>}</b> as <b>OPEN_BRACKET</b> and <b>CLOSE_BRACKET</b></div>
               <div class="item">Blank text (<b>{""}</b>) as <b>BLANK</b></div>
-              <div class="item">Add a new <b>timezone</b> argument to the <b>format_date</b> function</div>
+              <div class="item">Add a new optional <b>timezone</b> argument to the <b>format_date</b> function</div>
             </div>
           </div>
           <div class="item">Improve the extra accordions on the Series page by only displaying the card types which are currently "active" (i.e. selected by any Series/Template/etc.)</div>
@@ -246,9 +246,7 @@
           <div class="item">Improve the logging when launching the program with a bad encryption key</div>
           <div class="item">Stop using animated save/submit buttons</div>
           <div class="item">Add a "helper" for available card type details to the Series and Template pages</div>
-          <div class="item">Add a <b>timezone</b> argument for the <b>format_date</b> format string function - see the docs for details</div>
           <div class="item">Keep the last-used MediUX import settings between reloads (stored in the browser)</div>
-          <div class="item">Add a <b>BLANK</b> variable for use in format strings that is equivalent to <b>{""}</b></div>
           <div class="item">Add a button to delete a Template condition - the previous method was to just leave this blank</div>
         </div>
         <h3>Minor Fixes</h3>
@@ -285,7 +283,7 @@
               <div class="item">This is currently used in the Dictionary card to automatically pull in an Episode's overview</div>
             </div>
           </div>
-          <div class="item">Create new <i>Anime Fade<b> and </b>Dictionary</i> card types</div>
+          <div class="item">Create new <i>Anime Fade<i> and </i>Dictionary</i> card types</div>
           <div class="item">Cascade
             <div class="list">
               <div class="item">Properly handle characters which need escaping (<b>"</b>, <b>\</b>, etc.) in the alternate text</div>
