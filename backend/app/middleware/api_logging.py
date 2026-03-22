@@ -15,8 +15,8 @@ def _should_decorate_request(request: Request) -> bool:
             ('/api/v2/statistics/series', '/api/v2/proxy/')
         )
         and request.url.path not in (
+            '/api/healthcheck',
             '/api/v2/logs/query',
-            '/api/v2/healthcheck',
             '/api/v2/statistics'
         )
     )
