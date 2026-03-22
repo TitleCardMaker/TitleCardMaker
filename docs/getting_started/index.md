@@ -101,7 +101,7 @@ Unraid users can directly add the container as a "template" within the UI.
         name: titlecardmaker
         services:
           tcm:
-            image: "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
+            image: "ghcr.io/titlecardmaker/titlecardmaker-webui:latest" # (4)!
             container_name: titlecardmaker
             restart: unless-stopped
             network_mode: bridge
@@ -109,7 +109,7 @@ Unraid users can directly add the container as a "template" within the UI.
               - 4242:4242
             environment:
               - TZ=America/Los_Angeles # (1)!
-            # (3)
+              # (3)
             volumes:
               - ~/Your/Install/Directory/TitleCardMaker/config:/config # (2)!
         ```
@@ -118,6 +118,7 @@ Unraid users can directly add the container as a "template" within the UI.
         2. Replace this with your install directory.
         3. You may also add add `PGID`, `PUID`, and `UMASK` here as environment
         variables if you want to control the permissions of TCM.
+        4. To use the 'experimental' branch, change `:latest` to `:develop`
 
     6. Create (and launch) the Docker container by executing the following
     command.
