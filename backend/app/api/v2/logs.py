@@ -137,12 +137,13 @@ def prune_logs(
         log_db: Session = Depends(get_log_database),
         delete_before: datetime = Query(...),
     ) -> None:
-    """Prune old logs from the database.
+    """
+    Prune old logs from the database.
     
     - delete_before: Delete logs before this date.
     """
 
-    log_query = log_db.query(LogModel).filter(LogModel.timestamp < delete_before)
-    log.debug(f'Pruning {log_query.count()} logs')
+    log_query = log_db.query(LogModel).filter(LogModel.timestamp <delete_before)
+    log.debug(f'Pruning {log_query.count():,} log entries')
     log_query.delete()
     log_db.commit()
