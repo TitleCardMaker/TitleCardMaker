@@ -174,17 +174,28 @@ h2 > img {
   font-size: 0.65rem;
 }
 
-/* Animated tab gradient */
-.md-header[data-md-component="header"],
-.md-header[data-md-component="header"] > .md-tabs[data-md-component="tabs"] {
+/* Thin animated accent line along the bottom of the header (includes nested tabs) */
+.md-header[data-md-component="header"] {
+  position: relative;
+}
+
+.md-header[data-md-component="header"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
   background: linear-gradient(
     90deg,
     hsla(var(--md-hue), 15%, 9%, 1) 0%,
     hsla(var(--md-hue), 15%, 9%, 1) 50%,
     rgb(99, 145, 210) 100%
   );
-  background-size: 200% 100%; /* make it wider so it can "move" */
+  background-size: 200% 100%;
   animation: slide-gradient 16s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 2;
 }
 
 @keyframes slide-gradient {
