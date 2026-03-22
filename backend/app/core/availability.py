@@ -10,6 +10,7 @@ from app.settings import settings
 from app.schemas.card import LocalCardType, RemoteCardType
 from app.utils.version import Version
 
+
 def get_latest_version(raise_exc: bool = True) -> Version | None:
     """
     Get the latest version of TitleCardMaker available.
@@ -28,7 +29,7 @@ def get_latest_version(raise_exc: bool = True) -> Version | None:
     """
 
     # TODO remove placeholder when repo is public [pylint: disable=unreachable]
-    return Version('v2.0-alpha.13.0')
+    return Version('v2.16.0')
 
     try:
         response = get(
