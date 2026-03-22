@@ -440,7 +440,9 @@ class WebSession:
         try:
             response = self._request('GET', endpoint, parameters=parameters)
         except ReadTimeout:
-            log.exception(f'Timeout while requesting {endpoint}')
+            log.exception(
+                f'Timeout while requesting {self._base_url}/{endpoint}'
+            )
             return None
 
         if response_model is None:
@@ -448,6 +450,7 @@ class WebSession:
                 return response.json()
             except Exception:
                 log.exception('Unable to parse response as JSON')
+                log.trace(f'Response: {response.text}')
                 return None
 
         # If the response model was provided as a list - i.e. list[...]
@@ -462,6 +465,7 @@ class WebSession:
                 log.exception(
                     'Unable to parse response as list of response models'
                 )
+                log.trace(f'Response: {response.text}')
                 return None
 
         text = response.text
