@@ -13,7 +13,6 @@ from typing import (
     cast
 )
 
-from app.core.config import config
 from fastapi import HTTPException
 from PIL import Image
 from plexapi.exceptions import PlexApiException
@@ -27,6 +26,7 @@ from requests.exceptions import (
 )
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 
+from app.core.config import config
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
 from app.interfaces.base import (
@@ -74,24 +74,16 @@ def catch_and_log(
 
     def decorator(function: Callable) -> Callable:
         def inner(*args, **kwargs):
-            # Get contextual logger if provided as argument to function
-            if ('log' in kwargs
-                and hasattr(kwargs['log'], 'exception')
-                and callable(kwargs['log'].exception)):
-                clog = kwargs['log']
-            else:
-                clog = log
-
             try:
                 return function(*args, **kwargs)
             except PlexApiException:
-                clog.exception(message)
+                log.exception(message)
                 return default
             except (ReadTimeout, PlexConnectionError) as exc:
-                clog.exception('Plex API has timed out, DB might be busy')
+                log.exception('Plex API has timed out, DB might be busy')
                 raise exc
             except Exception as exc:
-                clog.exception('Uncaught exception')
+                log.exception('Uncaught exception')
                 raise exc
         return inner
     return decorator
@@ -171,7 +163,12 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
                 self.__server = None
             else:
                 self.__token = api_key
-                self.__server = PlexServer(url, api_key, self.__session)
+                self.__server = PlexServer(
+                    url,
+                    api_key,
+                    self.__session,
+                    timeout=config.PLEX_REQUEST_TIMEOUT,
+                )
         except Unauthorized as exc:
             log.critical('Invalid Plex Token')
             raise HTTPException(

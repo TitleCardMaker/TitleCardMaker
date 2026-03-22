@@ -106,7 +106,8 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
         self._session = WebSession(
             url,
             verify_ssl=use_ssl,
-            base_parameters={'api_key': api_key}
+            base_parameters={'api_key': api_key},
+            timeout=config.JELLYFIN_REQUEST_TIMEOUT,
         )
 
         # Authenticate with server

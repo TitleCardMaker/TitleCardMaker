@@ -157,6 +157,21 @@ class AppConfig(BaseSettings):
     ] = 'HS256'
 
     # Connection timeouts
+    EMBY_REQUEST_TIMEOUT: Annotated[
+        int,
+        'Timeout for Emby requests (in seconds)'
+    ] = Field(default=30, ge=10, le=10000)
+
+    JELLYFIN_REQUEST_TIMEOUT: Annotated[
+        int,
+        'Timeout for Jellyfin requests (in seconds)'
+    ] = Field(default=50300, ge=10, le=10000)
+
+    PLEX_REQUEST_TIMEOUT: Annotated[
+        int,
+        'Timeout for Plex requests (in seconds)'
+    ] = Field(default=30, ge=10, le=10000)
+
     SONARR_REQUEST_TIMEOUT: Annotated[
         int,
         'Timeout for Sonarr requests (in seconds)'
