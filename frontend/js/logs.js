@@ -129,7 +129,7 @@ function addRichFormatting(message, searchText='') {
  */
 function queryForLogs(page=1) {
   // Mark icon as loadin
-  const $icon = setLoadingIcon($('.button[data-action="refresh"] .icon'));
+  const $icon = setLoadingIcon($('[data-action="refresh"] .icon'));
 
   // Prepare Form
   const form = new FormData(document.getElementById('log-filters'));
