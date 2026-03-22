@@ -79,6 +79,15 @@ const resetForm = () => $('#log-filters').form('clear');
  * @returns {string} Modified message.
  */
 function addRichFormatting(message, searchText='') {
+  // Apply search text highlighting first
+  searchText.split('|').forEach(subString => {
+    message = message.replace(
+      subString,
+      `<span class="ui yellow text">${subString}</span>`,
+    )
+  });
+
+  // Apply rich formatting to the message
   message = message
     .replace(
       /Series\[(\d+)\]/g,
@@ -109,13 +118,6 @@ function addRichFormatting(message, searchText='') {
       }
     )
   ;
-
-  searchText.split('|').forEach(subString => {
-    message = message.replace(
-      subString,
-      `<span class="ui yellow text">${subString}</span>`,
-    )
-  });
     
   return message;
 }
