@@ -14,6 +14,7 @@ ImageMagickInterfaceLocal = None
 try:
     ImageMagickInterfaceLocal = ImageMagickInterface(
         use_magick_prefix=settings.use_magick_prefix,
+        timeout=settings.config.IMAGEMAGICK_REQUEST_TIMEOUT,
     )
 except Exception:
     pass

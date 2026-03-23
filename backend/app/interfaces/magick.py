@@ -251,7 +251,7 @@ class ImageMagickInterface:
             with Popen(cmd, stdout=PIPE, stderr=PIPE) as process:
                 stdout, stderr = process.communicate(timeout=self.timeout)
         except TimeoutExpired:
-            log.error('ImageMagick command timed out')
+            log.exception('ImageMagick command timed out')
             log.debug(command)
         except FileNotFoundError:
             log.exception('Command error')

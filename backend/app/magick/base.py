@@ -52,6 +52,7 @@ class ImageMaker(ABC):
             container=settings.config.IMAGEMAGICK_CONTAINER,
             use_magick_prefix=settings.use_magick_prefix,
             executable=settings.imagemagick_executable,
+            timeout=settings.config.IMAGEMAGICK_REQUEST_TIMEOUT,
         )
 
 

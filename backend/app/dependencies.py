@@ -233,6 +233,7 @@ def refresh_imagemagick_interface() -> None:
     global ImageMagickInterfaceLocal
     ImageMagickInterfaceLocal = ImageMagickInterface(
         use_magick_prefix=settings.use_magick_prefix,
+        timeout=settings.config.IMAGEMAGICK_REQUEST_TIMEOUT,
     )
 
 

@@ -357,6 +357,7 @@ class Settings(SerializationMixin):
                 container=self.config.IMAGEMAGICK_CONTAINER,
                 use_magick_prefix=use_magick,
                 executable=self.imagemagick_executable,
+                timeout=self.config.IMAGEMAGICK_REQUEST_TIMEOUT,
             )
             if interface.validate_interface():
                 self.use_magick_prefix = use_magick

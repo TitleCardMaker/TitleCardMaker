@@ -177,6 +177,11 @@ class AppConfig(BaseSettings):
         'Timeout for Sonarr requests (in seconds)'
     ] = Field(default=500, ge=10, le=10000)
 
+    IMAGEMAGICK_REQUEST_TIMEOUT: Annotated[
+        int,
+        'Timeout for ImageMagick requests (in seconds)'
+    ] = Field(default=60, ge=1, le=600)
+
     # Testing
     TESTING_MODE: Annotated[
         bool,
