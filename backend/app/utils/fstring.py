@@ -2,7 +2,7 @@ from datetime import datetime
 from json import dumps, JSONEncoder
 from pathlib import Path
 from pytz import timezone as pytz_timezone
-from typing import Any, Callable, Literal, ParamSpec, TypeVar
+from typing import Any, Callable, Literal, ParamSpec, Protocol, TypeVar
 
 from num2words import num2words
 from titlecase import titlecase
@@ -26,16 +26,30 @@ wrapped_default.default = JSONEncoder().default # type: ignore
 JSONEncoder.original_default = JSONEncoder.default # type: ignore
 JSONEncoder.default = wrapped_default # type: ignore
 
+"""
+Type-annotation variables for builtin functions.
+"""
+class SupportsStringConversion(Protocol):
+    def __str__(self) -> str: ...
 
 P = ParamSpec('P')
 R = TypeVar('R')
+BuiltinFunction = Callable[P, SupportsStringConversion]
 
-__BUILTIN_FUNCTIONS: dict[str, Callable[..., str]] = {}
+"""
+Global mapping of builtin function names to their corresponding
+functions.
+"""
+__BUILTIN_FUNCTIONS: dict[str, BuiltinFunction] = {}
+
 
 def register_builtin(
         *,
         names: list[str] | None = None,
-    ) -> Callable[[Callable[P, str]], Callable[P, str]]:
+    ) -> Callable[
+        [BuiltinFunction],
+        BuiltinFunction,
+    ]:
     """
     Decorator to register a function into the builtin function mapping.
     Can be used as a decorator with/without arguments, i.e.
@@ -46,7 +60,7 @@ def register_builtin(
     ... def foo(): ...
     """
 
-    def decorator(func: Callable[P, str]) -> Callable[P, str]:
+    def decorator(func: BuiltinFunction) -> BuiltinFunction:
         register_names = names or [func.__name__]
         for name in register_names:
             __BUILTIN_FUNCTIONS[name] = func
@@ -252,6 +266,21 @@ def get_image_color(
         return fallback
 
     return color_codes[index]
+
+@register_builtin()
+def line_count(text: str, /) -> int:
+    """
+    Count the number of lines in the given text.
+
+    Args:
+        text: Text to count the lines of.
+
+    Returns:
+        Number of lines in the given text.
+    """
+
+    return len(text.splitlines())
+
 
 titlecase = register_builtin()(titlecase)
 
