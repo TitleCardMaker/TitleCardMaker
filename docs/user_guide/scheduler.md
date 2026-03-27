@@ -6,63 +6,47 @@ description: >
 
 # The Scheduler
 
+## Background
+
 TitleCardMaker runs all core tasks on schedulable intervals. These can be
 adjusted by accessing the Scheduler page under `Settings` > `Scheduler` (or at
 the `/scheduler` URL).
 
 The Scheduler can be in one of two modes: basic (the default) mode, and advanced
 mode. These two modes can be switched between at any point by clicking the green
-button at the bottom of the page. All intervals are reset when switching from
-basic to advanced mode.
+button at the bottom of the page. All intervals are reset when switching between
+modes.
 
-!!! tip "Minimum Task Frequency"
-
-    In both modes, the fastest a single Task can be scheduled is once every 10
-    minutes.
-    
-    TCM will also not start a Task while it is already running, so if a given
-    Task takes longer than its assigned frequency, the second run will be
-    skipped.
-
-## Modes
-
-### Basic Mode
-
-While in basic mode, all scheduled Tasks happen on fixed intervals. These
-intervals are relative to whenever you first launch TCM (i.e. they are not
-guaranteed to start at the top of the hour). In addition to this, only a subset
-of the total available Tasks (the most commonly adjusted ones) are displayed.
-
-![](../assets/scheduler_basic_light.webp#only-light){.no-lightbox}
-![](../assets/scheduler_basic_dark.webp#only-dark){.no-lightbox}
-
-How often these Tasks occur can be changed by editing the text in the
-_Frequency_ column of the table. This information can be entered as text, and
-any combination of "seconds", "minutes", "hours", "days", and "weeks" are
-supported. 
-
-!!! example "Example Frequency"
-
-    A frequency string can be as simple as `4 hours`, or as complex as
-    `1 day 4 hours 12 minutes 23 seconds`. 
-
-### Advanced Mode
-
-In advanced mode, scheduled Tasks happen according to a "cron" expression. These
+In both modes, scheduled Tasks happen according to a "cron" expression. These
 are expressions which allow for succinctly describing when something can occur,
 and can be as simple as `*/30 * * * *` - meaning "every 30 minutes" - to as
 complex as `0 2 * * 1-5` - meaning "at 02:00 AM, Monday through Friday".
-
-Advanced mode also make all Tasks available to be rescheduled.
-
-![](../assets/scheduler_advanced_light.webp#only-light){.no-lightbox}
-![](../assets/scheduler_advanced_dark.webp#only-dark){.no-lightbox}
 
 When Tasks run can be adjusted by editing the cron expression in the _Schedule_
 column of the table. A live human-readable description of the expression is
 given in the next column. There are many online resources to creating cron
 expressions, but a [helpful resource](https://crontab.guru/) is linked at the
 bottom of the page.
+
+!!! warning "Changing Task Frequencies"
+
+    After changing the frequency of a Task within the Scheduler, you __must__
+    restart TitleCardMaker for these changes to take effect.
+
+## Modes
+
+The only difference between _Basic_ and _Advanced_ mode is that not all Tasks
+are visible within the UI in _Basic_ mode.
+
+### Basic Mode
+
+![](../assets/scheduler_basic_light.webp#only-light){.no-lightbox}
+![](../assets/scheduler_basic_dark.webp#only-dark){.no-lightbox}
+
+### Advanced Mode
+
+![](../assets/scheduler_advanced_light.webp#only-light){.no-lightbox}
+![](../assets/scheduler_advanced_dark.webp#only-dark){.no-lightbox}
 
 ## Tasks
 
@@ -82,6 +66,21 @@ Scheduler.
 | Set Series IDs                             | :fontawesome-regular-circle-check:{.green} | Once a week          | [Details](#set-series-ids)     |
 | Sync and add any new Series                | :fontawesome-regular-circle-xmark:{.red}   | Once a day           | [Details](#sync-series)        |
 | Take a database snapshot                   | :fontawesome-regular-circle-check:{.green} | Every few hours      | [Details](#database-snapshot)  |
+
+You can view how long your Tasks typically take by going to the
+[Graphs](./graphs.md) page and scrolling down to the _Task Durations_ graph. It
+is recommended to leave at least 2-3x the 'idle time' between your longer
+running Tasks as they may be CPU intensive. For example, if your Card creation
+Task typically takes 2 hours, set the frequency no faster than 4-6 hours.
+
+!!! tip "Minimum Task Frequency"
+
+    In both modes, the fastest a single Task can be scheduled is once every 10
+    minutes.
+    
+    TCM will also not start a Task while it is already running, so if a given
+    Task takes longer than its assigned frequency, the second run will be
+    skipped.
 
 ### Database Backup
 
