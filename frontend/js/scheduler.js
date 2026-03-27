@@ -70,7 +70,12 @@ function updateScheduledTasks() {
       error: response => showErrorToast({title: 'Error Recheduling Task', response}),
     });
   });
-  setTimeout(() => {showInfoToast('Saved Schedules'); initAll()}, 1500);
+  setTimeout(() => {
+    showInfoToast('Saved Schedules');
+    const url = new URL(window.location.href);
+    url.searchParams.set('restart_required', 'true');
+    window.location.href = url.toString();
+  }, 1500);
 }
 
 /**
@@ -135,6 +140,16 @@ function decodeCrontab(crontab) {
  * table.
  */
 async function initAll() {
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('restart_required')) {
+    const restartBanner = document.getElementById('restart-required-banner');
+    if (restartBanner !== null) {
+      restartBanner.style.display = '';
+    }
+    url.searchParams.delete('restart_required');
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  }
+
   const taskTable = document.getElementById('task-table');
   const rowTemplate = document.getElementById('task-template');
   if (taskTable === null || rowTemplate === null) { return; }

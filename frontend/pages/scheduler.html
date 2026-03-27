@@ -41,7 +41,12 @@
     <!-- Actual page content -->
     <div id="main-content" class="article">
       <h1 class="ui header">Scheduler</h1>
+      <div id="restart-required-banner" class="ui large warning message" style="display: none;">
+        <div class="header">Restart Required</div>
+        <p>You have made changes to the Scheduler. Restart the application for these to take effect.</p>
+      </div>
       <p class="help">To adjust when Tasks are run, edit the expression in the <b>Schedule</b> column.</p>
+      <p class="help"><b>Note:</b> Restart the application after saving changes for updates to take effect.</p>
 
       <table class="ui stackable collapsing table">
         <thead>
@@ -60,7 +65,7 @@
         Save Changes
       </button>
       <button id="toggle-button" class="ui green button" onclick="$('#toggleScheduleTypeModal').modal('show');">
-        Enable Basic Scheduler
+        Toggle Scheduler Type
       </button>
 
       <br>
