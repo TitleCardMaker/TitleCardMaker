@@ -165,7 +165,7 @@ class AppConfig(BaseSettings):
     JELLYFIN_REQUEST_TIMEOUT: Annotated[
         int,
         'Timeout for Jellyfin requests (in seconds)'
-    ] = Field(default=50300, ge=10, le=10000)
+    ] = Field(default=30, ge=10, le=10000)
 
     PLEX_REQUEST_TIMEOUT: Annotated[
         int,

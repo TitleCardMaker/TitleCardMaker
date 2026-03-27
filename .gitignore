@@ -29,3 +29,4 @@ temp*.jpg
 uv.lock
 .vscode
 /backend/app/interfaces/.objects
+/site
