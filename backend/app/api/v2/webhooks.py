@@ -83,8 +83,8 @@ def create_cards_for_plex_rating_key(
 @webhook_router.post('/plex', tags=['Plex'])
 async def process_plex_webhook(
         request: Request,
-        # FastAPI cannot parse the payload, for some reason, so this needs to
-        # be parsed from the request.form() directly
+        # FastAPI cannot parse the payload, for some reason, so this
+        # needs to be parsed from the request.form() directly
         # webhook: PlexWebhook = Form(...),
         snapshot: bool = Query(default=True),
         require_owner: bool = Query(default=True),

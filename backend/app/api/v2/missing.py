@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import paginate as paginate_sequence
-from sqlalchemy import not_
 from sqlalchemy.orm import Session, load_only
 
 from app.db.pagination import Page

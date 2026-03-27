@@ -1042,6 +1042,9 @@ def get_watched_statuses(
             changed |= interface.update_watched_statuses(
                 library['name'], series.as_series_info, episodes,
             )
+        else:
+            log.warning(f'Cannot find interface for library {library["name"]}')
+            continue
 
     if changed:
         db.commit()
