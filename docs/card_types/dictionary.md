@@ -232,6 +232,11 @@ completely, specify `""`.
 
 ## Word Text
 
+??? tip "Completely Remove Word Text"
+
+    The word text can be completely removed by setting the text to `{BLANK}`.
+    See the [User Guide](../user_guide/variables.md) for more details.
+
 ### Color
 
 The color of the word text can be adjusted with the _Word Text Color_ extra. If
