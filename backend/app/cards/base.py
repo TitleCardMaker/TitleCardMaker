@@ -790,6 +790,8 @@ def add_cli(
             added.
     """
 
+    # Only add CLI functionality if not running as a module - i.e. the
+    # card file was run from the command line
     if dname != '__main__':
         return None
 
@@ -806,7 +808,7 @@ def add_cli(
         Create a card from the given arguments.
 
         Example:
-            python app.py card --season-text input.jpg --output output.jpg
+            python app.py card season-text input.jpg --output output.jpg
         """
 
         def to_key(val: str, /) -> str:

@@ -261,12 +261,17 @@ class RemoteCardType:
 
             # Make GET request for the contents of the specified value
             log.trace(f'Querying card from "{url}"')
-            if (response := get(url, timeout=30)).status_code >= 400:
-                log.error(f'Cannot identify Card Type "{identifier}"')
-                log.debug((
-                    f'Error querying card from {url} '
-                    f'({response.content.decode()})'
-                ))
+            try:
+                if (response := get(url, timeout=30)).status_code >= 400:
+                    log.error(f'Cannot identify Card Type "{identifier}"')
+                    log.debug((
+                        f'Error querying card from {url} '
+                        f'({response.content.decode()})'
+                    ))
+                    self.valid = False
+                    return None
+            except Exception:
+                log.exception(f'Error querying card from "{url}"')
                 self.valid = False
                 return None
 
