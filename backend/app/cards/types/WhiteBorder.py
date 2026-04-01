@@ -9,6 +9,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    add_cli,
 )
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
@@ -324,3 +325,6 @@ def get_validator_model() -> type[BaseCardModel]:
         episode_text_font_size: Annotated[float, Field(gt=0)] = 1.0
 
     return CardType
+
+
+add_cli(__name__, WhiteBorderTitleCard, get_validator_model())

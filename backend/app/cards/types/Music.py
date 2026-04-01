@@ -23,6 +23,7 @@ from app.cards.base import (
     Rectangle,
     Shadow,
     SplitStyle,
+    add_cli,
 )
 from app.info.episode import EpisodeInfo
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
@@ -1252,3 +1253,11 @@ def get_validator_model() -> type[BaseCardModel]:
             return data
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    MusicTitleCard,
+    get_validator_model(),
+    documentation=None,
+)

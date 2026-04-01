@@ -10,6 +10,7 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
     ImageStack,
+    add_cli,
 )
 from app.schemas.base import BaseCardModel
 
@@ -395,3 +396,11 @@ def get_validator_model() -> type[BaseCardModel]:
         title_horizontal_shift: Annotated[int, Field(ge=-3200, le=3200)] = 0
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    CutoutTitleCard,
+    get_validator_model(),
+    documentation=None,
+)

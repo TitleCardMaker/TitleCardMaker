@@ -11,6 +11,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
+    add_cli,
 )
 from app.logging.logger import log
 from app.schemas.base import BaseCardModel, BaseCardTypeAllText, FontSize
@@ -749,3 +750,6 @@ def get_validator_model() -> type[BaseCardModel]:
             return val
 
     return CardModel
+
+
+add_cli(__name__, RomanNumeralTitleCard, get_validator_model())

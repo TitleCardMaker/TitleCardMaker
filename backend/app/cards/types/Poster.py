@@ -10,6 +10,7 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageStack,
+    add_cli,
 )
 from app.schemas.base import BaseCardModel, FontSize
 
@@ -239,3 +240,6 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+add_cli(__name__, PosterTitleCard, get_validator_model())

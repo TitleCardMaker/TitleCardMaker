@@ -10,6 +10,7 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
     ImageStack,
+    add_cli,
 )
 from app.logging.logger import log # noqa: F401
 from app.schemas.base import (
@@ -391,3 +392,6 @@ def get_validator_model() -> type[BaseCardModel]:
         episode_text_vertical_shift: int = 0
 
     return CardModel
+
+
+add_cli(__name__, StandardTitleCard, get_validator_model())

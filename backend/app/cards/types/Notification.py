@@ -19,6 +19,7 @@ from app.cards.base import (
     ImageMagickCommands,
     ImageStack,
     Rectangle,
+    add_cli,
 )
 from app.schemas.base import (
     BaseCardModel,
@@ -490,3 +491,11 @@ def get_validator_model() -> type[BaseCardModel]:
             return self
 
     return CardModel
+
+
+add_cli(
+    __name__,
+    NotificationTitleCard,
+    get_validator_model(),
+    documentation=None,
+)
