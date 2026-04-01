@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.core.config import config
@@ -20,6 +20,13 @@ logs_engine = create_engine(
     pool_size=5,
     max_overflow=-1,
 )
+
+@event.listens_for(logs_engine, 'connect')
+def set_sqlite_pragma(dbapi_connection, connection_record) -> None:
+    cursor = dbapi_connection.cursor()
+    cursor.execute('PRAGMA journal_mode=WAL')
+    cursor.execute('PRAGMA synchronous=NORMAL')
+    cursor.close()
 
 # Session maker for connecting to logs database
 LogsSessionLocal = sessionmaker(
