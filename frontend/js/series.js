@@ -1216,7 +1216,6 @@ function querySeriesLogs() {
     contains: `Series[{{ series.id }}]|${series_full_name}`,
     level: 'TRACE',
     size: 100,
-    shallow: false,
   });
 
   $.ajax({
@@ -1307,6 +1306,29 @@ function loadSeriesLogsIfNeeded() {
   }
   seriesLogsFetched = true;
   querySeriesLogs();
+}
+
+/** Set after the first Episode Data tab load for this page load. */
+let seriesEpisodesFetched = false;
+
+function loadEpisodeDataIfNeeded() {
+  if (seriesEpisodesFetched) {
+    return;
+  }
+  seriesEpisodesFetched = true;
+  getEpisodeData();
+}
+
+/** Set after the first Files tab load for this page load. */
+let seriesFilesTabFetched = false;
+
+function loadFilesTabDataIfNeeded() {
+  if (seriesFilesTabFetched) {
+    return;
+  }
+  seriesFilesTabFetched = true;
+  getCardData(undefined, undefined, undefined, true);
+  getSourceFileData();
 }
 
 let currentCardPage = 1;
@@ -1439,10 +1461,7 @@ function getCardData(
 
 async function initAll() {
   await initializeSeriesConfig();
-  getEpisodeData();
   initStyles();
-  getCardData(undefined, undefined, undefined, true);
-  getSourceFileData();
   getBlueprintCount();
   refreshTheme();
   getEpisodeOverviews();
@@ -1451,7 +1470,7 @@ async function initAll() {
   getStatistics();
   getStatisticsId = setInterval(getStatistics, 90000);
 
-  // Open tab indicated by URL param (register onVisible before change tab so #logs loads logs)
+  // Open tab indicated by URL param (register onVisible before change tab so deep-linked tabs load their data)
   const tab = window.location.hash.substring(1) || 'options';
   $('#series-tabs-menu .item')
     .tab({
@@ -1459,6 +1478,10 @@ async function initAll() {
         history.replaceState(null, null, `#${tabPath}`);
         if (tabPath === 'logs') {
           loadSeriesLogsIfNeeded();
+        } else if (tabPath === 'episodes') {
+          loadEpisodeDataIfNeeded();
+        } else if (tabPath === 'files') {
+          loadFilesTabDataIfNeeded();
         }
       },
     })
