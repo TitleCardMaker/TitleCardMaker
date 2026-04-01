@@ -1227,14 +1227,26 @@ function querySeriesLogs() {
      * @param {Page<LogEntry>} logs - Logs associated with this Series.
      */
     success: logs => {
-      // Template for all log elements
-      const eventTemplate = document.getElementById('log-event-template');
+      document.getElementById('logs-loader')?.remove();
 
       // Feed for all elements
       const feed = document.querySelector('.tab[data-tab="logs"] .feed');
+      const items = logs.items || [];
+
+      if (items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'ui visible info icon message';
+        empty.innerHTML = '<i class="info circle icon"></i><div class="content"><div class="header">Nothing Here!</div><p>No messages associated with this Series.</p></div>';
+        feed.replaceChildren(empty);
+        refreshTheme();
+        return;
+      }
+
+      // Template for all log elements
+      const eventTemplate = document.getElementById('log-event-template');
 
       // Create elements for each log entry
-      const events = logs.items.map(log => {
+      const events = items.map(log => {
         const event = eventTemplate.content.cloneNode(true);
         const color = {
           'CRITICAL': 'red',
@@ -1277,8 +1289,6 @@ function querySeriesLogs() {
         return event;
       });
 
-      // Remove loader, add elements to page
-      document.getElementById('logs-loader').remove();
       feed.replaceChildren(...events);
       refreshTheme();
     },
