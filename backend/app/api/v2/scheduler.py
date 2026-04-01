@@ -189,34 +189,6 @@ def reschedule_task(
     return get_task_details(db, task_id)
 
 
-@scheduler_router.put('/{task_id}', deprecated=True)
-def run_task_deprecated(
-        task_id: TaskID,
-        db: Session = Depends(get_database),
-    ) -> TaskDetails:
-    """
-    Run the given Task immediately. This __does not__ reschedule or
-    modify the Task's next scheduled run.
-
-    - task_id: ID of the Task to run.
-    """
-
-    # Verify Task exists, raise 404 if DNE
-    if task_id not in RecurringTasks:
-        raise HTTPException(
-            status_code=404,
-            detail=f'Task {task_id} not found',
-        )
-
-    try:
-        RecurringTasks[task_id].wrapped_func()
-    except Exception as e:
-        log.error(f'Failed to run Task {task_id}: {e}')
-
-    # Return updated task info
-    return get_task_details(db, task_id)
-
-
 @scheduler_router.put('/task/{task_id}')
 def run_task(
         task_id: TaskID,
