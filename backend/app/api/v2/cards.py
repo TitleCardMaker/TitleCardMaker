@@ -13,7 +13,7 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import not_
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy.orm import Session, contains_eager, load_only, selectinload
 
 from app.db.query import (
     get_card,
@@ -429,7 +429,18 @@ def get_series_cards_reduced_models(
                     Card.card_file,
                     Card.filesize,
                     Card.library_name,
-                )
+                ),
+                contains_eager(Card.episode).load_only(
+                    Episode.id,
+                    Episode.season_number,
+                    Episode.episode_number,
+                    Episode.absolute_number,
+                ),
+                selectinload(Card.loaded).load_only(
+                    Loaded.id,
+                    Loaded.card_id,
+                    Loaded.library_name,
+                ),
             )
             .filter_by(series_id=series_id)
             .join(Episode, Episode.id == Card.episode_id)
