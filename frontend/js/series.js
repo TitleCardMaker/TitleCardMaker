@@ -1285,6 +1285,20 @@ function querySeriesLogs() {
   });
 }
 
+/** Set after the first successful logs query for this page load (avoids duplicate requests). */
+let seriesLogsFetched = false;
+
+/**
+ * Load series log entries from the API once, when the Logs tab is opened.
+ */
+function loadSeriesLogsIfNeeded() {
+  if (seriesLogsFetched) {
+    return;
+  }
+  seriesLogsFetched = true;
+  querySeriesLogs();
+}
+
 let currentCardPage = 1;
 /**
  * Submit an API request to load the given page of  Title Card previews. If
@@ -1422,20 +1436,23 @@ async function initAll() {
   getBlueprintCount();
   refreshTheme();
   getEpisodeOverviews();
-  querySeriesLogs();
-  
+
   // Schedule recurring statistics query
   getStatistics();
   getStatisticsId = setInterval(getStatistics, 90000);
 
-  // Open tab indicated by URL param
+  // Open tab indicated by URL param (register onVisible before change tab so #logs loads logs)
   const tab = window.location.hash.substring(1) || 'options';
   $('#series-tabs-menu .item')
-    .tab('change tab', tab)
-    // When tab is changed, update hash URL field 
     .tab({
-      onVisible: (tabPath) => history.replaceState(null, null, `#${tabPath}`),
-    });
+      onVisible: (tabPath) => {
+        history.replaceState(null, null, `#${tabPath}`);
+        if (tabPath === 'logs') {
+          loadSeriesLogsIfNeeded();
+        }
+      },
+    })
+    .tab('change tab', tab);
 
   // Enable all dropdowns, menus, and accordians
   $('.ui.dropdown:not([data-value="card-types"])').dropdown();
