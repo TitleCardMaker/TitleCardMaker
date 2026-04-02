@@ -211,7 +211,7 @@ def _intercept_plex_logs(logger: Logger) -> Logger:
     return logger
 
 
-def _intercept_package_logs(logger: Logger, logger_name: str) -> Logger:
+def _intercept_package_logs(logger: Logger, logger_name: str | None) -> Logger:
     """Enable HTTPConnection debug logging to the logging framework"""
 
     # Redirect standard logging messages to loguru
@@ -219,8 +219,9 @@ def _intercept_package_logs(logger: Logger, logger_name: str) -> Logger:
         def emit(self, record: logging.LogRecord):
             logger.bind(context_id=record.name).log('TRACE', record.getMessage())
 
-    logging.basicConfig(handlers=[InterceptHandler()], level=0)
-    logging.getLogger(logger_name).setLevel(logging.DEBUG)
+    package_logger = logging.getLogger(logger_name)
+    package_logger.addHandler(InterceptHandler())
+    package_logger.setLevel(logging.DEBUG)
     logger.trace(f'Intercepting "{logger_name}" requests')
 
     return logger
@@ -237,10 +238,23 @@ def initialize_logging() -> Logger:
     if config.INTERCEPT_PLEX_LOGS:
         logger = _intercept_plex_logs(logger)
 
-    # If intercepting all packages, use the root logger
+    # If no packages are configured to intercept, return the logger
+    logger.trace(
+        f'Available loggers: {logging.Logger.manager.loggerDict.keys()}'
+    )
+    if not config.PACKAGE_LOGGING:
+        return logger
+
+    # If intercepting all packages, lower the root logger level to DEBUG
+    # and intercept 
     if config.PACKAGE_LOGGING.lower() == 'all':
-        logger = _intercept_package_logs(logger, '')
-    elif config.PACKAGE_LOGGING:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger = _intercept_package_logs(logger, None)
+    # If intercepting specific packages, set the root logger level to
+    # ERROR so that they are not logged as well; then intercept each
+    # package
+    else:
+        logging.getLogger().setLevel(logging.ERROR)
         for package in config.PACKAGE_LOGGING.split(','):
             logger = _intercept_package_logs(logger, package)
 

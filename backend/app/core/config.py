@@ -70,9 +70,9 @@ class AppConfig(BaseSettings):
     ] = Field(default=False)
 
     PACKAGE_LOGGING: Annotated[
-        str,
+        str | None,
         'Comma-separated list of packages to intercept logging from'
-    ] = Field(default='')
+    ] = Field(default=None)
 
     LOG_RETENTION_DAYS: Annotated[
         int,
