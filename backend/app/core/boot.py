@@ -1,5 +1,6 @@
 import asyncio
 from io import StringIO
+from os import environ
 from sys import exit as sys_exit
 from typing import Annotated
 
@@ -195,6 +196,13 @@ def initialize_app(app: FastAPI) -> None:
     with contextualize() as (contextualization, log):
         settings.config.AVAILABLE_VERSION = get_latest_version(raise_exc=False)
         settings.log_startup()
+
+        # Log environment variables
+        _env_string = '\n'.join(
+            f'  {k}: {v}' for k, v in environ.items()
+            if k.startswith('TCM_')
+        )
+        log.trace(f'Environment variables:\n{_env_string}')
 
         initialize_root_directories()
         mount_static_app_directories(app)
