@@ -469,7 +469,7 @@ add_cli(
             ),
             PreviewCard(
                 filename='horizontal_offset',
-                variables={'horizontal_offset': 90},
+                variables={'x_offset': 90},
             ),
         ]
     )
