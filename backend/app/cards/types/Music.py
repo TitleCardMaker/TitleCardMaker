@@ -701,7 +701,8 @@ class MusicTitleCard(BaseCardType):
 
         if (self.player_style == 'basic'
             or not self.album_cover
-            or not self.album_cover.exists()):
+            or not self.album_cover.exists()
+        ):
             return Dimensions(0, 0)
 
         # Max dimensions for the file post-resize
@@ -1188,8 +1189,11 @@ def get_validator_model() -> type[BaseCardModel]:
         def finalize_format_strings(cls, data: Any) -> Any:
             """Finalize the percentage and subtitle format strings."""
 
-            if (isinstance(data, dict)
-                and (percentage := data.get('percentage')) is not None
+            if not isinstance(data, dict):
+                return data
+
+            # Percentage
+            if ((percentage := data.get('percentage')) is not None
                 and isinstance(percentage, str)
                 and percentage != 'random'
             ):
@@ -1200,6 +1204,11 @@ def get_validator_model() -> type[BaseCardModel]:
                     p = float(result)
                     result = max(0.0, min(1.0, p)) # Limit [0.0, 1.0]
                 data['percentage'] = result
+            # Subtitle
+            if ((subtitle := data.get('subtitle', '{series_name}')) is not None
+                and isinstance(subtitle, str)
+            ):
+                data['subtitle'] = FormatString(subtitle, data=data).result
 
             return data
 
@@ -1255,9 +1264,4 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_cli(
-    __name__,
-    MusicTitleCard,
-    get_validator_model(),
-    documentation=None,
-)
+add_cli(__name__, MusicTitleCard, get_validator_model())
