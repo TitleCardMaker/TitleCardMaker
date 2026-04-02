@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, Callable, cast
 
+from app.utils.time import normalize_dates
 from fastapi import HTTPException
 from tmdbapis import (
     NotFound,
@@ -874,8 +875,10 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                 movie.reload()
 
                 # Check for TMDb ID match
-                id_match = (episode_info.has_id('tmdb_id')
-                            and episode_info.tmdb_id == movie.id)
+                id_match = (
+                    episode_info.has_id('tmdb_id')
+                    and episode_info.tmdb_id == movie.id
+                )
 
                 # Check for title match
                 title_match = episode_info.full_title.matches(
@@ -884,16 +887,19 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                 )
 
                 # Verify release date match +/- 1 day
-                release_date = movie.release_date
-                release_date_match = (
-                    episode_info.airdate is not None
-                    and release_date is not None
-                    and (
-                        episode_info.airdate - timedelta(days=1)
-                        <= release_date
-                        <= episode_info.airdate + timedelta(days=1)
+                release_date_match = False
+                if (episode_info.airdate is not None
+                    and movie.release_date is not None):
+
+                    release_date, airdate = normalize_dates(
+                        movie.release_date, episode_info.airdate
                     )
-                )
+                    release_date_match = (
+                        airdate - timedelta(days=1)
+                        <= release_date
+                        <= airdate + timedelta(days=1)
+                    )
+
                 if not id_match and not (title_match and release_date_match):
                     raise NotFound
 
