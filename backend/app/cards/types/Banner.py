@@ -65,6 +65,16 @@ class BannerTitleCard(BaseCardType):
                 default=1.0,
             ),
             Extra(
+                name='Episode Text Vertical Shift',
+                identifier='episode_text_vertical_shift',
+                description='Vertical shift to apply to the episode text',
+                tooltip=(
+                    'Number between <v>-1800</v> and <v>1800</v>. Default is '
+                    '<v>0</v>. Unit is pixels.'
+                ),
+                default=0,
+            ),
+            Extra(
                 name='Disable Banner',
                 identifier='hide_banner',
                 description='Whether to hide the banner',
@@ -121,6 +131,7 @@ class BannerTitleCard(BaseCardType):
         'bottom_title_text',
         'episode_text',
         'episode_text_font_size',
+        'episode_text_vertical_shift',
         'hide_banner',
         'hide_episode_text',
         'hide_season_text',
@@ -159,6 +170,7 @@ class BannerTitleCard(BaseCardType):
             banner_color: str = CardConfig.font_color,
             banner_height: int = DEFAULT_BANNER_HEIGHT,
             episode_text_font_size: float = 1.0,
+            episode_text_vertical_shift: int = 0,
             hide_banner: bool = False,
             x_offset: int = DEFAULT_X_OFFSET,
             **unused: Any,
@@ -197,6 +209,7 @@ class BannerTitleCard(BaseCardType):
         self.alternate_color = alternate_color
         self.banner_height = banner_height
         self.episode_text_font_size = episode_text_font_size
+        self.episode_text_vertical_shift = episode_text_vertical_shift
         self.hide_banner = hide_banner
         self.banner_color = banner_color
         self.x_offset = x_offset
@@ -236,7 +249,12 @@ class BannerTitleCard(BaseCardType):
 
         # Determine placement
         x = self.x_offset
-        y = self.HEIGHT - self.banner_height - 43
+        y = (
+            self.HEIGHT
+            - self.banner_height
+            - 43
+            + self.episode_text_vertical_shift
+        )
 
         return [
             f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
@@ -398,6 +416,7 @@ def get_validator_model() -> type[BaseCardModel]:
             Field(ge=0, le=1800)
         ] = BannerTitleCard.DEFAULT_BANNER_HEIGHT
         episode_text_font_size: Annotated[float, Field(ge=0.0)] = 1.0
+        episode_text_vertical_shift: Annotated[int, Field(ge=-1800, le=1800)] = 0
         hide_banner: bool = False
         x_offset: Annotated[
             int,
