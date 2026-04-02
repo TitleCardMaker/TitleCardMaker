@@ -75,26 +75,6 @@ def get_scheduled_tasks(
     ]
 
 
-@scheduler_router.get('/{task_id}', deprecated=True)
-def get_scheduled_task_deprecated(
-        task_id: TaskID,
-        db: Session = Depends(get_database),
-    ) -> TaskDetails:
-    """
-    Get the schedule details for the indicated Task.
-
-    - task_id: ID of the Task to get the details of.
-    """
-
-    if task_id not in RecurringTasks:
-        raise HTTPException(
-            status_code=404,
-            detail=f'Task {task_id} not found',
-        )
-
-    return get_task_details(db, task_id)
-
-
 @scheduler_router.get('/task/{task_id}')
 def get_scheduled_task(
         task_id: TaskID,
@@ -111,43 +91,6 @@ def get_scheduled_task(
             status_code=404,
             detail=f'Task {task_id} not found',
         )
-
-    return get_task_details(db, task_id)
-
-
-@scheduler_router.put('/update/{task_id}', deprecated=True)
-def reschedule_task_deprecated(
-        task_id: TaskID,
-        update_crontab: str = Query(...),
-        db: Session = Depends(get_database),
-    ) -> TaskDetails:
-    """
-    Reschedule the given Task with a new interval.
-
-    - task_id: ID of the Task being rescheduled.
-    - update_crontab: New crontab schedule to reschedule this Task with.
-    """
-
-    # Verify job exists, raise 404 if DNE
-    if task_id not in RecurringTasks:
-        raise HTTPException(
-            status_code=404,
-            detail=f'Task {task_id} not found',
-        )
-
-    # Verify schedule is valid
-    try:
-        crontab(update_crontab)
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=422,
-            detail='Invalid cron schedule',
-        ) from exc
-
-    # Reschedule with modified interval
-    log.info(f'Task[{task_id}] rescheduling to "{update_crontab}"')
-    settings.task_schedules[task_id] = update_crontab
-    settings.commit()
 
     return get_task_details(db, task_id)
 
