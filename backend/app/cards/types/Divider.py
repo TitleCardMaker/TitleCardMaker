@@ -267,8 +267,7 @@ class DividerTitleCard(BaseCardType):
 
         # No need for divider if either text is hidden, return 0
         if (not self.title_text
-            or self.hide_season_text
-            or self.hide_episode_text):
+            or (self.hide_season_text and self.hide_episode_text)):
             return 0
 
         # Kerning and interword spacing do not affect the text height
