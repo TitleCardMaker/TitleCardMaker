@@ -1016,7 +1016,8 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
                     break
 
 
-    def __determine_best_image(self,
+    def __determine_best_image(
+            self,
             images: list[TMDbStill],
             *,
             is_source_image: bool = True,
@@ -1071,7 +1072,8 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     @testing_override(TestingTMDBInterface.get_all_source_images)
     @catch_and_log('Error getting all source images', default=[])
-    def get_all_source_images(self,
+    def get_all_source_images(
+            self,
             series_info: SeriesInfo,
             episode_info: EpisodeInfo,
             *,
@@ -1145,7 +1147,8 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
 
     @testing_override(TestingTMDBInterface.get_all_backdrops)
     @catch_and_log('Error getting all backdrops', default=None)
-    def get_all_backdrops(self,
+    def get_all_backdrops(
+            self,
             series_info: SeriesInfo,
         ) -> list[TMDbStill] | None:
         """
@@ -1235,7 +1238,8 @@ class TMDbInterface(EpisodeDataSource, WebInterface, Interface):
         return None
 
 
-    def __is_generic_title(self,
+    def __is_generic_title(
+            self,
             title: str,
             language_code: str,
             episode_info: EpisodeInfo,
