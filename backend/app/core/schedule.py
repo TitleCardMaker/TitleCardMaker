@@ -180,7 +180,7 @@ class RecurringTask:
         self.task_id = task_id
         self.default_cronstr = default_cronstr
         self.cron = crontab(
-            *settings.task_schedules.get(task_id, default_cronstr).split()
+            *settings.task_schedules.get(task_id, default_cronstr).split(),
         )
         self.error_message = error_message
         self.priority = priority
