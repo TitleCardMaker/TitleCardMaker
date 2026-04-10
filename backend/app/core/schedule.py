@@ -23,7 +23,7 @@ from app.core.snapshot import add_task_duration, snapshot_database
 from app.core.sources import download_all_series_logos
 from app.core.sync import sync_all
 from app.dependencies import get_database
-from app.logging.logger import contextualize
+from app.logging.logger import contextualize, log
 from app.models.duration import TaskDuration
 from app.schemas.schedule import TaskDetails
 from app.settings import CONFIG_ROOT, settings
@@ -179,9 +179,8 @@ class RecurringTask:
         self.description = description
         self.task_id = task_id
         self.default_cronstr = default_cronstr
-        self.cron = crontab(
-            *settings.task_schedules.get(task_id, default_cronstr).split(),
-        )
+        cronstr = settings.task_schedules.get(task_id, default_cronstr)
+        self.cron = crontab(*cronstr.split())
         self.error_message = error_message
         self.priority = priority
         self.expires = expires
@@ -192,6 +191,10 @@ class RecurringTask:
 
         # Create the huey task with scheduling and locking
         self.huey_task = self._create_huey_task()
+        log.trace((
+            f'Created RecurringTask[{self.task_id}] with an interval of '
+            f'"{cronstr}"'
+        ))
 
 
     def _create_wrapped_function(self) -> Callable[[], None]:
