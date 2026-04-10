@@ -512,7 +512,7 @@ function getAllSyncs() {
 function getSyncSchedule() {
   $.ajax({
     type: 'GET',
-    url: '/api/v2/scheduler/SyncInterfaces',
+    url: '/api/v2/scheduler/task/SyncInterfaces',
     /**
      * Next run queried. Update the text.
      * @param {string} _.next_run - Datetime representation of the next run.
