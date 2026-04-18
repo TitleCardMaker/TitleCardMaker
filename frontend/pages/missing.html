@@ -2,106 +2,80 @@
 <html lang="en">
 
 <head>
-  <title>Missing Cards - TitleCardMaker</title>
+  <title>Missing - TitleCardMaker</title>
   {% include "/pages/html_boilerplate.html" %}
 
   <script type="text/javascript">
     {% include "/js/missing.js" %}
   </script>
 
-  <link rel="stylesheet" type="text/css" href="/css/addSeries.css?v={{preferences.config.CURRENT_VERSION}}"/>
+  <link rel="stylesheet" type="text/css" href="/css/missing.css?v={{preferences.config.CURRENT_VERSION}}"/>
 
+  <!-- ── Missing Title Cards ───────────────────────────────────────────── -->
+
+  <!-- Series row (poster · name · count badge · expand button) -->
   <template id="missing-card-template">
-    <tr>
-      <td data-row="series" class="collapsing selectable">
-        <a>
-          <h4 class="ui image header">
-            <img class="ui tiny rounded image">
-            <div class="content" data-value="name">{SERIES}</div>
-          </h4>
-        </a>
-      </td>
-      <td class="center aligned" data-row="count"></td>
-      <td class="center aligned" data-row="expand">
-        <button class="ui mini icon button" data-action="expand">
+    <div class="missing-series-row">
+      <div class="missing-series-header">
+        <img class="missing-series-poster" onerror="this.onerror=null; this.src='/internal_assets/placeholder.jpg'">
+        <div class="missing-series-name" data-value="name"></div>
+        <span class="missing-count-badge" data-row="count"></span>
+        <button class="missing-expand-btn" data-action="expand" type="button">
           <i class="chevron down icon"></i>
         </button>
-      </td>
-    </tr>
-  </template>
-
-  <template id="missing-card-detail-template">
-    <tr class="missing-card-detail" style="display: none;">
-      <td colspan="3">
-        <div class="ui cards" data-row="episodes-container"></div>
-      </td>
-    </tr>
-  </template>
-
-  <template id="missing-episode-template">
-    <div class="card">
-      <div class="content">
-        <div class="header" data-row="episode-info"></div>
-        <div class="meta" data-row="episode-title"></div>
+      </div>
+      <div class="missing-episodes-panel" data-row="detail" style="display: none;">
+        <div class="missing-episode-list" data-row="episodes-container"></div>
       </div>
     </div>
   </template>
 
-  <template id="missing-logo-template">
-    <tr>
-      <td data-row="series" class="collapsing selectable">
-        <a>
-          <h4 class="ui image header">
-            <img class="ui tiny rounded image">
-            <div class="content" data-value="name">{SERIES}</div>
-          </h4>
-        </a>
-      </td>
-      <td data-row="filename"></td>
-    </tr>
+  <!-- Individual episode pill inside the expanded row -->
+  <template id="missing-episode-template">
+    <div class="missing-episode-pill">
+      <span class="missing-episode-code" data-row="episode-info"></span>
+      <span class="missing-episode-title" data-row="episode-title"></span>
+    </div>
   </template>
 
+  <!-- ── Missing Logos ─────────────────────────────────────────────────── -->
+
+  <template id="missing-logo-template">
+    <a class="missing-logo-item">
+      <img class="missing-series-poster" onerror="this.onerror=null; this.src='/internal_assets/placeholder.jpg'">
+      <div class="missing-logo-name" data-value="name"></div>
+      <span class="missing-logo-file" data-row="filename">logo.png</span>
+    </a>
+  </template>
+
+  <!-- ── Unloaded Cards ────────────────────────────────────────────────── -->
+
+  <!-- Series row (poster · name · count badge · load button · expand button) -->
   <template id="unloaded-card-template">
-    <tr>
-      <td data-row="series" class="collapsing selectable">
-        <a>
-          <h4 class="ui image header">
-            <img class="ui tiny rounded image">
-            <div class="content" data-value="name">{SERIES}</div>
-          </h4>
-        </a>
-      </td>
-      <td class="center aligned" data-row="count"></td>
-      <td class="center aligned" data-row="load">
-        <button class="ui small primary button" data-action="load">
+    <div class="missing-series-row">
+      <div class="missing-series-header">
+        <img class="missing-series-poster" onerror="this.onerror=null; this.src='/internal_assets/placeholder.jpg'">
+        <div class="missing-series-name" data-value="name"></div>
+        <span class="missing-count-badge" data-row="count"></span>
+        <button class="missing-load-btn" data-action="load" type="button">
           <i class="upload icon"></i>
-          Load Cards
+          Load
         </button>
-      </td>
-      <td class="center aligned" data-row="expand">
-        <button class="ui mini icon button" data-action="expand">
+        <button class="missing-expand-btn" data-action="expand" type="button">
           <i class="chevron down icon"></i>
         </button>
-      </td>
-    </tr>
+      </div>
+      <div class="missing-cards-panel" data-row="detail" style="display: none;">
+        <div class="missing-card-grid" data-row="cards-container"></div>
+      </div>
+    </div>
   </template>
 
-  <template id="unloaded-card-detail-template">
-    <tr class="unloaded-card-detail" style="display: none;">
-      <td colspan="4">
-        <div class="ui cards" data-row="cards-container"></div>
-      </td>
-    </tr>
-  </template>
-
+  <!-- Individual card thumbnail inside the expanded unloaded-cards row -->
   <template id="unloaded-card-image-template">
-    <div class="card">
-      <div class="image">
-        <img class="ui tiny rounded image" loading="lazy">
-      </div>
-      <div class="content">
-        <div class="header" data-row="episode-info"></div>
-      </div>
+    <div class="missing-card-thumb">
+      <img loading="lazy">
+      <div class="missing-card-label" data-row="episode-info"></div>
     </div>
   </template>
 
@@ -109,7 +83,6 @@
 
 <body onload="initAll();" style="background-image: var(--background);">
   <div class="pusher">
-    <!-- Static header and sidebar -->
     <div id="page-header">
       {% include "/pages/header.html" %}
     </div>
@@ -117,45 +90,82 @@
       {% include "/pages/home_sidebar.html" %}
     </div>
 
-    <!-- Actual page content -->
     <div id="main-content" class="article">
-      <h1 class="ui header">Missing Title Cards</h1>
-      <table class="ui celled compact unstackable structured striped table" id="missing-cards">
-        <thead>
-          <tr>
-            <th>Series</th>
-            <th class="center aligned">Count</th>
-            <th class="center aligned">Episodes</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div id="card-pagination" class="ui centered pagination menu"></div>
 
-      <h1 class="ui header">Missing Logos</h1>
-      <table class="ui celled compact unstackable structured striped table" id="missing-logos">
-        <thead>
-          <tr>
-            <th>Series</th>
-            <th>File</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <!-- ── Missing Title Cards panel ─────────────────────────────────── -->
+      <div class="settings-panel missing-panel">
+        <div class="settings-panel-header">
+          <i class="film icon"></i>
+          Missing Title Cards
+          <span class="missing-header-badge" id="missing-cards-header-count" style="display: none;"></span>
+          <div class="missing-filter-controls">
+            <span class="pill-filter-label">per page</span>
+            <div class="pill-filter-group" id="missing-cards-size-filter">
+              <button class="pill-filter-btn" data-value="50" onclick="setMissingCardsPageSize(50)" type="button">50</button>
+              <button class="pill-filter-btn active" data-value="100" onclick="setMissingCardsPageSize(100)" type="button">100</button>
+              <button class="pill-filter-btn" data-value="200" onclick="setMissingCardsPageSize(200)" type="button">200</button>
+            </div>
+            <button class="missing-refresh-btn" onclick="queryMissingCards()" title="Refresh" type="button">
+              <i class="redo icon"></i>
+            </button>
+          </div>
+        </div>
+        <section>
+          <div id="missing-cards-list">
+            <div class="missing-loading-state">
+              <i class="spinner loading icon"></i>
+              Loading…
+            </div>
+          </div>
+          <div id="card-pagination" class="ui centered pagination menu"></div>
+        </section>
+      </div>
 
-      <h1 class="ui header">Unloaded Cards</h1>
-      <table class="ui celled compact unstackable structured striped table" id="unloaded-cards">
-        <thead>
-          <tr>
-            <th>Series</th>
-            <th class="center aligned">Count</th>
-            <th class="center aligned"></th>
-            <th class="center aligned">Title Cards</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div id="unloaded-pagination" class="ui centered pagination menu"></div>
+      <!-- ── Missing Logos panel ────────────────────────────────────────── -->
+      <div class="settings-panel missing-panel">
+        <div class="settings-panel-header">
+          <i class="image outline icon"></i>
+          Missing Logos
+          <span class="missing-header-badge" id="missing-logos-header-count" style="display: none;"></span>
+        </div>
+        <section>
+          <div id="missing-logos-list" class="missing-logos-list">
+            <div class="missing-loading-state">
+              <i class="spinner loading icon"></i>
+              Loading…
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ── Unloaded Cards panel ───────────────────────────────────────── -->
+      <div class="settings-panel missing-panel">
+        <div class="settings-panel-header">
+          <i class="cloud upload icon"></i>
+          Unloaded Cards
+          <span class="missing-header-badge" id="unloaded-cards-header-count" style="display: none;"></span>
+          <div class="missing-filter-controls">
+            <span class="pill-filter-label">per page</span>
+            <div class="pill-filter-group" id="unloaded-cards-size-filter">
+              <button class="pill-filter-btn" data-value="50" onclick="setUnloadedCardsPageSize(50)" type="button">50</button>
+              <button class="pill-filter-btn active" data-value="100" onclick="setUnloadedCardsPageSize(100)" type="button">100</button>
+              <button class="pill-filter-btn" data-value="200" onclick="setUnloadedCardsPageSize(200)" type="button">200</button>
+            </div>
+            <button class="missing-refresh-btn" onclick="queryUnloadedCards()" title="Refresh" type="button">
+              <i class="redo icon"></i>
+            </button>
+          </div>
+        </div>
+        <section>
+          <div id="unloaded-cards-list">
+            <div class="missing-loading-state">
+              <i class="spinner loading icon"></i>
+              Loading…
+            </div>
+          </div>
+          <div id="unloaded-pagination" class="ui centered pagination menu"></div>
+        </section>
+      </div>
 
     </div>
   </div>

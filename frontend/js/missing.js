@@ -9,19 +9,120 @@ import {
 {% endif %}
 
 
+/** Current page size for the Missing Title Cards section. */
+let missingCardsPageSize = 100;
+
+
 /**
- * Query all Episodes which are missing a Card and display them all on the page.
+ * Set the page size for the Missing Title Cards section and re-query page 1.
+ * @param {number} size
+ */
+function setMissingCardsPageSize(size) {
+  missingCardsPageSize = size;
+
+  // Update active pill
+  document.querySelectorAll('#missing-cards-size-filter .pill-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.value) === size);
+  });
+
+  queryMissingCards(1);
+}
+
+
+/** Current page size for the Unloaded Cards section. */
+let unloadedCardsPageSize = 100;
+
+
+/**
+ * Set the page size for the Unloaded Cards section and re-query page 1.
+ * @param {number} size
+ */
+function setUnloadedCardsPageSize(size) {
+  unloadedCardsPageSize = size;
+
+  document.querySelectorAll('#unloaded-cards-size-filter .pill-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.value) === size);
+  });
+
+  queryUnloadedCards(1);
+}
+
+
+/**
+ * Format a season/episode number pair as a zero-padded code, e.g. "S01E03".
+ * @param {number} season
+ * @param {number} episode
+ * @returns {string}
+ */
+function formatEpisodeCode(season, episode) {
+  return `S${String(season).padStart(2, '0')}E${String(episode).padStart(2, '0')}`;
+}
+
+
+/**
+ * Toggle the expanded detail panel inside a .missing-series-row.
+ * @param {HTMLElement} panel - The detail panel element.
+ * @param {HTMLElement} button - The expand/collapse button.
+ */
+function togglePanel(panel, button) {
+  const isHidden = panel.style.display === 'none';
+  panel.style.display = isHidden ? '' : 'none';
+  const icon = button.querySelector('i');
+  if (icon) {
+    icon.className = isHidden ? 'chevron up icon' : 'chevron down icon';
+  }
+}
+
+
+/**
+ * Show an empty state inside a container element.
+ * @param {HTMLElement} container
+ * @param {string} icon - Fomantic icon class string (e.g. "check circle outline").
+ * @param {string} title
+ * @param {string} desc
+ */
+function showEmptyState(container, icon, title, desc) {
+  container.innerHTML = `
+    <div class="missing-empty-state">
+      <i class="${icon} icon"></i>
+      <div class="missing-empty-title">${title}</div>
+      <div class="missing-empty-desc">${desc}</div>
+    </div>`;
+}
+
+
+/**
+ * Update the header count badge for a given section.
+ * @param {string} badgeId
+ * @param {number} count
+ */
+function updateHeaderBadge(badgeId, count) {
+  const badge = document.getElementById(badgeId);
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+
+/**
+ * Query all Episodes which are missing a Card and display them in the panel.
+ * @param {number} page
  */
 function queryMissingCards(page=1) {
   $.ajax({
     type: 'GET',
-    url: `/api/v2/missing/cards?page=${page}&size=100`,
+    url: `/api/v2/missing/cards?page=${page}&size=${missingCardsPageSize}`,
     /**
-     * Missing Episodes queried, populate table.
-     * @param {Page<ReducedEpisodeData>} episodeData Episodes missing Cards.
+     * @param {Page<ReducedEpisodeData>} episodeData
      */
     success: episodeData => {
-      /** @type {Object.<number, Episode[]>} Group Episodes by Series*/
+      const list = document.getElementById('missing-cards-list');
+
+      /** @type {Object.<number, ReducedEpisodeData[]>} */
       const groupedEpisodes = {};
       episodeData.items.forEach(episode => {
         if (!groupedEpisodes[episode.series_id]) {
@@ -30,54 +131,58 @@ function queryMissingCards(page=1) {
         groupedEpisodes[episode.series_id].push(episode);
       });
 
-      // Templates
-      const table = document.getElementById('missing-cards');
-      const tbody = table.querySelector('tbody');
+      const seriesCount = Object.keys(groupedEpisodes).length;
+      updateHeaderBadge('missing-cards-header-count', seriesCount);
 
-      // Clear all existing content and reset any expanded states
-      tbody.replaceChildren();
+      list.replaceChildren();
 
-      const template = document.getElementById('missing-card-template');
-      const detailTemplate = document.getElementById('missing-card-detail-template');
-      const episodeTemplate = document.getElementById('missing-episode-template');
+      if (episodeData.items.length === 0) {
+        showEmptyState(
+          list,
+          'check circle outline',
+          'No missing Title Cards',
+          'All tracked Episodes have Title Cards created.',
+        );
+      } else {
+        const rowTemplate = document.getElementById('missing-card-template');
+        const pillTemplate = document.getElementById('missing-episode-template');
 
-      // Add rows to the table
-      for (const [series_id, episodes] of Object.entries(groupedEpisodes)) {
-        // Create main series row
-        const row = template.content.cloneNode(true);
-        row.querySelector('td[data-row="series"]').onclick = () => window.location.href = `/series/${series_id}#files`;
-        row.querySelector('td[data-row="series"] [data-value="name"]').innerText = episodes[0].series.name;
-        row.querySelector('td[data-row="series"] img').src = episodes[0].series.small_poster_url;
-        row.querySelector('td[data-row="count"]').innerText = episodes.length;
-        
-        // Add expand/collapse functionality
-        const expandButton = row.querySelector('[data-action="expand"]');
-        expandButton.onclick = (event) => {
-          event.stopPropagation();
-          toggleMissingEpisodes(series_id, episodes, expandButton);
-        };
-        
-        tbody.appendChild(row);
+        for (const [series_id, episodes] of Object.entries(groupedEpisodes)) {
+          const frag = rowTemplate.content.cloneNode(true);
+          const rowEl = frag.querySelector('.missing-series-row');
 
-        // Create detail row for episodes
-        const detailRow = detailTemplate.content.cloneNode(true);
-        const detailTr = detailRow.querySelector('tr');
-        detailTr.id = `missing-detail-${series_id}`;
-        const episodesContainer = detailTr.querySelector('[data-row="episodes-container"]');
-        
-        // Populate episodes
-        episodes.forEach(episode => {
-          const episodeElement = episodeTemplate.content.cloneNode(true);
-          episodeElement.querySelector('[data-row="episode-info"]').innerText = 
-            `Season ${episode.season_number} Episode ${episode.episode_number}`;
-          episodeElement.querySelector('[data-row="episode-title"]').innerText = episode.title;
-          episodesContainer.appendChild(episodeElement);
-        });
-        
-        tbody.appendChild(detailTr);
+          rowEl.querySelector('.missing-series-poster').src = episodes[0].series.small_poster_url;
+          rowEl.querySelector('[data-value="name"]').innerText = episodes[0].series.name;
+          rowEl.querySelector('[data-row="count"]').innerText = episodes.length;
+
+          // Click on header (but not on a button) → navigate to series page
+          rowEl.querySelector('.missing-series-header').addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+              window.location.href = `/series/${series_id}#files`;
+            }
+          });
+
+          // Populate episode pills
+          const pillsContainer = rowEl.querySelector('[data-row="episodes-container"]');
+          episodes.forEach(episode => {
+            const pillFrag = pillTemplate.content.cloneNode(true);
+            pillFrag.querySelector('[data-row="episode-info"]').innerText =
+              formatEpisodeCode(episode.season_number, episode.episode_number);
+            pillFrag.querySelector('[data-row="episode-title"]').innerText = episode.title;
+            pillsContainer.appendChild(pillFrag);
+          });
+
+          // Expand / collapse
+          const detailPanel = rowEl.querySelector('[data-row="detail"]');
+          rowEl.querySelector('[data-action="expand"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePanel(detailPanel, e.currentTarget);
+          });
+
+          list.appendChild(rowEl);
+        }
       }
 
-      // Update pagination
       updatePagination({
         paginationElementId: 'card-pagination',
         navigateFunction: queryMissingCards,
@@ -93,51 +198,43 @@ function queryMissingCards(page=1) {
   });
 }
 
-/**
- * Toggle the display of missing episodes for a specific series.
- * @param {number} seriesId - The series ID to toggle.
- * @param {Episode[]} episodes - The episodes for this series.
- * @param {HTMLElement} button - The expand/collapse button.
- */
-function toggleMissingEpisodes(seriesId, episodes, button) {
-  const detailRow = document.getElementById(`missing-detail-${seriesId}`);
-  const icon = button.querySelector('i');
-  
-  if (detailRow.style.display === 'none') {
-    detailRow.style.display = '';
-    icon.className = 'chevron up icon';
-  } else {
-    detailRow.style.display = 'none';
-    icon.className = 'chevron down icon';
-  }
-}
 
 /**
- * Query all Series which are missing logos and display them on the page.
+ * Query all Series which are missing logos and display them in the panel.
  */
 function queryMissingLogos() {
   $.ajax({
     url: '/api/v2/missing/logos',
     /**
-     * Missing logos queried, populate the table.
-     * @param {Series[]} allSeries - List of Series which are missing logos.
+     * @param {Series[]} allSeries
      */
     success: allSeries => {
-      // Templates
-      const template = document.getElementById('missing-logo-template');
-      const table = document.getElementById('missing-logos');
+      const list = document.getElementById('missing-logos-list');
+      list.replaceChildren();
 
-      allSeries.forEach(series => {
-        const row = template.content.cloneNode(true);
+      updateHeaderBadge('missing-logos-header-count', allSeries.length);
 
-        row.querySelector('td[data-row="series"]').onclick = () => window.location.href = `/series/${series.id}#files`;
-        row.querySelector('td[data-row="series"] [data-value="name"]').innerText = series.name;
-        row.querySelector('td[data-row="series"] img').src = series.small_poster_url;
+      if (allSeries.length === 0) {
+        showEmptyState(
+          list,
+          'check circle outline',
+          'No missing Logos',
+          'All Series have a logo available.',
+        );
+      } else {
+        const template = document.getElementById('missing-logo-template');
 
-        row.querySelector('td[data-row="filename"]').innerText = 'logo.png';
+        allSeries.forEach(series => {
+          const frag = template.content.cloneNode(true);
+          const item = frag.querySelector('.missing-logo-item');
 
-        table.appendChild(row);
-      });
+          item.href = `/series/${series.id}#files`;
+          item.querySelector('.missing-series-poster').src = series.small_poster_url;
+          item.querySelector('[data-value="name"]').innerText = series.name;
+
+          list.appendChild(item);
+        });
+      }
 
       refreshTheme();
     },
@@ -145,19 +242,22 @@ function queryMissingLogos() {
   });
 }
 
+
 /**
- * Query all Cards that do not have an associated Loaded record and display them on the page.
+ * Query all Cards without a Loaded record and display them in the panel.
+ * @param {number} page
  */
 function queryUnloadedCards(page=1) {
   $.ajax({
     type: 'GET',
-    url: `/api/v2/missing/cards-without-loaded?page=${page}&size=100`,
+    url: `/api/v2/missing/cards-without-loaded?page=${page}&size=${unloadedCardsPageSize}`,
     /**
-     * Unloaded Cards queried, populate table.
-     * @param {Page<ReturnUnloadedCardSchema>} cardData Cards without loaded records.
+     * @param {Page<ReturnUnloadedCardSchema>} cardData
      */
     success: cardData => {
-      /** @type {Object.<number, ReturnUnloadedCardSchema[]>} Group Cards by Series*/
+      const list = document.getElementById('unloaded-cards-list');
+
+      /** @type {Object.<number, ReturnUnloadedCardSchema[]>} */
       const groupedCards = {};
       cardData.items.forEach(card => {
         if (!groupedCards[card.series_id]) {
@@ -166,64 +266,65 @@ function queryUnloadedCards(page=1) {
         groupedCards[card.series_id].push(card);
       });
 
-      // Templates
-      const table = document.getElementById('unloaded-cards');
-      const tbody = table.querySelector('tbody');
+      const seriesCount = Object.keys(groupedCards).length;
+      updateHeaderBadge('unloaded-cards-header-count', seriesCount);
 
-      // Clear all existing content and reset any expanded states
-      tbody.replaceChildren();
+      list.replaceChildren();
 
-      const template = document.getElementById('unloaded-card-template');
-      const detailTemplate = document.getElementById('unloaded-card-detail-template');
-      const imageTemplate = document.getElementById('unloaded-card-image-template');
+      if (cardData.items.length === 0) {
+        showEmptyState(
+          list,
+          'check circle outline',
+          'No unloaded Cards',
+          'All Title Cards have been loaded to your media server.',
+        );
+      } else {
+        const rowTemplate = document.getElementById('unloaded-card-template');
+        const thumbTemplate = document.getElementById('unloaded-card-image-template');
 
-      // Add rows to the table
-      for (const [series_id, cards] of Object.entries(groupedCards)) {
-        // Create main series row
-        const row = template.content.cloneNode(true);
-        row.querySelector('td[data-row="series"]').onclick = () => window.location.href = `/series/${series_id}#files`;
-        row.querySelector('td[data-row="series"] [data-value="name"]').innerText = cards[0].series.name;
-        row.querySelector('td[data-row="series"] img').src = `/assets/${series_id}/poster-750.jpg`;
-        row.querySelector('td[data-row="count"]').innerText = cards.length;
+        for (const [series_id, cards] of Object.entries(groupedCards)) {
+          const frag = rowTemplate.content.cloneNode(true);
+          const rowEl = frag.querySelector('.missing-series-row');
 
-        // Add expand/collapse functionality
-        const expandButton = row.querySelector('[data-action="expand"]');
-        expandButton.onclick = (event) => {
-          event.stopPropagation();
-          toggleUnloadedCards(series_id, cards, expandButton);
-        };
+          rowEl.querySelector('.missing-series-poster').src = `/assets/${series_id}/poster-750.jpg`;
+          rowEl.querySelector('[data-value="name"]').innerText = cards[0].series.name;
+          rowEl.querySelector('[data-row="count"]').innerText = cards.length;
 
-        // Add load cards functionality
-        const loadButton = row.querySelector('[data-action="load"]');
-        loadButton.onclick = (event) => {
-          event.stopPropagation();
-          loadSeriesCards(series_id, loadButton);
-        };
+          // Click on header (but not on a button) → navigate to series page
+          rowEl.querySelector('.missing-series-header').addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+              window.location.href = `/series/${series_id}#files`;
+            }
+          });
 
-        tbody.appendChild(row);
+          // Populate card thumbnails
+          const cardsContainer = rowEl.querySelector('[data-row="cards-container"]');
+          cards.forEach(card => {
+            const thumbFrag = thumbTemplate.content.cloneNode(true);
+            thumbFrag.querySelector('img').src = card.file_url;
+            thumbFrag.querySelector('[data-row="episode-info"]').innerText = card.episode
+              ? formatEpisodeCode(card.episode.season_number, card.episode.episode_number)
+              : '—';
+            cardsContainer.appendChild(thumbFrag);
+          });
 
-        // Create detail row for cards
-        const detailRow = detailTemplate.content.cloneNode(true);
-        const detailTr = detailRow.querySelector('tr');
-        detailTr.id = `unloaded-detail-${series_id}`;
-        const cardsContainer = detailTr.querySelector('[data-row="cards-container"]');
-        
-        // Populate cards
-        cards.forEach(card => {
-          const cardElement = imageTemplate.content.cloneNode(true);
-          cardElement.querySelector('.image img').src = card.file_url;
-          cardElement.querySelector('[data-row="episode-info"]').innerText = 
-            card.episode
-            ? `Season ${card.episode.season_number} Episode ${card.episode.episode_number}`
-            : 'No Episode Data'
-          ;
-          cardsContainer.appendChild(cardElement);
-        });
+          // Expand / collapse
+          const detailPanel = rowEl.querySelector('[data-row="detail"]');
+          rowEl.querySelector('[data-action="expand"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePanel(detailPanel, e.currentTarget);
+          });
 
-        tbody.appendChild(detailTr);
+          // Load cards for this series
+          rowEl.querySelector('[data-action="load"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            loadSeriesCards(series_id, e.currentTarget);
+          });
+
+          list.appendChild(rowEl);
+        }
       }
 
-      // Update pagination
       updatePagination({
         paginationElementId: 'unloaded-pagination',
         navigateFunction: queryUnloadedCards,
@@ -239,50 +340,28 @@ function queryUnloadedCards(page=1) {
   });
 }
 
-/**
- * Toggle the display of unloaded cards for a specific series.
- * @param {number} seriesId - The series ID to toggle.
- * @param {ReturnUnloadedCardSchema[]} cards - The cards for this series.
- * @param {HTMLElement} button - The expand/collapse button.
- */
-function toggleUnloadedCards(seriesId, cards, button) {
-  const detailRow = document.getElementById(`unloaded-detail-${seriesId}`);
-  const icon = button.querySelector('i');
-  
-  if (detailRow.style.display === 'none') {
-    detailRow.style.display = '';
-    icon.className = 'chevron up icon';
-  } else {
-    detailRow.style.display = 'none';
-    icon.className = 'chevron down icon';
-  }
-}
 
 /**
- * Load cards for a specific series.
- * @param {number} seriesId - The series ID to load cards for.
- * @param {HTMLElement} button - The load button element.
+ * Load all unloaded Cards for a specific Series.
+ * @param {number} seriesId
+ * @param {HTMLElement} button - The Load button element.
  */
 function loadSeriesCards(seriesId, button) {
-  // Show loading state using setLoadingIcon
   const $icon = setLoadingIcon($(button.querySelector('i')));
+  button.disabled = true;
 
   $.ajax({
     type: 'PUT',
     url: `/api/v2/cards/series/${seriesId}/load`,
     success: () => {
       showInfoToast('Cards loaded successfully');
-      // Re-query unloaded cards to refresh the data
       queryUnloadedCards();
-      refreshTheme();
     },
-    error: response => {
-      showErrorToast({title: 'Error Loading Cards', response});
-      // Reset button state
-      icon.className = 'upload icon';
+    error: response => showErrorToast({title: 'Error Loading Cards', response}),
+    complete: () => {
+      removeLoadingIcon($icon);
       button.disabled = false;
     },
-    complete: () => removeLoadingIcon($icon),
   });
 }
 
