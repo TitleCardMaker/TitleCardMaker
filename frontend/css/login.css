@@ -1,10 +1,10 @@
 :root {
   --background-color-light: #f5f7fa;
-  --background-color-dark: #2a2a2a;
+  --background-color-dark: #1a1c22;
   --sidebar-color-light: #1b1c1d;
 
   --theme-light-color: rgba(152, 152, 152, 0.3);
-  --tcm-blue-color: rgb(99,145,210);
+  --tcm-blue-color: rgb(99, 145, 210);
 
   /* Same as fomantic ui red */
   --support-button-color: #db2828;
@@ -15,11 +15,37 @@ html {
   height: 100%;
 }
 
-/* Global background gradient */
+/* Background: deep vignette with a centred radial glow */
 body {
   margin: 0;
   padding: 0;
-  background-image: linear-gradient(to bottom right, var(--background-color-dark), #313131);
+  min-height: 100vh;
+  background-color: var(--background-color-dark);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(99, 145, 210, 0.08) 0%, transparent 70%),
+    linear-gradient(160deg, #1a1c22 0%, #0f1117 100%);
+}
+
+/* Subtle dot-grid overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 24px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }
 
 #login {
@@ -29,33 +55,45 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
 
-  /* width: 400px; */
-  padding: 40px;
-
-  --mixed-bg: color-mix(in srgb, rgba(255, 0, 0, 20%) var(--red-mixin, 0%), rgba(99, 145, 210, 20%));
-  background: linear-gradient(20deg, rgba(25, 25, 25, 20%), var(--mixed-bg));
+  width: min(420px, 90vw);
+  padding: 48px 44px 40px;
   box-sizing: border-box;
-  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.6);
-  border-radius: 10px;
+
+  --mixed-bg: color-mix(in srgb, rgba(255, 0, 0, 20%) var(--red-mixin, 0%), rgba(99, 145, 210, 10%));
+  background: linear-gradient(160deg, rgba(30, 33, 42, 0.85), var(--mixed-bg));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.05) inset;
+  border-radius: 16px;
+
+  animation: slideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  z-index: 1;
 }
 
-/* Stylize logo */
+/* Logo */
 #login img,
 #login .svg-container {
-  /* Center */
   margin-left: auto;
   margin-right: auto;
   display: block;
-  /* Limit size */
-  max-width: 45px;
-  max-height: 45px;
+  max-width: 80px;
+  max-height: 80px;
 }
 
-#login h2 {
-  margin: 0 0 30px;
+/* App name below logo */
+#login .app-name {
+  margin: 10px 0 28px;
   padding: 0;
-  color: white;
+  color: color-mix(in srgb, red var(--red-mixin, 0%), var(--tcm-blue-color));
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.22em;
   text-align: center;
+  text-transform: uppercase;
+  transition: color 0.4s;
 }
 
 #login .segment {
@@ -64,29 +102,52 @@ body {
 
 #login .field {
   position: relative;
+  margin-bottom: 36px;
+}
+
+/* Icon container: reset Fomantic sizing so floating label still works */
+#login .field .ui.input {
+  width: 100%;
 }
 
 #login .field input {
   width: 100%;
-  padding: 10px 0%;
+  padding: 10px 0 10px 28px !important;
   font-size: 16px;
   color: white;
-  margin-bottom: 30px;
-  border: none;
-  border-bottom: 1px solid color-mix(in srgb, red var(--red-mixin, 0%), white);
+  border: none !important;
+  border-bottom: 1px solid color-mix(in srgb, red var(--red-mixin, 0%), rgba(255,255,255,0.25)) !important;
+  border-radius: 0 !important;
   outline: none;
-  background: transparent;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: border-color 0.3s;
+}
+
+#login .field input:focus {
+  border-bottom-color: color-mix(in srgb, red var(--red-mixin, 0%), var(--tcm-blue-color)) !important;
+}
+
+/* Fomantic icon inside the input */
+#login .field .ui.input > i.icon {
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.3s;
+  left: -5px;
+}
+
+#login .field .ui.input:focus-within > i.icon {
+  color: color-mix(in srgb, red var(--red-mixin, 0%), var(--tcm-blue-color));
 }
 
 #login .field label {
   position: absolute;
   top: 0;
-  left: 0;
+  left: 28px;
   padding: 10px 0;
   font-size: 16px;
-  color: white;
+  color: rgba(255, 255, 255, 0.5);
   pointer-events: none;
-  transition: 0.3s;
+  transition: top 0.25s, left 0.25s, font-size 0.25s, color 0.25s;
 }
 
 #login .text.field input:focus ~ label,
@@ -97,51 +158,56 @@ body {
   font-size: 12px;
 }
 
-#login form a {
-  /* Center */
-  left: 50%;
-  transform: translate(-50%);
-  cursor: pointer;
-
-  position: relative;
-  display: inline-block;
-  padding: 10px 20px;
-  color: color-mix(in srgb, red var(--red-mixin, 0%), var(--tcm-blue-color));
-  font-size: 16px;
-  text-decoration: none;
+/* Login button */
+#login-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  overflow: hidden;
-  transition: 0.5s;
-  margin-top: 20px;
-  letter-spacing: 4px;
+  color: white;
+  background: color-mix(in srgb, red var(--red-mixin, 0%), var(--tcm-blue-color));
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s, box-shadow 0.3s, opacity 0.2s, transform 0.15s;
+  box-shadow: 0 4px 18px rgba(99, 145, 210, 0.25);
 }
 
-/* Style login button when hovered */
-#login form a:hover,
-#login form a:focus {
-  background: var(--tcm-blue-color);
-  color: white;
-  border-radius: 5px;
-  box-shadow: 0 0 5px var(--tcm-blue-color)
-              0 0 25px var(--tcm-blue-color)
-              0 0 50px var(--tcm-blue-color)
-              0 0 100px var(--tcm-blue-color);
+#login-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, red var(--red-mixin, 0%), rgb(120, 163, 225));
+  box-shadow:
+    0 0 8px color-mix(in srgb, red var(--red-mixin, 0%), var(--tcm-blue-color)),
+    0 0 24px color-mix(in srgb, red var(--red-mixin, 0%), rgba(99, 145, 210, 0.5));
+  transform: translateY(-1px);
+}
+
+#login-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(99, 145, 210, 0.2);
+}
+
+#login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 #login .forgot {
-  /* Mouse hover effect */
   cursor: pointer;
-  /* Center */
   display: inline-block;
   left: 50%;
   transform: translate(-50%);
   position: relative;
-  /* Font styling */
-  color: #787e85;
+  margin-top: 20px;
+  color: rgba(255, 255, 255, 0.3);
   font-size: 0.8em;
+  transition: color 0.2s;
+  text-decoration: none;
 }
 
-/* Style forgot button when hovered */
 #login .forgot:hover,
 #login .forgot:focus {
   color: crimson;
@@ -155,7 +221,6 @@ svg .svg-elem-1 {
 }
 
 svg.active .svg-elem-1 {
-  /* fill: rgb(99, 145, 210); */
   --layer-color: rgb(99, 145, 210);
 }
 
@@ -166,7 +231,6 @@ svg .svg-elem-2 {
 }
 
 svg.active .svg-elem-2 {
-  /* fill: rgb(255, 255, 255); */
   --layer-color: white;
 }
 
@@ -177,18 +241,16 @@ svg .svg-elem-3 {
 }
 
 svg.active .svg-elem-3 {
-  /* fill: rgb(99, 145, 210); */
   --layer-color: rgb(99, 145, 210);
 }
 
 svg .svg-elem-4 {
   fill: transparent;
-  -webkit-transition: fill 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0.41000000000000003s;
-          transition: fill 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0.41000000000000003s;
+  -webkit-transition: fill 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0.41s;
+          transition: fill 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0.41s;
 }
 
 svg.active .svg-elem-4 {
-  /* fill: rgb(255, 255, 255); */
   --layer-color: white;
 }
 

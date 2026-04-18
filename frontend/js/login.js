@@ -16,11 +16,18 @@ function makeRedder(increment=20) {
  * the redirect search param (if present) - the home page if not.
  */
 function submitForm() {
+  const btn = document.getElementById('login-btn');
+  const originalLabel = btn.innerHTML;
+
+  // Show loading state
+  btn.disabled = true;
+  btn.innerHTML = '<i class="spinner loading icon"></i> Logging in…';
+
   const data = new FormData();
   data.set('username', document.getElementById('username').value);
-  data.set('password', document.getElementById('password').value); 
+  data.set('password', document.getElementById('password').value);
   data.set('grant_type', 'password');
-  
+
   // Submit API request to authenticate this user
   $.ajax({
     type: 'POST',
@@ -58,6 +65,8 @@ function submitForm() {
         message: response.responseJSON.detail
       });
       makeRedder(20);
+      btn.disabled = false;
+      btn.innerHTML = originalLabel;
     },
   });
 }

@@ -28,8 +28,8 @@
   <div class="pusher">
     <div id="login">
       <img src="/public/tcm_no_lettering.svg">
+      <p class="app-name">TitleCardMaker</p>
 
-      <h2>Log In</h2>
       <div class="ui elastic inverted segment">
 
         {% if temporary_credentials %}
@@ -43,16 +43,24 @@
 
         <form id="login-form">
           <div class="text field">
-            <input id="username" type="text" required="" autofocus tabindex="0" name="username">
-            <label>Username</label>
+            <div class="ui left icon input">
+              <i class="user icon"></i>
+              <input id="username" type="text" required="" autofocus tabindex="0" name="username">
+              <label>Username</label>
+            </div>
           </div>
 
           <div class="text field">
-            <input id="password" type="password" required="" tabindex="0" name="password">
-            <label>Password</label>
+            <div class="ui left icon input">
+              <i class="lock icon"></i>
+              <input id="password" type="password" required="" tabindex="0" name="password">
+              <label>Password</label>
+            </div>
           </div>
 
-          <a onclick="submitForm();">Login</a>
+          <button id="login-btn" type="button" onclick="submitForm();">
+            Login
+          </button>
         </form>
 
         <a class="forgot" href="https://titlecardmaker.com/user_guide/connections/#forgotten-login" target="_blank">Forgot Password?</a>
