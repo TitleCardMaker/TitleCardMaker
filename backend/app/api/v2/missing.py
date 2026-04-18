@@ -117,8 +117,8 @@ def get_missing_logos(
 
     return [
         series
-        for series in db.query(SeriesModel)\
-            .filter(SeriesModel.name.in_(missing_logos))\
+        for series in db.query(SeriesModel)
+            .filter(SeriesModel.name.in_(missing_logos))
             .all()
         if not (source_directory / series.path_safe_name / 'logo.png').exists()
     ]
