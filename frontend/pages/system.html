@@ -10,7 +10,7 @@
   <script type="text/javascript">
     {% include "/js/system.js" %}
   </script>
-  
+
   <link rel="stylesheet" type="text/css" href="/css/system.css?v={{preferences.config.CURRENT_VERSION}}"/>
 
   <template id="extra-input-template">
@@ -46,143 +46,131 @@
 
     <!-- Actual page content -->
     <div id="main-content" class="article">
-      <h2 class="ui header">System Details</h2>
 
-      <div class="ui relaxed divided list">
-        <div class="item">
-          <div class="content">
-            <a class="header" href="/changelog#{{ preferences.config.CURRENT_VERSION }}">
-              <i class="code branch icon"></i>
-              Current Version
-            </a>
-            <div class="description">
-              <span class="version-value">{{ preferences.config.CURRENT_VERSION }}</span>
-              <i class="copy outline link icon" data-clipboard-text="{{ preferences.config.CURRENT_VERSION }}" title="Copy version"></i>
-            </div>
-          </div>
+      <!-- System Details -->
+      <div class="settings-panel">
+        <div class="settings-panel-header">
+          <i class="info circle icon"></i>
+          System Details
         </div>
+        <section>
+          <div class="system-stat-grid">
 
-        <div class="item">
-          <div class="content">
-            <div class="header">
-              <i class="ui server icon"></i>
-              Execution Mode
+            <div class="system-stat-card">
+              <i class="code branch icon system-stat-icon"></i>
+              <div class="system-stat-body">
+                <div class="system-stat-label">Current Version</div>
+                <div class="system-stat-value">
+                  <a href="/changelog#{{ preferences.config.CURRENT_VERSION }}">{{ preferences.config.CURRENT_VERSION }}</a>
+                  <i class="copy outline link icon" data-clipboard-text="{{ preferences.config.CURRENT_VERSION }}" title="Copy version"></i>
+                </div>
+              </div>
             </div>
-            <div class="description">
-              <span class="execution-mode">
-                {% if preferences.is_docker %}
-                <i class="ui docker icon"></i> Docker
-                {% else %}
-                <i class="ui desktop icon"></i> Non-Docker
-                {% endif %}
-              </span>
-            </div>
-          </div>
-        </div>
 
-        <div class="item">
-          <div class="content">
-            <div class="header">
-              <i class="ui database icon"></i>
-              Primary Database Schema
+            <div class="system-stat-card">
+              <i class="{% if preferences.is_docker %}docker{% else %}desktop{% endif %} icon system-stat-icon"></i>
+              <div class="system-stat-body">
+                <div class="system-stat-label">Execution Mode</div>
+                <div class="system-stat-value">
+                  {% if preferences.is_docker %}Docker{% else %}Non-Docker{% endif %}
+                </div>
+              </div>
             </div>
-            <div class="description">
-              <span class="schema-value">{{ preferences.current_db_schema }}</span>
-              <i class="copy outline link icon" data-clipboard-text="{{ preferences.current_db_schema }}" title="Copy schema"></i>
-            </div>
-          </div>
-        </div>
 
-        <div class="item">
-          <div class="content">
-            <div class="header">
-              <i class="ui file alternate outline icon"></i>
-              Logging Database Schema
+            <div class="system-stat-card">
+              <i class="database icon system-stat-icon"></i>
+              <div class="system-stat-body">
+                <div class="system-stat-label">Primary Database Schema</div>
+                <div class="system-stat-value">
+                  <span class="schema-value">{{ preferences.current_db_schema }}</span>
+                  <i class="copy outline link icon" data-clipboard-text="{{ preferences.current_db_schema }}" title="Copy schema"></i>
+                </div>
+              </div>
             </div>
-            <div class="description">
-              <span class="schema-value">{{ preferences.current_logging_db_schema }}</span>
-              <i class="copy outline link icon" data-clipboard-text="{{ preferences.current_db_schema }}" title="Copy schema"></i>
-            </div>
-          </div>
-        </div>
 
-        <div class="item">
-          <div class="content">
-            <div class="header">
-              <i class="ui clock outline icon"></i>
-              Uptime
+            <div class="system-stat-card">
+              <i class="file alternate outline icon system-stat-icon"></i>
+              <div class="system-stat-body">
+                <div class="system-stat-label">Logging Database Schema</div>
+                <div class="system-stat-value">
+                  <span class="schema-value">{{ preferences.current_logging_db_schema }}</span>
+                  <i class="copy outline link icon" data-clipboard-text="{{ preferences.current_logging_db_schema }}" title="Copy schema"></i>
+                </div>
+              </div>
             </div>
-            <div class="description" data-value="uptime">
-              <span class="uptime-value">{{ preferences.server_boot_time }}</span>
+
+            <div class="system-stat-card">
+              <i class="clock outline icon system-stat-icon"></i>
+              <div class="system-stat-body">
+                <div class="system-stat-label">Uptime</div>
+                <div class="system-stat-value" data-value="uptime">
+                  <span class="uptime-value">{{ preferences.server_boot_time }}</span>
+                </div>
+              </div>
             </div>
+
           </div>
-        </div>
+        </section>
       </div>
 
       <!-- Links -->
-      <h2 class="ui header">Links</h2>
-
-      <div class="ui relaxed divided list">
-        <div class="item">
-          <div class="content">
-            <a class="header" href="https://titlecardmaker.com/" target="_blank">
-              <i class="ui globe icon"></i>
-              Website
-            </a>
-            <div class="description">
-              <span class="url">https://titlecardmaker.com/</span>
-              <i class="copy outline link icon" data-clipboard-text="https://titlecardmaker.com/" title="Copy URL"></i>
-            </div>
-          </div>
+      <div class="settings-panel">
+        <div class="settings-panel-header">
+          <i class="linkify icon"></i>
+          Links
         </div>
+        <section>
+          <div class="system-link-grid">
 
-        <div class="item">
-          <div class="content">
-            <a class="header" href="https://discord.gg/bJ3bHtw8wH" target="_blank">
-              <i class="ui discord icon"></i>
-              Discord
+            <a class="system-link-card" href="https://titlecardmaker.com/" target="_blank">
+              <i class="globe icon system-link-icon"></i>
+              <div class="system-link-label">Website</div>
+              <div class="system-link-url">titlecardmaker.com</div>
             </a>
-            <div class="description">
-              <span class="url">https://discord.gg/bJ3bHtw8wH</span>
-              <i class="copy outline link icon" data-clipboard-text="https://discord.gg/bJ3bHtw8wH" title="Copy URL"></i>
-            </div>
-          </div>
-        </div>
 
-        <div class="item">
-          <div class="content">
-            <a class="header" href="https://github.com/TitleCardMaker/TitleCardMaker-WebUI" target="_blank">
-              <i class="ui github icon"></i>
-              Source Code
+            <a class="system-link-card" href="https://discord.gg/bJ3bHtw8wH" target="_blank">
+              <i class="discord icon system-link-icon"></i>
+              <div class="system-link-label">Discord</div>
+              <div class="system-link-url">discord.gg/bJ3bHtw8wH</div>
             </a>
-            <div class="description">
-              <span class="url">https://github.com/TitleCardMaker/TitleCardMaker-WebUI</span>
-              <i class="copy outline link icon" data-clipboard-text="https://github.com/TitleCardMaker/TitleCardMaker-WebUI" title="Copy URL"></i>
-            </div>
+
+            <a class="system-link-card" href="https://github.com/TitleCardMaker/TitleCardMaker-WebUI" target="_blank">
+              <i class="github icon system-link-icon"></i>
+              <div class="system-link-label">Source Code</div>
+              <div class="system-link-url">github.com/TitleCardMaker</div>
+            </a>
+
           </div>
-        </div>
+        </section>
       </div>
 
       <!-- Backups -->
-      <h2 class="ui header">
-        System Backups
-        <span data-tooltip="Backup Now"><i class="small save outline link icon" onclick="performBackup();"></i></span>
-      </h2>
-
-      <table class="ui collapsing sortable table" id="system-backups">
-        <thead>
-          <tr class="center aligned">
-            <th data-row-label="restore" class="no-sort">Restore</th>
-            <th data-row-label="timestamp">Timestamp</th>
-            <th data-row-label="version">Version</th>
-            <th data-row-label="schema">Database Schema</th>
-            <th data-row-label="database-filesize"><span>Database Filesize</span></th>
-            <th data-row-label="settings-filesize"><span>Settings Filesize</span></th>
-            <th data-row-label="delete" class="no-sort">Delete</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="settings-panel">
+        <div class="settings-panel-header">
+          <i class="save outline icon"></i>
+          System Backups
+          <button class="system-backup-btn" onclick="performBackup();" title="Create a new backup now">
+            <i class="plus icon"></i>
+            Backup Now
+          </button>
+        </div>
+        <section>
+          <table class="ui collapsing sortable table" id="system-backups">
+            <thead>
+              <tr class="center aligned">
+                <th data-row-label="restore" class="no-sort">Restore</th>
+                <th data-row-label="timestamp">Timestamp</th>
+                <th data-row-label="version">Version</th>
+                <th data-row-label="schema">Database Schema</th>
+                <th data-row-label="database-filesize"><span>Database Filesize</span></th>
+                <th data-row-label="settings-filesize"><span>Settings Filesize</span></th>
+                <th data-row-label="delete" class="no-sort">Delete</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
+      </div>
 
     </div>
   </div>
