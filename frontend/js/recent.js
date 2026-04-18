@@ -1,14 +1,7 @@
-{% if False %}
-import {
-  Page,
-  TitleCardExtended,
-} from './.types.js';
-{% endif %}
-
 /**
  * Convert the given UTC date to the local time.
  * @param {Date} date Date being converted. Assumed to be UTC.
- * @returns {Date} 
+ * @returns {Date}
  */
 function _utcToLocal(date) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
@@ -27,68 +20,69 @@ function getLastLoginTime() {
 }
 
 /**
- * Get the selected time period and calculate the appropriate date.
- * @returns {Date} The calculated date based on the selected time period.
+ * Activate a time-period pill for the given section prefix and trigger a
+ * query. Also shows/hides the custom date picker for that section.
+ * @param {'cards'|'series'} prefix Section identifier.
+ * @param {'6h'|'24h'|'1w'|'custom'} value Selected period value.
  */
-function getSelectedDate() {
-  const timePeriod = $('#time-period-dropdown').dropdown('get value');
-  
-  switch (timePeriod) {
-    case '6h':
-      return new Date(Date.now() - 6 * 60 * 60 * 1000);
-    case '24h':
-      return new Date(Date.now() - 24 * 60 * 60 * 1000);
-    case '1w':
-      return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    case 'custom':
-      return $('#after').calendar('get date') || new Date(Date.now() - 24 * 60 * 60 * 1000);
-    default:
-      return new Date(Date.now() - 24 * 60 * 60 * 1000);
+function setTimePeriod(prefix, value) {
+  // Update active pill
+  document.querySelectorAll(`#${prefix}-time-filter .time-filter-btn`).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.value === value);
+  });
+
+  // Show/hide custom date picker
+  const customField = document.getElementById(`${prefix}-custom-date`);
+  if (value === 'custom') {
+    customField.style.display = '';
+  } else {
+    customField.style.display = 'none';
+    // Trigger query immediately for non-custom values
+    if (prefix === 'cards') { queryLatestCards(); }
+    else                     { queryLatestSeries(); }
   }
 }
 
 /**
- * Reset the filter form to default values.
+ * Return the cutoff Date for the given section based on its active pill.
+ * @param {'cards'|'series'} prefix
+ * @returns {Date}
  */
-function resetFilters() {
-  $('#recent-filters').form('clear');
-  $('#time-period-dropdown').dropdown('set selected', '24h');
-  $('#time-period-dropdown').dropdown('set value', '24h');
-  $('#time-period-dropdown').dropdown('set text', 'Last 24 hours');
-  $('#custom-date-field').hide();
-  
-  // Reset series display state
-  document.getElementById('series-empty-state').style.display = 'none';
-  document.querySelector('.cards[data-label="series"]').style.display = 'block';
-  document.getElementById('series-pagination').style.display = 'block';
+function getSelectedDate(prefix) {
+  const activeBtn = document.querySelector(`#${prefix}-time-filter .time-filter-btn.active`);
+  const value = activeBtn?.dataset.value ?? '24h';
+
+  switch (value) {
+    case '6h':    return new Date(Date.now() - 6 * 60 * 60 * 1000);
+    case '24h':   return new Date(Date.now() - 24 * 60 * 60 * 1000);
+    case '1w':    return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    case 'custom':
+      return $(`#${prefix}-after`).calendar('get date')
+        ?? new Date(Date.now() - 24 * 60 * 60 * 1000);
+    default:      return new Date(Date.now() - 24 * 60 * 60 * 1000);
+  }
 }
 
 /**
  * Query the given page of recently created Title Cards.
- * @param {number} page Page number of recent Cards to display.
+ * @param {number} [page=1]
  */
 function queryLatestCards(page=1) {
-  // Submit API request
   const args = new URLSearchParams({
-    after: getSelectedDate().toISOString(),
-    page: page,
+    after: getSelectedDate('cards').toISOString(),
+    page,
     size: 8,
   });
 
   $.ajax({
     type: 'GET',
     url: `/api/v2/cards/recent?${args.toString()}`,
-    /**
-     * Recent cards queried, populate card elements on the page.
-     * @param {Page<TitleCardExtended>} cardPage Page of recent Title Cards.
-     */
+    /** @param {import('./.types.js').Page<import('./.types.js').TitleCardExtended>} cardPage */
     success: cardPage => {
       const template = document.getElementById('card-template');
 
       const cards = cardPage.items.map(card => {
         const base = template.content.cloneNode(true);
-
-        // Populate template
         base.querySelector('.card').href = `/series/${card.series_id}`;
         base.querySelector('.image img').src = card.file_url;
         base.querySelector('[data-label="series_name"]').innerText = card.series?.name;
@@ -97,28 +91,19 @@ function queryLatestCards(page=1) {
           : 'No associated episode';
         base.querySelector('[data-label="creation"]').innerText = timeDiffString(
           _utcToLocal(new Date(card.created)), undefined, undefined, 1,
-        )
-
+        );
         return base;
       });
 
-      // Add elements to the page
       document.getElementById('loader')?.remove();
-      
-      if (cards.length === 0) {
-        // Show empty state message
-        document.getElementById('empty-state').style.display = '';
-        document.querySelector('.cards[data-label="cards"]').style.display = 'none';
-        document.getElementById('card-pagination').style.display = 'none';
-      } else {
-        // Hide empty state and show cards
-        document.getElementById('empty-state').style.display = 'none';
-        document.querySelector('.cards[data-label="cards"]').style.display = '';
-        document.getElementById('card-pagination').style.display = '';
-        
-        document.querySelector('.cards[data-label="cards"]').replaceChildren(...cards);
 
-        // Update pagination
+      const isEmpty = cards.length === 0;
+      document.getElementById('empty-state').style.display           = isEmpty ? '' : 'none';
+      document.querySelector('.cards[data-label="cards"]').style.display = isEmpty ? 'none' : '';
+      document.getElementById('card-pagination').style.display       = isEmpty ? 'none' : '';
+
+      if (!isEmpty) {
+        document.querySelector('.cards[data-label="cards"]').replaceChildren(...cards);
         updatePagination({
           paginationElementId: 'card-pagination',
           navigateFunction: queryLatestCards,
@@ -131,71 +116,53 @@ function queryLatestCards(page=1) {
     },
     error: response => {
       showErrorToast({response, title: 'Error Querying Recent Cards'});
-      // Show empty state on error
       document.getElementById('loader')?.remove();
-      document.getElementById('empty-state').style.display = 'block';
+      document.getElementById('empty-state').style.display               = '';
       document.querySelector('.cards[data-label="cards"]').style.display = 'none';
-      document.getElementById('card-pagination').style.display = 'none';
+      document.getElementById('card-pagination').style.display           = 'none';
     },
   });
 }
 
 /**
  * Query the given page of recently added Series.
- * @param {number} page Page number of recent Series to display.
+ * @param {number} [page=1]
  */
 function queryLatestSeries(page=1) {
-  // Submit API request
   const args = new URLSearchParams({
-    after: getSelectedDate().toISOString(),
-    page: page,
+    after: getSelectedDate('series').toISOString(),
+    page,
     size: 8,
   });
 
   $.ajax({
     type: 'GET',
     url: `/api/v2/series/recent?${args.toString()}`,
-    /**
-     * Recent series queried, populate series elements on the page.
-     * @param {Page[Series]} seriesPage Page of recent Series.
-     */
+    /** @param {import('./.types.js').Page<import('./.types.js').Series>} seriesPage */
     success: seriesPage => {
       const template = document.getElementById('series-template');
 
-      const series = seriesPage.items.map(series => {
+      const series = seriesPage.items.map(s => {
         const base = template.content.cloneNode(true);
-
-        // Populate template
-        base.querySelector('.card').href = `/series/${series.id}`;
-        base.querySelector('.image img').src = series.poster_url;
-        base.querySelector('[data-label="series_name"]').innerText = series.name;
-        base.querySelector('[data-label="year"]').innerText = series.year;
+        base.querySelector('.card').href = `/series/${s.id}`;
+        base.querySelector('.image img').src = s.poster_url;
+        base.querySelector('[data-label="series_name"]').innerText = s.name;
         base.querySelector('[data-label="creation"]').innerText = timeDiffString(
-          _utcToLocal(new Date(series.created)), undefined, undefined, 1,
+          _utcToLocal(new Date(s.created)), undefined, undefined, 1,
         );
-        base.querySelector('[data-label="card_count"]').innerText = series.card_count || 'No';
-
+        base.querySelector('[data-label="card_count"]').innerText = `${s.card_count || 'No'} Cards`;
         return base;
       });
 
-      // Add elements to the page
       document.getElementById('series-loader')?.remove();
-      console.log(series);
-      
-      if (series.length === 0) {
-        // Show empty state message
-        document.getElementById('series-empty-state').style.display = '';
-        document.querySelector('.cards[data-label="series"]').style.display = 'none';
-        document.getElementById('series-pagination').style.display = 'none';
-      } else {
-        // Hide empty state and show series
-        document.getElementById('series-empty-state').style.display = 'none';
-        document.querySelector('.cards[data-label="series"]').style.display = '';
-        document.getElementById('series-pagination').style.display = '';
-        
-        document.querySelector('.cards[data-label="series"]').replaceChildren(...series);
 
-        // Update pagination
+      const isEmpty = series.length === 0;
+      document.getElementById('series-empty-state').style.display            = isEmpty ? '' : 'none';
+      document.querySelector('.cards[data-label="series"]').style.display    = isEmpty ? 'none' : '';
+      document.getElementById('series-pagination').style.display             = isEmpty ? 'none' : '';
+
+      if (!isEmpty) {
+        document.querySelector('.cards[data-label="series"]').replaceChildren(...series);
         updatePagination({
           paginationElementId: 'series-pagination',
           navigateFunction: queryLatestSeries,
@@ -208,58 +175,26 @@ function queryLatestSeries(page=1) {
     },
     error: response => {
       showErrorToast({response, title: 'Error Querying Recent Series'});
-      // Show empty state on error
       document.getElementById('series-loader')?.remove();
-      document.getElementById('series-empty-state').style.display = 'block';
-      document.querySelector('.cards[data-label="series"]').style.display = 'none';
-      document.getElementById('series-pagination').style.display = 'none';
+      document.getElementById('series-empty-state').style.display             = '';
+      document.querySelector('.cards[data-label="series"]').style.display     = 'none';
+      document.getElementById('series-pagination').style.display              = 'none';
     },
   });
 }
 
 function initAll() {
-  // Initialize dropdown
-  $('.ui.dropdown').dropdown();
-  
-  // Initialize calendar with last login time
-  getLastLoginTime();
-  $('.ui.calendar').calendar({
-    initialDate: getLastLoginTime(),
+  // Initialize custom date calendars (one per section)
+  const calendarConfig = (prefix, queryFn) => ({
+    initialDate: new Date(getLastLoginTime()),
     maxDate: new Date(),
-    onChange: () => {
-      // Reset display state when date changes
-      document.getElementById('empty-state').style.display = 'none';
-      document.querySelector('.cards[data-label="cards"]').style.display = 'block';
-      document.getElementById('card-pagination').style.display = 'block';
-      document.getElementById('series-empty-state').style.display = 'none';
-      document.querySelector('.cards[data-label="series"]').style.display = 'block';
-      document.getElementById('series-pagination').style.display = 'block';
-      queryLatestCards();
-      queryLatestSeries();
-    },
+    onChange: () => queryFn(),
   });
 
-  // Handle time period dropdown changes
-  $('#time-period-dropdown').dropdown({
-    onChange: function(value) {
-      if (value === 'custom') {
-        $('#custom-date-field').show();
-      } else {
-        $('#custom-date-field').hide();
-        // Reset display state when period changes
-        document.getElementById('empty-state').style.display = 'none';
-        document.querySelector('.cards[data-label="cards"]').style.display = 'block';
-        document.getElementById('card-pagination').style.display = 'block';
-        document.getElementById('series-empty-state').style.display = 'none';
-        document.querySelector('.cards[data-label="series"]').style.display = 'block';
-        document.getElementById('series-pagination').style.display = 'block';
-        queryLatestCards();
-        queryLatestSeries();
-      }
-    }
-  });
+  $('#cards-after').calendar(calendarConfig('cards', queryLatestCards));
+  $('#series-after').calendar(calendarConfig('series', queryLatestSeries));
 
-  // Query recent cards and series on page load
+  // Query on load
   queryLatestCards();
   queryLatestSeries();
 

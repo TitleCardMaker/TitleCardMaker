@@ -9,6 +9,8 @@
     {% include "/js/recent.js" %}
   </script>
 
+  <link rel="stylesheet" type="text/css" href="/css/recent.css?v={{preferences.config.CURRENT_VERSION}}"/>
+
   <!-- Templates -->
   <template id="card-template">
     <a class="ui card" href="">
@@ -33,12 +35,11 @@
       <div class="content">
         <div class="header" data-label="series_name"></div>
         <div class="meta">
-          <span data-label="year">...</span>
-          <span class="right floated" data-label="creation">...</span>
+          <span data-label="creation">...</span>
+          <span class="right floated" data-label="card_count">0 Cards</span>
         </div>
-        <div class="description" data-label="episode_count">
-          <span data-label="card_count">0</span> Title Cards
-        </div>
+        <!-- <div class="description" data-label="episode_count">
+        </div> -->
       </div>
     </a>
   </template>
@@ -55,100 +56,95 @@
     </div>
 
     <!-- Actual page content -->
-    <div id="main-content" class="article" style="overflow-x: scroll;">
-      <h1 class="ui header">Recently Added</h1>
+    <div id="main-content" class="article">
 
-      <!-- Time period filters -->
-      <div class="ui segment">
-        <div class="ui header">
-          <i class="filter icon"></i>
-          <div class="content">
-            Filter Options
-            <div class="sub header" style="cursor: pointer;">
-              <div class="ui horizontal basic labels">
-                <div class="ui small blue label" onclick="queryLatestCards(); queryLatestSeries();" data-action="refresh">
-                  <i class="redo icon"></i>
-                  Refresh Cards
-                </div>
-                <div class="ui small red label" onclick="resetFilters(); queryLatestCards(); queryLatestSeries();" data-action="refresh">
-                  <i class="eraser icon"></i>
-                  Reset Filters
-                </div>
-              </div>
+      <!-- Title Cards panel -->
+      <div class="settings-panel">
+        <div class="settings-panel-header">
+          <i class="images outline icon"></i>
+          Recently Created Title Cards
+          <div class="recent-filter-controls">
+            <div class="time-filter-group" id="cards-time-filter">
+              <button class="time-filter-btn active" data-value="24h" onclick="setTimePeriod('cards', '24h')">24h</button>
+              <button class="time-filter-btn" data-value="6h" onclick="setTimePeriod('cards', '6h')">6h</button>
+              <button class="time-filter-btn" data-value="1w" onclick="setTimePeriod('cards', '1w')">7d</button>
+              <button class="time-filter-btn" data-value="custom" onclick="setTimePeriod('cards', 'custom')" title="Custom date">
+                <i class="calendar alternate outline icon"></i>
+              </button>
             </div>
-          </div>
-        </div>
-
-        <form id="recent-filters" class="ui form">
-          <div class="ui fields">
-            <!-- Time period selection -->
-            <div class="three wide field">
-              <label>Time Period</label>
-              <div class="ui selection dropdown" id="time-period-dropdown">
-                <input name="time_period" type="hidden" value="24h">
-                <i class="dropdown icon"></i>
-                <div class="default text">Last 24 hours</div>
-                <div class="menu">
-                  <div data-value="6h" class="item">Last 6 Hours</div>
-                  <div data-value="24h" class="item">Last 24 Hours</div>
-                  <div data-value="1w" class="item">Last 7 Days</div>
-                  <div data-value="custom" class="item">Custom Date</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Custom date input (hidden by default) -->
-            <div class="four wide field" id="custom-date-field" style="display: none;">
-              <label>Since</label>
-              <div class="ui calendar" id="after">
-                <div class="ui input left icon">
+            <div class="time-filter-custom" id="cards-custom-date" style="display: none;">
+              <div class="ui small calendar" id="cards-after">
+                <div class="ui small input left icon">
                   <i class="calendar icon"></i>
-                  <input name="after" type="text" placeholder="Date/Time">
+                  <input type="text" placeholder="Pick date…">
                 </div>
               </div>
             </div>
-          </div>
-        </form>
-      </div>
-
-      <div class="ui segment">
-        <h2 class="ui header">Title Cards</h2>
-        <div class="ui active centered inline blue elastic loader" id="loader"></div>
-        <div class="ui link cards" data-label="cards"></div>
-        
-        <!-- Empty state message using Fomantic UI -->
-        <div id="empty-state" class="ui icon message" style="display: none;">
-          <i class="orange images outline icon"></i>
-          <div class="content">
-            <div class="header">
-              No recently created Title Cards
-            </div>
-            <p>Try adjusting your date range or creating Title Cards with the <a href="/scheduler">Scheduler</a>.</p>
+            <button class="recent-refresh-btn" onclick="queryLatestCards()" title="Refresh">
+              <i class="redo icon"></i>
+            </button>
           </div>
         </div>
-  
-        <br>
-        <div class="ui pagination menu" id="card-pagination"><!-- Added asynchronously --></div>
+        <section>
+          <div class="ui active centered inline blue elastic loader" id="loader"></div>
+          <div class="ui four link cards" data-label="cards"></div>
+
+          <div id="empty-state" class="recent-empty-state" style="display: none;">
+            <!-- <i class="images outline icon"></i> -->
+            <div class="recent-empty-title">No recently created Title Cards</div>
+            <div class="recent-empty-desc">
+              Try widening your time range, or create Title Cards via the <a href="/scheduler">Scheduler</a>.
+            </div>
+          </div>
+
+          <div class="ui pagination menu" id="card-pagination"></div>
+        </section>
       </div>
 
-      <div class="ui segment">
-        <h2 class="ui header">Recently Added Series</h2>
-        <div class="ui active centered inline blue elastic loader" id="series-loader"></div>
-        <div class="ui link cards" data-label="series"></div>
-        <br>
-        <div class="ui pagination menu" id="series-pagination"><!-- Added asynchronously --></div>
-
-        <!-- Empty state message for series -->
-        <div id="series-empty-state" class="ui icon message" style="display: none;">
-          <i class="orange tv icon"></i>
-          <div class="content">
-            <div class="header">
-              No recently added Series
+      <!-- Recently Added Series panel -->
+      <div class="settings-panel">
+        <div class="settings-panel-header">
+          <i class="tv icon"></i>
+          Recently Added Series
+          <div class="recent-filter-controls">
+            <div class="time-filter-group" id="series-time-filter">
+              <button class="time-filter-btn active" data-value="24h" onclick="setTimePeriod('series', '24h')">24h</button>
+              <button class="time-filter-btn" data-value="6h" onclick="setTimePeriod('series', '6h')">6h</button>
+              <button class="time-filter-btn" data-value="1w" onclick="setTimePeriod('series', '1w')">7d</button>
+              <button class="time-filter-btn" data-value="custom" onclick="setTimePeriod('series', 'custom')" title="Custom date">
+                <i class="calendar alternate outline icon"></i>
+              </button>
             </div>
-            <p>Try adjusting your date range or add new Series on the <a href="/add">Add Series page</a>.</p>
+            <div class="time-filter-custom" id="series-custom-date" style="display: none;">
+              <div class="ui small calendar" id="series-after">
+                <div class="ui small input left icon">
+                  <i class="calendar icon"></i>
+                  <input type="text" placeholder="Pick date…">
+                </div>
+              </div>
+            </div>
+            <button class="recent-refresh-btn" onclick="queryLatestSeries()" title="Refresh">
+              <i class="redo icon"></i>
+            </button>
           </div>
         </div>
+        <section>
+          <div class="ui active centered inline blue elastic loader" id="series-loader"></div>
+          <div class="ui six link cards" data-label="series"></div>
+
+          <div id="series-empty-state" class="recent-empty-state" style="display: none;">
+            <!-- <i class="tv icon"></i> -->
+            <div class="recent-empty-title">No recently added Series</div>
+            <div class="recent-empty-desc">
+              Try widening your time range, or add new Series on the
+              <a href="/add">Add Series</a> page.
+            </div>
+          </div>
+
+          <div class="ui pagination menu" id="series-pagination"></div>
+        </section>
       </div>
+
     </div>
   </div>
 </body>
