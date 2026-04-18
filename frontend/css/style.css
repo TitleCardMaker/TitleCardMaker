@@ -415,3 +415,150 @@ html:not(dark) body .fields:hover ~ p.help {
 .blueprint.card [data-action="import"]:hover {
   color: #2ecc40;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHARED PANEL SYSTEM
+   Used by: settings, system, recent, addSeries (and any future pages)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Dot-grid background overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+html.dark body::before {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+/* Glass-morphism section panel — light mode default */
+.settings-panel {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  overflow: visible;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+html.dark .settings-panel {
+  background: linear-gradient(160deg, rgba(30, 33, 42, 0.6), rgba(99, 145, 210, 0.05));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+}
+
+/* Panel title bar */
+.settings-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  color: rgb(60, 100, 160);
+  flex-wrap: wrap;
+  row-gap: 0.4rem;
+}
+
+html.dark .settings-panel-header {
+  color: var(--tcm-blue-color);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Panel body padding */
+.settings-panel > section {
+  padding: 1.25rem 1.25rem 0.75rem;
+}
+
+/* Subdued note at the top of a panel section */
+.section-note {
+  font-size: 0.85em;
+  color: rgba(0, 0, 0, 0.45);
+  margin: 0 0 1rem;
+}
+
+html.dark .section-note {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Pill-group selector (page size, generic filters, etc.) ──────────────── */
+
+/* Wrapping pill row with optional label */
+.pill-filter-group {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+html.dark .pill-filter-group {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.pill-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.22rem 0.65rem;
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  min-height: 26px;
+  line-height: 1;
+  text-transform: none;
+}
+
+html.dark .pill-filter-btn {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.pill-filter-btn:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.07);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+html.dark .pill-filter-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.pill-filter-btn.active {
+  background: var(--tcm-blue-color);
+  color: white;
+  box-shadow: 0 1px 4px rgba(99, 145, 210, 0.45);
+}
+
+/* Dim label that annotates what a pill group controls, e.g. "per page" */
+.pill-filter-label {
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+html.dark .pill-filter-label {
+  color: rgba(255, 255, 255, 0.28);
+}

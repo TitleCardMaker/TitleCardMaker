@@ -1,60 +1,3 @@
-/* ── Dot-grid background (matches login / settings pages) ───────────────── */
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-html.dark body::before {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-}
-
-/* ── Section panels (same visual language as settings page) ─────────────── */
-
-.settings-panel {
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  overflow: visible;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-html.dark .settings-panel {
-  background: linear-gradient(160deg, rgba(30, 33, 42, 0.6), rgba(99, 145, 210, 0.05));
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: none;
-}
-
-.settings-panel-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.85rem 1.25rem;
-  font-size: 0.8em;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  color: rgb(60, 100, 160);
-}
-
-html.dark .settings-panel-header {
-  color: var(--tcm-blue-color);
-  border-bottom-color: rgba(255, 255, 255, 0.06);
-}
-
-.settings-panel > section {
-  padding: 1.25rem 1.25rem 0.75rem;
-}
-
 /* ── System Details — stat card grid ────────────────────────────────────── */
 
 .system-stat-grid {
@@ -245,7 +188,6 @@ html.dark .system-link-url {
   width: 100%;
 }
 
-/* Preserved from original CSS */
 .system.info .label:not(.inverted) {
   background-color: color-mix(in srgb, #2185d0, transparent) !important;
 }
