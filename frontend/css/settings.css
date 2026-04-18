@@ -1,76 +1,9 @@
-/* ── Dot-grid background (matches login page) ───────────────────────────── */
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-html.dark body::before {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-}
-
-/* ── Section panels — light mode defaults ───────────────────────────────── */
-
-.settings-panel {
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  overflow: visible;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-.settings-panel-header {
-  padding: 0.85rem 1.25rem;
-  font-size: 0.8em;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  /* Dark enough to read against a white panel in light mode */
-  color: rgb(60, 100, 160);
-}
-
-.settings-panel > section {
-  padding: 1.25rem 1.25rem 0.75rem;
-}
-
-.section-note {
-  font-size: 0.85em;
-  color: rgba(0, 0, 0, 0.45);
-  margin: 0 0 1rem;
-}
-
-/* ── Section panels — dark mode overrides ───────────────────────────────── */
-
-html.dark .settings-panel {
-  background: linear-gradient(160deg, rgba(30, 33, 42, 0.6), rgba(99, 145, 210, 0.05));
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: none;
-}
-
-html.dark .settings-panel-header {
-  color: var(--tcm-blue-color);
-  border-bottom-color: rgba(255, 255, 255, 0.06);
-}
-
-html.dark .section-note {
-  color: rgba(255, 255, 255, 0.4);
-}
-
 /* ── Help-tip tooltips ───────────────────────────────────────────────────── */
 
 .help-tip {
   margin-left: 0.35em;
   color: rgba(0, 0, 0, 0.3);
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   font-weight: normal;
   cursor: default;
   position: relative;
@@ -91,7 +24,6 @@ html.dark .help-tip {
   top: 50%;
   transform: translateY(-50%);
   width: 280px;
-  /* Always dark tooltip regardless of page theme — high contrast */
   background: rgba(18, 20, 28, 0.97);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 6px;
@@ -124,7 +56,7 @@ a.label-link:hover {
   text-decoration: underline;
 }
 
-/* ── Toggle switches — light mode defaults ──────────────────────────────── */
+/* ── Toggle switches ─────────────────────────────────────────────────────── */
 
 .toggle-grid {
   display: grid;
@@ -158,7 +90,6 @@ a.label-link:hover {
   margin: 0;
 }
 
-/* Hide native checkbox */
 .toggle-switch input[type="checkbox"] {
   position: absolute;
   opacity: 0;
@@ -167,7 +98,6 @@ a.label-link:hover {
   pointer-events: none;
 }
 
-/* Track — light mode: darker unchecked state so it reads as interactive */
 .toggle-track {
   position: relative;
   display: inline-block;
@@ -189,7 +119,6 @@ html.dark .toggle-track {
   border-color: var(--tcm-blue-color);
 }
 
-/* Thumb */
 .toggle-thumb {
   position: absolute;
   top: 2px;
@@ -211,7 +140,6 @@ html.dark .toggle-thumb {
   background: white;
 }
 
-/* Label text — light mode: dark text */
 .toggle-label {
   font-size: 0.93em;
   color: rgba(0, 0, 0, 0.78);
@@ -242,7 +170,6 @@ html.dark .toggle-label {
   border-top: 1px solid rgba(99, 145, 210, 0.3);
   transform: translateY(100%);
   transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  /* Sit above page content but below the websocket log popup (z-index: 9999) */
   z-index: 998;
 }
 
@@ -264,11 +191,6 @@ html.dark #sticky-save-label {
   color: rgba(255, 255, 255, 0.45);
 }
 
-/*
- * When the sticky bar is visible:
- *  1. Add padding so the last panel isn't obscured by the bar
- *  2. Push the websocket log popup above the bar
- */
 body.save-bar-visible #main-content {
   padding-bottom: 4rem;
 }
@@ -279,14 +201,12 @@ body.save-bar-visible #__current_log {
 
 /* ── Preserved existing rules ────────────────────────────────────────────── */
 
-/* Excluded card types have reduced opacity, strikethrough and italic effects */
 #excluded-card-types .menu .active.item {
   opacity: 30%;
   text-decoration: line-through;
   font-style: italic;
 }
 
-/* Change coloring of slider labels in dark mode */
 .inverted.slider .labels .label {
   color: #ccc;
 }
@@ -299,7 +219,6 @@ body.save-bar-visible #__current_log {
   max-width: 400px;
 }
 
-/* Reduce opacity of system info labels */
 .system.info .label:not(.inverted) {
   background-color: color-mix(in srgb, #2185d0, transparent) !important;
 }
@@ -307,7 +226,6 @@ body.save-bar-visible #__current_log {
   background-color: color-mix(in srgb, #54c8ff, transparent) !important;
 }
 
-/* Increase margin of sublist items in changelog */
 .modal .content .list .item::before {
   margin-left: -1.45rem;
 }
