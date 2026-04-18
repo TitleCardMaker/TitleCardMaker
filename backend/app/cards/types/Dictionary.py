@@ -541,7 +541,7 @@ class DictionaryTitleCard(BaseCardType):
             commands=ImageStack(
                 f'-background none',
                 f'-gravity center',
-                f'-interword-spacing 100',
+                f'-interword-spacing {75 * self.word_size:.1f}',
                 f'-kerning -10.0',
                 f'-font "{self.WORD_FONT.resolve()}"',
                 f'-fill "{self.word_color}"',
