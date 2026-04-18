@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from app.models.font import Font
     from app.models.loaded import Loaded
     from app.models.series import Series
+    from app.models.source_image import SourceImage
 
 
 class Library(TypedDict): # pylint: disable=missing-class-docstring
@@ -57,6 +58,11 @@ class Episode(Base):
     loaded: Mapped[list['Loaded']] = relationship(
         back_populates='episode',
         cascade='all,delete-orphan'
+    )
+    source_image: Mapped['SourceImage | None'] = relationship(
+        back_populates='episode',
+        cascade='all, delete-orphan',
+        uselist=False,
     )
     _templates: Mapped[list[EpisodeTemplates]] = relationship(
         EpisodeTemplates,

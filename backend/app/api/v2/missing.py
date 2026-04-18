@@ -18,6 +18,7 @@ from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
 from app.models.series import Series as SeriesModel
 from app.models.loaded import Loaded as LoadedModel
+from app.models.source_image import SourceImage as SourceImageModel
 from app.schemas.card import ReturnUnloadedCardSchema
 from app.schemas.episode import ReducedEpisodeData
 from app.schemas.series import SearchResult, Series
@@ -52,6 +53,41 @@ def get_missing_cards(
             .outerjoin(EpisodeModel.series)
             .filter(
                 EpisodeModel.id.not_in(db.query(CardModel.episode_id).distinct())
+            )
+            .order_by(
+                EpisodeModel.series_id,
+                EpisodeModel.season_number,
+                EpisodeModel.episode_number,
+            )
+    )
+
+
+@missing_router.get('/sources')
+def get_missing_sources(
+        db: Session = Depends(get_database),
+    ) -> Page[ReducedEpisodeData]: # type: ignore
+    """
+    Get all Episodes that do not have an associated Source Image record.
+    This only reflects unique-style episodes; art-style episodes that
+    use a shared series backdrop will never have a Source Image record.
+    """
+
+    return paginate(
+        db.query(EpisodeModel)
+            .options(
+                load_only(
+                    EpisodeModel.id,
+                    EpisodeModel.series_id,
+                    EpisodeModel.season_number,
+                    EpisodeModel.episode_number,
+                    EpisodeModel.title,
+                ),
+            )
+            .outerjoin(EpisodeModel.series)
+            .filter(
+                EpisodeModel.id.not_in(
+                    db.query(SourceImageModel.episode_id).distinct()
+                )
             )
             .order_by(
                 EpisodeModel.series_id,

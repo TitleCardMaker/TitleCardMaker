@@ -1,4 +1,5 @@
 from base64 import b64encode, b64decode
+import re
 
 from asyncio import gather as async_gather
 from fastapi import (
@@ -31,6 +32,7 @@ from app.db.users import get_current_user
 from app.core.cards import delete_cards
 from app.core.sources import (
     get_source_image,
+    upsert_source_image,
     download_episode_source_images,
     download_series_logo,
     process_svg_logo,
@@ -50,7 +52,11 @@ from app.logging.logger import log
 from app.models.card import Card as CardModel
 from app.models.episode import Episode as EpisodeModel
 from app.models.loaded import Loaded as LoadedModel
-from app.schemas.card import SourceImage, ExternalSourceImage
+from app.models.series import Series as SeriesModel
+from app.models.source_image import SourceImage as SourceImageModel
+from app.schemas.card import SourceImageSchema, ExternalSourceImage
+from app.schemas.base import Base as BaseSchema
+from app.settings import settings
 
 
 source_router = APIRouter(
@@ -353,11 +359,14 @@ def get_all_series_backdrops_on_tmdb(
 def get_existing_series_source_images(
         series_id: int,
         db: Session = Depends(get_database),
-    ) -> Page[SourceImage]: # type: ignore
+        missing_only: bool = Query(default=False), # TODO implement
+    ) -> Page[SourceImageSchema]: # type: ignore
     """
     Get the SourceImage details for the given Series.
 
     - series_id: ID of the Series to get the details of.
+    - missing_only: Whether to only return Source Images that are
+    missing.
     """
 
     return paginate(
@@ -368,7 +377,7 @@ def get_existing_series_source_images(
                 EpisodeModel.episode_number,
             ),
         transformer=lambda episodes: [
-            get_source_image(episode) for episode in episodes
+            get_source_image(db, episode) for episode in episodes
         ]
     )
 
@@ -398,13 +407,31 @@ async def upload_series_source_images(
         *(_download_file(file) for file in images if file.filename)
     )
 
-    # Write all file contents
+    # Build a lookup map of (season, episode) -> Episode for this Series
+    episode_map = {
+        (ep.season_number, ep.episode_number): ep
+        for ep in series.episodes
+    }
+
+    # Write all file contents and upsert DB records for matched episodes
+    source_pattern = re.compile(r'^s(\d+)e(\d+)\.jpg$', re.IGNORECASE)
     for filename, contents in files:
         file = series.source_directory / filename
         if file.exists():
             log.debug(f'"{file}" exists - overwriting')
         file.write_bytes(contents)
         log.trace(f'Wrote {len(contents):,} bytes to "{file}"')
+
+        # If the filename matches the standard sXeY.jpg pattern, upsert DB
+        if (match := source_pattern.match(filename)):
+            season, episode_num = int(match.group(1)), int(match.group(2))
+            if (episode := episode_map.get((season, episode_num))):
+                upsert_source_image(db, episode, file, source='upload')
+            else:
+                log.debug(
+                    f'No episode found for "{filename}" in {series} - '
+                    f'skipping DB record'
+                )
 
     log.info(f'Imported {len(files)} Source Images')
 
@@ -420,25 +447,35 @@ def delete_series_source_images(
     - series_id: ID of the Series whose Source Images are being deleted.
     """
 
-    for episode in get_series(db, series_id, raise_exc=True).episodes:
+    series = get_series(db, series_id, raise_exc=True)
+    episode_ids = [ep.id for ep in series.episodes]
+
+    for episode in series.episodes:
         for _, source_file in resolve_all_source_settings(episode):
             if source_file.exists():
                 log.debug(f'Deleting {episode} "{source_file.name}"')
                 source_file.unlink(missing_ok=True)
+
+    # Delete all DB records for this Series
+    if episode_ids:
+        db.query(SourceImageModel).filter(
+            SourceImageModel.episode_id.in_(episode_ids)
+        ).delete(synchronize_session=False)
+        db.commit()
 
 
 @source_router.get('/episode/{episode_id}')
 def get_existing_episode_source_image(
         episode_id: int,
         db: Session = Depends(get_database),
-    ) -> SourceImage:
+    ) -> SourceImageSchema:
     """
     Get the Source Image details for the given Episode.
 
     - episode_id: ID of the Episode to get the details of.
     """
 
-    return get_source_image(get_episode(db, episode_id, raise_exc=True))
+    return get_source_image(db, get_episode(db, episode_id, raise_exc=True))
 
 
 @source_router.delete('/episode/{episode_id}')
@@ -461,6 +498,10 @@ def delete_episode_source_images(
             log.debug(f'Deleting {episode} "{source_file.name}"')
             source_file.unlink(missing_ok=True)
 
+    # Delete the DB record
+    db.query(SourceImageModel).filter_by(episode_id=episode_id).delete()
+    db.commit()
+
     return None
 
 
@@ -474,7 +515,7 @@ async def set_episode_source_image(
         plex_interfaces: (
             InterfaceGroup[int, PlexInterface]
         ) = Depends(get_plex_interfaces),
-    ) -> SourceImage:
+    ) -> SourceImageSchema:
     """
     Set the Source Image for the given Episode. If there is an existing
     Title Card associated with this Episode, it is deleted. This always
@@ -561,15 +602,18 @@ async def set_episode_source_image(
         db.query(LoadedModel).filter_by(episode_id=episode_id),
     )
 
+    # Record the source image in the DB
+    upsert_source_image(db, episode, source_file, source='upload')
+
     # Return created Source Image
-    return get_source_image(episode)
+    return get_source_image(db, episode)
 
 
 @source_router.put('/episode/{episode_id}/mirror')
 def mirror_episode_source_image(
         episode_id: int,
         db: Session = Depends(get_database),
-    ) -> SourceImage:
+    ) -> SourceImageSchema:
     """
     Mirror the Source Image for the given Episode. This flips the image
     horizontally. Any associated Card or Loaded asset(s) are deleted.
@@ -599,7 +643,10 @@ def mirror_episode_source_image(
         db.query(LoadedModel).filter_by(episode_id=episode_id),
     )
 
-    return get_source_image(episode)
+    # Update the DB record with the new dimensions (file was modified in-place)
+    upsert_source_image(db, episode, source_image, source='mirror')
+
+    return get_source_image(db, episode)
 
 
 @source_router.put('/series/{series_id}/logo/upload')
@@ -852,3 +899,62 @@ def delete_episode_mask_image(
 
     mask_file.unlink(missing_ok=True)
     log.debug(f'Deleting {episode} "{mask_file}"')
+
+
+class RescanResult(BaseSchema):
+    created: int = 0
+    updated: int = 0
+    deleted: int = 0
+
+
+@source_router.post('/rescan')
+def rescan_source_images(
+        db: Session = Depends(get_database),
+    ) -> RescanResult:
+    """
+    Reconcile the SourceImage database records with the actual files on
+    disk. Useful after a backup restore, disk migration, or any other
+    operation that modifies source files outside of the app.
+
+    - Records are created for files found on disk that have no record.
+    - Records are updated (filesize) for files whose size has changed.
+    - Records are deleted for files that no longer exist on disk.
+    """
+
+    result = RescanResult()
+
+    # Load all episodes and their current DB records in one pass
+    all_episodes = (
+        db.query(EpisodeModel)
+            .join(SeriesModel, EpisodeModel.series_id == SeriesModel.id)
+            .all()
+    )
+
+    for episode in all_episodes:
+        source_file = episode.get_source_file('unique')
+        record = (
+            db.query(SourceImageModel)
+                .filter_by(episode_id=episode.id)
+                .first()
+        )
+
+        if source_file.exists():
+            if record is None:
+                upsert_source_image(db, episode, source_file, source='unknown')
+                result.created += 1
+                log.debug(f'{episode} Created missing SourceImage record')
+            elif record.filesize != source_file.stat().st_size:
+                upsert_source_image(db, episode, source_file, source=record.source)
+                result.updated += 1
+                log.debug(f'{episode} Updated SourceImage record (size changed)')
+        elif record is not None:
+            db.delete(record)
+            result.deleted += 1
+            log.debug(f'{episode} Deleted stale SourceImage record')
+
+    db.commit()
+    log.info(
+        f'Source image rescan complete: {result.created} created, '
+        f'{result.updated} updated, {result.deleted} deleted'
+    )
+    return result

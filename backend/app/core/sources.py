@@ -19,7 +19,8 @@ from app.interfaces.v2 import (
 )
 from app.models.episode import Episode
 from app.models.series import Library, Series
-from app.schemas.card import SourceImage
+from app.models.source_image import SourceImage as SourceImageModel
+from app.schemas.card import SourceImageSchema
 from app.schemas.preferences import Style
 from app.settings import settings
 from app.utils.tiered_settings import TieredSettings
@@ -314,9 +315,17 @@ def download_episode_source_image(
     # Determine Episode style and source file
     style, source_file = resolve_source_settings(episode, library)
 
-    # If source already exists, return that
+    # If source already exists, return that (backfill DB record if missing)
     series = episode.series
     if source_file.exists():
+        if 'art' not in style:
+            existing = (
+                db.query(SourceImageModel)
+                    .filter_by(episode_id=episode.id)
+                    .first()
+            )
+            if not existing:
+                upsert_source_image(db, episode, source_file, source='unknown')
         return f'/source/{series.path_safe_name}/{source_file.name}'
 
     # Get effective Templates
@@ -420,6 +429,12 @@ def download_episode_source_image(
                 f'{episode} Downloaded "{source_file.name}" from '
                 f'{interface.INTERFACE_TYPE}'
             ))
+            # Record the source image in the DB for unique-style images
+            if 'art' not in style:
+                upsert_source_image(
+                    db, episode, source_file,
+                    source=interface.INTERFACE_TYPE.lower(),
+                )
             return f'/source/{series.path_safe_name}/{source_file.name}'
 
         if raise_exc:
@@ -466,23 +481,101 @@ def download_episode_source_images(
     )]
 
 
-def get_source_image(episode: Episode) -> SourceImage:
+def upsert_source_image(
+        db: Session,
+        episode: Episode,
+        source_file: Path,
+        source: str,
+    ) -> SourceImageModel:
+    """
+    Create or update the SourceImage record for the given Episode.
+    ImageMagick is called once here (on write) so reads are free.
+
+    Args:
+        db: Database to update.
+        episode: Episode whose source image record is being upserted.
+        source_file: Resolved path to the source image file on disk.
+        source: Human-readable origin string, e.g. "tmdb", "upload".
+
+    Returns:
+        The created or updated SourceImage ORM object.
+    """
+
+    width, height = get_imagemagick_interface().get_image_dimensions(source_file)
+
+    record = (
+        db.query(SourceImageModel)
+            .filter_by(episode_id=episode.id)
+            .first()
+    )
+    if record:
+        record.source_file = str(source_file)
+        record.source = source
+        record.filesize = source_file.stat().st_size
+        record.width = int(width)
+        record.height = int(height)
+    else:
+        record = SourceImageModel(
+            episode_id=episode.id,
+            source_file=str(source_file),
+            source=source,
+            filesize=source_file.stat().st_size,
+            width=width,
+            height=height,
+        )
+        db.add(record)
+
+    db.commit()
+    db.refresh(record)
+    return record
+
+
+def get_source_image(db: Session, episode: Episode) -> SourceImageSchema:
     """
     Get the SourceImage details for the given Episode.
 
+    For unique-style Episodes a DB record is queried so no filesystem
+    I/O or ImageMagick subprocess is needed. For art-style Episodes
+    (which share a backdrop file and have no DB record) the path is
+    resolved on the fly and the file is checked directly.
+
     Args:
+        db: Database session.
         episode: Episode of the Source Image.
 
     Returns:
         Details of the Source Image for the given Episode.
     """
 
-    # Determine Episode (style not used) source file
+    # Determine Episode source file (style not needed beyond path)
     _, source_file = resolve_source_settings(episode)
-    image_magick = get_imagemagick_interface()
 
-    # All sources have these details
-    source = SourceImage(
+    # Check for a DB record (present for unique-style images only)
+    record = (
+        db.query(SourceImageModel)
+            .filter_by(episode_id=episode.id)
+            .first()
+    )
+    if record:
+        return SourceImageSchema(
+            episode_id=episode.id,
+            season_number=episode.season_number,
+            episode_number=episode.episode_number,
+            source_file_name=record.file.name,
+            source_file=record.source_file,
+            source_url=(
+                f'/source/{record.file.parent.name}/{record.file.name}'
+            ),
+            exists=record.exists,
+            filesize=record.filesize,
+            width=record.width,
+            height=record.height,
+            created=record.created,
+            source=record.source,
+        )
+
+    # No DB record — art-style episode or pre-migration file; check disk
+    return SourceImageSchema(
         episode_id=episode.id,
         season_number=episode.season_number,
         episode_number=episode.episode_number,
@@ -491,15 +584,6 @@ def get_source_image(episode: Episode) -> SourceImage:
         source_url=f'/source/{source_file.parent.name}/{source_file.name}',
         exists=source_file.exists(),
     )
-
-    # If the source file exists, add the filesize and dimensions
-    if source.exists:
-        width, height = image_magick.get_image_dimensions(source_file)
-        source.filesize = source_file.stat().st_size
-        source.width = width
-        source.height = height
-
-    return source
 
 
 def get_series_mask_images(series: Series) -> list[Path]:

@@ -129,7 +129,7 @@ class ExternalSourceImage(Base):
     language: TMDbLanguage | None = None
     interface_type: ImageSource = 'TMDb'
 
-class SourceImage(Base):
+class SourceImageSchema(Base):
     episode_id: int
     season_number: int
     episode_number: int
@@ -140,6 +140,8 @@ class SourceImage(Base):
     filesize: int = 0
     width: int = 0
     height: int = 0
+    created: datetime | None = None
+    source: str | None = None
 
 class CardActions(Base):
     creating: int = 0
