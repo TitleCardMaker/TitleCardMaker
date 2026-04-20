@@ -182,6 +182,7 @@ class LogoTitleCard(BaseCardType):
         'blur_only_image',
         'episode_text',
         'episode_text_color',
+        'episode_text_font_size',
         'episode_text_vertical_shift',
         'font_color',
         'font_file',
@@ -387,6 +388,7 @@ class LogoTitleCard(BaseCardType):
                 f'label:"{self.episode_text}"',
                 # Combine season+episode text into one "image"
                 f'+smush 25',
+                f'-trim',
             ),
             # Add season+episode text "image" to source image
             f'-geometry +0{y:+}',
@@ -403,6 +405,7 @@ class LogoTitleCard(BaseCardType):
                 f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
                 f'label:"{self.episode_text}"',
                 f'+smush 30',
+                f'-trim',
             ),
             # Add text to source image
             f'-geometry +0{y:+}',
