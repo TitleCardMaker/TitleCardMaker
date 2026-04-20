@@ -5,11 +5,13 @@ from pydantic import Field, FilePath, model_validator
 
 from app.cards.base import (
     BaseCardType,
+    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     ImageStack,
+    PreviewCard,
     add_cli,
 )
 from app.schemas.base import (
@@ -556,5 +558,76 @@ add_cli(
     __name__,
     LogoTitleCard,
     get_validator_model(),
-    documentation=None,
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'The Marooning',
+            'season_text': 'SEASON 1',
+            'episode_text': 'EPISODE 1',
+        },
+        cards=[
+            PreviewCard(
+                filename='background_color',
+                variables={'background': 'DarkSlateGray4'},
+            ),
+            PreviewCard(
+                filename='episode_text_color',
+                variables={'episode_text_color': 'Gold2'},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 1.3},
+            ),
+            PreviewCard(
+                filename='episode_text_vertical_shift',
+                variables={'episode_text_vertical_shift': 20},
+            ),
+            PreviewCard(
+                filename='logo_size',
+                variables={'logo_size': 0.8},
+            ),
+            PreviewCard(
+                filename='separator',
+                variables={'separator': '//'},
+            ),
+            PreviewCard(
+                filename='stroke_color',
+                variables={'stroke_color': 'red'},
+            ),
+            PreviewCard(
+                filename='omit_gradient',
+                variables={
+                    'omit_gradient': True,
+                    'use_background_image': True,
+                },
+            ),
+            PreviewCard(
+                filename='blur_only_image_true',
+                variables={
+                    'blur_only_image': True,
+                    'use_background_image': True,
+                    'blur': True,
+                },
+            ),
+            PreviewCard(
+                filename='blur_only_image_false',
+                variables={
+                    'blur_only_image': False,
+                    'use_background_image': True,
+                    'blur': True,
+                },
+            ),
+            PreviewCard(
+                filename='use_background_image',
+                variables={'use_background_image': True},
+            ),
+            PreviewCard(
+                filename='logo_horizontal_shift',
+                variables={'logo_horizontal_shift': 20},
+            ),
+            PreviewCard(
+                filename='logo_vertical_shift',
+                variables={'logo_vertical_shift': 20},
+            ),
+        ]
+    ),
 )
