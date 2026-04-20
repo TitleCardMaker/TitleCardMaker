@@ -12,7 +12,11 @@ from app.cards.base import (
     ImageStack,
     add_cli,
 )
-from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
+from app.schemas.base import (
+    BaseCardModel,
+    BaseCardTypeCustomFontAllText,
+    FontSize,
+)
 
 
 class LogoTitleCard(BaseCardType):
@@ -64,6 +68,13 @@ class LogoTitleCard(BaseCardType):
                 description='Color to utilize for the episode text',
                 tooltip='Default is <c>#CFCFCF</c>.',
                 default='#CFCFCF',
+            ),
+            Extra(
+                name='Episode Text Font Size',
+                identifier='episode_text_font_size',
+                description='Size adjustment for the season and episode text',
+                tooltip='Number ≥<v>0.0</v>. Default is <v>1.0</v>.',
+                default=1.0,
             ),
             Extra(
                 name='Episode Text Vertical Shift',
@@ -222,6 +233,7 @@ class LogoTitleCard(BaseCardType):
             background: str = 'black',
             blur_only_image: bool = False,
             episode_text_color: str = SERIES_COUNT_TEXT_COLOR,
+            episode_text_font_size: float = 1.0,
             episode_text_vertical_shift: int = 0,
             logo_horizontal_shift: int = 0,
             logo_size: float = 1.0,
@@ -264,6 +276,7 @@ class LogoTitleCard(BaseCardType):
         # Optional extras
         self.background = background
         self.episode_text_color = episode_text_color
+        self.episode_text_font_size = episode_text_font_size
         self.episode_text_vertical_shift = episode_text_vertical_shift
         self.omit_gradient = omit_gradient
         self.logo_horizontal_shift = logo_horizontal_shift
@@ -315,12 +328,14 @@ class LogoTitleCard(BaseCardType):
         if self.hide_season_text and self.hide_episode_text:
             return []
 
-        # Only add season text
+        size = 67.75 * self.episode_text_font_size
         y = 697.2 + self.episode_text_vertical_shift
+
+        # Only add season text
         if self.hide_episode_text:
             return [
                 f'-kerning 5.42',
-                f'-pointsize 67.75',
+                f'-pointsize {size:.1f}',
                 f'-interword-spacing 14.5',
                 f'-font "{self.SEASON_COUNT_FONT.resolve()}"',
                 f'-gravity center',
@@ -338,7 +353,7 @@ class LogoTitleCard(BaseCardType):
         if self.hide_season_text:
             return [
                 f'-kerning 5.42',
-                f'-pointsize 67.75',
+                f'-pointsize {size:.1f}',
                 f'-interword-spacing 14.5',
                 f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
                 f'-gravity center',
@@ -357,7 +372,7 @@ class LogoTitleCard(BaseCardType):
             f'-background transparent',
             f'-gravity center',
             f'-kerning 5.42',
-            f'-pointsize 67.75',
+            f'-pointsize {size:.1f}',
             f'-interword-spacing 14.5',
             # Black stroke behind primary text
             *ImageStack(
@@ -504,9 +519,10 @@ def get_validator_model() -> type[BaseCardModel]:
         background: str = 'black'
         blur_only_image: bool = False
         episode_text_color: str = LogoTitleCard.SERIES_COUNT_TEXT_COLOR
+        episode_text_font_size: FontSize = 1.0
         episode_text_vertical_shift: int = 0
         logo_horizontal_shift: int = 0
-        logo_size: Annotated[float, Field(gt=0)] = 1.0
+        logo_size: FontSize = 1.0
         logo_vertical_shift: int = 0
         omit_gradient: bool = True
         separator: str = '•'
