@@ -468,6 +468,10 @@ add_cli(
                 variables={'episode_text_font_size': 1.1},
             ),
             PreviewCard(
+                filename='episode_text_vertical_shift',
+                variables={'episode_text_vertical_shift': -20},
+            ),
+            PreviewCard(
                 filename='horizontal_offset',
                 variables={'x_offset': 90},
             ),
