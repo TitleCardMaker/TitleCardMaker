@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, TypedDict
 
-from app.interfaces.schemas.sonarr import EpisodeResource
 from num2words import num2words
 from plexapi.video import Episode as PlexEpisode
 from sqlalchemy import ColumnElement, and_, false as sql_false, func, or_, not_
@@ -9,6 +8,7 @@ from titlecase import titlecase
 
 from app.cards.title import Title
 from app.info.base import DatabaseInfoContainer, InterfaceID
+from app.interfaces.schemas.sonarr import EpisodeResource
 
 if TYPE_CHECKING:
     from app.interfaces.schemas.emby import EpisodeDetails
