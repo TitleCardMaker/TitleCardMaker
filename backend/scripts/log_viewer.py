@@ -74,12 +74,10 @@ LEAF_KEYS = frozenset({
 
 def _parse_dt_strict(value: str, field: str) -> str:
     raw = value.strip()
-    if raw.endswith('Z'):
-        raw = raw[:-1] + '+00:00'
     try:
         parsed = datetime.fromisoformat(raw)
     except ValueError as exc:
-        msg = f'Invalid datetime for {field}: {value!r}. Use ISO 8601.'
+        msg = f'Invalid datetime for {field}: {value!r}. Use ISO 8601. ({exc})'
         raise ValueError(msg) from exc
     return parsed.isoformat(sep=' ')
 
@@ -326,6 +324,15 @@ def index() -> str:
     .fb-value { flex: 1 1 12rem; min-width: 10rem; }
     .fb-group-actions { margin-top: 0.35rem; }
     .fb-group-actions .button { margin-right: 0.35rem !important; }
+    .fb-select {
+      padding: 0.4rem 0.5rem;
+      border: 1px solid rgba(34, 36, 38, 0.35);
+      border-radius: 4px;
+      background: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .fb-select:focus { outline: none; border-color: #85b7d9; }
   </style>
 </head>
 <body>
@@ -445,7 +452,7 @@ def index() -> str:
       const row = document.createElement('div');
       row.className = 'fb-condition';
       const sel = document.createElement('select');
-      sel.className = 'ui compact selection dropdown fb-type';
+      sel.className = 'fb-select fb-type';
       sel.setAttribute('aria-label', 'Condition type');
       for (const [optVal, label] of FB_CONDITION_TYPES) {
         const opt = document.createElement('option');
@@ -467,7 +474,6 @@ def index() -> str:
       rm.className = 'ui mini button fb-remove-condition';
       rm.textContent = 'Remove';
       row.append(sel, inp, rm);
-      $(sel).dropdown();
       return row;
     }
 
@@ -478,10 +484,7 @@ def index() -> str:
       g.innerHTML = `
         <div class="fb-group-header">
           <label>Match</label>
-          <select
-            class="ui compact selection dropdown fb-logic"
-            aria-label="Group logic"
-          >
+          <select class="fb-select fb-logic" aria-label="Group logic">
             <option value="all">All (AND)</option>
             <option value="any">Any (OR)</option>
           </select>
@@ -500,7 +503,6 @@ def index() -> str:
       `;
       const logicSel = g.querySelector('.fb-logic');
       if (logic === 'any') logicSel.value = 'any';
-      $(logicSel).dropdown();
       return g;
     }
 
