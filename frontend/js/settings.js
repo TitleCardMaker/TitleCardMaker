@@ -321,21 +321,24 @@ function updateGlobalSettings() {
   // Mark button as loading
   $('#save-changes').toggleClass('loading', true);
 
-  // Parse extras
+  // Parse extras (stacked panels: one per card type)
   const extras = {};
-  $('section[aria-label="extras"] .tab').each(function() {
-    const cardType = $(this).attr('data-tab').replace('_', '/'); // Current card type
-    const currentExtras = {}; // Currently non-blank extras
-
-    // Parse all non-blank extras for this type
-    $(this).find('input').each(function() {
-      if ($(this).val() !== '') {
-        currentExtras[$(this).attr('name')] = $(this).val();
+  $('section[aria-label="extras"] .card-extra-type-panel').each(function() {
+    const cardType = $(this).attr('data-card-type');
+    if (!cardType) {
+      return;
+    }
+    const currentExtras = {};
+    $(this).find('input, select').each(function() {
+      const $el = $(this);
+      const name = $el.attr('name');
+      if (name && $el.val() !== '') {
+        currentExtras[name] = $el.val();
       }
     });
-
-    // If current card type has extras, add to object
-    if (Object.keys(currentExtras).length > 0) { extras[cardType] = currentExtras; }
+    if (Object.keys(currentExtras).length > 0) {
+      extras[cardType] = currentExtras;
+    }
   });
 
   // Parse global fonts

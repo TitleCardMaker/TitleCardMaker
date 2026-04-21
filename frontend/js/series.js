@@ -376,9 +376,9 @@ async function initializeSeriesConfig() {
       onChange: async function(value, text, $selectedItem) {
         // Get current extras values before refreshing
         const currentExtras = {};
-        document.querySelectorAll('#card-config-form section[aria-label="extras"] input').forEach(input => {
-          if (input.value !== '') {
-            currentExtras[input.name] = input.value;
+        document.querySelectorAll('#card-config-form section[aria-label="extras"] input, #card-config-form section[aria-label="extras"] select').forEach((el) => {
+          if (el.value !== '') {
+            currentExtras[el.name] = el.value;
           }
         });
         // Refresh extras for the new card type
@@ -556,8 +556,7 @@ async function editEpisodeExtras(episodeId, allEpisodeIds) {
     });
 
   // Remove any existing extras
-  $('#episode-extras-modal section[aria-label="extras"] > .tab, ' +
-    '#episode-extras-modal section[aria-label="extras"] > .menu .item').remove();
+  $('#episode-extras-modal section[aria-label="extras"]').empty();
 
   // Assign functions to previous/next buttons
   const assignButtonNavs = (epId) => {
@@ -641,9 +640,9 @@ async function editEpisodeExtras(episodeId, allEpisodeIds) {
 
       // Convert form to data
       const extras = {};
-      document.querySelectorAll('#episode-extras-modal section[aria-label="extras"] input').forEach(input => {
-        if (input.value !== '') {
-          extras[input.name] = input.value;
+      document.querySelectorAll('#episode-extras-modal section[aria-label="extras"] input, #episode-extras-modal section[aria-label="extras"] select').forEach((el) => {
+        if (el.value !== '') {
+          extras[el.name] = el.value;
         }
       });
 
@@ -1171,9 +1170,9 @@ async function getEpisodeData(page=1) {
               if (currentEpisode && currentEpisode.id === episode.id) {
                 // Get current extras values
                 const currentExtras = {};
-                document.querySelectorAll('#episode-extras-modal section[aria-label="extras"] input').forEach(input => {
-                  if (input.value !== '') {
-                    currentExtras[input.name] = input.value;
+                document.querySelectorAll('#episode-extras-modal section[aria-label="extras"] input, #episode-extras-modal section[aria-label="extras"] select').forEach((el) => {
+                  if (el.value !== '') {
+                    currentExtras[el.name] = el.value;
                   }
                 });
                 
@@ -2594,7 +2593,7 @@ function getSeriesCardConfigData() {
   }
 
   // Build extras object from keys and values
-  const extraInputs = $('#card-config-form section[aria-label="extras"] input');
+  const extraInputs = $('#card-config-form section[aria-label="extras"] .card-extras-panel-host input, #card-config-form section[aria-label="extras"] .card-extras-panel-host select');
   const extras = {};
   extraInputs.each(function() {
     const key = $(this).attr('name');

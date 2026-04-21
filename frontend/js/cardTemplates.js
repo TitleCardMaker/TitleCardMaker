@@ -67,8 +67,8 @@ function reloadPreview(templateElementId, cardElement, imgElement, previewForm) 
   // For now, default to unwatched style for preview
 
   const extras = {};
-  $(`#${templateElementId} section[aria-label="extras"] input`).each(function() {
-    if ($(this).val() !== '') {
+  $(`#${templateElementId} section[aria-label="extras"] .card-extras-panel-host input, #${templateElementId} section[aria-label="extras"] .card-extras-panel-host select`).each(function() {
+    if ($(this).val() !== '' && $(this).attr('name') !== undefined) {
       extras[$(this).attr('name')] = $(this).val();
     }
   });
@@ -237,8 +237,8 @@ function showDeleteModal(templateId) {
 function updateTemplate(templateId) {
 
   const extras = {};
-  $(`#template-id${templateId} section[aria-label="extras"] input`).each(function() {
-    if ($(this).val() !== '') {
+  $(`#template-id${templateId} section[aria-label="extras"] .card-extras-panel-host input, #template-id${templateId} section[aria-label="extras"] .card-extras-panel-host select`).each(function() {
+    if ($(this).val() !== '' && $(this).attr('name') !== undefined) {
       extras[$(this).attr('name')] = $(this).val();
     }
   });
@@ -494,7 +494,7 @@ async function getAllTemplates() {
     // Extras
     if (templateObj.extras && Object.entries(templateObj.extras).length > 0) {
       for (const [identifier, value] of Object.entries(templateObj.extras)) {
-        base.querySelectorAll(`section[aria-label="extras"] input[name="${identifier}"]`).forEach(input => input.value = value);
+        base.querySelectorAll(`section[aria-label="extras"] input[name="${identifier}"], section[aria-label="extras"] select[name="${identifier}"]`).forEach((node) => { node.value = value; });
       }
     }
     // Update card preview
@@ -532,9 +532,9 @@ async function getAllTemplates() {
      * because it can be very slow.
      */
     onOpen: function () {
-      // Get the card type of this template (or global) to determine which tab to open to
-      const cardIdentifier = $(this).find('input[name="card_type"]').val() || '{{ preferences.default_card_type }}';
-      $(this).find('section[aria-label="extras"] .item').tab('change tab', cardIdentifier);
+      if (typeof syncCardExtrasTypeSelectFromTemplate === 'function') {
+        syncCardExtrasTypeSelectFromTemplate(this);
+      }
     },
   });
 

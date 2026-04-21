@@ -186,20 +186,29 @@ Cypress.Commands.add(
         .click()
     });
 
-    // Fill out this input
-    parentObject.within(section => {
+    parentObject.within((section) => {
+      cy.wrap(section).find('.card-extras-type-select').then(($sel) => {
+        const opt = [...$sel[0].options].find(
+          (o) => o.textContent.trim() === cardType
+            || o.textContent.includes(cardType)
+            || o.value === cardType,
+        );
+        expect(opt, `card type option for ${cardType}`).to.exist;
+        cy.wrap($sel).select(opt.value);
+      });
       cy.wrap(section)
-        // Find active tab for currently selected card type
-        .find('.active.tab')
-        // Find indicated extra label
+        .find('.card-extra-type-panel:not([hidden])')
         .contains('label', label)
-        // Get input associated with this extra
-        .parent()
-        .find('input')
-        // Type value
-        .clear()
-        .type(value)
-        .should('have.value', value)
+        .closest('.field')
+        .within(() => {
+          cy.get('select.card-extra-native-select').then(($s) => {
+            if ($s.length) {
+              cy.wrap($s).select(value);
+            } else {
+              cy.get('input[type="text"]').clear().type(value).should('have.value', value);
+            }
+          });
+        });
     })
   }
 );
@@ -228,18 +237,29 @@ Cypress.Commands.add(
         .click()
     });
 
-    // Fill out this input
-    parentObject.within(section => {
+    parentObject.within((section) => {
+      cy.wrap(section).find('.card-extras-type-select').then(($sel) => {
+        const opt = [...$sel[0].options].find(
+          (o) => o.textContent.trim() === cardType
+            || o.textContent.includes(cardType)
+            || o.value === cardType,
+        );
+        expect(opt, `card type option for ${cardType}`).to.exist;
+        cy.wrap($sel).select(opt.value);
+      });
       cy.wrap(section)
-        // Find active tab for currently selected card type
-        .find('.active.tab')
-        // Find indicated extra label
+        .find('.card-extra-type-panel:not([hidden])')
         .contains('label', label)
-        // Get input associated with this extra
-        .parent()
-        .find('input')
-        // Validate value
-        .should('have.value', value)
+        .closest('.field')
+        .within(() => {
+          cy.get('select.card-extra-native-select').then(($s) => {
+            if ($s.length) {
+              cy.wrap($s).should('have.value', value);
+            } else {
+              cy.get('input[type="text"]').should('have.value', value);
+            }
+          });
+        });
     })
   }
 );

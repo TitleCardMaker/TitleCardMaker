@@ -15,6 +15,7 @@
  * @property {?string} tooltip
  * @property {?string} card_type
  * @property {any} default
+ * @property {string[]|null|undefined} allowed_values
  */
 
 /**
@@ -511,12 +512,8 @@ async function refreshExtrasForCardType(cardType, sectionQuerySelector, inputTem
   // Clear existing extras menu and tabs
   const section = document.querySelector(sectionQuerySelector);
   if (section) {
-    const menu = section.querySelector('.menu');
-    const tabs = section.querySelectorAll('.tab.segment');
-    if (menu) {
-      menu.innerHTML = '';
-    }
-    tabs.forEach(tab => tab.remove());
+    section.replaceChildren();
+    delete section._tcmExtrasTypes;
   }
   
   // Determine active tab (use the card type or default)
@@ -812,8 +809,17 @@ const toTitleCase = (str) => str.replace(/(?:^|\s)\w/g, (match) => match.toUpper
  */
 function updateLinkedFields(inputElement) {
   const value = inputElement.value;
-  inputElement.closest('section[aria-label="extras"]')
-    .querySelectorAll(`input[name="${inputElement.name}"]`).forEach(inp => inp.value = value);
+  const section = inputElement.closest('section[aria-label="extras"]');
+  if (!section) {
+    return;
+  }
+  const sel = `input[name="${inputElement.name}"],select[name="${inputElement.name}"]`;
+  section.querySelectorAll(sel).forEach((node) => {
+    if (node === inputElement) {
+      return;
+    }
+    node.value = value;
+  });
 }
 
 /**
@@ -826,225 +832,6 @@ function updateColorBubble(inputElement) {
   inputElement.closest('.field')
     ?.querySelector('label > .color.circle')
     ?.style.setProperty('--color', inputElement.value);
-}
-
-/**
- * Populate the extras section of the given HTML Template. This does not
- * populate the inputs themselves, but does add the required tabs, fields, etc.
- * @param {HTMLTemplateElement} extraTemplateSection Element in the HTML
- * template which is being populated.
- * @param {HTMLTemplateElement} inputTemplateElement HTML Template of the extra
- * input element to clone and populate.
- * @param {number} groupAmount How many extras to combine in a single group
- * field. Default 2.
- */
-async function populateExtraTemplate({
-  extraTemplateSection,
-  inputTemplateElement,
-  groupAmount = 3,
-}) {
-  if (allExtras === undefined) {
-    await queryAvailableExtras();
-  }
-
-  /** @type {Object.<string, Extra[]>} */
-  const types = {};
-  // Create object of card type identifiers to array of extras
-  allExtras.forEach(extra => {
-    extra.card_type = extra.card_type || 'Variable Overrides';
-    if (types[extra.card_type] === undefined) {
-      types[extra.card_type] = [];
-    }
-    types[extra.card_type].push(extra);
-  });
-
-  // Create tabs for each card type
-  const extraMenu = extraTemplateSection.querySelector('.menu');
-  for (const [card_type, extras] of Object.entries(types)) {
-    // Create tab menu item
-    const newMenuItem = document.createElement('a');
-    newMenuItem.className = 'item';
-    newMenuItem.dataset.tab = card_type.replace('/', '_');
-    newMenuItem.innerText = toTitleCase(card_type);
-    extraMenu.appendChild(newMenuItem);
-
-    // Create tab itself
-    const newTab = document.createElement('div');
-    newTab.className = 'ui bottom attached tab segment';
-    newTab.dataset.tab = card_type.replace('/', '_'); // Cannot use / in tab identifiers
-    extraMenu.insertAdjacentElement('afterend', newTab);
-
-    // Add input field for each extra
-    extras.forEach((extra, index) => {
-      const newInput = inputTemplateElement.content.cloneNode(true);
-      const defaultText = extra.default === null ? 'Default' : extra.default;
-      // For color fields, add live color indicator
-      if (extra.name.endsWith('Color')) {
-        newInput.querySelector('label').innerHTML = `${extra.name}<span data-name="${extra.name}" class="inline color circle" style="--default-color: ${defaultText}"></span>`;
-      } else {
-        newInput.querySelector('label').innerText = extra.name;
-        newInput.querySelector('input').removeAttribute('oninput');
-      }
-
-      newInput.querySelector('.field').dataset.label = extra.name;
-      newInput.querySelector('input').name = extra.identifier;
-      newInput.querySelector('input').placeholder = defaultText;
-      newInput.querySelector('.help').innerHTML = `<b>${extra.description}</b><br>`
-        + (extra.tooltip
-          ? extra.tooltip
-              .replaceAll('<v>', '<span class="ui blue text inverted">')
-              .replaceAll('</v>', '</span>')
-              .replaceAll(
-                /<c>(.*?)<\/c>/g,
-                '<code class="color">$1<span style="--color: $1" class="color circle"></span></code>'
-              )
-          : ''
-        )
-      ;
-
-      // Parse unit if possible
-      const unitRegex = /Unit is (\S+)\./;
-      if (extra.tooltip && extra.tooltip.match(unitRegex)) {
-        const unit = extra.tooltip.match(unitRegex)[1];
-        newInput.querySelector('.basic.label').innerText = unit === 'pixels' ? 'px' : unit;
-      } else {
-        newInput.querySelector('.right.labeled').classList.remove('right', 'labeled');
-        newInput.querySelector('.basic.label').remove();
-      }
-
-      // Group every (n) fields into a field group
-      if (index % groupAmount === 0) {
-        const newFields = document.createElement('div');
-        newFields.className = 'ui equal width fields';
-        newTab.appendChild(newFields);
-      }
-      newTab.lastChild.appendChild(newInput);
-    });
-  }
-}
-
-/**
- * Initialize the given extra input fields with the given arguments.
- * @param {?Object.<string, string>} activeExtras Object of active extras to
- * initialize the extra input fields with.
- * @param {string} activeTab Name of the tab to mark as active.
- * @param {string} sectionQuerySelector Query selector to find the section being
- * populated.
- * @param {HTMLTemplateElement} inputTemplateElement ID of the extra input
- * element to clone and populate.
- * @param {boolean} isGlobal Whether the extras being initialized are for global
- * extras or not. Global extras are formatted under {card_type: {}}, while
- * normal extras are not. If global, variable overrides are excluded, and inputs
- * of the same name are not linked.
- * @param {number} groupAmount How many extras to combine in a single group
- * field. Default 2.
- * @param {boolean} initializeTabs Whether to initialize the Fomantic tabs
- * after the fact.
- */
-async function initializeExtras(
-  activeExtras,
-  activeTab,
-  sectionQuerySelector,
-  inputTemplateElement,
-  isGlobal = false,
-  groupAmount = 3,
-  initializeTabs = true,
-) {
-  if (filteredExtras === undefined) {
-    await queryAvailableExtras();
-  }
-
-  /** @type {Object.<string, Extra[]>} */
-  const types = {};
-
-  // Create object of card type identifiers to array of extras
-  filteredExtras.forEach(extra => {
-    // If skipping overrides, skip if no assigned card type
-    if (isGlobal && !extra.card_type) { return; }
-
-    extra.card_type = extra.card_type || 'Variable Overrides';
-    if (types[extra.card_type] === undefined) {
-      types[extra.card_type] = [];
-    }
-    types[extra.card_type].push(extra);
-  });
-
-  // Create tabs for each card type
-  const extraMenu = document.querySelector(`${sectionQuerySelector} .menu`);
-  for (const [card_type, extras] of Object.entries(types)) {
-    // Create tab menu item
-    const newMenuItem = document.createElement('a');
-    newMenuItem.className = card_type === activeTab ? 'active item' : 'item';
-    newMenuItem.dataset.tab = card_type.replace('/', '_');
-    newMenuItem.innerText = toTitleCase(card_type);
-    extraMenu.appendChild(newMenuItem);
-
-    // Create tab itself
-    const newTab = document.createElement('div');
-    newTab.className = 'ui bottom attached tab segment' + (card_type === activeTab ? ' active' : '');
-    newTab.dataset.tab = card_type.replace('/', '_'); // Cannot use / in tab identifiers
-    extraMenu.insertAdjacentElement('afterend', newTab);
-
-    // Add input field for each extra
-    extras.forEach((extra, index) => {
-      const newInput = inputTemplateElement.content.cloneNode(true);
-      const def = extra.default === null ? 'Default' : extra.default;
-      // For color fields, add live color indicator
-      if (extra.name.endsWith('Color')) {
-        newInput.querySelector('label').innerHTML = `${extra.name}<span data-name="${extra.name}" class="inline color circle" style="--default-color: ${def}"></span>`;
-      } else {
-        newInput.querySelector('label').innerText = extra.name;
-      }
-      newInput.querySelector('.field').dataset.label = extra.name;
-      newInput.querySelector('input').name = extra.identifier;
-      newInput.querySelector('input').placeholder = def;
-      newInput.querySelector('.help').innerHTML = `<b>${extra.description}</b><br>`
-        + (extra.tooltip
-          ? extra.tooltip
-              .replaceAll('<v>', '<span class="ui blue text inverted">')
-              .replaceAll('</v>', '</span>')
-              .replaceAll(
-                /<c>(.*?)<\/c>/g,
-                '<code class="color">$1<span style="--color: $1" class="color circle"></span></code>'
-              )
-          : ''
-        );
-
-      // Parse unit if possible
-      const unitRegex = /Unit is (\S+)\./;
-      if (extra.tooltip && extra.tooltip.match(unitRegex)) {
-        const unit = extra.tooltip.match(unitRegex)[1];
-        newInput.querySelector('.basic.label').innerText = unit === 'pixels' ? 'px' : unit;
-      } else {
-        newInput.querySelector('.right.labeled').classList.remove('right', 'labeled');
-        newInput.querySelector('.basic.label').remove();
-      }
-
-      // Fill out input if part of active extras
-      if ((isGlobal && activeExtras.hasOwnProperty(card_type) && activeExtras[card_type][extra.identifier])
-          || (!isGlobal && activeExtras[extra.identifier])) {
-        const thisValue = isGlobal
-          ? activeExtras[card_type][extra.identifier]
-          : activeExtras[extra.identifier]
-        ;
-        newInput.querySelector('input').value = thisValue
-        if (extra.name.endsWith('Color')) {
-          newInput.querySelector('.field label > .color.circle').style.setProperty('--color', thisValue);
-        }
-      }
-
-      // Group every (n) fields into a field group
-      if (index % groupAmount === 0) {
-        const newFields = document.createElement('div');
-        newFields.className = 'ui equal width fields';
-        newTab.appendChild(newFields);
-      }
-      newTab.lastChild.appendChild(newInput);
-    });
-  }
-
-  // Initialize tabs
-  if (initializeTabs) { $(`${sectionQuerySelector} .item`).tab(); }
 }
 
 /**

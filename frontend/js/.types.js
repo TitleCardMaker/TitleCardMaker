@@ -108,6 +108,7 @@ class Page {
  * @property {string} description
  * @property {?string} tooltip
  * @property {?string} card_type
+ * @property {string[]|null|undefined} allowed_values
  */
 
 /**

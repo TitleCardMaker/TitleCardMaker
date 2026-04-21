@@ -19,7 +19,7 @@
     <div class="field">
       <label>{label}</label>
       <div class="ui right labeled input">
-        <input oninput="updateColorBubble(this);" type="text">
+        <input oninput="updateColorBubble(this);" onchange="updateLinkedFields(this);" type="text">
         <div class="ui basic label"></div>
       </div>
       <p class="help">{tooltip}</p>
