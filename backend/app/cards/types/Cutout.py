@@ -62,6 +62,7 @@ class CutoutTitleCard(BaseCardType):
                     'the cutout of the episode text is blurred. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(

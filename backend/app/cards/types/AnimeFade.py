@@ -70,6 +70,7 @@ class AnimeFadeTitleCard(BaseCardType):
                     'Either <v>bottom</v> or <v>center</v>. Default is '
                     '<v>bottom</v>.'
                 ),
+                allowed_values=['bottom', 'center'],
                 default='bottom',
             ),
             Extra(
@@ -108,6 +109,7 @@ class AnimeFadeTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. If <v>True</v>, cards '
                     'without Kanji will not be created. Default is <v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
         ],

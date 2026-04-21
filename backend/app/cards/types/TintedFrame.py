@@ -191,6 +191,7 @@ class TintedFrameTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
             Extra(

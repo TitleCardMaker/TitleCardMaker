@@ -193,6 +193,7 @@ class GraphTitleCard(BaseCardType):
                     'may appear less legible on brighter images. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(

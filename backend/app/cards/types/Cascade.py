@@ -277,6 +277,7 @@ class CascadeTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v> to disable the glass. '
                     'Default is <v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
             Extra(
@@ -301,6 +302,7 @@ class CascadeTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Only works when using '
                     'the default Font. Default is <v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -313,6 +315,7 @@ class CascadeTitleCard(BaseCardType):
                     'characters; it is recommended to set the Episode Text '
                     'Format to <v>{kanji}</v> . Default is <v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
         ],

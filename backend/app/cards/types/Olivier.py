@@ -75,6 +75,7 @@ class OlivierTitleCard(BaseCardType):
                     'may appear less legible on brighter images. Default is '
                     '<v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
             Extra(
@@ -87,6 +88,7 @@ class OlivierTitleCard(BaseCardType):
                     'starts with <v>command:</v>. See documentation for more '
                     'details. Default is <v>improved</v>.'
                 ),
+                default='improved',
             ),
         ],
         description=[

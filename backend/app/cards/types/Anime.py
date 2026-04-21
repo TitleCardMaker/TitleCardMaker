@@ -101,6 +101,7 @@ class AnimeTitleCard(BaseCardType):
                     'logo. Default is <v>omit</v>.'
                 ),
                 default='omit',
+                allowed_values=['top left', 'top right', 'bottom right', 'omit']
             ),
             Extra(
                 name='Logo Size',
@@ -118,6 +119,7 @@ class AnimeTitleCard(BaseCardType):
                     'may appear less legible on brighter images. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -128,6 +130,7 @@ class AnimeTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. If <v>True</v>, cards '
                     'without Kanji will not be created. Default is <v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(

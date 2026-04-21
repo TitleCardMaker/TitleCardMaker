@@ -18,6 +18,7 @@ class Extra(Base):
     tooltip: str | None = None
     card_type: str | None = None
     default: Any | None = None
+    allowed_values: list[str] | None = None
 
 LocalCardTypeModels: dict[str, type[BaseCardModel]] = {
     'anime': Anime.get_validator_model(),

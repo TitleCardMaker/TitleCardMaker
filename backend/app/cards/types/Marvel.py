@@ -67,6 +67,7 @@ class MarvelTitleCard(BaseCardType):
                     'Whether to Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -85,6 +86,7 @@ class MarvelTitleCard(BaseCardType):
                     'the title text; or <v>fixed</v> to put the text on the '
                     'outer edges of the text box. Default is <v>fixed</v>.'
                 ),
+                allowed_values=['compact', 'fixed'],
                 default='fixed',
             ),
             Extra(
@@ -96,6 +98,7 @@ class MarvelTitleCard(BaseCardType):
                     'in the bounds of the text box. Either <v>True</v> or '
                     '<v>False</v>. Default is <v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
             Extra(

@@ -112,6 +112,7 @@ class LogoTitleCard(BaseCardType):
                     'Either <v>True</v>, or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -130,6 +131,7 @@ class LogoTitleCard(BaseCardType):
                     'may appear less legible on brighter images. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -140,6 +142,7 @@ class LogoTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. If <v>True</v>, the '
                     'logo is not blurred. Default is <v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
         ],

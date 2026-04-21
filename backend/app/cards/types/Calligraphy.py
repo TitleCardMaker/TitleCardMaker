@@ -45,6 +45,7 @@ class CalligraphyTitleCard(BaseCardType):
                 tooltip=(
                     'Either <v>True</v> or <v>False</v>. Default is <v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
             Extra(
@@ -54,6 +55,7 @@ class CalligraphyTitleCard(BaseCardType):
                 tooltip=(
                     'Either <v>True</v> or <v>False</v>. Default is <v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
             Extra(
@@ -78,6 +80,7 @@ class CalligraphyTitleCard(BaseCardType):
                     'multi-line titles will be adjusted so the second line '
                     'hangs below the first. Default is <v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
             Extra(
@@ -112,6 +115,7 @@ class CalligraphyTitleCard(BaseCardType):
                     'spoiler-free blurring if a Blur style is used and the '
                     'Episode is unwatched. Default is <v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
         ],

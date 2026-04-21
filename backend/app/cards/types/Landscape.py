@@ -59,6 +59,7 @@ class LandscapeTitleCard(BaseCardType):
                     'Either <v>True</v>, or <v>False</v>. Default is '
                     '<v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
             Extra(
@@ -96,6 +97,7 @@ class LandscapeTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -129,6 +131,7 @@ class LandscapeTitleCard(BaseCardType):
                     'darken the image at all. This is to improve text '
                     'legibility on very bright images. Default is <v>box</v>.'
                 ),
+                allowed_values=['all', 'box', 'False'],
                 default='box',
             ),
             Extra(

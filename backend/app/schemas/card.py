@@ -19,6 +19,7 @@ class Extra(Base):
     description: str
     tooltip: str | None = None
     default: Any | None = None
+    allowed_values: list[str] | None = None
 
 class CardTypeDescription(Base):
     name: str

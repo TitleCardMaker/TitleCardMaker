@@ -106,6 +106,7 @@ class ScoreTitleCard(BaseCardType):
                     'Either <v>above</v>, <v>below</v> or <v>random</v> to '
                     'randomly select a placement. Default is <v>above</v>.'
                 ),
+                allowed_values=['above', 'below', 'random'],
                 default='above',
             ),
             Extra(
@@ -116,6 +117,7 @@ class ScoreTitleCard(BaseCardType):
                     'Either <v>top</v>, <v>bottom</v>, or <v>random</v> to '
                     'randomly select a placement. Default is <v>bottom</v>.'
                 ),
+                allowed_values=['top', 'bottom', 'random'],
                 default='bottom',
             ),
             Extra(
@@ -129,6 +131,7 @@ class ScoreTitleCard(BaseCardType):
                     ' or <v>random</v> to randomly select a variation. Default '
                     'is <v>surround</v>.'
                 ),
+                allowed_values=['left', 'surround', 'right', 'random'],
                 default='surround',
             ),
             Extra(
@@ -140,6 +143,7 @@ class ScoreTitleCard(BaseCardType):
                     'may appear less legible on brighter images. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
         ],

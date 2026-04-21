@@ -136,6 +136,7 @@ class ComicBookTitleCard(BaseCardType):
                     'Either <v>left</v>, <v>middle</v>, or <v>right</v>. '
                     'Default is <v>left</v>.'
                 ),
+                allowed_values=['left', 'middle', 'right'],
                 default='left',
             ),
             Extra(
@@ -185,6 +186,7 @@ class ComicBookTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -227,6 +229,7 @@ class ComicBookTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(

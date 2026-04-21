@@ -69,6 +69,7 @@ class MusicTitleCard(BaseCardType):
                     'logo, or <v>poster</v> to use the Series poster. The '
                     'default is <v>logo</v>.'
                 ),
+                allowed_values=['basic', 'artwork', 'logo', 'poster'],
                 default='logo',
             ),
             Extra(
@@ -133,6 +134,7 @@ class MusicTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -157,6 +159,7 @@ class MusicTitleCard(BaseCardType):
                     'use the watched status of the Episode (watched for pause, '
                     'unwatched for play). Default is <v>play</v>.'
                 ),
+                allowed_values=['pause', 'play', 'watched'],
                 default='play',
             ),
             Extra(
@@ -181,6 +184,7 @@ class MusicTitleCard(BaseCardType):
                     'Either <v>left</v>, <v>middle</v>, or <v>right</v>. '
                     'Default is <v>left</v>.'
                 ),
+                allowed_values=['left', 'middle', 'right'],
                 default='left',
             ),
             Extra(
@@ -210,6 +214,7 @@ class MusicTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -247,6 +252,7 @@ class MusicTitleCard(BaseCardType):
                     'fairly CPU intensive and will slow down Card creation. '
                     'Default is <v>True</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='True',
             ),
         ],

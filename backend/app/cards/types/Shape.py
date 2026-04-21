@@ -78,6 +78,7 @@ class ShapeTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -88,6 +89,7 @@ class ShapeTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -108,6 +110,7 @@ class ShapeTitleCard(BaseCardType):
                     'Either <v>above</v> or <v>below</v>. Default is '
                     '<v>below</v>.'
                 ),
+                allowed_values=['above', 'below'],
                 default='below',
             ),
             Extra(
@@ -197,6 +200,11 @@ class ShapeTitleCard(BaseCardType):
                     ' <v>right</v>, <v>lower left</v>, or <v>lower right</v>. '
                     'Default is <v>lower left</v>.'
                 ),
+                allowed_values=[
+                    'upper left', 'upper right',
+                    'left', 'right',
+                    'lower left', 'lower right',
+                ],
                 default='lower left',
             ),
             Extra(
@@ -208,6 +216,7 @@ class ShapeTitleCard(BaseCardType):
                     'may appear less legible on brighter images. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
         ],

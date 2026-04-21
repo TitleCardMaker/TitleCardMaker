@@ -67,6 +67,7 @@ class OverlineTitleCard(BaseCardType):
                 tooltip=(
                     'Either <v>top</v> or <v>bottom</v>. Default is <v>top</v>.'
                 ),
+                allowed_values=['top', 'bottom'],
                 default='top',
             ),
             Extra(
@@ -87,6 +88,7 @@ class OverlineTitleCard(BaseCardType):
                     'Either <v>True</v> or <v>False</v>. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
             Extra(
@@ -105,6 +107,7 @@ class OverlineTitleCard(BaseCardType):
                     'may appear less legible on brighter images. Default is '
                     '<v>False</v>.'
                 ),
+                allowed_values=['True', 'False'],
                 default='False',
             ),
         ],
