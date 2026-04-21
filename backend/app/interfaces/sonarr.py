@@ -17,6 +17,7 @@ from fastapi import HTTPException
 from app.core.config import config
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
+from app.info.util import match_episode_infos
 from app.interfaces.base import EpisodeDataSource, SearchResult, WatchedStatus
 from app.interfaces.base import Interface, SyncInterface
 from app.interfaces.testing import testing_override
@@ -536,12 +537,13 @@ class SonarrInterface(EpisodeDataSource, SyncInterface, Interface):
         # Get all episodes for this series
         new_episode_infos = self.get_all_episodes(library_name, series_info)
 
-        # Match to existing info
-        for old_episode_info in episode_infos:
-            for new_episode_info, _ in new_episode_infos:
-                if old_episode_info == new_episode_info:
-                    old_episode_info.copy_ids(new_episode_info)
-                    break
+        matched, _ = match_episode_infos(
+            episode_infos,
+            [info for info, _ in new_episode_infos],
+        )
+        for old_info, new_matches in matched:
+            if new_matches:
+                old_info.copy_ids(new_matches[0])
 
         return None
 

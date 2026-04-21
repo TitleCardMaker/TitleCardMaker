@@ -29,6 +29,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 from app.core.config import config
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
+from app.info.util import match_episode_infos
 from app.interfaces.base import (
     EpisodeDataSource,
     Interface,
@@ -490,17 +491,20 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             )
             if episode.parentIndex is not None and episode.index is not None
         ]
+        plex_infos = [info for info, _ in plex_episodes]
+        ws_by_info_id = {id(info): ws for info, ws in plex_episodes}
 
         # Update watched statuses of all Episodes
         changed = False
-        for episode in episodes:
-            episode_info = episode.as_episode_info
-            for plex_episode, watched_status in plex_episodes:
-                if episode_info == plex_episode:
-                    changed |= episode.add_watched_status(
-                        watched_status,
-                    )
-                    break
+        matched, _ = match_episode_infos(
+            [episode.as_episode_info for episode in episodes],
+            plex_infos,
+        )
+        for episode, (_, plex_matches) in zip(episodes, matched):
+            for plex_info in plex_matches:
+                changed |= episode.add_watched_status(
+                    ws_by_info_id[id(plex_info)],
+                )
 
         return changed
 
@@ -567,38 +571,32 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         if not (series := self.__get_series(library, series_info)):
             return None
 
-        # Filter EpisodeInfo's with all ID's
-        filtered_episode_infos = {
-            episode_info.key: episode_info
-            for episode_info in episode_infos
+        # Only update EpisodeInfo's that are missing at least one ID
+        filtered_episode_infos = [
+            episode_info for episode_info in episode_infos
             if not episode_info.has_ids('imdb_id', 'tmdb_id', 'tvdb_id')
-        }
+        ]
 
-        # Go through all of this Series' Episodes
-        epq = series.episodes(container_size=500, params={'includeGuids': 1})
-        for plex_episode in epq:
-            # Skip Plex episodes without indices
-            plex_episode = cast(PlexEpisode, plex_episode)
-            if (plex_episode.seasonNumber is None
-                or plex_episode.episodeNumber is None):
-                log.debug(f'Skipping {plex_episode} - no season/episode number')
-                continue
-
-            # Find matching EpisodeInfo, skip if not found
-            episode_info = filtered_episode_infos.get(
-                f's{plex_episode.seasonNumber}e{plex_episode.episodeNumber}'
+        # Collect all Plex episodes that have valid indices
+        plex_episodes = [
+            plex_ep for plex_ep in cast(
+                list[PlexEpisode],
+                series.episodes(container_size=500, params={'includeGuids': 1}),
             )
-            if episode_info is None:
-                continue
+            if plex_ep.seasonNumber is not None and plex_ep.episodeNumber is not None
+        ]
 
-            # Set the ID's for this object
-            for guid in plex_episode.guids:
-                if 'imdb://' in guid.id:
-                    episode_info.set_imdb_id(guid.id[len('imdb://'):])
-                elif 'tmdb://' in guid.id:
-                    episode_info.set_tmdb_id(int(guid.id[len('tmdb://'):]))
-                elif 'tvdb://' in guid.id:
-                    episode_info.set_tvdb_id(int(guid.id[len('tvdb://'):]))
+        matched, _ = match_episode_infos(filtered_episode_infos, plex_episodes)
+        for episode_info, plex_matches in matched:
+            for plex_ep in plex_matches:
+                for guid in plex_ep.guids:
+                    if 'imdb://' in guid.id:
+                        episode_info.set_imdb_id(guid.id[len('imdb://'):])
+                    elif 'tmdb://' in guid.id:
+                        episode_info.set_tmdb_id(int(guid.id[len('tmdb://'):]))
+                    elif 'tvdb://' in guid.id:
+                        episode_info.set_tvdb_id(int(guid.id[len('tvdb://'):]))
+                break
 
         return None
 
@@ -885,43 +883,40 @@ class PlexInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         # Find episodes which have a matching Card to load
         matched_episodes: list[tuple[PlexEpisode, 'Episode', 'Card']] = []
-        matched_indices: set[int] = set()
 
         # An UID (RatingKey) was provided, match directly
         if len(episode_and_cards[0]) == 3:
-            for index, (episode, card, uid) in enumerate(episode_and_cards): # type: ignore
+            for episode, card, uid in episode_and_cards: # type: ignore
                 if (plex_ep := self.__server.fetchItem(int(uid))) is None:
                     log.warning(f'No Episode associated with Key {int(uid)}')
                     continue
                 matched_episodes.append((plex_ep, episode, card))
-                matched_indices.add(index)
-        # No UID provided, find by iterating through all episodes of show
+        # No UID provided, match by episode info
         else:
-            # Generate EpisodeInfo of the given Episodes/Cards ahead of time
-            # to avoid re-constructing the EpisodeInfo object for each episode
             infos = [
                 (episode, episode.as_episode_info, card)
                 for episode, card, *_ in episode_and_cards
             ]
-
-            for plex_episode in cast(list[PlexEpisode], series.episodes(
+            plex_all = [
+                plex_ep for plex_ep in cast(list[PlexEpisode], series.episodes(
                     container_size=100,
                     params={'includeGuids': 1},
-                )):
-                # Exit if all episodes have been matched
-                if len(matched_episodes) == len(infos):
-                    break
+                ))
+                if plex_ep.parentIndex is not None and plex_ep.index is not None
+            ]
 
-                for index, (episode, episode_info, card) in enumerate(infos):
-                    if episode_info == plex_episode:
-                        matched_episodes.append((plex_episode, episode, card))
-                        matched_indices.add(index)
-                        break
-
-        # Log all unmatched Episodes
-        for index, (episode, *_) in enumerate(episode_and_cards):
-            if index not in matched_indices:
-                log.warning(f'Unable to find associated Episode for {episode}')
+            matched_map, _ = match_episode_infos(
+                [ep_info for _, ep_info, _ in infos],
+                plex_all,
+            )
+            for (_, plex_matches), (episode, ep_info, card) in zip(matched_map, infos):
+                if plex_matches:
+                    matched_episodes.append((plex_matches[0], episode, card))
+                else:
+                    log.warning((
+                        f'Unable to find associated Episode for {episode} '
+                        f'({ep_info!r})'
+                    ))
 
         # No Episodes were found in Plex, exit
         if not matched_episodes:

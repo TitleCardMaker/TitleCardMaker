@@ -14,6 +14,7 @@ from fastapi import HTTPException
 from app.core.config import config
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
+from app.info.util import match_episode_infos
 from app.interfaces.base import (
     EpisodeDataSource,
     Interface,
@@ -502,14 +503,13 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
 
         new_episode_infos = self.get_all_episodes(library_name, series_info)
 
-        # Match to existing info
-        for old_episode_info in episode_infos:
-            for new_episode_info, _ in new_episode_infos:
-                if (isinstance(old_episode_info, EpisodeInfo)
-                    and isinstance(new_episode_info, EpisodeInfo)):
-                    if old_episode_info == new_episode_info:
-                        old_episode_info.copy_ids(new_episode_info)
-                        break
+        matched, _ = match_episode_infos(
+            episode_infos,
+            [info for info, _ in new_episode_infos],
+        )
+        for old_info, new_matches in matched:
+            if new_matches:
+                old_info.copy_ids(new_matches[0])
 
 
     def query_series(self,
@@ -752,15 +752,20 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
             for episode in
             self.__get_episodes(library_name, series_info)
         ]
+        emby_infos = [info for info, _ in emby_episodes]
+        ws_by_info_id = {id(info): ws for info, ws in emby_episodes}
 
         # Update watched statuses of all Episodes
         changed = False
-        for episode in episodes:
-            episode_info = episode.as_episode_info
-            for emby_episode, watched_status in emby_episodes:
-                if episode_info == emby_episode:
-                    changed |= episode.add_watched_status(watched_status)
-                    break
+        matched, _ = match_episode_infos(
+            [episode.as_episode_info for episode in episodes],
+            emby_infos,
+        )
+        for episode, (_, emby_matches) in zip(episodes, matched):
+            for emby_info in emby_matches:
+                changed |= episode.add_watched_status(
+                    ws_by_info_id[id(emby_info)],
+                )
 
         return changed
 
@@ -797,23 +802,26 @@ class EmbyInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface):
         # UID provided, use directly
         if len(episode_and_cards[0]) == 3:
             matched = episode_and_cards # type: ignore
-        # Match each episode
+        # Match each episode via episode info
         else:
-            for emby_ep in self.__get_episodes(library_name, series_info):
-                emby_info = EpisodeInfo.from_emby_info(
-                    emby_ep, self._interface_id, library_name
-                )
-                emby_id = emby_info.emby_id.get_id(
-                    self._interface_id, library_name
-                )
-
-                if emby_id is None:
-                    continue
-
-                for episode, card, *_ in episode_and_cards:
-                    if episode.as_episode_info == emby_info:
+            emby_eps = list(self.__get_episodes(library_name, series_info))
+            matched_map, _ = match_episode_infos(
+                [episode.as_episode_info for episode, *_ in episode_and_cards],
+                emby_eps,
+            )
+            for (_, emby_matches), (episode, card) in zip(
+                matched_map, episode_and_cards
+            ):
+                for emby_ep in emby_matches:
+                    emby_info = EpisodeInfo.from_emby_info(
+                        emby_ep, self._interface_id, library_name
+                    )
+                    emby_id = emby_info.emby_id.get_id(
+                        self._interface_id, library_name
+                    )
+                    if emby_id is not None:
                         matched.append((episode, card, emby_id))
-                        break
+                    break
 
         # Load each episode and card
         loaded = []

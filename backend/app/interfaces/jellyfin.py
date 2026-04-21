@@ -14,6 +14,7 @@ from fastapi import HTTPException
 from app.core.config import config
 from app.info.episode import EpisodeInfo
 from app.info.series import SeriesInfo
+from app.info.util import match_episode_infos
 from app.interfaces.base import (
     EpisodeDataSource,
     Interface,
@@ -512,16 +513,15 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
         """
 
         # Get all episodes for this series
-        new_episode_infos = self.get_all_episodes(
-            library_name, series_info
-        )
+        new_episode_infos = self.get_all_episodes(library_name, series_info)
 
-        # Match to existing info
-        for old_episode_info in episode_infos:
-            for new_episode_info, _ in new_episode_infos:
-                if old_episode_info == new_episode_info:
-                    old_episode_info.copy_ids(new_episode_info)
-                    break
+        matched, _ = match_episode_infos(
+            episode_infos,
+            [info for info, _ in new_episode_infos],
+        )
+        for old_info, new_matches in matched:
+            if new_matches:
+                old_info.copy_ids(new_matches[0])
 
         return None
 
@@ -745,20 +745,21 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
             return False
 
         # Get data for each Jellyfin episode
-        jellyfin_episodes = self.get_all_episodes(
-            library_name, series_info,
-        )
+        jellyfin_episodes = self.get_all_episodes(library_name, series_info)
+        jf_infos = [info for info, _ in jellyfin_episodes]
+        ws_by_info_id = {id(info): ws for info, ws in jellyfin_episodes}
 
         # Update watched statuses of all Episodes
         changed = False
-        for episode in episodes:
-            episode_info = episode.as_episode_info
-            for jellyfin_episode, watched_status in jellyfin_episodes:
-                if episode_info == jellyfin_episode:
-                    changed |= episode.add_watched_status(
-                        watched_status
-                    )
-                    break
+        matched, _ = match_episode_infos(
+            [episode.as_episode_info for episode in episodes],
+            jf_infos,
+        )
+        for episode, (_, jf_matches) in zip(episodes, matched):
+            for jf_info in jf_matches:
+                changed |= episode.add_watched_status(
+                    ws_by_info_id[id(jf_info)],
+                )
 
         return changed
 
@@ -791,20 +792,34 @@ class JellyfinInterface(MediaServer, EpisodeDataSource, SyncInterface, Interface
         if series_id is None:
             return []
 
+        # Resolve episode IDs: use UIDs directly when provided, otherwise
+        # batch-match all episodes against the Jellyfin library at once.
+        episode_ids: list[tuple['Episode', 'Card', str]] = []
+
+        if episode_and_cards and len(episode_and_cards[0]) == 3:
+            for episode, card, uid in episode_and_cards: # type: ignore
+                episode_ids.append((episode, card, uid))
+        else:
+            jf_episodes = self.get_all_episodes(library_name, series_info)
+            jf_infos = [info for info, _ in jf_episodes]
+            matched_map, _ = match_episode_infos(
+                [episode.as_episode_info for episode, *_ in episode_and_cards],
+                jf_infos,
+            )
+            for (_, jf_matches), (episode, card) in zip(
+                matched_map, episode_and_cards
+            ):
+                for jf_info in jf_matches:
+                    jf_id = jf_info.jellyfin_id.get_id(
+                        self._interface_id, library_name
+                    )
+                    if jf_id is not None:
+                        episode_ids.append((episode, card, jf_id))
+                    break
+
         # Load each episode and card
         loaded = []
-        for episode, card, *uid in episode_and_cards:
-            # UID provided, match directly
-            if uid:
-                episode_id = uid[0]
-            # Find episode, skip if not found
-            else:
-                episode_id = self.__get_episode_id(
-                    library_name, series_id, episode.as_episode_info
-                )
-                if episode_id is None:
-                    continue
-
+        for episode, card, episode_id in episode_ids:
             # Shrink image if necessary, skip if cannot be compressed
             if (image := self.compress_image(card.card_file)) is None:
                 continue
