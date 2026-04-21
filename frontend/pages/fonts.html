@@ -12,15 +12,25 @@
   <link rel="stylesheet" type="text/css" href="/css/fonts.css?v={{preferences.config.CURRENT_VERSION}}"/>
 
   <template id="font-template">
-    <div class="ui styled fluid accordion">
-      <div class="title">
-        <i class="dropdown icon"></i>
-        {name}
+    <!--
+      .ui.accordion is kept for Fomantic accordion JS.
+      .title and .content are kept as Fomantic's required trigger/body classes.
+      JS sets .font-name text content and wires all events.
+    -->
+    <div class="ui accordion font-card">
+      <div class="title font-title">
+        <span class="font-name"></span>
+        <i class="dropdown icon font-caret"></i>
       </div>
-      <div class="ui loading content segment">
-        <div class="ui two column very relaxed stackable grid">
-          <div class="nine wide column" data-label="font-form">
+
+      <!-- .ui.segment kept solely so Fomantic's .loading overlay works -->
+      <div class="content font-content ui segment">
+        <div class="font-two-col">
+
+          <!-- ── Settings column ───────────────────────────────────────── -->
+          <div data-label="font-form">
             <form data-label="font-form" class="ui form">
+
               <div class="field">
                 <label>Name</label>
                 <input name="name" type="text" placeholder="Font Name" minlength="1">
@@ -75,7 +85,6 @@
                     <div class="ui basic label">%</div>
                   </div>
                 </div>
-
                 <div class="field">
                   <label>Kerning</label>
                   <div class="ui right labeled input">
@@ -83,7 +92,6 @@
                     <div class="ui basic label">%</div>
                   </div>
                 </div>
-
                 <div class="field">
                   <label>Stroke Width</label>
                   <div class="ui right labeled input">
@@ -98,70 +106,70 @@
                   <label>Interline Spacing</label>
                   <input name="interline_spacing" type="number" placeholder="0">
                 </div>
-
                 <div class="field">
                   <label>Interword Spacing</label>
                   <input name="interword_spacing" type="number" placeholder="0">
                 </div>
-
                 <div class="field">
                   <label>Vertical Shift</label>
                   <input name="vertical_shift" type="number" placeholder="0">
                 </div>
               </div>
 
+              <!-- ── Character Replacements ───────────────────────────── -->
               <div class="field">
-                <label>Character Replacements</label>
-                <div class="unstackable fields">
-                  <div data-value="in-replacements" class="four wide right aligned field">
-                    <label>Text to Replace</label>
-                    <!-- <input name="replacements_in" type="text"> -->
+                <div class="repl-header">
+                  <label>Character Replacements</label>
+                  <div class="repl-header-actions">
+                    <button class="repl-action-btn" data-action="populateReplacements" type="button"
+                        data-tooltip="Analyze font file for suggested replacements">
+                      <i class="magic icon"></i>
+                      Analyze
+                    </button>
+                    <button class="repl-action-btn" data-action="addReplacement" type="button"
+                        onclick="addBlankReplacement(this)">
+                      <i class="plus icon"></i>
+                      Add
+                    </button>
                   </div>
-                  <div data-value="out-replacements" class="four wide field">
-                    <label>Replacement Text</label>
-                    <!-- <input name="replacements_out" type="text"> -->
-                  </div>
                 </div>
-              </div>
-              <!-- Add replacement button -->
-              <div class="field">
-                <div data-action="populateReplacements" class="circular ui icon mini green button" data-tooltip="Suggest character replacements">
-                  <i class="magic icon"></i>
-                  Analyze Font Replacements
-                </div>
-                <div data-action="addReplacement" class="circular ui icon mini button" onclick="addBlankReplacement(this);">
-                  <i class="plus square outline icon"></i>
-                  Add Replacement
-                </div>
+                <!-- Rows appended by JS via createReplacementRow() -->
+                <div class="replacements-list" data-value="replacements"></div>
               </div>
 
-              <!-- Buttons -->
-              <button class="ui primary icon button" data-action="save" type="submit">
-                <i class="save icon"></i>
-                Save
-              </button>
+              <!-- ── Action buttons ───────────────────────────────────── -->
+              <div class="font-form-actions">
+                <!-- .ui.primary.icon.button kept for Fomantic form validation + icon selector -->
+                <button class="ui primary icon button" data-action="save" type="submit">
+                  <i class="save icon"></i>
+                  Save
+                </button>
 
-              <button class="ui floating dropdown teal icon button" data-action="transfer" data-value="font_ids">
-                <i class="file import icon"></i>
-                <span class="text">Transfer</span>
-                <div class="menu">
-                  <div class="ui icon search input">
-                    <i class="search icon"></i>
-                    <input type="text" placeholder="Search Fonts..">
+                <!-- Full Fomantic classes required for dropdown JS -->
+                <button class="ui floating dropdown teal icon button" data-action="transfer" data-value="font_ids">
+                  <i class="file import icon"></i>
+                  <span class="text">Transfer</span>
+                  <div class="menu">
+                    <div class="ui icon search input">
+                      <i class="search icon"></i>
+                      <input type="text" placeholder="Search Fonts..">
+                    </div>
+                    <div class="scrolling menu"></div>
                   </div>
-                  <div class="scrolling menu"></div>
-                </div>
-              </button>
+                </button>
 
-              <button class="ui negative button" data-action="delete">
-                <i class="trash icon"></i>
-                Delete
-              </button>
+                <!-- .negative.button kept for JS selector -->
+                <button class="ui negative button" data-action="delete" type="button">
+                  <i class="trash icon"></i>
+                  Delete
+                </button>
+              </div>
 
             </form>
-          </div>
+          </div><!-- /settings column -->
 
-          <div class="seven wide column" data-label="preview-form">
+          <!-- ── Preview column ────────────────────────────────────────── -->
+          <div data-label="preview-form">
             <form data-value="preview-form" class="ui form">
               <div class="two fields">
                 <div class="field">
@@ -188,25 +196,28 @@
                 </div>
               </div>
             </form>
-            <div class="ui fluid raised card" title="Click to refresh">
+
+            <!-- .ui.card kept for JS selectors (.ui.card, .card, img) -->
+            <div class="ui fluid raised card font-preview-card" title="Click to refresh">
               <div class="content">
                 <img alt="Preview Title Card" src="/public/blank.png">
               </div>
             </div>
-            <div class="ui bottom attached floating info message">
-              <i class="exclamation icon"></i>
-              A custom Font file must be <b>uploaded</b> and <b>submitted</b> in order to appear in the live preview.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            <p class="font-preview-note">
+              <i class="info circle icon"></i>
+              A custom font file must be <strong>uploaded</strong> and <strong>saved</strong> before it appears in the preview.
+            </p>
+          </div><!-- /preview column -->
+
+        </div><!-- /font-two-col -->
+      </div><!-- /content -->
+    </div><!-- /font-card -->
   </template>
+
 </head>
 
 <body onload="getAllFonts();" style="background-image: var(--background);">
   <div class="pusher">
-    <!-- Static header and sidebar -->
     <div id="page-header">
       {% include "/pages/header.html" %}
     </div>
@@ -214,56 +225,54 @@
       {% include "/pages/sidebar.html" %}
     </div>
 
-    <!-- Actual page content -->
     <div id="main-content" class="article">
-      <h1 class="ui header">Fonts</h1>
 
-      <!-- Add font button -->
-      <button class="ui primary tertiary icon button" onclick="addFont()" id="create-font">
-        <i class="plus icon"></i>
-        Create New Font
-      </button>
-      <div class="ui active centered inline blue elastic loader" id="loader"></div>
-
-      <div id="fonts"><!-- Elements added asynchronously --></div>
-
-      <div class="ui compact floating info message">
-        <div class="header">What are Fonts?</div>
-        <ul class="list">
-          <li>A custom Font can override the default Font characteristics - such as color, size, etc. - of a Title Card.</li>
-          <li>Custom Fonts can be assigned as part of a Template.</li>
-          <li>Custom Font definitions can be overwritten per-Series or Episode.</li>
-          <li>Creating a <i>Named Font</i> (on this Page) allows the custom Font to be reused by multiple Series or Templates.</li>
-          <li>Only custom <i>Named Fonts</i> can have custom Font files, Series and Episode Fonts cannot.</li>
-        </ul>
+      <!-- ── Named Fonts panel ─────────────────────────────────────────── -->
+      <div class="settings-panel">
+        <div class="settings-panel-header">
+          <i class="font icon"></i>
+          Named Fonts
+          <button class="font-create-btn" onclick="addFont()" id="create-font" type="button">
+            <i class="plus icon"></i>
+            New Font
+          </button>
+        </div>
+        <section>
+          <p class="section-note">
+            Named Fonts customise text appearance for Title Cards and can be shared across Series and Templates.
+            Only Named Fonts (defined here) can use a custom font file.
+          </p>
+          <div class="ui active centered inline blue elastic loader" id="loader"></div>
+          <div id="fonts"><!-- Populated asynchronously --></div>
+        </section>
       </div>
+
     </div>
+  </div>
 
-    <!-- Font transfer Modal -->
-    <div id="transfer-font-modal" class="ui basic modal">
-      <div class="ui icon header">
-        <i class="exchange alternate icon"></i>
-        Transfer all references of this Font?
-      </div>
-      <div class="center aligned scrolling content">
-        <div class="center aligned actions">
-          <div data-action="cancel-transfer" class="ui green ok basic inverted button">
-            <i class="remove icon"></i>
-            No
-          </div>
-          <div data-action="transfer-only" class="ui green ok inverted button">
-            <i class="check icon"></i>
-            Yes
-          </div>
-          <div data-action="transfer-with-delete" class="ui red ok inverted button">
-            <i class="trash alternate outline icon"></i>
-            Yes, and delete this Font afterwards
-          </div>
+  <!-- ── Font Transfer Modal (unchanged) ──────────────────────────────── -->
+  <div id="transfer-font-modal" class="ui basic modal">
+    <div class="ui icon header">
+      <i class="exchange alternate icon"></i>
+      Transfer all references of this Font?
+    </div>
+    <div class="center aligned scrolling content">
+      <div class="center aligned actions">
+        <div data-action="cancel-transfer" class="ui green ok basic inverted button">
+          <i class="remove icon"></i>
+          No
+        </div>
+        <div data-action="transfer-only" class="ui green ok inverted button">
+          <i class="check icon"></i>
+          Yes
+        </div>
+        <div data-action="transfer-with-delete" class="ui red ok inverted button">
+          <i class="trash alternate outline icon"></i>
+          Yes, and delete this Font afterwards
         </div>
       </div>
     </div>
-
   </div>
-</body>
 
+</body>
 </html>

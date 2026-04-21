@@ -167,34 +167,28 @@ function saveFontForm(fontId, eventTarget) {
   const $icon = $(`#font-id${fontId} .button[data-action="save"] .icon`);
   setLoadingIcon($icon);
 
-  // Construct form
-  let form = new FormData(eventTarget);
-  let listData = {replacements_in: [], replacements_out: []};
-  for (let [key, value] of [...form.entries()]) {
-    if (key === 'size' || key === 'kerning' || key === 'stroke_width') {
-      form.set(key, value/100.0);
-    }
-    if (key === 'replacements_in') { listData.replacements_in.push(value); }
-    if (key === 'replacements_out') { listData.replacements_out.push(value); }
-  }
-  // Add boolean toggle(s)
-  $.each($(`#font-id${fontId}`).find('input[type=checkbox]'), (key, val) => {
-    form.append($(val).attr('name'), $(val).is(':checked'));
-  });
-
-  // Remove blank input relacements and their matching output replacements
-  listData.replacements_in.forEach((value, index) => {
-    if (value === '') {
-      listData.replacements_in.splice(index, 1);
-      listData.replacements_out.splice(index, 1);
-    }
-  });
+  // Construct update object
+  const form = document.getElementById(`font-id${fontId}`);
+  const data = {
+    name: form.querySelector('input[name="name"]').value,
+    color: form.querySelector('input[name="color"]').value || null,
+    title_case: form.querySelector('input[name="title_case"]').value || null,
+    line_split_modifier: Number(form.querySelector('input[name="line_split_modifier"]').value),
+    size: Number(form.querySelector('input[name="size"]').value || 100.0) / 100.0,
+    kerning: Number(form.querySelector('input[name="kerning"]').value || 100.0) / 100.0,
+    stroke_width: Number(form.querySelector('input[name="stroke_width"]').value || 100.0) / 100.0,
+    interline_spacing: Number(form.querySelector('input[name="interline_spacing"]').value),
+    interword_spacing: Number(form.querySelector('input[name="interword_spacing"]').value),
+    vertical_shift: Number(form.querySelector('input[name="vertical_shift"]').value),
+    replacements_in: [...form.querySelectorAll('input[name="replacements_in"]')].map(input => input.value),
+    replacements_out: [...form.querySelectorAll('input[name="replacements_out"]')].map(input => input.value),
+  };
 
   // Submit API request
   $.ajax({
     type: 'PATCH',
     url: `/api/v2/fonts/font/${fontId}`,
-    data: JSON.stringify({...Object.fromEntries(form.entries()), ...listData}),
+    data: JSON.stringify(data),
     contentType: 'application/json',
     /**
      * Font updated, display toast.
@@ -205,14 +199,14 @@ function saveFontForm(fontId, eventTarget) {
   });
 
   // No Font file to upload
-  if (form.get('font_file').size === 0) {
+  if (form.querySelector('input[name="font_file"]').files.length === 0) {
     removeLoadingIcon($icon);
     return;
   }
 
   // Submit separate API request to upload font file
   let fileForm = new FormData();
-  fileForm.append('file', form.get('font_file'));
+  fileForm.append('file', form.querySelector('input[name="font_file"]').files[0]);
   $.ajax({
     type: 'PUT',
     url: `/api/v2/fonts/font/${fontId}/file`,
@@ -223,7 +217,7 @@ function saveFontForm(fontId, eventTarget) {
     error: response => showErrorToast({title: 'Error Uploading Font File', response}),
     complete: () => {
       removeLoadingIcon($icon);
-      $(`#font-id${fontId} .button[data-action="populateReplacements"]`).toggleClass('disabled', false);
+      $(`#font-id${fontId} [data-action="populateReplacements"]`).toggleClass('disabled', false);
     },
   });
 }
@@ -244,7 +238,7 @@ function querySuggestedFontReplacements(fontId, elementId) {
      */
     success: analysis => {
       // Disable button now that Font has been analyzed
-      $(`#${elementId} .button[data-action="populateReplacements"]`).toggleClass('disabled', true);
+      $(`#${elementId} [data-action="populateReplacements"]`).toggleClass('disabled', true);
       // Show toast for irreplaceable characters
       if (analysis.missing.length > 0) {
         showErrorToast({
@@ -259,8 +253,7 @@ function querySuggestedFontReplacements(fontId, elementId) {
         return;
       }
       // There are replacements, add to page
-      const inElement = document.querySelector(`#${elementId} .field[data-value="in-replacements"]`);
-      const outElement = document.querySelector(`#${elementId} .field[data-value="out-replacements"]`);
+      const replList = document.querySelector(`#${elementId} .replacements-list[data-value="replacements"]`);
       for (const [repl_in, repl_out] of Object.entries(analysis.replacements)) {
         // Skip if this replacement already exists
         let found = false;
@@ -268,13 +261,7 @@ function querySuggestedFontReplacements(fontId, elementId) {
           if ($(this).val() === repl_in) { found = true; return; }
         });
         if (!found) {
-          const newInput = document.createElement('input');
-          newInput.value = repl_in; newInput.name = 'replacements_in'; newInput.type='text';
-          inElement.appendChild(newInput);
-          const newOutput = document.createElement('input');
-          newOutput.value = repl_out; newOutput.name = 'replacements_out'; newOutput.type='text';
-          newOutput.placeholder = 'Delete Character';
-          outElement.appendChild(newOutput);
+          replList.appendChild(createReplacementRow(repl_in, repl_out));
         }
       }
       showInfoToast({title: 'Added Suggested Replacements', message: 'Blank replacements indicate a deleted character'});
@@ -340,6 +327,43 @@ function showTransferFontDialog(fromId, toId) {
 }
 
 /**
+ * Create a single character-replacement row element.
+ * @param {string} inValue - The text to replace.
+ * @param {string} outValue - The replacement text.
+ * @returns {HTMLElement} The `.replacement-row` div.
+ */
+function createReplacementRow(inValue, outValue) {
+  const row = document.createElement('div');
+  row.className = 'replacement-row';
+
+  const inInput = document.createElement('input');
+  inInput.name = 'replacements_in';
+  inInput.type = 'text';
+  inInput.placeholder = 'Text to replace';
+  inInput.value = inValue;
+
+  const arrow = document.createElement('span');
+  arrow.className = 'repl-arrow';
+  arrow.innerHTML = '<i class="arrow right icon"></i>';
+
+  const outInput = document.createElement('input');
+  outInput.name = 'replacements_out';
+  outInput.type = 'text';
+  outInput.placeholder = 'Delete character';
+  outInput.value = outValue;
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'repl-delete-btn';
+  deleteBtn.type = 'button';
+  deleteBtn.innerHTML = '<i class="times icon"></i>';
+  deleteBtn.onclick = () => row.remove();
+
+  row.append(inInput, arrow, outInput, deleteBtn);
+  return row;
+}
+
+
+/**
  * Populate the given font element with the given font object.
  * @param {HTMLElement} fontElement Element being populated.
  * @param {NamedFont} font Font object whose details are used to populate the
@@ -348,7 +372,7 @@ function showTransferFontDialog(fromId, toId) {
 function populateFontOverview(fontElement, font) {
   fontElement.querySelector('.accordion').id = `font-id${font.id}`;
   fontElement.querySelector('.accordion').dataset.id = font.id;
-  fontElement.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${font.name}`;
+  fontElement.querySelector('.font-name').textContent = font.name;
   return fontElement;
 }
 
@@ -360,7 +384,7 @@ function populateFontOverview(fontElement, font) {
  * @returns {Node} Modified `template`.
  */
 function populateFontElement(fontElement, font) {
-  fontElement.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${font.name}`;
+  fontElement.querySelector('.font-name').textContent = font.name;
   fontElement.querySelector('input[name="name"]').value = font.name;
 
   fontElement.querySelector('label[data-value="file"]').innerHTML =
@@ -388,22 +412,13 @@ function populateFontElement(fontElement, font) {
   fontElement.querySelector('input[name="vertical_shift"]').value = font.vertical_shift;
 
   // Set font replacements
-  const inElement = fontElement.querySelector('.field[data-value="in-replacements"]');
-  const outElement = fontElement.querySelector('.field[data-value="out-replacements"]');
+  const replList = fontElement.querySelector('.replacements-list[data-value="replacements"]');
   for (let i = 0; i < font.replacements_in.length; i++) {
-    const newInput = document.createElement('input');
-    newInput.name = 'replacements_in'; newInput.type = 'text';
-    newInput.value = font.replacements_in[i];
-    inElement.appendChild(newInput);
-    
-    const newOutput = document.createElement('input');
-    newOutput.name = 'replacements_out'; newOutput.type='text'; newOutput.placeholder = 'Delete Character';
-    newOutput.value = font.replacements_out[i];
-    outElement.appendChild(newOutput);
+    replList.appendChild(createReplacementRow(font.replacements_in[i], font.replacements_out[i]));
   }
 
   // Query suggested font replacements on button click
-  fontElement.querySelector('.button[data-action="populateReplacements"]').onclick = () => querySuggestedFontReplacements(font.id, `font-id${font.id}`);
+  fontElement.querySelector('[data-action="populateReplacements"]').onclick = () => querySuggestedFontReplacements(font.id, `font-id${font.id}`);
   
   // Set submit form event to submit PATCH API request
   fontElement.querySelector('form[data-label="font-form"]').id = `font-id${font.id}`;
@@ -467,13 +482,11 @@ function populateFontElement(fontElement, font) {
  * @param {HTMLButtonElement} buttonElement Button which was pressed.
  */
 function addBlankReplacement(buttonElement) {
-  const $form = $(buttonElement).closest('form')
-  $form.find('.field[data-value="in-replacements"]').append(
-    $('<input name="replacements_in" type="text" placeholder="Text">')
-  );
-  $form.find('.field[data-value="out-replacements"]').append(
-    $('<input name="replacements_out" type="text" placeholder="Delete Character">')
-  );
+  const replList = buttonElement.closest('form').querySelector('.replacements-list[data-value="replacements"]');
+  const row = createReplacementRow('', '');
+  replList.appendChild(row);
+  // Focus the "in" input of the newly added row
+  row.querySelector('input[name="replacements_in"]').focus();
 }
 
 /**
@@ -627,7 +640,7 @@ function getAllFonts() {
           // Only populate if not already populated
           if (!$form.find('input[name="name"]').val()) {
             const fontElement = $accordion[0].parentElement;
-            const $content = $(fontElement).find('.content.segment');
+            const $content = $(fontElement).find('.font-content');
 
             $content.addClass('loading');
             $.ajax({

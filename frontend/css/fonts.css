@@ -1,24 +1,334 @@
-/* Align the label and text to the right */
-.right.aligned.field, .right.aligned.field > input {
-  text-align: right;
+/* ── "New Font" button in panel header ───────────────────────────────────── */
+
+.font-create-btn {
+  margin-left: auto;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: var(--tcm-blue-color);
+  background: rgba(99, 145, 210, 0.1);
+  border: 1px solid rgba(99, 145, 210, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  transition: background 0.18s, border-color 0.18s;
 }
 
-/* Limit image preview dimensions */
-img {
+.font-create-btn:hover {
+  background: rgba(99, 145, 210, 0.2);
+  border-color: rgba(99, 145, 210, 0.55);
+}
+
+.font-create-btn i.icon {
+  margin: 0;
+}
+
+/* ── Font accordion card ─────────────────────────────────────────────────── */
+
+/*
+  Remove all Fomantic .ui.accordion visual decoration.
+  Keep JS-required classes (.ui.accordion, .title, .content) but strip styles.
+*/
+
+#fonts .font-card,
+#fonts .font-card.ui.accordion {
+  background: rgba(0, 0, 0, 0.025) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 10px !important;
+  margin-bottom: 0.5rem !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+html.dark #fonts .font-card,
+html.dark #fonts .font-card.ui.accordion {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* ── Font title row ──────────────────────────────────────────────────────── */
+
+.font-card > .title.font-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.65em !important;
+  padding: 0.75rem 1.1rem !important;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+  border-bottom: none !important;
+  color: rgba(0, 0, 0, 0.78) !important;
+  font-size: 0.95em;
+  font-weight: 600;
+  background: transparent !important;
+}
+
+html.dark .font-card > .title.font-title {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.font-card > .title.font-title:hover {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+html.dark .font-card > .title.font-title:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Caret: pushed to the right, uses Fomantic's .active rotation */
+.font-card > .title.font-title > .dropdown.icon.font-caret {
+  margin-left: auto !important;
+  opacity: 0.35;
+  font-size: 0.9em !important;
+  transition: transform 0.18s ease, opacity 0.18s !important;
+}
+
+.font-card > .title.font-title:hover > .dropdown.icon.font-caret {
+  opacity: 0.65;
+}
+
+/* Override: Fomantic rotates the icon from -90° (closed) → 0° (open).
+   We prefer 0° (right-pointing ›) → 90° (down-pointing ↓). */
+.font-card > .title.font-title > i.dropdown.icon {
+  transform: rotate(-90deg) !important;
+}
+
+.font-card > .title.active.font-title > i.dropdown.icon {
+  transform: rotate(0deg) !important;
+}
+
+/* Separator between title and content when open */
+.font-card > .title.active.font-title {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07) !important;
+}
+
+html.dark .font-card > .title.active.font-title {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ── Font content area ───────────────────────────────────────────────────── */
+
+/* Strip Fomantic .segment visual styling; keep for loading-spinner support */
+.font-card .font-content.ui.segment {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 1.25rem !important;
+  /* Required for Fomantic .loading overlay */
+  position: relative;
+  min-height: 60px;
+}
+
+/* ── Two-column form + preview layout ────────────────────────────────────── */
+
+.font-two-col {
+  display: grid;
+  grid-template-columns: 9fr 7fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .font-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Character Replacements ─────────────────────────────────────────────── */
+
+.repl-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.repl-header > label {
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+.repl-header-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+.repl-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.76em;
+  font-weight: 600;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+html.dark .repl-action-btn {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.repl-action-btn:hover {
+  background: rgba(99, 145, 210, 0.12);
+  border-color: rgba(99, 145, 210, 0.4);
+  color: var(--tcm-blue-color);
+}
+
+.repl-action-btn i.icon {
+  margin: 0;
+  font-size: 0.92em;
+}
+
+/* The list of replacement rows */
+.replacements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* A single replacement row: [in input] → [out input] [delete] */
+.replacement-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.replacement-row input {
+  flex: 1;
+  min-width: 0;
+  /* Fomantic form styles pick up the rest */
+}
+
+.repl-arrow {
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+}
+
+html.dark .repl-arrow {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.repl-arrow i.icon {
+  margin: 0 !important;
+}
+
+.repl-delete-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+html.dark .repl-delete-btn {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.repl-delete-btn:hover {
+  background: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.4);
+  color: #dc3545;
+}
+
+.repl-delete-btn i.icon {
+  margin: 0;
+  font-size: 0.78em;
+}
+
+/* ── Form action buttons row ─────────────────────────────────────────────── */
+
+.font-form-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ── Preview card + note ─────────────────────────────────────────────────── */
+
+/* Make the preview card appear clickable */
+.font-preview-card {
+  cursor: pointer;
+  margin-top: 0.75rem;
+}
+
+.font-preview-card img {
   max-width: 100%;
+  display: block;
 }
 
-/* Make sure card loader is below the search bar and dropdown */
-.ui.loading.card::before {
-  z-index: 10;
+.font-preview-note {
+  margin-top: 0.6rem;
+  font-size: 0.82em;
+  color: rgba(0, 0, 0, 0.4);
+  line-height: 1.45;
 }
 
-/* Reduce opacity of font file prefix text */
+html.dark .font-preview-note {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.font-preview-note i.icon {
+  color: var(--tcm-blue-color);
+  opacity: 0.6;
+}
+
+/* ── Alphabetic section dividers (when >20 fonts) ────────────────────────── */
+
+#fonts .ui.dividing.header {
+  margin-top: 1.25rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.78em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.38);
+}
+
+html.dark #fonts .ui.dividing.header {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+/* ── Misc fixes ──────────────────────────────────────────────────────────── */
+
+/* Reduce opacity of font file path prefix */
 .field label[data-value="file"] span.prefix {
   opacity: 50%;
 }
 
-/* Make the preview card appear clickable */
-[data-label="preview-form"] .card {
-  cursor: pointer;
+/* Limit preview image width */
+[data-label="preview-form"] img {
+  max-width: 100%;
+}
+
+/* Loading card overlay z-index */
+.ui.loading.card::before {
+  z-index: 10;
 }
