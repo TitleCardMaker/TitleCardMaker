@@ -52,9 +52,10 @@ function addTemplate() {
  * @param {HTMLElement} previewForm - Preview form element containing episode selection
  */
 function reloadPreview(templateElementId, cardElement, imgElement, previewForm) {
-  // Check if an episode is selected to determine watched status
-  const previewFormObj = previewForm ? new FormData(previewForm) : null;
-  const episodeId = previewFormObj ? previewFormObj.get('episode_id') : null;
+  // Read the episode id directly from the hidden input (preview-form is a div, not a form)
+  const episodeId = previewForm
+    ? (previewForm.querySelector('input[name="episode_id"]')?.value || null)
+    : null;
   
   // Default to unwatched if no episode is selected
   // If episode is selected, we'll determine watched status from the episode data
@@ -402,7 +403,7 @@ async function getAllTemplates() {
     base.querySelector('.accordion').id = templateElementId;
     base.querySelector('.accordion').dataset.name = templateObj.name;
     // Set accordion title and title input
-    base.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${templateObj.name}`;
+    base.querySelector('.template-name').textContent = templateObj.name;
     const nameElem = base.querySelector('input[name="name"]');
     nameElem.placeholder = templateObj.name;
     nameElem.value = templateObj.name;
@@ -444,16 +445,9 @@ async function getAllTemplates() {
     }
     // Season titles
     if (templateObj.season_titles && Object.entries(templateObj.season_titles).length > 0) {
-      const rangeDiv = base.querySelector('.field[data-value="season-title-range"]');
-      const valueDiv = base.querySelector('.field[data-value="season-title-value"]');
+      const list = base.querySelector('.season-titles-list');
       for (const [range, value] of Object.entries(templateObj.season_titles)) {
-        const rangeElem = document.createElement('input');
-        rangeElem.name = 'season_title_ranges'; rangeElem.setAttribute('data-value', 'season-titles');
-        rangeElem.type = 'text'; rangeElem.value = range;
-        rangeDiv.appendChild(rangeElem);
-        const valueElem = document.createElement('input');
-        valueElem.name = 'season_title_values'; valueElem.type = 'text'; valueElem.value = value;
-        valueDiv.appendChild(valueElem);
+        list.appendChild(createSeasonTitleRow(range, value));
       }
     }
     // Hide episode text
@@ -500,8 +494,8 @@ async function getAllTemplates() {
     // Update card preview
     const previewCard = base.querySelector('.preview.card');
     const previewImg = base.querySelector('.preview.card img');
-    const previewForm = base.querySelector('form[data-value="preview-form"]');
-    base.querySelector('.button[data-action="refresh"]').onclick = () => {
+    const previewForm = base.querySelector('[data-value="preview-form"]');
+    base.querySelector('[data-action="refresh"]').onclick = () => {
       reloadPreview(templateElementId, previewCard, previewImg, previewForm);
     };
     previewCard.onclick = () => reloadPreview(templateElementId, previewCard, previewImg, previewForm);
@@ -559,10 +553,7 @@ async function getAllTemplates() {
   $('.ui.checkbox').checkbox();
   $('.ui.dropdown').dropdown();
   $('.ui.clearable.dropdown').dropdown({clearable: true});
-  $('.field[data-value="season-titles"] label i').popup({
-    popup: '#season-title-popup',
-    position: 'right center',
-  });
+  // Season-title help tooltip is now a native data-tooltip attribute; no popup init needed.
 
   // Initialize episode search dropdowns after general dropdown initialization
   // This must be done after elements are in the DOM and after general dropdown init
@@ -572,7 +563,7 @@ async function getAllTemplates() {
     if (episodeDropdown) {
       const previewCard = document.querySelector(`#${templateElementId} .preview.card`);
       const previewImg = document.querySelector(`#${templateElementId} .preview.card img`);
-      const previewForm = document.querySelector(`#${templateElementId} form[data-value="preview-form"]`);
+      const previewForm = document.querySelector(`#${templateElementId} [data-value="preview-form"]`);
       
       $(episodeDropdown).dropdown({
         clearable: true,
@@ -635,26 +626,50 @@ function addBlankFilter(addButton) {
 }
 
 /**
- * Add a new blank season title set to the template containing the initiating
- * button.
- * @param {HTMLDivElement} addButton Initiating add button which was clicked.
+ * Build a single season-title row element.
+ * @param {string} range - Range value (e.g. "1", "s1e2-s1e5", "5-10").
+ * @param {string} title - Season title text.
+ * @returns {HTMLDivElement}
+ */
+function createSeasonTitleRow(range, title) {
+  const row = document.createElement('div');
+  row.className = 'season-title-row';
+
+  const rangeInput = document.createElement('input');
+  rangeInput.name = 'season_title_ranges';
+  rangeInput.type = 'text';
+  rangeInput.placeholder = 'Range (e.g. 1, s1e2-s1e5, 5-10)';
+  rangeInput.value = range;
+
+  const arrow = document.createElement('span');
+  arrow.className = 'repl-arrow';
+  arrow.innerHTML = '<i class="arrow right icon"></i>';
+
+  const titleInput = document.createElement('input');
+  titleInput.name = 'season_title_values';
+  titleInput.type = 'text';
+  titleInput.placeholder = 'Season title text';
+  titleInput.value = title;
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'repl-delete-btn';
+  deleteBtn.type = 'button';
+  deleteBtn.title = 'Remove season title';
+  deleteBtn.innerHTML = '<i class="times icon"></i>';
+  deleteBtn.onclick = () => row.remove();
+
+  row.append(rangeInput, arrow, titleInput, deleteBtn);
+  return row;
+}
+
+/**
+ * Add a new blank season title row to the template containing the initiating button.
+ * @param {HTMLElement} addButton - The "Add" button that was clicked.
  */
 function addBlankTitle(addButton) {
-  // Create range input
-  const newRange = document.createElement('input');
-  newRange.name = 'season_title_ranges'; newRange.type = 'text';
-  newRange.setAttribute('data-value', 'season-titles');
-  // Create title input
-  const newTitle = document.createElement('input');
-  newTitle.name = 'season_title_values'; newTitle.type = 'text';
-  // Add to page
-  addButton.closest('div.field')
-    .querySelector('.field[data-value="season-title-range"]')
-    .appendChild(newRange);
-    addButton.closest('div.field')
-    .querySelector('.field[data-value="season-title-value"]')
-    .appendChild(newTitle);
-
+  const list = addButton.closest('.field[data-value="season-titles"]')
+    .querySelector('.season-titles-list');
+  list.appendChild(createSeasonTitleRow('', ''));
   refreshTheme();
 }
 
@@ -666,12 +681,12 @@ function addBlankTitle(addButton) {
 function addBlankTranslation(addButton) {
   // Get blank translation template
   const newTranslation = document.getElementById('translation-template').content.cloneNode(true);
-  // Add to section
+  // Add to the translations list container
   addButton.closest('div.field')
-    .querySelector('div[data-value="translations"]')
+    .querySelector('[data-value="translations"]')
     .appendChild(newTranslation);
   // Initialize newly added dropdowns, refresh theme
-  $(addButton).parent('div.field').find('.ui.dropdown').dropdown({
+  $(addButton).closest('div.field').find('.ui.dropdown').dropdown({
     allowAdditions: true,
   });
   refreshTheme();

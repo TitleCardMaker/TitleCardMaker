@@ -142,57 +142,8 @@ html.dark .font-card > .title.active.font-title {
 }
 
 /* ── Character Replacements ─────────────────────────────────────────────── */
-
-.repl-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.55rem;
-}
-
-.repl-header > label {
-  margin: 0 !important;
-  flex-shrink: 0;
-}
-
-.repl-header-actions {
-  display: flex;
-  gap: 0.35rem;
-  margin-left: auto;
-}
-
-.repl-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3em;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.76em;
-  font-weight: 600;
-  border-radius: 5px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.55);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-html.dark .repl-action-btn {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.repl-action-btn:hover {
-  background: rgba(99, 145, 210, 0.12);
-  border-color: rgba(99, 145, 210, 0.4);
-  color: var(--tcm-blue-color);
-}
-
-.repl-action-btn i.icon {
-  margin: 0;
-  font-size: 0.92em;
-}
+/* .repl-header, .repl-header-actions, .repl-action-btn,
+   .repl-arrow, .repl-delete-btn  →  now in style.css (global) */
 
 /* The list of replacement rows */
 .replacements-list {
@@ -201,7 +152,7 @@ html.dark .repl-action-btn {
   gap: 0.4rem;
 }
 
-/* A single replacement row: [in input] → [out input] [delete] */
+/* A single replacement row: [in input] → [out input] [×] */
 .replacement-row {
   display: flex;
   align-items: center;
@@ -211,55 +162,6 @@ html.dark .repl-action-btn {
 .replacement-row input {
   flex: 1;
   min-width: 0;
-  /* Fomantic form styles pick up the rest */
-}
-
-.repl-arrow {
-  flex-shrink: 0;
-  color: rgba(0, 0, 0, 0.25);
-  font-size: 0.9em;
-  display: flex;
-  align-items: center;
-}
-
-html.dark .repl-arrow {
-  color: rgba(255, 255, 255, 0.22);
-}
-
-.repl-arrow i.icon {
-  margin: 0 !important;
-}
-
-.repl-delete-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 5px;
-  background: transparent;
-  color: rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-html.dark .repl-delete-btn {
-  border-color: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.28);
-}
-
-.repl-delete-btn:hover {
-  background: rgba(220, 53, 69, 0.1);
-  border-color: rgba(220, 53, 69, 0.4);
-  color: #dc3545;
-}
-
-.repl-delete-btn i.icon {
-  margin: 0;
-  font-size: 0.78em;
 }
 
 /* ── Form action buttons row ─────────────────────────────────────────────── */
