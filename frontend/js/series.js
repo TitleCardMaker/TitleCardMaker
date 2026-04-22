@@ -640,8 +640,8 @@ async function editEpisodeExtras(episodeId, allEpisodeIds) {
 
       // Convert form to data
       const extras = {};
-      document.querySelectorAll('#episode-extras-modal section[aria-label="extras"] input, #episode-extras-modal section[aria-label="extras"] select').forEach((el) => {
-        if (el.value !== '') {
+      document.querySelectorAll('#episode-extras-modal section[aria-label="extras"] .card-extras-panel-host input, #episode-extras-modal section[aria-label="extras"] .card-extras-panel-host select').forEach((el) => {
+        if (el.value !== '' && el.name) {
           extras[el.name] = el.value;
         }
       });
