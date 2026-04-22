@@ -4,9 +4,9 @@
   "description": "Automated Title Card creator for Plex, Jellyfin, and Emby.",
   "main": "index.js",
   "scripts": {
-    "cy:run": "cypress run",
-    "cy:run:report": "cypress run --record || exit 0",
-    "cy:run:report:html": "cypress run ; npx mochawesome-merge cypress/results/*.json > cypress/results/output.json && npx marge cypress/results/output.json --reportDir cypress/results/ --inline",
+    "cy:run": "cypress run --browser chrome",
+    "cy:run:report": "cypress run --browser chrome --record || exit 0",
+    "cy:run:report:html": "cypress run --browser chrome ; npx mochawesome-merge cypress/results/*.json > cypress/results/output.json && npx marge cypress/results/output.json --reportDir cypress/results/ --inline",
     "cy:open": "cypress open"
   },
   "author": "Collin Heist",

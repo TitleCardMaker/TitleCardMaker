@@ -28,12 +28,24 @@ module.exports = defineConfig({
         'cypress/e2e/templates.cy.js',
       ]
 
-      // Force Chrome to open exactly at the viewport size
+      // Keep the *browser window* at least as large as the configured viewport.
+      // - Default Electron often ignores preferences alone; pass Chromium switches via args.
+      // - Only applying --window-size for headless Chrome breaks CI when DISPLAY/Xvfb runs
+      //   headed, so window-size is applied whenever it is not already set.
       on('before:browser:launch', (browser = {}, launchOptions) => {
         const vw = config.viewportWidth
         const vh = config.viewportHeight
 
+        const ensureArg = (args, flag, value = null) => {
+          const prefix = value == null ? flag : `${flag}=`
+          if (args.some((a) => String(a).startsWith(prefix))) return
+          args.push(value == null ? flag : `${flag}=${value}`)
+        }
+
         if (browser.name === 'electron') {
+          launchOptions.args ??= []
+          ensureArg(launchOptions.args, '--window-size', `${vw},${vh}`)
+          ensureArg(launchOptions.args, '--force-device-scale-factor', '1')
           launchOptions.preferences = {
             ...(launchOptions.preferences || {}),
             width: vw,
@@ -43,17 +55,8 @@ module.exports = defineConfig({
 
         if (['chrome', 'chromium', 'edge'].includes(browser.name)) {
           launchOptions.args ??= []
-          if (
-            browser.isHeadless &&
-            !launchOptions.args.some((arg) =>
-              String(arg).startsWith('--window-size='),
-            )
-          ) {
-            launchOptions.args.push(`--window-size=${vw},${vh}`)
-          }
-          if (!launchOptions.args.includes('--force-device-scale-factor=1')) {
-            launchOptions.args.push('--force-device-scale-factor=1')
-          }
+          ensureArg(launchOptions.args, '--window-size', `${vw},${vh}`)
+          ensureArg(launchOptions.args, '--force-device-scale-factor', '1')
         }
 
         return launchOptions
