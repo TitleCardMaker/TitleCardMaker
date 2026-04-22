@@ -205,6 +205,11 @@ class GraphTitleCard(BaseCardType):
                     ' <v>right</v>, <v>lower left</v>, or <v>lower right</v>. '
                     'Default is <v>lower left</v>.'
                 ),
+                allowed_values=[
+                    'upper left', 'upper right',
+                    'left', 'right',
+                    'lower left', 'lower right',
+                ],
                 default='lower left',
             ),
         ],

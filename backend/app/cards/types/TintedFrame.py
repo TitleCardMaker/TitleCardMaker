@@ -139,6 +139,7 @@ class TintedFrameTitleCard(BaseCardType):
                     'display anything, or <v>title</v> to display the title '
                     'text. Default is <v>title</v>.'
                 ),
+                allowed_values=['index', 'logo', 'omit', 'title'],
                 default='title',
             ),
             Extra(
@@ -149,6 +150,7 @@ class TintedFrameTitleCard(BaseCardType):
                     'Either <v>logo</v> to display the logo, or <v>omit</v> to '
                     'not display anything. Default is <v>omit</v>.'
                 ),
+                allowed_values=['logo', 'omit'],
                 default='omit',
             ),
             Extra(
@@ -161,6 +163,7 @@ class TintedFrameTitleCard(BaseCardType):
                     'display anything, or <v>title</v> to display the title '
                     'text. Default is <v>index</v>.'
                 ),
+                allowed_values=['index', 'logo', 'omit', 'title'],
                 default='index',
             ),
             Extra(
