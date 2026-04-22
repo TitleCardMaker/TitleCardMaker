@@ -30,10 +30,33 @@ module.exports = defineConfig({
 
       // Force Chrome to open exactly at the viewport size
       on('before:browser:launch', (browser = {}, launchOptions) => {
-        if (browser.name === 'chrome' && browser.isHeadless) {
-          launchOptions.args.push('--window-size=1920,1080')
-          return launchOptions
+        const vw = config.viewportWidth
+        const vh = config.viewportHeight
+
+        if (browser.name === 'electron') {
+          launchOptions.preferences = {
+            ...(launchOptions.preferences || {}),
+            width: vw,
+            height: vh,
+          }
         }
+
+        if (['chrome', 'chromium', 'edge'].includes(browser.name)) {
+          launchOptions.args ??= []
+          if (
+            browser.isHeadless &&
+            !launchOptions.args.some((arg) =>
+              String(arg).startsWith('--window-size='),
+            )
+          ) {
+            launchOptions.args.push(`--window-size=${vw},${vh}`)
+          }
+          if (!launchOptions.args.includes('--force-device-scale-factor=1')) {
+            launchOptions.args.push('--force-device-scale-factor=1')
+          }
+        }
+
+        return launchOptions
       })
 
       return config
