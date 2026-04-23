@@ -322,6 +322,8 @@ async function populateExtraTemplate({
  * @param {boolean} [isGlobal]
  * @param {number} [groupAmount]
  * @param {boolean} [_initializeTabs] ignored
+ * @param {string[]|null} [restrictToCardTypes] when set, only mount these card type keys (e.g. episode editor)
+ * @param {boolean} [useAllCardTypeExtras] when true, include extras for every card type (uses allExtras, not filteredExtras)
  */
 async function initializeExtras(
   activeExtras,
@@ -331,19 +333,30 @@ async function initializeExtras(
   isGlobal = false,
   groupAmount = 3,
   _initializeTabs = true,
+  restrictToCardTypes = null,
+  useAllCardTypeExtras = false,
 ) {
   if (filteredExtras === undefined) {
     await queryAvailableExtras();
   }
 
+  const extrasSource = useAllCardTypeExtras && typeof allExtras !== 'undefined' && allExtras
+    ? allExtras
+    : filteredExtras;
+
   /** @type {Object.<string, Object[]>} */
   const types = {};
-  filteredExtras.forEach((extra) => {
+  extrasSource.forEach((extra) => {
     if (isGlobal && !extra.card_type) {
       return;
     }
     const ex = { ...extra };
     ex.card_type = ex.card_type || 'Variable Overrides';
+    if (restrictToCardTypes && restrictToCardTypes.length) {
+      if (!restrictToCardTypes.includes(ex.card_type)) {
+        return;
+      }
+    }
     if (types[ex.card_type] === undefined) {
       types[ex.card_type] = [];
     }

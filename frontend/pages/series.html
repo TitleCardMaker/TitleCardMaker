@@ -1772,16 +1772,15 @@
       </div>
     </div>
 
-    <!-- Episode extras/translations modal -->
-    <div id="episode-extras-modal" class="ui large modal">
+    <!-- Episode extras/translations (fullscreen modal, consistent with other Fomantic modals) -->
+    <div id="episode-extras-modal" class="ui fullscreen modal">
       <i class="close icon"></i>
-      <div class="center aligned header">
-        <i data-action="previous-episode" class="ui arrow alternate circle left outline link icon"></i>
-        <span>Episode Translations and Extras</span>
-        <i data-action="next-episode" class="ui arrow alternate circle right outline link icon"></i>
+      <div class="header">
+        <i data-action="previous-episode" class="ui arrow alternate circle left outline link icon" title="Previous episode"></i>
+        <span id="episode-extras-modal-title">Episode Translations and Extras</span>
+        <i data-action="next-episode" class="ui arrow alternate circle right outline link icon" title="Next episode"></i>
       </div>
-
-      <div class="content">
+      <div class="scrolling content">
         <form id="episode-extras-form" class="ui form">
           <div data-value="translations" class="ui field">
             <label>Translations</label>
@@ -1793,6 +1792,10 @@
                 <label>Value</label>
               </div>
             </div>
+            <button type="button" class="ui mini button" data-action="add-episode-translation-row">
+              <i class="plus icon"></i>
+              Add translation
+            </button>
           </div>
           <div data-delete-field="translations" class="ui circular mini icon add-field red button">
             <i class="trash alternate outline icon"></i>
@@ -1807,12 +1810,11 @@
 
         </form>
       </div>
-
       <div class="actions">
-        <button class="ui grey icon button" data-action="previous-episode">
+        <button class="ui grey icon button" type="button" data-action="previous-episode">
           <i class="arrow alternate circle left outline icon"></i>
         </button>
-        <button class="ui grey icon button" data-action="next-episode">
+        <button class="ui grey icon button" type="button" data-action="next-episode">
           <i class="ui arrow alternate circle right outline icon"></i>
         </button>
         <button class="ui cancel button">Cancel</button>

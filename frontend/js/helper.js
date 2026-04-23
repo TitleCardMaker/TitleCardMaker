@@ -504,8 +504,16 @@ async function addActiveCardType(cardType) {
  * @param {HTMLTemplateElement} inputTemplateElement - Template element for extra inputs.
  * @param {Object} currentExtras - Current extras values to preserve.
  * @param {boolean} isGlobal - Whether these are global extras.
+ * @param {Object} [extrasOptions]
+ * @param {string[]|null} [extrasOptions.restrictToCardTypes] limit mounted card type panels
+ * @param {number} [extrasOptions.groupAmount] fields per row group (default 3)
+ * @param {boolean} [extrasOptions.useAllCardTypeExtras] mount extras for all card types (allExtras)
  */
-async function refreshExtrasForCardType(cardType, sectionQuerySelector, inputTemplateElement, currentExtras = {}, isGlobal = false) {
+async function refreshExtrasForCardType(cardType, sectionQuerySelector, inputTemplateElement, currentExtras = {}, isGlobal = false, extrasOptions = {}) {
+  const restrictToCardTypes = extrasOptions.restrictToCardTypes ?? null;
+  const groupAmount = extrasOptions.groupAmount ?? 3;
+  const useAllCardTypeExtras = extrasOptions.useAllCardTypeExtras ?? false;
+
   // Add the new card type to active types
   await addActiveCardType(cardType);
   
@@ -530,8 +538,10 @@ async function refreshExtrasForCardType(cardType, sectionQuerySelector, inputTem
     sectionQuerySelector,
     inputTemplateElement,
     isGlobal,
-    3,
-    true
+    groupAmount,
+    true,
+    restrictToCardTypes,
+    useAllCardTypeExtras,
   );
 }
 

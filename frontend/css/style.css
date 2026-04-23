@@ -763,3 +763,27 @@ html.dark .card-extra-native-select {
 .card-extras-panel-host .card-extra-type-panel[hidden] {
   display: none !important;
 }
+
+/* Episode extras fullscreen modal: centered title row */
+#episode-extras-modal.fullscreen.modal > .header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  text-align: center;
+  font-weight: 600;
+}
+
+#episode-extras-modal .field[data-value="translation-key"] input,
+#episode-extras-modal .field[data-value="translation-value"] input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.35rem;
+}
+
+#episode-extras-modal .card-extras-body {
+  max-height: min(50vh, 26rem);
+  overflow-y: auto;
+}

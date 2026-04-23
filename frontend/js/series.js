@@ -523,14 +523,44 @@ function deleteObject(args) {
   });
 }
 
+function isEpisodeExtrasEditorOpen() {
+  const $m = $('#episode-extras-modal');
+  return $m.hasClass('visible') || $m.hasClass('active');
+}
+
 /**
- * Launch a modal to edit the extras (and translations) for the given Episode.
+ * One-time: Fomantic modal + add translation row delegation.
+ */
+function initEpisodeExtrasModalUi() {
+  const root = '#episode-extras-modal';
+  $(root).modal({
+    autofocus: false,
+    blurring: true,
+    closable: true,
+    closeOnEsc: true,
+    observeChanges: true,
+  });
+  $(root).on('click', '[data-action="add-episode-translation-row"]', (e) => {
+    e.preventDefault();
+    const newKey = document.createElement('input');
+    newKey.name = 'translation_key';
+    newKey.value = '';
+    const newValue = document.createElement('input');
+    newValue.name = 'translation_value';
+    newValue.value = '';
+    $(`${root} .field[data-value="translation-key"]`).append(newKey);
+    $(`${root} .field[data-value="translation-value"]`).append(newValue);
+    newKey.focus();
+  });
+}
+
+/**
+ * Open the episode extras modal for extras and translations.
  * @param {number} episodeId - ID of the Episode whose extras are being edited.
  * @param {number[]} allEpisodeIds - Sorted array of Episode IDs for sequencing
  * through modals.
  */
 async function editEpisodeExtras(episodeId, allEpisodeIds) {
-  // Show modal
   $('#episode-extras-modal').modal('show');
 
   // Mark form as loading
@@ -589,7 +619,7 @@ async function editEpisodeExtras(episodeId, allEpisodeIds) {
   $('#episode-extras-form').toggleClass('loading', false);
   console.log(episode);
   // Update header
-  $('#episode-extras-modal .header span').text(`Season ${episode.season_number} Episode ${episode.episode_number}`);
+  $('#episode-extras-modal-title').text(`Season ${episode.season_number} Episode ${episode.episode_number}`);
 
   // Add existing translations
   for (let [data_key, value] of Object.entries(episode.translations)) {
@@ -610,12 +640,17 @@ async function editEpisodeExtras(episodeId, allEpisodeIds) {
   // Add the card type to active types so its extras are available
   await addActiveCardType(currentCardType);
   
-  // Initialize extras
+  // Initialize extras for every card type (allExtras), not only active types
   await initializeExtras(
     episode.extras || [],
     currentCardType,
     '#episode-extras-modal section[aria-label="extras"]',
     document.getElementById('extra-input-template'),
+    false,
+    3,
+    true,
+    null,
+    true,
   );
   refreshTheme();
 
@@ -636,7 +671,13 @@ async function editEpisodeExtras(episodeId, allEpisodeIds) {
       const translationKeys = Array.from(document.querySelectorAll('#episode-extras-modal input[name="translation_key"]'));
       const translationValues = Array.from(document.querySelectorAll('#episode-extras-modal input[name="translation_value"]'));
       const translations = {};
-      translationKeys.forEach((key, index) => translations[key.value] = translationValues[index].value);
+      translationKeys.forEach((key, index) => {
+        const k = (key.value || '').trim();
+        const valEl = translationValues[index];
+        if (k !== '' && valEl) {
+          translations[k] = valEl.value;
+        }
+      });
 
       // Convert form to data
       const extras = {};
@@ -1155,11 +1196,9 @@ async function getEpisodeData(page=1) {
           // Add the new card type to active types so its extras are available
           await addActiveCardType(value);
           
-          // If the episode extras modal is open for this episode, refresh extras
-          const $modal = $('#episode-extras-modal');
-          if ($modal.hasClass('active') || $modal.modal('is active')) {
-            // Check if this is the episode in the modal by checking the header
-            const headerText = $modal.find('.header span').text();
+          // If the episode extras editor is open for this episode, refresh extras
+          if (isEpisodeExtrasEditorOpen()) {
+            const headerText = $('#episode-extras-modal-title').text();
             const episodeMatch = headerText.match(/Season (\d+) Episode (\d+)/);
             if (episodeMatch) {
               const [_, seasonNum, episodeNum] = episodeMatch;
@@ -1175,14 +1214,14 @@ async function getEpisodeData(page=1) {
                     currentExtras[el.name] = el.value;
                   }
                 });
-                
-                // Refresh extras for the new card type
+                const effectiveType = value || episode.card_type || ('{{series.card_type}}' !== 'None' ? '{{series.card_type}}' : '{{preferences.default_card_type}}');
                 await refreshExtrasForCardType(
-                  value || episode.card_type || ('{{series.card_type}}' !== 'None' ? '{{series.card_type}}' : '{{preferences.default_card_type}}'),
+                  effectiveType,
                   '#episode-extras-modal section[aria-label="extras"]',
                   document.getElementById('extra-input-template'),
                   currentExtras,
-                  false
+                  false,
+                  { useAllCardTypeExtras: true },
                 );
               }
             }
@@ -1505,6 +1544,8 @@ async function initAll() {
 
   // Delete series modal
   $('#delete-series-modal').modal('attach events', '#delete-series');
+
+  initEpisodeExtrasModalUi();
 
   // Configure new episode modal
   $('#new-episode-modal')
