@@ -101,9 +101,18 @@ class SeasonTitleRanges:
                 # Evaluate if within a single season
                 if (range_.season_start == range_.season_end
                     # Episode falls within season range
-                    and range_.season_start <= ep.season_number <= range_.season_end
+                    and (
+                        range_.season_start
+                        <= ep.season_number
+                        <= range_.season_end
+                    )
                     # Episode falls within episode range
-                    and range_.episode_start <= ep.episode_number <= range_.episode_end):
+                    and (
+                        range_.episode_start
+                        <= ep.episode_number
+                        <= range_.episode_end
+                    )
+                ):
                     return FormatString(title, data=card_settings).result
                 # Spans multiple seasons and episode falls within season range
                 if (range_.season_start < range_.season_end
