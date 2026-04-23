@@ -158,11 +158,18 @@ function queryForLogs(page=1) {
         // Clone template
         const row = document.querySelector(`#${message.level_name.toLowerCase()}-message-template`).content.cloneNode(true);
 
-        const shortTime = message.timestamp.match(/^(.[^\.]+\.\d{3}?)\d*$/m);
-        if (shortTime) {
-          row.querySelector('[data-value="timestamp"]').innerText = shortTime[1];
+        // Split timestamp into date / time for a compact two-line display.
+        // Full timestamp is preserved as a tooltip on the cell.
+        const tsCell = row.querySelector('[data-value="timestamp"]');
+        const tsParts = message.timestamp.replace(/(\.\d{3})\d*$/, '$1').split('T');
+        if (tsParts.length === 2) {
+          const timeNoMs = tsParts[1].replace(/\.\d+$/, '');
+          tsCell.innerHTML =
+            `<span class="log-ts-date">${tsParts[0]}</span>`
+            + `<span class="log-ts-time">${timeNoMs}</span>`;
+          tsCell.title = message.timestamp;
         } else {
-          row.querySelector('[data-value="timestamp"]').innerText = message.timestamp;
+          tsCell.innerText = message.timestamp;
         }
         row.querySelector('[data-value="context_id"]').innerText = message.context_id
           ? message.context_id

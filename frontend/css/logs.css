@@ -1,40 +1,250 @@
-/* Limit super long messages to 3 lines */
+/* ═══════════════════════════════════════════════════════════════════════════
+   logs.css  —  page-specific styles for the Logs page.
+   Global helpers (settings-panel, section-note, dot-grid) live in style.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Panel header: action buttons ───────────────────────────────────────── */
+.log-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.log-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.92em;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid rgba(99, 145, 210, 0.35);
+  background: rgba(99, 145, 210, 0.08);
+  color: var(--tcm-blue-color);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.log-action-btn:hover {
+  background: rgba(99, 145, 210, 0.18);
+  border-color: rgba(99, 145, 210, 0.6);
+}
+
+.log-action-btn--warn {
+  border-color: rgba(234, 179, 8, 0.35);
+  background: rgba(234, 179, 8, 0.07);
+  color: #b45309;
+}
+
+html.dark .log-action-btn--warn {
+  color: #fbbf24;
+}
+
+.log-action-btn--warn:hover {
+  background: rgba(234, 179, 8, 0.16);
+  border-color: rgba(234, 179, 8, 0.6);
+}
+
+.log-action-btn--success {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.07);
+  color: #15803d;
+}
+
+html.dark .log-action-btn--success {
+  color: #4ade80;
+}
+
+.log-action-btn--success:hover {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.log-action-btn i.icon {
+  margin: 0;
+}
+
+/* ── Filter form grid ────────────────────────────────────────────────────── */
+.log-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 0.6rem 1rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Log table wrapper (handles horizontal scroll on small screens) ──────── */
+.log-table-wrapper {
+  overflow-x: auto;
+  margin: 0 -0.1rem; /* align with panel padding */
+}
+
+/* ── Log table ───────────────────────────────────────────────────────────── */
+#log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875em;
+}
+
+#log-table thead th {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.45);
+  background: transparent;
+}
+
+html.dark #log-table thead th {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.35);
+}
+
+#log-table tbody tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background 0.1s;
+}
+
+html.dark #log-table tbody tr {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+#log-table tbody tr:hover {
+  background: rgba(0, 0, 0, 0.025) !important;
+}
+
+html.dark #log-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+#log-table td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+}
+
+/* Clickable cells */
+#log-table td.selectable {
+  cursor: pointer;
+}
+
+/* ── Column widths ───────────────────────────────────────────────────────── */
+.log-col-level {
+  width: 1%;   /* shrink to badge content */
+  white-space: nowrap;
+  text-align: center;
+}
+
+.log-col-time {
+  width: 1%;   /* shrink to two-line timestamp */
+  white-space: nowrap;
+}
+
+.log-col-ctx {
+  width: 1%;   /* shrink to content */
+  white-space: nowrap;
+  font-size: 0.82em;
+  font-family: monospace;
+  opacity: 0.75;
+}
+
+.log-col-msg {
+  word-break: break-word;
+}
+
+/* ── Two-line timestamp ──────────────────────────────────────────────────── */
+.log-ts-date {
+  display: block;
+  font-size: 0.82em;
+  opacity: 0.55;
+  letter-spacing: 0.01em;
+}
+
+.log-ts-time {
+  display: block;
+  font-family: monospace;
+  font-size: 0.82em;
+  letter-spacing: 0.02em;
+}
+
+/* ── Level badge pills ───────────────────────────────────────────────────── */
+.log-level-badge {
+  display: inline-block;
+  padding: 0.18em 0.5em;
+  border-radius: 4px;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Light mode badge colors */
+tr.grey.marked   .log-level-badge { background: rgba(100,100,100,0.1);  color: #555; }
+tr.blue.marked   .log-level-badge { background: rgba(59,130,246,0.12);  color: #2563eb; }
+tr.green.marked  .log-level-badge { background: rgba(22,163,74,0.12);   color: #15803d; }
+tr.yellow.marked .log-level-badge { background: rgba(202,138,4,0.14);   color: #92400e; }
+tr.red.marked    .log-level-badge { background: rgba(220,38,38,0.12);   color: #b91c1c; }
+
+/* Dark mode badge colors */
+html.dark tr.grey.marked   .log-level-badge { background: rgba(160,160,160,0.14); color: #aaa; }
+html.dark tr.blue.marked   .log-level-badge { background: rgba(99,145,210,0.2);   color: #7ab3e0; }
+html.dark tr.green.marked  .log-level-badge { background: rgba(74,222,128,0.15);  color: #4ade80; }
+html.dark tr.yellow.marked .log-level-badge { background: rgba(250,204,21,0.15);  color: #fde047; }
+html.dark tr.red.marked    .log-level-badge { background: rgba(239,68,68,0.18);   color: #f87171; }
+
+/* ── Message cell: limit tall messages ───────────────────────────────────── */
 #log-data td[data-value="message"] {
   overflow-y: auto;
   display: block;
-  max-height: calc(1.8em * 5);
-  /* display: -webkit-box;
-  line-clamp: 5; 
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical; */
+  max-height: calc(1.7em * 5);
 }
 
-/* Formatting for code (traceback) messages */
+/* Code/traceback messages — monospace, more lines */
 #log-data td.code[data-value="message"] {
-  /* Use a monospace font so text alignment is preserved */
   font-family: monospace;
-  /* Preserve spaces so traceback boxes and lines are kept */
   white-space: preserve;
-  /* Show up to 10 lines, not 5 */
-  /* line-clamp: 10; */
-  /* -webkit-line-clamp: 10; */
-  max-height: calc(1.8em * 10);
-  /* Block so that clamped text still renders */
+  max-height: calc(1.7em * 10);
   display: block;
+  font-size: 0.88em;
 }
 
-/* Center align table on mobile */
-@media (max-width: 768px) {
-  table th, table td {
-    text-align: center !important;
-  }
+/* ── Prune section action row ────────────────────────────────────────────── */
+.log-prune-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
 }
 
-/* Stylize "redacted" text */
+/* ── Redacted text ───────────────────────────────────────────────────────── */
 span.redacted.text:not(:hover, :focus) {
-  /* Hide the text */
   color: transparent;
-  /* Add black highlight over text */
   background-color: #1a1a1a;
   border-radius: 4px;
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────────── */
+#log-table tfoot th {
+  padding: 0.5rem 0;
+  background: transparent;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+html.dark #log-table tfoot th {
+  border-top-color: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .log-header-actions {
+    gap: 0.3rem;
+  }
+  .log-filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

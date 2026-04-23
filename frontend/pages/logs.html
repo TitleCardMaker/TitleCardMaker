@@ -11,58 +11,73 @@
 
   <link rel="stylesheet" type="text/css" href="/css/logs.css?v={{preferences.config.CURRENT_VERSION}}">
 
-  <!-- Templates -->
+  <!-- ── Log row templates ────────────────────────────────────────────────
+       .selectable kept on clickable cells for cursor/tooltip.
+       .log-level-badge span is styled per-level via the parent <tr> class.
+  ──────────────────────────────────────────────────────────────────────── -->
   <template id="trace-message-template">
     <tr class="left grey marked">
-      <td data-value="level_name" class="selectable center aligned">Trace</td>
-      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
-      <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
-      <td data-value="message">{message}</td>
+      <td data-value="level_name" class="selectable log-col-level">
+        <span class="log-level-badge">Trace</span>
+      </td>
+      <td data-value="timestamp" class="selectable log-col-time" data-tooltip="Add time as Filter"></td>
+      <td data-value="context_id" class="selectable log-col-ctx" data-tooltip="Add ID as Filter"></td>
+      <td data-value="message" class="log-col-msg"></td>
     </tr>
   </template>
 
   <template id="debug-message-template">
     <tr class="left blue marked">
-      <td data-value="level_name" class="selectable center aligned">Debug</td>
-      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
-      <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
-      <td data-value="message">{message}</td>
+      <td data-value="level_name" class="selectable log-col-level">
+        <span class="log-level-badge">Debug</span>
+      </td>
+      <td data-value="timestamp" class="selectable log-col-time" data-tooltip="Add time as Filter"></td>
+      <td data-value="context_id" class="selectable log-col-ctx" data-tooltip="Add ID as Filter"></td>
+      <td data-value="message" class="log-col-msg"></td>
     </tr>
   </template>
 
   <template id="info-message-template">
-    <tr class="green.colored left green marked">
-      <td data-value="level_name" class="selectable center aligned">Info</td>
-      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
-      <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
-      <td data-value="message">{message}</td>
+    <tr class="left green marked">
+      <td data-value="level_name" class="selectable log-col-level">
+        <span class="log-level-badge">Info</span>
+      </td>
+      <td data-value="timestamp" class="selectable log-col-time" data-tooltip="Add time as Filter"></td>
+      <td data-value="context_id" class="selectable log-col-ctx" data-tooltip="Add ID as Filter"></td>
+      <td data-value="message" class="log-col-msg"></td>
     </tr>
   </template>
 
   <template id="warning-message-template">
     <tr class="left yellow marked">
-      <td data-value="level_name" class="selectable center aligned">Warning</td>
-      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
-      <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
-      <td data-value="message">{message}</td>
+      <td data-value="level_name" class="selectable log-col-level">
+        <span class="log-level-badge">Warning</span>
+      </td>
+      <td data-value="timestamp" class="selectable log-col-time" data-tooltip="Add time as Filter"></td>
+      <td data-value="context_id" class="selectable log-col-ctx" data-tooltip="Add ID as Filter"></td>
+      <td data-value="message" class="log-col-msg"></td>
     </tr>
   </template>
 
   <template id="error-message-template">
     <tr class="left red marked">
-      <td data-value="level_name" class="selectable center aligned">Error</td>
-      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
-      <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
-      <td data-value="message">{message}</td>
+      <td data-value="level_name" class="selectable log-col-level">
+        <span class="log-level-badge">Error</span>
+      </td>
+      <td data-value="timestamp" class="selectable log-col-time" data-tooltip="Add time as Filter"></td>
+      <td data-value="context_id" class="selectable log-col-ctx" data-tooltip="Add ID as Filter"></td>
+      <td data-value="message" class="log-col-msg"></td>
     </tr>
   </template>
 
   <template id="critical-message-template">
     <tr class="red colored left red marked">
-      <td data-value="level_name" class="selectable center aligned">Critical</td>
-      <td data-value="timestamp" class="selectable center aligned collapsing" data-tooltip="Add time as Filter">{timestamp}</td>
-      <td data-value="context_id" class="selectable center aligned collapsing" data-tooltip="Add ID as Filter">{context_id}</td>
-      <td data-value="message">{message}</td>
+      <td data-value="level_name" class="selectable log-col-level">
+        <span class="log-level-badge">Critical</span>
+      </td>
+      <td data-value="timestamp" class="selectable log-col-time" data-tooltip="Add time as Filter"></td>
+      <td data-value="context_id" class="selectable log-col-ctx" data-tooltip="Add ID as Filter"></td>
+      <td data-value="message" class="log-col-msg"></td>
     </tr>
   </template>
 
@@ -75,21 +90,10 @@
       </div>
     </div>
   </template>
-
-  <template id="log-file-template">
-    <tr>
-      <td class="collapsing" data-value="filename"></td>
-      <td class="collapsing" data-value="date"></td>
-      <td class="collapsing selectable">
-        <a download>Download</a>
-      </td>
-    </tr>
-  </template>
 </head>
 
 <body onload="initAll();" style="background-image: var(--background);">
   <div class="pusher">
-    <!-- Static header and sidebar -->
     <div id="page-header">
       {% include "/pages/header.html" %}
     </div>
@@ -97,176 +101,175 @@
       {% include "/pages/system_sidebar.html" %}
     </div>
 
-    <!-- Actual page content -->
-    <div id="main-content" class="article" style="overflow-x: scroll;">
-      <h1 class="ui header">System Logs</h1>
+    <div id="main-content" class="article">
 
-      <!-- Log filters -->
-      <div class="ui segment">
-        <div class="ui header">
-          <i class="filter icon"></i>
-          <div class="content">
-            Filter Options
-            <div class="sub header" style="cursor: pointer;">
-              <div class="ui horizontal basic labels">
-                <div class="ui small blue label" onclick="queryForLogs();" data-action="refresh">
-                  <i class="redo icon"></i>
-                  Refresh Logs
-                </div>
-                <div class="ui small red label" onclick="resetForm(); queryForLogs();" data-action="refresh">
-                  <i class="eraser icon"></i>
-                  Reset Filters
-                </div>
-                <div class="ui small green label" onclick="downloadLogDatabase();" data-action="download">
-                  <i class="download icon"></i>
-                  Download Log Database
-                </div>
-              </div>
-            </div>
+      <!-- ── System Logs panel ─────────────────────────────────────────── -->
+      <div class="settings-panel">
+        <div class="settings-panel-header">
+          <i class="list icon"></i>
+          System Logs
+          <div class="log-header-actions">
+            <button class="log-action-btn" onclick="queryForLogs();" data-action="refresh" type="button">
+              <i class="redo icon"></i>
+              Refresh
+            </button>
+            <button class="log-action-btn log-action-btn--warn" onclick="resetForm(); queryForLogs();" data-action="refresh" type="button">
+              <i class="eraser icon"></i>
+              Reset
+            </button>
+            <!--
+              .label class kept for JS selector: $('.label[onclick="downloadLogDatabase();"]')
+            -->
+            <button class="log-action-btn log-action-btn--success label" onclick="downloadLogDatabase();" type="button">
+              <i class="download icon"></i>
+              Download DB
+            </button>
           </div>
         </div>
 
-        <form id="log-filters" class="ui form">
-          <div class="fields">
-            <!-- Contains substring -->
-            <div class="ui field">
-              <label>Message Contains</label>
-              <input name="contains" type="text" placeholder="Text..">
-            </div>
-            <!-- Context ID -->
-            <div class="ui field">
-              <label data-tooltip="Comma separated list of Context IDs to filter by">Context IDs</label>
-              <input name="context_id" type="text" placeholder="ID..">
-            </div>
-            <!-- Start Date -->
-            <div class="ui field">
-              <label>Start Date</label>
-              <div class="ui calendar" id="date-after">
-                <div class="ui input left icon">
-                  <i class="calendar icon"></i>
-                  <input name="after" type="text" placeholder="Start">
+        <section>
+          <form id="log-filters" class="ui form">
+            <div class="log-filter-grid">
+              <div class="ui field">
+                <label>Message Contains</label>
+                <input name="contains" type="text" placeholder="Text…">
+              </div>
+              <div class="ui field">
+                <label data-tooltip="Comma-separated list of Context IDs">Context IDs</label>
+                <input name="context_id" type="text" placeholder="ID…">
+              </div>
+              <div class="ui field">
+                <label>Start Date</label>
+                <div class="ui calendar" id="date-after">
+                  <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input name="after" type="text" placeholder="Start">
+                  </div>
+                </div>
+              </div>
+              <div class="ui field">
+                <label>End Date</label>
+                <div class="ui calendar" id="date-before">
+                  <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input name="before" type="text" placeholder="End">
+                  </div>
+                </div>
+              </div>
+              <div class="ui field">
+                <label>Minimum Level</label>
+                <div data-value="level" class="ui compact selection dropdown">
+                  <input name="level" type="hidden" value="TRACE">
+                  <i class="dropdown icon"></i>
+                  <div class="default text">Trace</div>
+                  <div class="menu">
+                    <div data-value="TRACE"    class="item">Trace</div>
+                    <div data-value="DEBUG"    class="item">Debug</div>
+                    <div data-value="INFO"     class="item">Info</div>
+                    <div data-value="WARNING"  class="item">Warning</div>
+                    <div data-value="ERROR"    class="item">Error</div>
+                    <div data-value="CRITICAL" class="item">Critical</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ui field">
+                <label>Page Size</label>
+                <div data-value="size" class="ui compact selection dropdown">
+                  <input name="size" type="hidden">
+                  <i class="dropdown icon"></i>
+                  <div class="default text">100</div>
+                  <div class="menu">
+                    <div class="item">50</div>
+                    <div class="item">100</div>
+                    <div class="item">250</div>
+                    <div class="item">500</div>
+                  </div>
                 </div>
               </div>
             </div>
-            <!-- End Date -->
-            <div class="ui field">
-              <label>End Date</label>
-              <div class="ui calendar" id="date-before">
-                <div class="ui input left icon">
-                  <i class="calendar icon"></i>
-                  <input name="before" type="text" placeholder="End">
-                </div>
-              </div>
-            </div>
-            <!-- Log level -->
-            <div class="ui field">
-              <label>Minimum Level</label>
-              <div data-value="level" class="ui compact selection dropdown">
-                <input name="level" type="hidden" value="TRACE">
-                <i class="dropdown icon"></i>
-                <div class="default text">Trace</div>
-                <div class="menu">
-                  <div data-value="TRACE" class="item">Trace</div>
-                  <div data-value="DEBUG" class="item">Debug</div>
-                  <div data-value="INFO" class="item">Info</div>
-                  <div data-value="WARNING" class="item">Warning</div>
-                  <div data-value="ERROR" class="item">Error</div>
-                  <div data-value="CRITICAL" class="item">Critical</div>
-                </div>
-              </div>
-            </div>
-            <!-- Lines per page -->
-            <div class="ui field">
-              <label>Page Size</label>
-              <div data-value="size" class="ui compact selection dropdown">
-                <input name="size" type="hidden">
-                <i class="dropdown icon"></i>
-                <div class="default text">100</div>
-                <div class="menu">
-                  <div class="item">50</div>
-                  <div class="item">100</div>
-                  <div class="item">250</div>
-                  <div class="item">500</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
+          </form>
 
-        <table class="ui striped celled compact table" id="log-table">
-          <thead>
-            <tr>
-              <th class="center aligned collapsing">Level</th>
-              <th class="center aligned">Timestamp</th>
-              <th class="center aligned">Context ID</th>
-              <th>Message</th>
-            </tr>
-          </thead>
-          <tbody id="log-data"></tbody>
-          <!-- Pagination buttons -->
-          <tfoot>
-            <tr>
-              <th colspan="4">
-                <div id="pagination" class="ui pagination menu"><!-- Added asynchronously --></div>
-              </th>
-            </tr>
-          </tfoot>
-        </table>
+          <div class="log-table-wrapper">
+            <table class="ui very compact table" id="log-table">
+              <thead>
+                <tr>
+                  <th class="log-col-level">Level</th>
+                  <th class="log-col-time">Timestamp</th>
+                  <th class="log-col-ctx">Context ID</th>
+                  <th class="log-col-msg">Message</th>
+                </tr>
+              </thead>
+              <tbody id="log-data"></tbody>
+              <tfoot>
+                <tr>
+                  <th colspan="4">
+                    <div id="pagination" class="ui pagination menu"></div>
+                  </th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
       </div>
 
-      <!-- Log pruning -->
-      <div class="ui segment">
-        <div class="ui header">
+      <!-- ── Prune Log Database panel ──────────────────────────────────── -->
+      <div class="settings-panel">
+        <div class="settings-panel-header">
           <i class="trash icon"></i>
-          <div class="content">
-            Prune Log Database
-            <div class="sub header">
-              Remove old logs from the database to free up space
-            </div>
-          </div>
+          Prune Log Database
         </div>
-
-        <div class="ui form">
-          <div class="field">
-            <label>Delete logs before:</label>
-            <div class="ui calendar" id="prune-date">
-              <div class="ui input left icon">
-                <i class="calendar icon"></i>
-                <input type="text" id="prune-date-input" placeholder="Select date">
+        <section>
+          <p class="section-note">
+            Remove old logs from the database to free up space. Use
+            <em>Run Clean Database Task</em> to prune automatically based on
+            the configured retention period, or pick a date to delete
+            everything before it.
+          </p>
+          <div class="ui form">
+            <div class="field">
+              <label>Delete logs before</label>
+              <div class="ui calendar" id="prune-date">
+                <div class="ui input left icon">
+                  <i class="calendar icon"></i>
+                  <input type="text" id="prune-date-input" placeholder="Select date">
+                </div>
               </div>
             </div>
-            <p class="help">Select a date to remove all logs before that date, or use the Clean Database task to remove logs based on the configured retention period.</p>
-          </div>
-          <div class="field">
-            <button class="ui blue button" onclick="runCleanDatabaseTask();">
-              <i class="play icon"></i>
-              Run Clean Database Task
-            </button>
-            <button class="ui red button" onclick="pruneLogsByDate();">
-              <i class="trash icon"></i>
-              Prune Logs
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Internal server errors -->
-      <div class="ui segment">
-        <h2 class="ui header">
-          <i class="bug icon"></i>
-          <div class="content">
-            Internal Server Errors
-            <div class="sub header">
-              Unexpected errors which may indicate some bug within TCM. Click the
-              respective GitHub icon to open an Issue for that error.
+            <div class="log-prune-actions">
+              <button class="ui blue button" onclick="runCleanDatabaseTask();" type="button">
+                <i class="play icon"></i>
+                Run Clean Database Task
+              </button>
+              <button class="ui red button" onclick="pruneLogsByDate();" type="button">
+                <i class="trash icon"></i>
+                Prune Logs
+              </button>
             </div>
           </div>
-        </h2>
-        <div class="ui floating info message" id="no-internal-errors">
-          <p>No server errors!</p>
-        </div>
-        <div class="ui relaxed divided list" id="error-list"><!-- Added asynchronously --></div>
+        </section>
       </div>
+
+      <!-- ── Internal Server Errors panel ─────────────────────────────── -->
+      <div class="settings-panel">
+        <div class="settings-panel-header">
+          <i class="bug icon"></i>
+          Internal Server Errors
+        </div>
+        <section>
+          <p class="section-note">
+            Unexpected errors which may indicate a bug in TCM.
+            Click the GitHub icon next to an error to download the log
+            database and open a new issue.
+          </p>
+          <div class="ui floating info message" id="no-internal-errors">
+            <p>No server errors!</p>
+          </div>
+          <div class="ui relaxed divided list" id="error-list">
+            <!-- Populated asynchronously -->
+          </div>
+        </section>
+      </div>
+
     </div>
   </div>
 </body>
