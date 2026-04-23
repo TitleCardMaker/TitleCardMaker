@@ -134,12 +134,38 @@ class EpisodeInfo(DatabaseInfoContainer):
     def __repr__(self) -> str:
         """Returns an unambiguous string representation of the object."""
 
-        attributes = ', '.join(f'{attr}={getattr(self, attr)!r}'
-            for attr in self.__slots__
-            if not attr.startswith('_')
+        ids: list[str] = []
+        if self.emby_id:
+            ids.append(f'emby({self.emby_id})')
+        if self.imdb_id:
+            ids.append(f'imdb({self.imdb_id})')
+        if self.jellyfin_id:
+            ids.append(f'jellyfin({self.jellyfin_id})')
+        if self.plex_id:
+            ids.append(f'plex({self.plex_id})')
+        if self.tmdb_id:
+            ids.append(f'tmdb({self.tmdb_id})')
+        if self.tvdb_id:
+            ids.append(f'tvdb({self.tvdb_id})')
+        if self.tvrage_id:
+            ids.append(f'tvrage({self.tvrage_id})')
+
+        id_string = ', '.join(ids) if ids else ''
+
+        abs_string = (
+            ''
+            if self.absolute_number is None
+            else '_A' + str(self.absolute_number)
         )
 
-        return f'<EpisodeInfo {attributes}>'
+        return (
+            f'EpisodeInfo('
+            f'{self.title!r}, '
+            f'S{self.season_number:02}E{self.episode_number:02}'
+            f'{abs_string}, '
+            f'{id_string}'
+            f')'
+        )
 
 
     def __str__(self) -> str:

@@ -2,8 +2,12 @@ import contextlib
 from typing import Any, TypeVar
 
 from plexapi.video import Episode as PlexEpisode
+from rich.console import Console
+from rich.table import Table
 
+from app.core.config import config
 from app.info.episode import EpisodeInfo
+from app.logging.logger import log
 
 
 _RefT = TypeVar('_RefT')
@@ -140,27 +144,63 @@ def match_episode_infos(
         - ``unmatched``: the subset of `searches` items that were not
           associated with any reference, in their original order.
 
-    Example::
-
-        matched, unmatched = match_episode_infos(episode_infos, plex_episodes)
-        for episode_info, plex_matches in matched:
-            for plex_ep in plex_matches:
-                ...
-        for leftover in unmatched:
-            log.warning(f'No reference found for {leftover}')
+    Example:
+    >>> matched, unmatched = match_episode_infos(episode_infos, plex_episodes)
+    >>> for episode_info, plex_matches in matched:
+    ...     for plex_ep in plex_matches:
+    ...         ...
+    >>> for leftover in unmatched:
+    ...     log.warning(f'No reference found for {leftover}')
     """
 
     ref_infos = [_to_episode_info(ref) for ref in references]
     match_lists: list[list[_SearchT]] = [[] for _ in references]
+    # Parallel lists tracking the normalized EpisodeInfo for each match/unmatch
+    # entry so they can be rendered in the summary table without re-normalizing.
+    match_infos: list[list[EpisodeInfo]] = [[] for _ in references]
     unmatched: list[_SearchT] = []
+    unmatched_infos: list[EpisodeInfo] = []
 
     for search in searches:
         search_info = _to_episode_info(search)
         for i, ref_info in enumerate(ref_infos):
             if ref_info == search_info:
                 match_lists[i].append(search)
+                match_infos[i].append(search_info)
                 break
         else:
             unmatched.append(search)
+            unmatched_infos.append(search_info)
+
+    # Build a consolidated Rich table summarising the matching results.
+    console_width = (config.CONSOLE_LOG_WIDTH or Console().size.width) - 12
+    console = Console(width=console_width, record=True)
+
+    table = Table(
+        show_header=True,
+        header_style='bold',
+        show_edge=True,
+        padding=(0, 1),
+    )
+    table.add_column('', justify='center', no_wrap=True)
+    table.add_column('Reference', no_wrap=False)
+    table.add_column('Search', no_wrap=False)
+
+    for ref_info, searches_for_ref in zip(ref_infos, match_infos):
+        if searches_for_ref:
+            # First match on its own row; overflow matches share the same ref
+            table.add_row('[green]✓[/]', repr(ref_info), repr(searches_for_ref[0]))
+            for extra in searches_for_ref[1:]:
+                table.add_row('[green]✓[/]', '', repr(extra))
+        else:
+            table.add_row('[red]✗[/]', repr(ref_info), '[dim]—[/]')
+        table.add_section()
+
+    for search_info in unmatched_infos:
+        table.add_row('[yellow]?[/]', '[dim]—[/]', repr(search_info))
+        table.add_section()
+
+    console.print(table)
+    log.trace('\n' + console.export_text())
 
     return list(zip(references, match_lists)), unmatched
