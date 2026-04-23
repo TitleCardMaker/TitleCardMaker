@@ -182,6 +182,7 @@ function queryForLogs(page=1) {
           row.querySelector('[data-value="message"]').innerText = message.message + '\n\n' + message.exception_traceback;
         } else if (
           message.message.startsWith('Internal Server Error')
+          || message.message.includes('━━━') // Rich table header
           || message.message.includes('─ ImageMagick Command ─')
           || message.message.includes('Traceback (most recent call last)')
         ) {
