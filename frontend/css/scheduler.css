@@ -104,11 +104,11 @@ html.dark #sched-outer-table tbody tr:hover {
 
 /* ── Column widths ───────────────────────────────────────────────────────── */
 /* Every column shrinks to its content; none artificially stretch */
-.sched-col-run  { width: 1%; white-space: nowrap; }
+.sched-col-run  { width: 0.25%; white-space: nowrap; }
 .sched-col-desc { width: 1%; white-space: nowrap; }
 .sched-col-cron { width: 1%; white-space: nowrap; }
-.sched-col-dur  { width: 1%; white-space: nowrap; text-align: center; }
-.sched-col-next { width: 1%; white-space: nowrap; }
+.sched-col-dur  { width: 0.5%; white-space: nowrap; text-align: center; }
+.sched-col-next { width: 0.5%; white-space: nowrap; }
 
 /* ── Run task cell ───────────────────────────────────────────────────────── */
 #sched-outer-table td.sched-run-cell {
