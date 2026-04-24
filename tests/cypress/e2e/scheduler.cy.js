@@ -202,25 +202,24 @@ describe('Scheduler', () => {
     });
   });
 
-  it('Saves schedule changes and shows success message', () => {
-    // Intercept the PATCH request
+  it('Saves schedule changes and shows the restart required message', () => {
     cy.intercept('PATCH', '/api/v2/scheduler/task/*').as('updateTask');
-    
-    // Change a schedule
+
     cy.get('#task-table tr').first().within(() => {
       cy.get('[data-column="schedule"] span')
         .clear()
         .type('15 3 * * *');
     });
-    
-    // Click save
+
     cy.contains('Save Changes').click();
-    
-    // Wait for API calls
     cy.wait('@updateTask');
-    
-    // After saving, page navigates with restart_required flag
-    cy.url().should('include', 'restart_required=true');
+
+    // Save handler waits 1.5s, then reloads; initAll shows #restart-required-banner
+    // and removes the query param from the URL, so the notice is on-page only.
+    cy.get('#restart-required-banner', { timeout: 15000 })
+      .should('be.visible')
+      .and('contain', 'Restart Required')
+      .and('contain', 'Restart the application for your scheduler changes to take effect.');
   });
 
   it('Displays help information correctly', () => {
