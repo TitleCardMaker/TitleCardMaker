@@ -155,8 +155,9 @@ def match_episode_infos(
 
     ref_infos = [_to_episode_info(ref) for ref in references]
     match_lists: list[list[_SearchT]] = [[] for _ in references]
-    # Parallel lists tracking the normalized EpisodeInfo for each match/unmatch
-    # entry so they can be rendered in the summary table without re-normalizing.
+    # Parallel lists tracking the normalized EpisodeInfo for each
+    # match/unmatch entry so they can be rendered in the summary table
+    # without re-normalizing
     match_infos: list[list[EpisodeInfo]] = [[] for _ in references]
     unmatched: list[_SearchT] = []
     unmatched_infos: list[EpisodeInfo] = []

@@ -155,7 +155,7 @@ class EpisodeInfo(DatabaseInfoContainer):
         abs_string = (
             ''
             if self.absolute_number is None
-            else '_A' + str(self.absolute_number)
+            else '-A' + str(self.absolute_number)
         )
 
         return (
@@ -238,23 +238,41 @@ class EpisodeInfo(DatabaseInfoContainer):
             (self.tvdb_id, other.tvdb_id),
             (self.tvrage_id, other.tvrage_id),
         ]:
+            # Interface ID comparison
             if (isinstance(this_id, InterfaceID)
-                and isinstance(other_id, InterfaceID)):
+                and isinstance(other_id, InterfaceID)
+            ):
+                # If neither ID is actually defined, skip this
+                if not this_id or not other_id:
+                    continue
                 if this_id.equals(other_id):
                     id_matches += 1
+                # Do not increment mismatch because interface IDs are
+                # not strictly comparable
+                continue
+
+            # Regular ID comparison - if this ID is defined and matches,
+            # count it
             if this_id is not None and this_id == other_id:
                 id_matches += 1
-            elif (this_id is not None and other_id is not None
-                and this_id != other_id):
+            # Both IDs are defined but do not match, count as mismatch
+            elif (this_id is not None
+                and other_id is not None
+                and this_id != other_id
+            ):
                 id_mismatches += 1
 
-        # More than one ID match is equality, more than one mismatch is
-        # an inequality
-        if id_matches > 1:
-            return True
-        if (id_matches == 1
-            and self.season_number == other.season_number
-            and self.episode_number == other.episode_number):
+        # More than one ID match is an equality, one match and index
+        # match is equality, and more than one ID mismatch is not a 
+        # match
+        if (
+            (id_matches > 1 and id_matches > id_mismatches)
+            or (
+                id_matches == 1
+                and self.season_number == other.season_number
+                and self.episode_number == other.episode_number
+            )
+        ):
             return True
         if id_mismatches > 1:
             return False
