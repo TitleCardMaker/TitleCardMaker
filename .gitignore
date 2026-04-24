@@ -9,24 +9,21 @@ __pycache__/
 # PEP 582
 __pypackages__/
 
-backend/app/cards/.objects/
-backups/
-config/
-config copy/
-tests/cypress/results/
-tests/cypress/screenshots/
-fonts/
-frontend/public/preview/card*
-node_modules/
-yml/
+/backend/app/cards/.objects/
+/backend/app/interfaces/.objects
+/backups/
+/config/
+/tests/cypress/results/
+/tests/cypress/screenshots/
+/tests/node_modules/
+/fonts/
+/frontend/public/preview/card*
+/yml/
 *._*
 *.prof
 .DS_Store
 .env
-missing.yml
-preferences.yml
 temp*.jpg
 uv.lock
 .vscode
-/backend/app/interfaces/.objects
 /site
