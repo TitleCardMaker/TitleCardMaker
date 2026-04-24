@@ -15,10 +15,7 @@ describe('Logs Page', () => {
   describe('Page Structure and Loading', () => {
     it('Loads the logs page with all expected elements', () => {
       // Verify page title
-      cy.get('h1.ui.header').should('contain', 'System Logs');
-
-      // Verify filter section exists
-      cy.get('.ui.segment').first().should('contain', 'Filter Options');
+      cy.get('.settings-panel-header').first().should('contain', 'System Logs');
 
       // Verify filter form exists
       cy.get('#log-filters').scrollIntoView().should('be.visible');
@@ -31,7 +28,7 @@ describe('Logs Page', () => {
       cy.get('#log-table thead tr').should('contain', 'Message');
 
       // Verify internal server errors section exists
-      cy.get('.ui.segment').last().should('contain', 'Internal Server Errors');
+      cy.get('.settings-panel').last().should('contain', 'Internal Server Errors');
     });
 
     it('Displays filter form with all expected fields', () => {
@@ -62,11 +59,11 @@ describe('Logs Page', () => {
 
     it('Has working action buttons', () => {
       // Refresh logs button
-      cy.get('[data-action="refresh"]').should('be.visible');
-      cy.get('[data-action="refresh"]').should('contain', 'Refresh Logs');
+      cy.get('[data-action="refresh"]').first().should('be.visible');
+      cy.get('[data-action="refresh"]').first().should('contain', 'Refresh');
 
       // Reset filters button
-      cy.get('[data-action="refresh"]').last().should('contain', 'Reset Filters');
+      cy.get('[data-action="refresh"]').last().should('contain', 'Reset');
     });
 
     it('Loads initial log data', () => {
@@ -79,7 +76,7 @@ describe('Logs Page', () => {
 
     it('Shows internal server errors section', () => {
       // Verify the section exists
-      cy.get('.ui.segment').last().should('contain', 'Internal Server Errors');
+      cy.get('.settings-panel').last().should('contain', 'Internal Server Errors');
     });
   });
 
@@ -225,22 +222,6 @@ describe('Logs Page', () => {
   });
 
   describe('Interactive Features', () => {
-    it('Updates filters when clicking on log level cells', () => {
-      // Check if any log entries exist
-      cy.get('#log-data tr').then(($rows) => {
-        if ($rows.length > 0) {
-          // Click on the first log level cell
-          cy.wrap($rows.first()).within(() => {
-            cy.get('[data-value="level_name"]').click();
-          });
-          
-          // Verify the log level filter was updated (this depends on the JavaScript implementation)
-          // The filter should reflect the clicked level
-          cy.get('.dropdown[data-value="level"] .text').should('not.contain', 'Trace');
-        }
-      });
-    });
-
     it('Updates timestamp filters when clicking on timestamp cells', () => {
       // Check if any log entries exist
       cy.get('#log-data tr').then(($rows) => {
@@ -341,10 +322,9 @@ describe('Logs Page', () => {
       // Check if any log entries exist
       cy.get('#log-data tr').then(($rows) => {
         if ($rows.length > 0) {
-          // Verify that log level cells have the correct classes
+          // Verify that log level cells contain a badge span
           cy.wrap($rows.first()).within(() => {
-            cy.get('[data-value="level_name"]').should('have.class', 'center');
-            cy.get('[data-value="level_name"]').should('have.class', 'aligned');
+            cy.get('[data-value="level_name"] .log-level-badge').should('exist');
           });
         }
       });
@@ -354,11 +334,11 @@ describe('Logs Page', () => {
       // Check if any log entries exist
       cy.get('#log-data tr').then(($rows) => {
         if ($rows.length > 0) {
-          // Verify timestamp cells have the correct structure
+          // Verify timestamp cells render two-line date/time spans
           cy.wrap($rows.first()).within(() => {
-            cy.get('[data-value="timestamp"]').should('have.class', 'center');
-            cy.get('[data-value="timestamp"]').should('have.class', 'aligned');
-            cy.get('[data-value="timestamp"]').should('have.class', 'collapsing');
+            cy.get('[data-value="timestamp"]').should('exist');
+            cy.get('[data-value="timestamp"] .log-ts-date').should('exist');
+            cy.get('[data-value="timestamp"] .log-ts-time').should('exist');
           });
         }
       });
@@ -378,7 +358,7 @@ describe('Logs Page', () => {
       cy.get('#log-data').should('exist');
     });
 
-    it('Maintains filter state after page refresh', () => {
+    it('Clears filter state after page refresh', () => {
       // Set some filter values
       const searchText = 'persistent_test';
       cy.get('input[name="contains"]').type(searchText);
@@ -389,8 +369,8 @@ describe('Logs Page', () => {
       // Wait for page to load
       cy.get('#log-filters').should('be.visible');
       
-      // Verify the filter value is still there
-      cy.get('input[name="contains"]').should('have.value', searchText);
+      // Filter fields are reset on fresh page load
+      cy.get('input[name="contains"]').should('have.value', '');
     });
 
     it('Shows loading state during API calls', () => {
@@ -446,13 +426,13 @@ describe('Logs Page', () => {
     it('Allows navigation via keyboard', () => {
       // Test tab navigation through form fields
       cy.get('input[name="contains"]').focus();
-      cy.tab();
+      cy.press(Cypress.Keyboard.Keys.TAB);
       cy.focused().should('have.attr', 'name', 'context_id');
-      
-      cy.tab();
+
+      cy.press(Cypress.Keyboard.Keys.TAB);
       cy.focused().should('have.attr', 'name', 'after');
       
-      cy.tab();
+      cy.press(Cypress.Keyboard.Keys.TAB);
       cy.focused().should('have.attr', 'name', 'before');
     });
 

@@ -55,8 +55,8 @@ describe('Settings', () => {
       .type(newSourceDirectory)
       .should('have.value', newSourceDirectory);
 
-    // Save changes
-    cy.get('#save-changes').click();
+    // Save changes (button is in sticky bar revealed on form change; force past off-screen transform)
+    cy.get('#save-changes').click({ force: true });
 
     // Verify success message or toast appears
     cy.get('.ui.success.message, .ui.info.toast').should('be.visible');
@@ -76,7 +76,7 @@ describe('Settings', () => {
     cy.get('#default-card-type .text').should('not.contain', 'Card Type');
     
     // Save changes
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.success.message, .ui.info.toast').should('be.visible');
   });
 
@@ -98,7 +98,7 @@ describe('Settings', () => {
     // cy.get('.dropdown[data-value="default_templates"] .menu .item').first().click();
 
     // Save changes
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.success.message, .ui.info.toast').should('be.visible');
   });
 
@@ -116,7 +116,7 @@ describe('Settings', () => {
       .should('have.value', '0');
 
     // Save changes - should show validation error
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.error.message').should('be.visible');
   });
 
@@ -137,7 +137,7 @@ describe('Settings', () => {
     });
 
     // Save changes
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.success.message, .ui.info.toast').should('be.visible');
   });
 
@@ -172,7 +172,7 @@ describe('Settings', () => {
     cy.get('input[name="library_unique_cards"]').parent().click();
 
     // Save changes
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.success.message, .ui.info.toast').should('be.visible');
   });
 
@@ -183,7 +183,7 @@ describe('Settings', () => {
       .should('have.value', '');
 
     // Save changes - should show validation error
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.error.message').should('be.visible');
   });
 
@@ -195,7 +195,7 @@ describe('Settings', () => {
       .should('have.value', '{fake_variable}');
 
     // Save changes - should show validation error
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.error.toast').should('be.visible');
   });
 
@@ -234,7 +234,7 @@ describe('Settings', () => {
     cy.get('input[name="display_live_messages"]').parent().click();
 
     // Save changes
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.success.message, .ui.info.toast').should('be.visible');
   });
 
@@ -246,7 +246,7 @@ describe('Settings', () => {
       .should('have.value', '0');
 
     // Save changes - should show validation error
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.error.message').should('be.visible');
   });
 
@@ -258,7 +258,7 @@ describe('Settings', () => {
       .should('have.value', '-10');
 
     // Save changes - should show validation error
-    cy.get('#save-changes').click();
+    cy.get('#save-changes').click({ force: true });
     cy.get('.ui.error.message').should('be.visible');
   });
 

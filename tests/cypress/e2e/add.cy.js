@@ -26,8 +26,8 @@ describe('Add Series Page', () => {
 
   describe('Page Structure and Navigation', () => {
     it('should display the correct page title and sections', () => {
-      cy.get('h3').should('contain', 'Browse Series');
-      cy.get('h3').should('contain', 'Browse Blueprints');
+      cy.get('.settings-panel-header').should('contain', 'Browse Series');
+      cy.get('.settings-panel-header').should('contain', 'Browse Blueprints');
       cy.get('#series-search').should('be.visible');
       cy.get('#blueprint-search').should('be.visible');
     });

@@ -23,19 +23,19 @@ describe('Fonts Page', () => {
 
   describe('Page Structure and Navigation', () => {
     it('should display the correct page title and sections', () => {
-      cy.get('h1').should('contain', 'Fonts');
+      cy.get('.settings-panel-header').should('contain', 'Fonts');
       cy.get('#create-font').should('be.visible').click();
       cy.get('#fonts').should('be.visible');
     });
 
     it('should show help information about fonts', () => {
-      cy.get('.ui.info.message').should('be.visible');
-      cy.get('.ui.info.message .header').should('contain', 'What are Fonts?');
+      cy.get('.section-note').should('be.visible');
+      cy.get('.section-note').should('contain', 'Fonts');
     });
 
     it('should have create new font button', () => {
       cy.get('#create-font').should('be.visible');
-      cy.get('#create-font').should('contain', 'Create New Font');
+      cy.get('#create-font').should('contain', 'New Font');
     });
   });
 
@@ -139,13 +139,13 @@ describe('Fonts Page', () => {
         
         // Analyze button
         cy.get('[data-action="populateReplacements"]').should('be.visible');
-        cy.get('[data-action="populateReplacements"]').should('contain', 'Analyze Font Replacements');
+        cy.get('[data-action="populateReplacements"]').should('contain', 'Analyze');
         cy.get('[data-action="populateReplacements"] .magic.icon').should('be.visible');
         
         // Add replacement button
         cy.get('[data-action="addReplacement"]').should('be.visible');
-        cy.get('[data-action="addReplacement"]').should('contain', 'Add Replacement');
-        cy.get('[data-action="addReplacement"] .plus.square.outline.icon').should('be.visible');
+        cy.get('[data-action="addReplacement"]').should('contain', 'Add');
+        cy.get('[data-action="addReplacement"] .plus.icon').should('be.visible');
       });
     });
 
@@ -209,10 +209,10 @@ describe('Fonts Page', () => {
 
     it('should have preview controls in the right column', () => {
       cy.get('#fonts .ui.accordion').first().find('[data-label="preview-form"]').within(() => {
-        // Refresh button
-        cy.get('button[data-action="refresh"]').should('be.visible');
-        cy.get('button[data-action="refresh"]').should('contain', 'Refresh Preview');
-  
+        // Preview card is clickable to refresh (no separate button)
+        cy.get('.ui.fluid.raised.card').should('be.visible');
+        cy.get('.ui.fluid.raised.card').should('have.attr', 'title', 'Click to refresh');
+
         // Preview form
         cy.get('[data-value="preview-form"]').should('be.visible');
       });
@@ -225,7 +225,7 @@ describe('Fonts Page', () => {
 
         // Title text input
         cy.get('input[name="title_text"]').should('be.visible');
-        cy.get('input[name="title_text"]').should('have.value', 'Example Title');
+        cy.get('input[name="title_text"]').should('have.attr', 'placeholder');
       });
     });
 
@@ -237,14 +237,19 @@ describe('Fonts Page', () => {
       });
     });
 
-    it('should show info message about custom font files', () => {
-      cy.get('#fonts .ui.accordion [data-label="preview-form"] .ui.info.message').first().should('be.visible');
+    it('should show info note about custom font files', () => {
+      cy.get('#fonts .ui.accordion').first().find('[data-label="preview-form"] .font-preview-note').should('be.visible');
     });
   });
 
   describe('Font Operations', () => {
     beforeEach(() => {
       cy.get('#fonts .ui.accordion').first().find('.title').click();
+      // Wait for the async AJAX call (triggered by accordion onOpen) to populate
+      // the form before any interaction — the name input being non-empty is the
+      // signal that populateFontElement() has finished wiring up event handlers.
+      cy.get('#fonts .ui.accordion').first()
+        .find('input[name="name"]').should('not.have.value', '');
     });
 
     it('should save font when save button is clicked', () => {

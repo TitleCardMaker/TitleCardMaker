@@ -13,7 +13,7 @@ describe('Card Templates', () => {
       // Click create button
       cy.get('#main-content button')
         .should('exist')
-        .contains('Create New Template')
+        .contains('New Template')
         .click()
       ;
   
@@ -49,7 +49,7 @@ describe('Card Templates', () => {
         .then(($template) => {
           cy.wait(150);
           // Click add-template button
-          cy.wrap($template).find('.button[data-add-field="condition"]')
+          cy.wrap($template).find('[data-add-field="condition"]')
             .should('exist')
             .click()
 
@@ -231,7 +231,7 @@ describe('Card Templates', () => {
         .click()
         .then(($template) => {
           // Click refresh previews button
-          cy.wrap($template).find('.button[data-action="refresh"]')
+          cy.wrap($template).find('[data-action="refresh"]')
             .should('exist')
             .click()
           cy.wait('@refreshPreview');

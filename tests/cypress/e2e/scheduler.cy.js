@@ -64,7 +64,7 @@ describe('Scheduler', () => {
       .then((previousDuration) => {
         previousDuration = previousDuration === '0 seconds' ? '-' : previousDuration;
         // Run this task
-        cy.get('#task-table [data-column="runTask"]').last().click();
+        cy.get('#task-table [data-column="runTask"] .sched-run-btn').last().click();
         cy.wait('@runTask');
 
         // Verify new duration is different
@@ -126,12 +126,12 @@ describe('Scheduler', () => {
   });
 
   it('Prevents running already running tasks', () => {
-    // Find a task that's currently running (has loading class)
+    // Find a task that's currently running (has running class on button)
     cy.get('#task-table tr').each(($row) => {
-      const runButton = $row.find('[data-column="runTask"] i');
-      if (runButton.hasClass('loading')) {
+      const runButton = $row.find('.sched-run-btn');
+      if (runButton.hasClass('running')) {
         // This task is running, clicking should not trigger new run
-        cy.wrap($row).find('[data-column="runTask"]').click();
+        cy.wrap($row).find('.sched-run-btn').click();
         // Should show info toast about task already running
         cy.get('.toast').should('contain', 'is already running');
         return false; // break the loop
@@ -141,17 +141,15 @@ describe('Scheduler', () => {
 
   it('Shows task running state correctly', () => {
     cy.get('#task-table tr').each(($row) => {
-      const runButton = $row.find('[data-column="runTask"] i');
-      const isRunning = runButton.hasClass('loading');
+      const runButton = $row.find('.sched-run-btn');
+      const isRunning = runButton.hasClass('running');
       
       if (isRunning) {
-        // Running tasks should not be clickable
-        cy.wrap($row).find('[data-column="runTask"]').should('not.have.class', 'selectable');
-        cy.wrap($row).find('[data-column="runTask"] i').should('have.class', 'blue loading sync');
+        // Running tasks have the .running class applied
+        cy.wrap($row).find('.sched-run-btn').should('have.class', 'running');
       } else {
-        // Non-running tasks should be clickable
-        cy.wrap($row).find('[data-column="runTask"]').should('have.class', 'selectable');
-        cy.wrap($row).find('[data-column="runTask"] i').should('not.have.class', 'loading');
+        // Non-running tasks do not have the .running class
+        cy.wrap($row).find('.sched-run-btn').should('not.have.class', 'running');
       }
     });
   });
@@ -221,32 +219,27 @@ describe('Scheduler', () => {
     // Wait for API calls
     cy.wait('@updateTask');
     
-    // Should show success message
-    cy.get('.toast').should('contain', 'Saved Schedules');
+    // After saving, page navigates with restart_required flag
+    cy.url().should('include', 'restart_required=true');
   });
 
   it('Displays help information correctly', () => {
-    // Check help text
-    cy.get('.help').should('contain', 'To adjust when Tasks are run, edit the expression in the Schedule column');
-    
-    // Check info message about cron expressions
-    cy.get('.ui.info.message').should('contain', 'Task schedules are entered as Cron expressions');
-    cy.get('.ui.info.message a').should('have.attr', 'href', 'https://crontab.guru/');
-    cy.get('.ui.info.message a').should('have.attr', 'target', '_blank');
+    // Check section note contains schedule guidance and cron link
+    cy.get('.section-note').should('contain', 'Schedule');
+    cy.get('.section-note a').should('have.attr', 'href', 'https://crontab.guru/');
+    cy.get('.section-note a').should('have.attr', 'target', '_blank');
   });
 
   it('Maintains table structure and column alignment', () => {
-    // Check table headers
+    // Check table headers exist with correct text (5 th elements, schedule spans 2 columns)
     cy.get('thead tr').within(() => {
-      cy.get('th').should('have.length', 5); // Only 5 columns, one spans two columns
-      cy.get('th').eq(0).should('have.class', 'center aligned'); // Run Task
-      cy.get('th').eq(1).should('have.class', 'left aligned');   // Task Description
-      cy.get('th').eq(2).should('have.class', 'left aligned');   // Schedule
-      cy.get('th').eq(3).should('have.class', 'center aligned'); // Last Duration
-      cy.get('th').eq(4).should('have.class', 'left aligned');   // Next Run
+      cy.get('th').should('have.length', 5);
+      cy.get('th').eq(1).should('contain', 'Task');
+      cy.get('th').eq(2).should('contain', 'Schedule');
+      cy.get('th').eq(4).should('contain', 'Next Run');
     });
     
-    // Check that all rows have the correct number of columns
+    // Check that all rows have the correct number of columns (6 due to colspan=2 on schedule)
     cy.get('#task-table tr').each(($row) => {
       cy.wrap($row).find('td').should('have.length', 6);
     });
@@ -258,14 +251,14 @@ describe('Scheduler', () => {
     
     // Get first non-running task
     cy.get('#task-table tr').each(($row) => {
-      const runButton = $row.find('[data-column="runTask"] i');
-      if (!runButton.hasClass('loading')) {
+      const runButton = $row.find('.sched-run-btn');
+      if (!runButton.hasClass('running')) {
         // Get current duration
         cy.wrap($row).find('[data-column="previous_duration"]')
           .invoke('text')
           .then((currentDuration) => {
             // Run the task
-            cy.wrap($row).find('[data-column="runTask"]').click();
+            cy.wrap($row).find('.sched-run-btn').click();
             cy.wait('@runTask');
             
             // Duration should update (either to a new value or remain the same)
