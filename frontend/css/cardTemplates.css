@@ -5,30 +5,10 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── "New Template" button in panel header ─────────────────────────────── */
+/* Base style comes from .panel-action-btn in style.css */
+
 .template-create-btn {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35em;
-  padding: 0.3rem 0.85rem;
-  font-size: 0.82em;
-  font-weight: 600;
-  border-radius: 6px;
-  border: 1px solid rgba(99, 145, 210, 0.4);
-  background: rgba(99, 145, 210, 0.1);
-  color: var(--tcm-blue-color);
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.template-create-btn:hover {
-  background: rgba(99, 145, 210, 0.2);
-  border-color: rgba(99, 145, 210, 0.65);
-}
-
-.template-create-btn i.icon {
-  margin: 0;
-  font-size: 0.85em;
+  margin-left: auto; /* push to right of panel header */
 }
 
 /* ── Alphabetic section headers (when many templates) ───────────────────── */

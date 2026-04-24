@@ -109,18 +109,18 @@
           <i class="list icon"></i>
           System Logs
           <div class="log-header-actions">
-            <button class="log-action-btn" onclick="queryForLogs();" data-action="refresh" type="button">
+            <button class="panel-action-btn" onclick="queryForLogs();" data-action="refresh" type="button">
               <i class="redo icon"></i>
               Refresh
             </button>
-            <button class="log-action-btn log-action-btn--warn" onclick="resetForm(); queryForLogs();" data-action="refresh" type="button">
+            <button class="panel-action-btn panel-action-btn--warn" onclick="resetForm(); queryForLogs();" data-action="refresh" type="button">
               <i class="eraser icon"></i>
               Reset
             </button>
             <!--
               .label class kept for JS selector: $('.label[onclick="downloadLogDatabase();"]')
             -->
-            <button class="log-action-btn log-action-btn--success label" onclick="downloadLogDatabase();" type="button">
+            <button class="panel-action-btn panel-action-btn--success label" onclick="downloadLogDatabase();" type="button">
               <i class="download icon"></i>
               Download DB
             </button>

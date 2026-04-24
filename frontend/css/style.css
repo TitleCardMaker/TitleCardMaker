@@ -564,6 +564,72 @@ html.dark .pill-filter-label {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   PANEL ACTION BUTTONS
+   Buttons that sit inside .settings-panel-header rows.
+   Base is blue-toned. Add modifier classes for colour variants:
+     .panel-action-btn--warn     amber
+     .panel-action-btn--success  green
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.panel-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid rgba(99, 145, 210, 0.38);
+  background: rgba(99, 145, 210, 0.09);
+  color: var(--tcm-blue-color);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.panel-action-btn:hover {
+  background: rgba(99, 145, 210, 0.18);
+  border-color: rgba(99, 145, 210, 0.6);
+}
+
+.panel-action-btn i.icon {
+  margin: 0;
+  font-size: 0.88em;
+}
+
+/* Amber / warning variant */
+.panel-action-btn--warn {
+  border-color: rgba(234, 179, 8, 0.35);
+  background: rgba(234, 179, 8, 0.07);
+  color: #b45309;
+}
+
+html.dark .panel-action-btn--warn {
+  color: #fbbf24;
+}
+
+.panel-action-btn--warn:hover {
+  background: rgba(234, 179, 8, 0.16);
+  border-color: rgba(234, 179, 8, 0.6);
+}
+
+/* Green / success variant */
+.panel-action-btn--success {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.07);
+  color: #15803d;
+}
+
+html.dark .panel-action-btn--success {
+  color: #4ade80;
+}
+
+.panel-action-btn--success:hover {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    INLINE EDITABLE LIST — shared by Fonts (replacements), Templates (season
    titles, filter conditions, translations), and any future row-based editors.
    ═══════════════════════════════════════════════════════════════════════════ */

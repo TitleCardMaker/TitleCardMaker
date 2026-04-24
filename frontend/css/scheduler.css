@@ -1,6 +1,232 @@
-/* Center align table on mobile */
+/* ═══════════════════════════════════════════════════════════════════════════
+   scheduler.css  —  page-specific styles for the Scheduler page.
+   Global helpers (settings-panel, section-note, dot-grid) live in style.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Panel header: action buttons ───────────────────────────────────────── */
+.sched-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+/* Header action buttons — base style from .panel-action-btn in style.css */
+
+/* ── Restart-required banner ─────────────────────────────────────────────── */
+.sched-restart-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  background: rgba(234, 179, 8, 0.08);
+  color: #92400e;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+html.dark .sched-restart-banner {
+  border-color: rgba(250, 204, 21, 0.3);
+  background: rgba(250, 204, 21, 0.07);
+  color: #fde68a;
+}
+
+.sched-restart-banner > i.icon {
+  flex-shrink: 0;
+  margin: 0.1em 0 0;
+  font-size: 1.15em;
+  opacity: 0.8;
+}
+
+.sched-restart-banner strong {
+  display: block;
+  margin-bottom: 0.2em;
+}
+
+.sched-restart-banner p {
+  margin: 0;
+  opacity: 0.85;
+}
+
+/* ── Table wrapper ───────────────────────────────────────────────────────── */
+.sched-table-wrapper {
+  overflow-x: auto;
+}
+
+/* ── Scheduler table ─────────────────────────────────────────────────────── */
+#sched-outer-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88em;
+}
+
+#sched-outer-table thead th {
+  padding: 0.5rem 0.8rem;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.42);
+  background: transparent;
+}
+
+html.dark #sched-outer-table thead th {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.32);
+}
+
+#sched-outer-table tbody tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background 0.1s;
+}
+
+html.dark #sched-outer-table tbody tr {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+#sched-outer-table tbody tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+html.dark #sched-outer-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+#sched-outer-table td {
+  padding: 0.55rem 0.8rem;
+  vertical-align: middle;
+}
+
+/* ── Column widths ───────────────────────────────────────────────────────── */
+/* Every column shrinks to its content; none artificially stretch */
+.sched-col-run  { width: 1%; white-space: nowrap; }
+.sched-col-desc { width: 1%; white-space: nowrap; }
+.sched-col-cron { width: 1%; white-space: nowrap; }
+.sched-col-dur  { width: 1%; white-space: nowrap; text-align: center; }
+.sched-col-next { width: 1%; white-space: nowrap; }
+
+/* ── Run task cell ───────────────────────────────────────────────────────── */
+#sched-outer-table td.sched-run-cell {
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.3rem 0.9rem;
+  white-space: nowrap;
+}
+
+/* Pill-shaped run button — green when idle, blue+muted when running */
+.sched-run-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38em;
+  padding: 0.32em 0.85em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 20px;
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+}
+
+html.dark .sched-run-btn {
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.08);
+  color: #4ade80;
+}
+
+.sched-run-btn:hover:not(.running) {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.7);
+}
+
+html.dark .sched-run-btn:hover:not(.running) {
+  background: rgba(74, 222, 128, 0.18);
+}
+
+/* Running state — blue tint, spinner, non-interactive */
+.sched-run-btn.running {
+  border-color: rgba(99, 145, 210, 0.4);
+  background: rgba(99, 145, 210, 0.08);
+  color: var(--tcm-blue-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.sched-run-btn i.icon {
+  margin: 0 !important;
+  font-size: 0.9em;
+}
+
+/* ── Task description ────────────────────────────────────────────────────── */
+.sched-desc-cell {
+  font-size: 0.93em;
+}
+
+/* ── Editable crontab expression ─────────────────────────────────────────── */
+.sched-cron-cell {
+  white-space: nowrap;
+}
+
+.sched-cron-cell span[contenteditable] {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.9em;
+  padding: 0.28em 0.6em;
+  border: 1px solid rgba(0, 0, 0, 0.13);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.03);
+  cursor: text;
+  outline: none;
+  min-width: 6em;
+  transition: border-color 0.15s, background 0.15s;
+  letter-spacing: 0.04em;
+}
+
+html.dark .sched-cron-cell span[contenteditable] {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.sched-cron-cell span[contenteditable]:focus {
+  border-color: var(--tcm-blue-color);
+  background: rgba(99, 145, 210, 0.05);
+}
+
+/* ── Human-readable schedule string ─────────────────────────────────────── */
+.sched-cron-str-cell {
+  font-size: 0.82em;
+  opacity: 0.6;
+  padding-left: 0.5rem !important;
+}
+
+/* ── Last duration ───────────────────────────────────────────────────────── */
+.sched-duration-cell {
+  text-align: center;
+  font-size: 0.85em;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* ── Next run countdown ──────────────────────────────────────────────────── */
+.sched-next-cell {
+  white-space: nowrap;
+  font-size: 0.88em;
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  table th, table td {
-    text-align: center !important;
+  .sched-header-actions {
+    flex-wrap: wrap;
+  }
+  .sched-cron-str-cell {
+    display: none; /* hide decoded string on small screens to save space */
   }
 }

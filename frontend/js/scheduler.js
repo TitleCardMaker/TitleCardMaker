@@ -99,26 +99,44 @@ function toggleScheduleType() {
 }
 
 /**
+ * Set the visual state of a run button.
+ * @param {HTMLButtonElement} btn - The .sched-run-btn element.
+ * @param {boolean} running - Whether the task is currently running.
+ */
+function setRunBtnState(btn, running) {
+  if (running) {
+    btn.classList.add('running');
+    btn.querySelector('i').className = 'sync loading icon';
+    btn.querySelector('.sched-run-label').textContent = 'Running\u2026';
+  } else {
+    btn.classList.remove('running');
+    btn.querySelector('i').className = 'play icon';
+    btn.querySelector('.sched-run-label').textContent = 'Run';
+  }
+}
+
+/**
  * Submit the API request to run the Task with the given ID.
  * @param {string} taskId - ID of the Task which is being run.
  */
 function runTask(taskId) {
-  // If task is already running, do not re-run
-  if ($(`tr[data-id="${taskId}"] td[data-column="runTask"] i`)[0].classList.contains('loading')) {
+  const btn = document.querySelector(`tr[data-id="${taskId}"] .sched-run-btn`);
+  if (!btn || btn.classList.contains('running')) {
     showInfoToast(`Task ${taskId} is already running`);
-    return; 
+    return;
   }
-  $(`tr[data-id="${taskId}"] td[data-column="runTask"] i`).toggleClass('blue loading', true);
+  setRunBtnState(btn, true);
   showInfoToast(`Running Task ${taskId}`);
   $.ajax({
     type: 'PUT',
     url: `/api/v2/scheduler/task/${taskId}`,
     success: task => {
       showInfoToast(`Task ${taskId} Completed`);
-      $(`tr[data-id="${taskId}"] td[data-column="previous_duration"]`)[0].innerHTML = timeFreqString(task.previous_duration, 2);
+      document.querySelector(`tr[data-id="${taskId}"] td[data-column="previous_duration"]`).innerHTML
+        = timeFreqString(task.previous_duration, 2);
     },
     error: response => showErrorToast({title: 'Error Running Task', response}),
-    complete: () => $(`tr[data-id="${taskId}"] td[data-column="runTask"] i`).toggleClass('blue loading', false),
+    complete: () => setRunBtnState(btn, false),
   });
 }
 
@@ -158,14 +176,11 @@ async function initAll() {
   const rows = allTasks.map(task => {
     const row = rowTemplate.content.cloneNode(true);
     row.querySelector('tr').dataset.id = task.id;
+    const runBtn = row.querySelector('.sched-run-btn');
     if (task.running) {
-      // Do not make this column selectable
-      row.querySelector('td[data-column="runTask"]').className = 'center aligned';
-      // Put icon in loading state
-      row.querySelector('td[data-column="runTask"] i').className = 'blue loading sync icon';
+      setRunBtnState(runBtn, true);
     } else {
-      // Task is not currently running, allow it to be run via click
-      row.querySelector('td[data-column="runTask"] a').onclick = () => runTask(task.id);
+      runBtn.onclick = () => runTask(task.id);
     }
     row.querySelector('td[data-column="description"]').innerHTML = task.description;
     // Fill out schedule row
