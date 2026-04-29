@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Create pipenv image to convert Pipfile to requirements.txt
-FROM python:3.11-slim AS pipenv
+FROM python:3.13-slim AS pipenv
 
 # Copy Pipfile and Pipfile.lock
 COPY Pipfile Pipfile.lock ./
@@ -9,7 +9,7 @@ COPY Pipfile Pipfile.lock ./
 RUN pip3 install --no-cache-dir --upgrade pipenv && \
     pipenv requirements > requirements.txt
 
-FROM python:3.11-slim AS python-reqs
+FROM python:3.13-slim AS python-reqs
 
 # Copy requirements.txt from pipenv stage
 COPY --from=pipenv /requirements.txt requirements.txt
@@ -20,7 +20,7 @@ RUN apt-get update && \
     pip3 install --no-cache-dir -r requirements.txt
 
 # Set base image for running TCM
-FROM python:3.11-slim
+FROM python:3.13-slim
 LABEL maintainer="CollinHeist" \
       description="Automated Title card maker for Emby, Jellyfin, and Plex" \
       version="v1.16.0"
@@ -30,7 +30,7 @@ WORKDIR /maker
 COPY . /maker
 
 # Copy python packages from python-reqs
-COPY --from=python-reqs /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=python-reqs /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 
 # Script environment variables
 ENV TCM_PREFERENCES=/config/preferences.yml \
