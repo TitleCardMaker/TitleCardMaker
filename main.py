@@ -26,8 +26,9 @@ except ImportError as e:
     sys_exit(1)
 
 # Version information
-REPO_URL = \
+REPO_URL = (
     'https://api.github.com/repos/CollinHeist/TitleCardMaker/releases/latest'
+)
 
 # Environment variables
 ENV_IS_DOCKER = 'TCM_IS_DOCKER'
