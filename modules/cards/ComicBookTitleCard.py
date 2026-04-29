@@ -81,11 +81,11 @@ class SvgRectangle:
         return [
             f'-draw "translate {self.center.as_svg}',
             f'rotate {self.rotation}',
-            f'path \'M {start_position.as_svg}',
+            fr'path \'M {start_position.as_svg}',
             f'l {self.width} 0',
             f'l 0 {self.height}',
             f'l {-self.width} 0',
-            f'l 0 {-self.height}\' "',
+            fr'l 0 {-self.height}\' "',
         ]
 
 

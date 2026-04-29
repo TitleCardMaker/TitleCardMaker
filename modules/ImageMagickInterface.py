@@ -132,7 +132,7 @@ class ImageMagickInterface:
             return None
 
         for char in ImageMagickInterface.__REQUIRED_ESCAPE_CHARACTERS:
-            string = string.replace(char, f'\{char}')
+            string = string.replace(char, fr'\{char}')
 
         return string
 

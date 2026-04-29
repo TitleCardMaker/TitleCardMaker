@@ -164,10 +164,10 @@ class MoviePosterMaker(ImageMaker):
 
         return [
             # Bring in logo image
-            f'\( "{self.logo.resolve()}"',
+            fr'\( "{self.logo.resolve()}"',
             # Resize to 400px wide, limit to 200px tall
             f'-resize 400x',
-            f'-resize x200\> \)',
+            fr'-resize x200\> \)',
             # Overlay 100px from top of image
             f'-gravity north',
             f'-geometry +0+100',
@@ -196,9 +196,9 @@ class MoviePosterMaker(ImageMaker):
         if self.add_drop_shadow:
             y_offset -= 15
             shadow_commands = [
-                f'\( +clone',
+                fr'\( +clone',
                 f'-background None',
-                f'-shadow 90x3+10+10 \)',
+                fr'-shadow 90x3+10+10 \)',
                 f'+swap',
                 f'-background None',
                 f'-layers merge',
@@ -212,7 +212,7 @@ class MoviePosterMaker(ImageMaker):
             f'-font "{self.font_file.resolve()}"',
             f'-fill "{self.font_color}"',
             # Create an image for each title
-            f'\( \( -background transparent',
+            fr'\( \( -background transparent',
             *self.subtitle_font_attributes,
             # Combine in order [TOP SUBTITLE] / [TITLE] / [SUBTITLE]
             f'label:"{self.top_subtitle}"' if len(self.top_subtitle)>0 else '',
@@ -221,11 +221,11 @@ class MoviePosterMaker(ImageMaker):
             *self.subtitle_font_attributes,
             f'label:"{self.subtitle}"' if len(self.subtitle) > 0 else '',
             # Merge images
-            f'-smush 30 \)',
+            fr'-smush 30 \)',
             # Add drop shadow to text
             *shadow_commands,
             # Add titles to image
-            f'\) -gravity south',
+            fr'\) -gravity south',
             f'-geometry +0+{y_offset}',
             f'-composite',
         ]

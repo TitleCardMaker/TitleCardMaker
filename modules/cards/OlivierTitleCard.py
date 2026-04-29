@@ -133,8 +133,8 @@ class OlivierTitleCard(BaseCardType):
             return []
 
         return [
-            f'\( "{self.GRADIENT.resolve()}"',
-            f'-rotate 90 \)',
+            fr'\( "{self.GRADIENT.resolve()}"',
+            fr'-rotate 90 \)',
             f'-geometry -{(self.WIDTH - self.HEIGHT) / 2}+0',
             f'-composite',
         ]
@@ -151,7 +151,7 @@ class OlivierTitleCard(BaseCardType):
         vertical_shift = 785 + self.font_vertical_shift
 
         return [
-            f'\( -font "{self.font_file}"',
+            fr'\( -font "{self.font_file}"',
             f'-gravity northwest',
             f'-pointsize {font_size}',
             f'-kerning {kerning}',
@@ -160,11 +160,11 @@ class OlivierTitleCard(BaseCardType):
             f'-fill "{self.stroke_color}"',
             f'-stroke "{self.stroke_color}"',
             f'-strokewidth {stroke_width}',
-            f'-annotate +320+{vertical_shift} "{self.title_text}" \)',
-            f'\( -fill "{self.font_color}"',
+            fr'-annotate +320+{vertical_shift} "{self.title_text}" \)',
+            fr'\( -fill "{self.font_color}"',
             f'-stroke "{self.font_color}"',
             f'-strokewidth 0',
-            f'-annotate +320+{vertical_shift} "{self.title_text}" \)',
+            fr'-annotate +320+{vertical_shift} "{self.title_text}" \)',
         ]
 
 

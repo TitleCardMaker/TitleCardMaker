@@ -561,10 +561,10 @@ class MusicTitleCard(BaseCardType):
         # Base commands to add and resize the image
         base_commands = [
             f'-gravity south',
-            f'\( "{self.album_cover.resolve()}"',
+            fr'\( "{self.album_cover.resolve()}"',
             f'-resize {dimensions.width}x',
-            f'-resize x{dimensions.height}\>',
-            f'\)',
+            fr'-resize x{dimensions.height}\>',
+            fr'\)',
         ]
 
         # ABoth artwork and poster can have rounded corners, and use drop shadow
@@ -625,14 +625,14 @@ class MusicTitleCard(BaseCardType):
 
         return [
             # Blur rectangle in the given bounds
-            f'\( -clone 0',
+            fr'\( -clone 0',
             f'-fill white',
             f'-colorize 100',
             f'-fill black',
             f'-draw "roundrectangle {start.x},{start.y} {end.x},{end.y} 25,25"',
             f'-alpha off',
             f'-write mpr:mask',
-            f'+delete \)',
+            fr'+delete \)',
             f'-mask mpr:mask',
             f'' if self.blur else f'-blur {self.GLASS_BLUR_PROFILE}',
             f'+mask',

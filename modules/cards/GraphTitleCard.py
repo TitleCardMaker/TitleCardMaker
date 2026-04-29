@@ -271,8 +271,8 @@ class GraphTitleCard(BaseCardType):
             geometry = f'+{(self.WIDTH - self.HEIGHT) / 2}+0'
 
         return [
-            f'\( "{self.GRADIENT.resolve()}"',
-            f'-rotate {rotation} \)',
+            fr'\( "{self.GRADIENT.resolve()}"',
+            fr'-rotate {rotation} \)',
             f'-geometry {geometry}',
             f'-composite',
         ]

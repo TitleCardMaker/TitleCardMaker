@@ -170,14 +170,14 @@ class TintedGlassTitleCard(BaseCardType):
 
         return [
             # Blur rectangle in the given bounds
-            f'\( -clone 0',
+            fr'\( -clone 0',
             f'-fill white',
             f'-colorize 100',
             f'-fill black',
             f'-draw "roundrectangle {draw_coords}"',
             f'-alpha off',
             f'-write mpr:mask',
-            f'+delete \)',
+            fr'+delete \)',
             f'-mask mpr:mask',
             f'-blur {self.TEXT_BLUR_PROFILE}' if not self.blur else '',
             f'+mask',

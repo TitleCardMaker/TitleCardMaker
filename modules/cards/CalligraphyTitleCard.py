@@ -235,8 +235,8 @@ class CalligraphyTitleCard(BaseCardType):
         if self.randomize_texture:
             random_height = (random() + 1.0) * self.HEIGHT
             texture_command = [
-                f'\( "{self.TEXTURE_IMAGE.resolve()}"',
-                f'-resize x{random_height} \)',
+                fr'\( "{self.TEXTURE_IMAGE.resolve()}"',
+                fr'-resize x{random_height} \)',
             ]
 
         return [
@@ -261,7 +261,7 @@ class CalligraphyTitleCard(BaseCardType):
         base_command = [
             f'"{self.logo_file.resolve()}"',
             f'-resize 2800x',
-            f'-resize x{logo_height}\>',
+            fr'-resize x{logo_height}\>',
         ]
 
         return self.add_drop_shadow(base_command, '95x10+0+35', 0, 0)

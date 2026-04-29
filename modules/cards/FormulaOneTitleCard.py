@@ -177,9 +177,9 @@ class FormulaOneTitleCard(BaseCardType):
         return [
             # Create dark overlay
             f'-gravity center',
-            f'\( -size {self.TITLE_CARD_SIZE}',
+            fr'\( -size {self.TITLE_CARD_SIZE}',
             f'xc:"{self.DARKEN_COLOR}"',
-            f'\) -composite',
+            fr'\) -composite',
             # Add frame
             f'"{self.FRAME.resolve()}"',
             f'-composite',

@@ -155,8 +155,8 @@ class BaseSummary(ImageMaker):
             f'-fill "#CFCFCF"',
             f'label:"with"',
             # Resize TCM logo
-            f'\( "{self.__TCM_LOGO.resolve()}"',
-            f'-resize x100 \)',
+            fr'\( "{self.__TCM_LOGO.resolve()}"',
+            fr'-resize x100 \)',
             # Create "TitleCardMaker" image/text
             f'-fill "#5493D7"',
             f'label:"TitleCardMaker"',

@@ -173,7 +173,7 @@ class StandardTitleCard(BaseCardType):
             *base_commands,
             f'-gravity center',
             # Black stroke behind primary text
-            f'\( -fill black',
+            fr'\( -fill black',
             f'-stroke black',
             f'-strokewidth 6',
             # Add season text
@@ -183,14 +183,14 @@ class StandardTitleCard(BaseCardType):
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
             # Combine season+episode text into one "image"
-            f'+smush 25 \)',
+            fr'+smush 25 \)',
             # Add season+episode text "image" to source image
             f'-gravity north',
             f'-geometry +0{y:+}',
             f'-composite',
             # Primary text
             f'-gravity center',
-            f'\( -fill "{self.episode_text_color}"',
+            fr'\( -fill "{self.episode_text_color}"',
             f'-stroke "{self.episode_text_color}"',
             f'-strokewidth 0.75',
             # Add season text
@@ -199,7 +199,7 @@ class StandardTitleCard(BaseCardType):
             # Add episode text
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
-            f'+smush 30 \)',
+            fr'+smush 30 \)',
             # Add text to source image
             f'-gravity north',
             f'-geometry +0{y+2:+}',

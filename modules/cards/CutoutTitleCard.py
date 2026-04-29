@@ -166,7 +166,7 @@ class CutoutTitleCard(BaseCardType):
 
         return [
             # Add source image
-            f'\( "{self.source_file.resolve()}"',
+            fr'\( "{self.source_file.resolve()}"',
             # Scale the alpha channel by the given transparency
             f'-alpha set',
             f'-channel A',
@@ -174,7 +174,7 @@ class CutoutTitleCard(BaseCardType):
             f'+channel',
             # Apply styling
             *self.resize_and_style,
-            f'\)',
+            fr'\)',
             # Add semi-transparent source on top of composition
             f'-composite',
         ]
@@ -235,14 +235,14 @@ class CutoutTitleCard(BaseCardType):
             f'convert',
             f'-set colorspace sRGB',
             # Create solid-color overlay
-            f'\( -size "{self.TITLE_CARD_SIZE}"',
-            f'xc:"{self.overlay_color}" \)',
+            fr'\( -size "{self.TITLE_CARD_SIZE}"',
+            fr'xc:"{self.overlay_color}" \)',
             # Resize and optionally blur source image
-            f'\( "{self.source_file.resolve()}"',
+            fr'\( "{self.source_file.resolve()}"',
             *self.resize_and_style,
-            f'\)',
+            fr'\)',
             # Create cutout of episode text
-            f'\( -set colorspace sRGB',
+            fr'\( -set colorspace sRGB',
             f'-background transparent',
             f'-density 200',
             f'-pointsize 500',
@@ -255,7 +255,7 @@ class CutoutTitleCard(BaseCardType):
             # Resize with 100px margin on all sides
             f'-resize 3100x1700',
             f'-extent "{self.TITLE_CARD_SIZE}"',
-            f'-blur "{self.number_blur_profile}" \)' if self.blur_edges else '\)',
+            fr'-blur "{self.number_blur_profile}" \)' if self.blur_edges else r'\)',
             # Use masked alpha composition to combine images
             f'-gravity center',
             f'-composite',

@@ -697,8 +697,8 @@ class StripedTitleCard(BaseCardType):
             # Resize and apply styles to source image
             *self.resize_and_style,
             # Create mask
-            f'\( -size "{self.TITLE_CARD_SIZE}"',
-            f'xc:"{self.overlay_color}" \)',
+            fr'\( -size "{self.TITLE_CARD_SIZE}"',
+            fr'xc:"{self.overlay_color}" \)',
             # Use mask composition
             f'"{mask.resolve()}"',
             f'-composite',

@@ -126,14 +126,14 @@ class AnimeTitleCard(BaseCardType):
         self.font_vertical_shift = font_vertical_shift
 
         # Optional extras
-        self.episode_text_size = episode_text_font_size
+        self.episode_text_size = float(episode_text_font_size)
         self.episode_stroke_color = episode_stroke_color
         self.episode_text_color = episode_text_color
         self.omit_gradient = omit_gradient
         self.kanji_color = kanji_color
-        self.kanji_font_size = kanji_font_size
+        self.kanji_font_size = float(kanji_font_size)
         self.kanji_stroke_color = kanji_stroke_color
-        self.kanji_stroke_width = kanji_stroke_width
+        self.kanji_stroke_width = float(kanji_stroke_width)
         self.separator = separator
         self.stroke_color = stroke_color
 
@@ -286,12 +286,12 @@ class AnimeTitleCard(BaseCardType):
             f'-stroke "{self.episode_stroke_color}"',
             f'-strokewidth 6',
             # Stroke behind season and episode text
-            f'\( -gravity center',
+            fr'\( -gravity center',
             # Stroke uses same font for season/episode text
             f'label:"{self.season_text} {self.separator}"',
             f'label:"{self.episode_text}"',
             # Combine season and episode text into one "image"
-            f'+smush 30 \)',
+            fr'+smush 30 \)',
             f'-gravity southwest',
             # Overlay stroke "image"
             f'-geometry +73+88',    # Different offset for stroke
@@ -300,7 +300,7 @@ class AnimeTitleCard(BaseCardType):
             *self.__series_count_text_global_effects,
             f'-fill "{self.episode_text_color}"',
             f'-stroke "{self.episode_text_color}"',
-            f'\( -gravity center',
+            fr'\( -gravity center',
             # Season text and separator uses larger stroke
             f'-strokewidth 2',
             f'label:"{self.season_text} {self.separator}"',
@@ -308,7 +308,7 @@ class AnimeTitleCard(BaseCardType):
             f'-strokewidth 0',
             f'label:"{self.episode_text}"',
             # Combine season+episode text images
-            f'+smush 35 \)',
+            fr'+smush 35 \)',
             # Add text to source image
             f'-gravity southwest',
             f'-geometry +75+90',

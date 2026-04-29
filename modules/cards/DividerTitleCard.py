@@ -240,8 +240,8 @@ class DividerTitleCard(BaseCardType):
             return []
 
         return [
-            f'\( -size 7x{divider_height-25}',
-            f'xc:"{color}" \)',
+            fr'\( -size 7x{divider_height-25}',
+            fr'xc:"{color}" \)',
             f'+size',
             f'-gravity center',
             f'+smush 25',
@@ -396,23 +396,23 @@ class DividerTitleCard(BaseCardType):
             f'-strokewidth {stroke_width}',
             f'-interline-spacing {interline_spacing}',
             f'-interword-spacing {self.font_interword_spacing}',
-            f'\( -stroke "{self.stroke_color}"',
+            fr'\( -stroke "{self.stroke_color}"',
             *self.text_command(divider_height, is_stroke_text=True),
             # Combine text images
             f'+smush 25',
             # Add border so the blurred text doesn't get sharply cut off
             f'-border 50x{50+self.font_vertical_shift}',
-            f'-blur 0x5 \)',
+            fr'-blur 0x5 \)',
             # Overlay blurred text in correct position
             f'-gravity {gravity}',
             f'-composite',
             # Add title text
-            f'\( -fill "{self.font_color}"',
+            fr'\( -fill "{self.font_color}"',
             # Use basically transparent color so text spacing matches
             f'-stroke "rgba(1, 1, 1, 0.01)"',
             *self.text_command(divider_height, is_stroke_text=False),
             f'+smush 25',
-            f'-border 50x{50+self.font_vertical_shift} \)',
+            fr'-border 50x{50+self.font_vertical_shift} \)',
             # Overlay title text in correct position
             f'-gravity {gravity}',
             f'-composite',
