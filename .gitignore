@@ -27,3 +27,5 @@ temp*.jpg
 uv.lock
 .vscode
 /site
+/site
+/tests
