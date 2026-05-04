@@ -158,12 +158,19 @@ class EpisodeInfo(DatabaseInfoContainer):
             else '-A' + str(self.absolute_number)
         )
 
+        airdate_string = (
+            ''
+            if self.airdate is None
+            else f', Date({self.airdate.date()})'
+        )
+
         return (
             f'EpisodeInfo('
             f'{self.title!r}, '
             f'S{self.season_number:02}E{self.episode_number:02}'
             f'{abs_string}, '
             f'{id_string}'
+            f'{airdate_string}'
             f')'
         )
 

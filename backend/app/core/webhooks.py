@@ -57,11 +57,11 @@ def process_rating_key(
     episodes_to_load: list[Episode] = []
     new_episodes: list[Episode] = []
     for series_info, episode_info, watched_status in details:
-        # Find all matching Episodes, filter out false matches for other Series
+        # Find all matching Episodes, filter out false matches for other
+        # Series
         episodes = [
             episode
-            for episode in
-            db.query(Episode)
+            for episode in db.query(Episode)
                 .filter(episode_info.filter_conditions(Episode))
                 .all()
             if episode.series.as_series_info == series_info
@@ -88,8 +88,7 @@ def process_rating_key(
             new_episodes = refresh_episode_data(db, series)
             episodes = [
                 episode
-                for episode in
-                db.query(Episode)
+                for episode in db.query(Episode)
                     .filter(episode_info.filter_conditions(Episode))
                     .all()
                 if episode.series.as_series_info == series_info
