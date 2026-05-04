@@ -1,10 +1,10 @@
 from re import match, compile as re_compile
 from typing import TYPE_CHECKING, TypedDict
 
-from app.interfaces.schemas.sonarr import SeriesResource
 from plexapi.video import Show as PlexShow
 from sqlalchemy import ColumnElement, and_, false as sql_false, func, or_
 
+from app.interfaces.schemas.sonarr import SeriesResource
 from app.info.base import DatabaseInfoContainer, InterfaceID
 from app.utils.paths import CleanPath
 
@@ -142,6 +142,74 @@ class SeriesInfo(DatabaseInfoContainer):
         """Returns a string representation of the object."""
 
         return self.full_name
+
+
+    def __eq__(self, other: 'SeriesInfo | object') -> bool:
+        """
+        Returns whether the given SeriesInfo object corresponds to the
+        same series. This comparison prioritizes ID matches, and gives
+        lower priority to name and year matching.
+
+        Args:
+            other: Other SeriesInfo object to compare.
+
+        Returns:
+            True if any database IDs match or there is an exact name
+            and year match. False otherwise.
+        """
+
+        # Verify the comparison is another SeriesInfo object
+        if not isinstance(other, SeriesInfo):
+            return False
+
+        # Count how many IDs match and contradict
+        id_matches, id_mismatches = 0, 0
+        for this_id, other_id in [
+            (self.emby_id, other.emby_id),
+            (self.imdb_id, other.imdb_id),
+            (self.jellyfin_id, other.jellyfin_id),
+            (self.sonarr_id, other.sonarr_id),
+            (self.tmdb_id, other.tmdb_id),
+            (self.tvdb_id, other.tvdb_id),
+            (self.tvrage_id, other.tvrage_id),
+        ]:
+            # Interface ID comparison
+            if (isinstance(this_id, InterfaceID)
+                and isinstance(other_id, InterfaceID)
+            ):
+                # If neither ID is actually defined, skip this
+                if not this_id or not other_id:
+                    continue
+                if this_id.equals(other_id):
+                    id_matches += 1
+                # Do not increment mismatch because interface IDs are
+                # not strictly comparable
+                continue
+
+            # Regular ID comparison - if this ID is defined and matches,
+            # count it
+            if this_id is not None and this_id == other_id:
+                id_matches += 1
+            # Both IDs are defined but do not match, count as mismatch
+            elif (this_id is not None
+                and other_id is not None
+                and this_id != other_id
+            ):
+                id_mismatches += 1
+
+        # More than one ID match is an equality, one match and a name
+        # match is equality; otherwise, more than one ID mismatch is not
+        # a match
+        if (
+            (id_matches > 1 and id_matches > id_mismatches)
+            or (id_matches == 1 and self.match_name == other.match_name)
+        ):
+            return True
+        if id_mismatches > 1:
+            return False
+
+        # Require title and year match
+        return self.match_name == other.match_name and self.year == other.year
 
 
     @classmethod
