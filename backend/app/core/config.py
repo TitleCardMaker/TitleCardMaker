@@ -52,7 +52,7 @@ class AppConfig(BaseSettings):
     DATABASE_LOG_LEVEL: Annotated[
         LogLevel,
         'Level of logging verbosity to use in the logging database'
-    ] = Field(default='TRACE')
+    ] = Field(default='DEBUG')
 
     WEBSOCKET_LOG_LEVEL: Annotated[
         LogLevel,
