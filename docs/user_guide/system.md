@@ -44,7 +44,7 @@ global settings (see [the scheduler](./scheduler.md)), as well as perform a
 system backup before attempting any SQL database migrations (which might occur
 when updating TCM). These backups will be kept for 21 days by default, but this
 can be adjusted with an
-[environment variable](./index.md#environment-variables).
+[environment variable](./environment_variables.md).
 
 These backups are stored in `config/backups`, but each backup can be restored-
 from or deleted via the table.

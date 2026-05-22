@@ -639,4 +639,4 @@ open a Websocket which displays real-time log messages in the lower right corner
 of the UI.
 
 The minimum "level" of messages which are displayed can be adjusted with the
-appropriate [environment variable](./index.md#environment-variables).
+appropriate [environment variable](./environment_variables.md).

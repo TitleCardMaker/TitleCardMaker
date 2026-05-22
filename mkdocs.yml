@@ -194,6 +194,7 @@ nav:
   - Blueprints: blueprints.md
   - User Guide:
     - user_guide/index.md
+    - Environment Variables: user_guide/environment_variables.md
     - Pages:
       - Series: user_guide/series.md
       - Adding Series: user_guide/new_series.md

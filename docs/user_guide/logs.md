@@ -121,7 +121,7 @@ operation's Context ID is a good place to begin.
 
 Below the table of log messages will be a table of all log files created by TCM.
 By default, TCM keeps log files for up to 7 days - however, this can be adjusted
-with an [environment variable](./index.md#environment-variables).
+with an [environment variable](./environment_variables.md).
 
 You can click the _Download_ cell to download the associated log file.
 

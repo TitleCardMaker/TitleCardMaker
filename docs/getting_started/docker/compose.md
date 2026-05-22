@@ -65,4 +65,4 @@ _TZ Identifier_ column for a reference list.
 to be dependant upon these services (for a cleaner boot).
 
 For a full list of supported `TCM_*` and other environment variables, see
-[User Guide — Environment Variables](../user_guide/index.md#environment-variables).
+[Environment Variables](../../user_guide/environment_variables.md).
