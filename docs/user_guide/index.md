@@ -38,6 +38,7 @@ below:
 - [Logs](./logs.md)
 - [Graphs](./graphs.md)
 - [Changelog](./changelog.md)
+- [Command Line Image Creation](./command_line/index.md)
 
 ## Selecting a Branch / Tag
 
