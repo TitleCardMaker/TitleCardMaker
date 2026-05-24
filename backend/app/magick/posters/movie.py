@@ -1,7 +1,10 @@
 from pathlib import Path
 
-from app.magick.base import ImageMagickCommands, ImageMaker
+from pydantic import BaseModel, Field, FilePath
+
+from app.magick.base import ImageMagickCommands, ImageMaker, add_poster_cli
 from app.logging.logger import log
+from app.schemas.base import Base, FontSize
 
 
 class MoviePosterMaker(ImageMaker):
@@ -269,3 +272,28 @@ class MoviePosterMaker(ImageMaker):
         ])
 
         return None
+
+
+def get_validator_model() -> type[BaseModel]:
+    """Get the Pydantic validator class for this poster type."""
+
+    class PosterModel(Base):
+        source: FilePath
+        output: Path
+        title: str
+        subtitle: str = ''
+        top_subtitle: str = ''
+        movie_index: str = ''
+        logo: Path | None = None
+        font_file: FilePath = Field(default=MoviePosterMaker.FONT)
+        font_color: str = MoviePosterMaker.FONT_COLOR
+        font_size: FontSize = 1.0
+        font_vertical_shift: int = 0
+        borderless: bool = False
+        add_drop_shadow: bool = False
+        omit_gradient: bool = False
+
+    return PosterModel
+
+
+add_poster_cli(__name__, MoviePosterMaker, get_validator_model())

@@ -1,7 +1,10 @@
 from pathlib import Path
 
-from app.magick.base import ImageMaker, ImageMagickCommands
+from pydantic import BaseModel, FilePath
+
+from app.magick.base import ImageMaker, ImageMagickCommands, add_poster_cli
 from app.logging.logger import log
+from app.schemas.base import Base, FontSize
 
 
 class GenreMaker(ImageMaker):
@@ -113,3 +116,20 @@ class GenreMaker(ImageMaker):
         ])
 
         return None
+
+
+def get_validator_model() -> type[BaseModel]:
+    """Get the Pydantic validator class for this poster type."""
+
+    class PosterModel(Base):
+        source: FilePath
+        genre: str
+        output: Path
+        font_size: FontSize = 1.0
+        borderless: bool = False
+        omit_gradient: bool = False
+
+    return PosterModel
+
+
+add_poster_cli(__name__, GenreMaker, get_validator_model())

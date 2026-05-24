@@ -1,7 +1,15 @@
 from pathlib import Path
 from typing import Literal
 
-from app.magick.base import ImageMagickCommands, ImageMaker
+from pydantic import BaseModel, Field, FilePath
+
+from app.magick.base import (
+    ImageMagickCommands,
+    ImageMaker,
+    ImageStack,
+    add_poster_cli
+)
+from app.schemas.base import Base, FontSize
 
 
 type _LogoPlacement = Literal['top', 'middle', 'bottom']
@@ -20,7 +28,7 @@ class SeasonPoster(ImageMaker):
     SEASON_POSTER_SIZE = f'{POSTER_WIDTH}x{POSTER_HEIGHT}'
 
     """Directory where all reference files used by this card are stored"""
-    REF_DIRECTORY = Path(__file__).parent / 'ref' /'season_poster'
+    REF_DIRECTORY = ImageMaker.BASE_REF_DIRECTORY / 'season_poster'
 
     """Default font values for the season text"""
     SEASON_TEXT_FONT = REF_DIRECTORY / 'Proxima Nova Semibold.otf'
@@ -101,13 +109,14 @@ class SeasonPoster(ImageMaker):
         command = ' '.join([
             f'convert',
             f'"{self.logo.resolve()}"',
+            f'-quiet',
             f'-resize 1460x',
             fr'-resize x750\>',
             f'-format "%[h]"',
             f'info:',
         ])
 
-        return int(self.image_magick.run_get_output(command))
+        return int(self.image_magick.run_get_output(command, stdout_only=True))
 
 
     @property
@@ -121,10 +130,10 @@ class SeasonPoster(ImageMaker):
         # Top placement, rotate gradient
         if self.text_placement == 'top':
             return [
-                fr'\(',
+                *ImageStack(
                     f'"{self.GRADIENT_OVERLAY.resolve()}"',
                     f'-rotate 180',
-                fr'\)',
+                ),
                 f'-compose Darken',
                 f'-composite',
             ]
@@ -153,13 +162,13 @@ class SeasonPoster(ImageMaker):
 
         return [
             # Overlay logo
-            fr'\(',
+            *ImageStack(
                 f'"{self.logo.resolve()}"',
                 # Fit to 1460px wide
                 f'-resize 1460x',
                 # Limit to 750px tall
                 fr'-resize x750\>',
-            fr'\)',
+            ),
             # Begin logo merge
             f'-gravity {gravity}',
             f'-compose Atop',
@@ -226,3 +235,27 @@ class SeasonPoster(ImageMaker):
         ])
 
         return None
+
+
+def get_validator_model() -> type[BaseModel]:
+    """Get the Pydantic validator class for this poster type."""
+
+    class PosterModel(Base):
+        source: FilePath
+        destination: Path
+        logo: Path | None = None
+        season_text: str
+        font: FilePath = Field(default=SeasonPoster.SEASON_TEXT_FONT)
+        font_color: str = SeasonPoster.SEASON_TEXT_COLOR
+        font_size: FontSize = 1.0
+        font_kerning: float = 1.0
+        font_vertical_shift: int = 0
+        logo_placement: Literal['top', 'middle', 'bottom'] = 'top'
+        omit_gradient: bool = False
+        omit_logo: bool = False
+        text_placement: Literal['top', 'bottom'] = 'top'
+
+    return PosterModel
+
+
+add_poster_cli(__name__, SeasonPoster, get_validator_model())

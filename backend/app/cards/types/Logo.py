@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Annotated, Any, Self
 
-from pydantic import Field, FilePath, model_validator
+from pydantic import FilePath, model_validator
 
 from app.cards.base import (
     BaseCardType,
