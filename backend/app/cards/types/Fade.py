@@ -5,15 +5,13 @@ from pydantic import FilePath
 
 from app.cards.base import (
     BaseCardType,
-    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     ImageStack,
-    PreviewCard,
-    add_cli,
 )
+from app.magick.cli import CardDocumentation, PreviewCard, add_card_cli
 from app.schemas.base import (
     BaseCardModel,
     BaseCardTypeCustomFontAllText,
@@ -276,7 +274,7 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_cli(
+add_card_cli(
     __name__,
     FadeTitleCard,
     get_validator_model(),

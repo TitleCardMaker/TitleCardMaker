@@ -3,12 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, FilePath
 
-from app.magick.base import (
-    ImageMagickCommands,
-    ImageMaker,
-    ImageStack,
-    add_poster_cli
-)
+from app.magick.base import ImageMagickCommands,ImageMaker,ImageStack
+from app.magick.cli import add_poster_cli
 from app.schemas.base import Base, FontSize
 
 

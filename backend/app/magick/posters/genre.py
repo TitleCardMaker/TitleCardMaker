@@ -2,7 +2,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, FilePath
 
-from app.magick.base import ImageMaker, ImageMagickCommands, add_poster_cli
+from app.magick.base import ImageMaker, ImageMagickCommands
+from app.magick.cli import add_poster_cli
 from app.logging.logger import log
 from app.schemas.base import Base, FontSize
 

@@ -23,9 +23,9 @@ from app.cards.base import (
     Rectangle,
     Shadow,
     SplitStyle,
-    add_cli,
 )
 from app.info.episode import EpisodeInfo
+from app.magick.cli import CardDocumentation, PreviewCard, add_card_cli
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.utils.fstring import FormatString
 
@@ -1270,4 +1270,4 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_cli(__name__, MusicTitleCard, get_validator_model())
+add_card_cli(__name__, MusicTitleCard, get_validator_model())

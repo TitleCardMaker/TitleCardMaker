@@ -3,7 +3,13 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any, Callable, ClassVar, Literal
 
-from pydantic import BaseModel, BeforeValidator, Field, FilePath, ValidationError
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    Field,
+    FilePath,
+    ValidationError,
+)
 from pydantic_core import InitErrorDetails, PydanticCustomError
 from titlecase import titlecase
 
@@ -14,12 +20,12 @@ from app.magick.base import (
     ImageMagickCommands,
     ImageStack,
 )
-from app.schemas.base import BaseCardModel
 from app.schemas.card import CardTypeDescription, Extra
 
 if TYPE_CHECKING:
     from app.info.episode import EpisodeInfo
     from app.info.series import SeriesInfo
+
 
 CardDescription = CardTypeDescription
 type SplitStyle = Literal['top', 'bottom', 'even', 'forced even']
@@ -756,135 +762,6 @@ def get_extra_validation_error(
             ),
         ]
     )
-
-
-class PreviewCard(BaseModel):
-    filename: str
-    variables: dict[str, Any]
-
-class CardDocumentation(BaseModel):
-    static_variables: dict[str, Any]
-    cards: list[PreviewCard] = []
-    extension: str = '.webp'
-
-def add_cli(
-        dname: str,
-        /,
-        card_type: type[BaseCardType],
-        validator_model: type[BaseCardModel],
-        *,
-        documentation: CardDocumentation | None = None,
-    ) -> None:
-    """
-    Add CLI functionality for the given card type.
-
-    Args:
-        dname: Name of the module to run the card creation from - this
-            should be provided via `__name__`.
-        card_type: Card type whose `__init__()` and `create()` methods
-            will be called during card creation.
-        validator_model: Pydantic model to use for validation of the
-            card creation arguments.
-        documentation: Definition of how to create card documentation
-            assets for this card. If provided, a `docs` command will be
-            added.
-    """
-
-    # Only add CLI functionality if not running as a module - i.e. the
-    # card file was run from the command line
-    if dname != '__main__':
-        return None
-
-    import click
-
-    @click.group()
-    def cli():
-        pass
-
-    @cli.command()
-    @click.argument('args', nargs=-1)
-    def card(args: list[str]) -> None:
-        """
-        Create a card from the given arguments.
-
-        Example:
-            python app.py card season-text input.jpg --output output.jpg
-        """
-
-        def to_key(val: str, /) -> str:
-            return val.lstrip('-').replace('-', '_')
-
-        params: dict[str, Any] = {
-            to_key(args[i]): args[i + 1] if i + 1 < len(args) else None
-            for i in range(0, len(args), 2)
-        }
-
-        card_maker = card_type(**validator_model(**params).model_dump())
-        card_maker.create()
-        card_maker.image_magick.print_command_history()
-
-
-    @click.option(
-        '--source', '-s', 'source_file',
-        required=True,
-        type=click.Path(exists=True),
-        help='Path to the source image to use for the documentation cards',
-    )
-    @click.option(
-        '--output', '-o', 'output_dir',
-        required=True,
-        type=click.Path(file_okay=False),
-        help='Output directory to save the documentation cards',
-    )
-    @click.option('--logo-file', '-l', 'logo_file',
-        required=False,
-        type=click.Path(exists=True),
-        help='Path to the logo file to use for the documentation cards',
-    )
-    @click.option(
-        '--debug', '-d', 'debug',
-        is_flag=True,
-        help='Enable debug mode',
-    )
-    def docs(
-            source_file: Path,
-            output_dir: Path,
-            logo_file: Path | None = None,
-            debug: bool = False,
-        ) -> None:
-        """
-        Create the documentation preview images.
-        Example:
-            python app.py docs -s input.jpg -o ./out
-        """
-
-        if documentation is None:
-            return None
-
-        (output_dir := Path(output_dir)).mkdir(parents=True, exist_ok=True)
-        for preview_card in documentation.cards:
-            # Combine static variables with preview card variables
-            kwargs = documentation.static_variables | preview_card.variables
-            kwargs['source_file'] = source_file
-            kwargs['card_file'] = (
-                output_dir / preview_card.filename
-            ).with_suffix(documentation.extension)
-            if logo_file is not None:
-                kwargs['logo_file'] = logo_file
-
-            # Create card
-            card_maker = card_type(**validator_model(**kwargs).model_dump())
-            card_maker.create()
-            log.info(f'Created "{kwargs["card_file"].relative_to(output_dir)}"')
-
-            if debug:
-                log.debug(f'{kwargs = !r}')
-                card_maker.image_magick.print_command_history()
-
-    if documentation is not None:
-        cli.add_command(cli.command(docs))
-
-    cli()
 
 
 __all__ = [

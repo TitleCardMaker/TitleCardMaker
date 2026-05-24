@@ -8,18 +8,16 @@ from app.interfaces.magick import Dimensions
 from app.schemas.base import BaseCardModel, BaseCardTypeAllText
 from app.cards.base import (
     BaseCardType,
-    CardDocumentation,
     CardTypeDescription,
     Coordinate,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     ImageStack,
-    PreviewCard,
     Rectangle,
-    add_cli,
     get_extra_validation_error,
 )
+from app.magick.cli import CardDocumentation, PreviewCard, add_card_cli
 from app.utils.fstring import FormatString
 
 
@@ -983,7 +981,7 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_cli(
+add_card_cli(
     __name__,
     CascadeTitleCard,
     get_validator_model(),

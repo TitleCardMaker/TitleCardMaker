@@ -13,16 +13,14 @@ from pydantic import (
 
 from app.cards.base import (
     BaseCardType,
-    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     ImageStack,
-    PreviewCard,
     Shadow,
-    add_cli,
 )
+from app.magick.cli import CardDocumentation, PreviewCard, add_card_cli
 from app.schemas.base import BaseCardModel, FontSize
 
 
@@ -556,7 +554,7 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_cli(
+add_card_cli(
     __name__,
     LandscapeTitleCard,
     get_validator_model(),

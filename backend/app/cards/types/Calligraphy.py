@@ -8,17 +8,15 @@ from app.info.episode import EpisodeInfo
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
-    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Dimensions,
     Extra,
     ImageMagickCommands,
     ImageStack,
-    PreviewCard,
     Shadow,
-    add_cli,
 )
+from app.magick.cli import CardDocumentation, PreviewCard, add_card_cli
 
 
 class CalligraphyTitleCard(BaseCardType):
@@ -520,7 +518,7 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_cli(
+add_card_cli(
     __name__,
     CalligraphyTitleCard,
     get_validator_model(),

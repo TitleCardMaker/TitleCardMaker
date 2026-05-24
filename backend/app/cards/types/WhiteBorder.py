@@ -9,8 +9,8 @@ from app.cards.base import (
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
-    add_cli,
 )
+from app.magick.cli import CardDocumentation, PreviewCard, add_card_cli
 from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
 
@@ -327,4 +327,4 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardType
 
 
-add_cli(__name__, WhiteBorderTitleCard, get_validator_model())
+add_card_cli(__name__, WhiteBorderTitleCard, get_validator_model())

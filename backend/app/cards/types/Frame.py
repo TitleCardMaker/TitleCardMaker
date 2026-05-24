@@ -3,18 +3,16 @@ from typing import Any, Literal
 
 from pydantic import FilePath
 
-from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 from app.cards.base import (
     BaseCardType,
-    CardDocumentation,
     CardTypeDescription,
     DefaultCardConfig,
     Extra,
     ImageMagickCommands,
     ImageStack,
-    PreviewCard,
-    add_cli,
 )
+from app.magick.cli import CardDocumentation, PreviewCard, add_card_cli
+from app.schemas.base import BaseCardModel, BaseCardTypeCustomFontAllText
 
 Position = Literal['left', 'surround', 'right']
 
@@ -317,7 +315,7 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_cli(
+add_card_cli(
     __name__,
     FrameTitleCard,
     get_validator_model(),

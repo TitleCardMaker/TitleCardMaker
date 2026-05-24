@@ -6,7 +6,6 @@ from pydantic import Field, FilePath, StringConstraints, model_validator
 
 from app.cards.base import (
     BaseCardType,
-    CardDocumentation,
     CardTypeDescription,
     Coordinate,
     DefaultCardConfig,
@@ -14,18 +13,16 @@ from app.cards.base import (
     Extra,
     ImageMagickCommands,
     ImageStack,
-    PreviewCard,
     Rectangle,
-    add_cli,
 )
 from app.cards.title import split_into_lines
+from app.magick.cli import CardDocumentation, PreviewCard, add_card_cli
 from app.schemas.base import (
     BaseCardModel,
     BaseCardTypeAllText,
     FontSize,
     ShadowDefinition,
 )
-from app.logging.logger import log
 from app.utils.fstring import FormatString
 
 if TYPE_CHECKING:
@@ -719,7 +716,7 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_cli(
+add_card_cli(
     __name__,
     DictionaryTitleCard,
     get_validator_model(),
