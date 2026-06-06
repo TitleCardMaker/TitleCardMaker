@@ -9,12 +9,11 @@
     {% include "/js/graphs.js" %}
   </script>
 
-  <link rel="stylesheet" type="text/css" href="/css/logs.css?v={{preferences.config.CURRENT_VERSION}}">
+  <link rel="stylesheet" type="text/css" href="/css/graphs.css?v={{preferences.config.CURRENT_VERSION}}"/>
 </head>
 
 <body onload="initAll();" style="background-image: var(--background);">
   <div class="pusher">
-    <!-- Static header and sidebar -->
     <div id="page-header">
       {% include "/pages/header.html" %}
     </div>
@@ -22,108 +21,113 @@
       {% include "/pages/system_sidebar.html" %}
     </div>
 
-    <!-- Actual page content -->
     <div id="main-content" class="article">
-      <h1 class="ui header">System Graphs</h1>
 
-      <!-- Filter Controls -->
-      <div class="ui segment">
-        <div class="ui header">
+      <!-- ── Filter Options panel ──────────────────────────────────────── -->
+      <div class="settings-panel">
+        <div class="settings-panel-header">
           <i class="filter icon"></i>
-          <div class="content">
-            Filter Options
-            <div class="sub header" style="cursor: pointer;">
-              <div class="ui horizontal basic labels">
-                <div class="ui small horizontal basic red label" onclick="resetFilters();" data-action="refresh">
-                  <i class="eraser icon"></i>
-                  Reset Filters
-                </div>
-              </div>
-            </div>
+          Filter Options
+          <div class="graph-header-actions">
+            <button class="panel-action-btn panel-action-btn--warn"
+                onclick="resetFilters();" data-action="refresh" type="button">
+              <i class="eraser icon"></i>
+              Reset
+            </button>
           </div>
         </div>
 
-        <div class="ui three column grid">
-          <!-- Date Range -->
-          <div class="column">
-            <div class="ui form">
-              <div class="two fields">
-                <div class="field">
-                  <label>Start Date</label>
-                  <div class="ui calendar">
-                    <div class="ui input left icon">
-                      <i class="calendar icon"></i>
-                      <input name="start_date" type="text" placeholder="Start date">
-                    </div>
-                  </div>
-                </div>
-                <div class="field">
-                  <label>End Date</label>
-                  <div class="ui calendar">
-                    <div class="ui input left icon">
-                      <i class="calendar icon"></i>
-                      <input name="end_date" type="text" placeholder="End date">
-                    </div>
+        <section>
+          <p class="section-note">
+            Set a date range or use the quick <strong>days</strong> filter to change the time window.
+            Increase <strong>sampling</strong> to plot every Nth snapshot when data is dense.
+            Graphs refresh automatically when filters change.
+          </p>
+
+          <form id="graph-filters" class="ui form">
+            <div class="graph-filter-grid">
+              <div class="ui field">
+                <label>Start Date</label>
+                <div class="ui calendar" id="graph-start-date">
+                  <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input name="start_date" type="text" placeholder="Start">
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Quick Days Filter -->
-          <div class="column">
-            <div class="ui form">
-              <div class="field">
+              <div class="ui field">
+                <label>End Date</label>
+                <div class="ui calendar" id="graph-end-date">
+                  <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input name="end_date" type="text" placeholder="End">
+                  </div>
+                </div>
+              </div>
+              <div class="ui field">
                 <label>Quick Filter</label>
                 <div class="ui right labeled input">
                   <input name="days" type="number" placeholder="14" min="1" max="365">
-                  <div class="ui basic label">
-                    days
-                  </div>
+                  <div class="ui basic label">days</div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Slice Control -->
-          <div class="column">
-            <div class="ui form">
-              <div class="field">
+              <div class="ui field">
                 <label>Data Sampling</label>
                 <div class="ui right labeled input">
                   <input name="slice" type="number" placeholder="1" min="1" max="10" value="1">
-                  <div class="ui basic label">
-                    every Nth point
-                  </div>
+                  <div class="ui basic label">every Nth point</div>
                 </div>
               </div>
             </div>
-          </div>
+          </form>
+        </section>
+      </div>
+
+      <!-- ── Card Counts panel ─────────────────────────────────────────── -->
+      <div class="settings-panel graph-panel">
+        <div class="settings-panel-header">
+          <i class="chart line icon"></i>
+          Card Counts
         </div>
+        <section>
+          <div class="graph-canvas-wrap">
+            <canvas id="graph"></canvas>
+          </div>
+        </section>
       </div>
 
-      <!-- Card Counts Graph -->
-      <div class="ui segment">
-        <h2 class="ui header">Card Counts</h2>
-        <canvas id="graph"></canvas>
+      <!-- ── Database Counts panel ─────────────────────────────────────── -->
+      <div class="settings-panel graph-panel">
+        <div class="settings-panel-header">
+          <i class="database icon"></i>
+          Database Counts
+        </div>
+        <section>
+          <div class="graph-canvas-wrap">
+            <canvas id="dbCountsGraph"></canvas>
+          </div>
+        </section>
       </div>
 
-      <!-- Database Counts Graph -->
-      <div class="ui segment">
-        <h2 class="ui header">Database Counts</h2>
-        <canvas id="dbCountsGraph"></canvas>
+      <!-- ── Task Durations panel ──────────────────────────────────────── -->
+      <div class="settings-panel graph-panel">
+        <div class="settings-panel-header">
+          <i class="tasks icon"></i>
+          Task Durations
+        </div>
+        <section>
+          <div class="graph-canvas-wrap">
+            <canvas id="taskDurationsGraph"></canvas>
+          </div>
+        </section>
       </div>
 
-      <!-- Task Durations Graph -->
-      <div class="ui segment">
-        <h2 class="ui header">Task Durations</h2>
-        <canvas id="taskDurationsGraph"></canvas>
-      </div>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@^2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@^1"></script>
 </body>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/luxon@^2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@^1"></script>
 </html>

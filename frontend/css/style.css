@@ -166,7 +166,7 @@ img ~ .color.palette {
 
 /* Supporter thanks text - random rating/thank-you in header */
 .supporter-thanks {
-  font-size: 0.85rem;
+  font-size: 0.91rem;
   color: var(--sidebar-text-color-light, rgba(255, 255, 255, 0.9));
   white-space: nowrap;
   max-width: 250px;
