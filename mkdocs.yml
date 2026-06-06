@@ -211,6 +211,7 @@ nav:
       - Logs: user_guide/logs.md
       - Graphs: user_guide/graphs.md
       - Changelog: user_guide/changelog.md
+    - Command Line: user_guide/command_line/index.md
     - Integrations: user_guide/integrations.md
     - Mask Images: user_guide/mask_images.md
     - Setting Priority: user_guide/setting_priority.md
