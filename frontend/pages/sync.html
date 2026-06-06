@@ -11,27 +11,56 @@
 
   <link rel="stylesheet" type="text/css" href="/css/sync.css?v={{preferences.config.CURRENT_VERSION}}"/>
 
+  <!--
+    .card kept on the root row for JS selectors (#sync{id}, .card >* i.sync).
+    .header and .sync-meta are populated by getAllSyncs().
+  -->
   <template id="sync-card-template">
-    <div class="ui card">
-      <div class="content">
-        <i class="ui right floated trash alternate outline like icon" title="Delete this sync"></i>
-        <i class="ui right floated sync icon" title="Sync Immediately"></i>
-        <i class="ui right floated edit icon" title="Edit Sync"></i>
-        <div class="header">{TEMPLATE NAME}</div>
-        <div class="meta">
-          <div class="sync-meta">Sync ID {TEMPLATE ID}</div>
-        </div>
-        <div class="description">
-          <div class="ui fluid button" data-action="toggle-details" style="margin-bottom: 0.5em;">
-            <i class="chevron down icon"></i>
-            Show Details
+    <div class="sync-row card">
+      <div class="sync-row-content">
+        <div class="sync-row-header">
+          <div class="sync-row-title">
+            <div class="header"></div>
+            <div class="sync-meta"></div>
           </div>
-          <div class="sync-details" style="display: none;">
-            <p><strong>Templates:</strong> <span data-label="templates">{TEMPLATES}</span></p>
-            <p><strong>Required Tags:</strong> <span data-label="required_tags">{REQUIRED_TAGS}</span></p>
-            <p><strong>Required Libraries:</strong> <span data-label="required_libraries">{REQUIRED_LIBRARIES}</span></p>
-            <p><strong>Excluded Tags:</strong> <span data-label="excluded_tags">{EXCLUDED_TAGS}</span></p>
-            <p><strong>Excluded Libraries:</strong> <span data-label="excluded_libraries">{EXCLUDED_LIBRARIES}</span></p>
+          <div class="sync-row-actions">
+            <button class="sync-action-btn sync-action-btn--run" type="button" title="Sync Immediately">
+              <i class="sync icon"></i>
+            </button>
+            <button class="sync-action-btn sync-action-btn--edit" type="button" title="Edit Sync">
+              <i class="edit icon"></i>
+            </button>
+            <button class="sync-action-btn sync-action-btn--delete" type="button" title="Delete this sync">
+              <i class="trash alternate outline icon"></i>
+            </button>
+            <button class="sync-action-btn sync-action-btn--details"
+                data-action="toggle-details" type="button" title="Show Details">
+              <i class="chevron down icon"></i>
+            </button>
+          </div>
+        </div>
+        <div class="sync-details" style="display: none;">
+          <div class="sync-detail-grid">
+            <div class="sync-detail-item">
+              <span class="sync-detail-label">Templates</span>
+              <span data-label="templates"></span>
+            </div>
+            <div class="sync-detail-item">
+              <span class="sync-detail-label">Required Tags</span>
+              <span data-label="required_tags"></span>
+            </div>
+            <div class="sync-detail-item">
+              <span class="sync-detail-label">Required Libraries</span>
+              <span data-label="required_libraries"></span>
+            </div>
+            <div class="sync-detail-item">
+              <span class="sync-detail-label">Excluded Tags</span>
+              <span data-label="excluded_tags"></span>
+            </div>
+            <div class="sync-detail-item">
+              <span class="sync-detail-label">Excluded Libraries</span>
+              <span data-label="excluded_libraries"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -49,101 +78,95 @@
       {% include "/pages/sidebar.html" %}
     </div>
 
-    <!-- Actual page content -->
     <div id="main-content" class="article">
-      <div class="ui grid">
-        <div id="sync" class="sixteen wide column">
-          <!-- <h1 class="ui header">Syncs</h1> -->
-          <h1 class="ui header">
+      <div id="sync">
+
+        <!-- ── Page intro (no panel — title, schedule, help) ────────────── -->
+        <div class="sync-intro">
+          <h1 class="sync-page-title">
             <i class="sync icon"></i>
-            <div class="content">
-              Sync
-              <div class="sub header">
-                <span id="next-sync"></span>
-              </div>
-            </div>
+            Sync
           </h1>
-          
+          <p id="next-sync" class="sync-schedule-note"></p>
+
           <div class="ui warning floating message">
             <i class="exclamation triangle icon"></i>
-            Please add an Emby, Jellyfin, Plex, or Sonarr Connection on the <a href="/connections">Connections</a> page before creating a Sync.
+            Please add an Emby, Jellyfin, Plex, or Sonarr Connection on the
+            <a href="/connections">Connections</a> page before creating a Sync.
           </div>
 
-          <!-- Emby -->
-          <section data-connection="emby">
-            <h3 class="ui horizontal divider left aligned header">Emby</h3>
-            <div id="emby-syncs" class="ui raised cards">
-              <div class="ui add card">
-                <div class="center aligned content">
-                  <div id="add-emby-sync" class="ui blue button">
-                    <i class="plus icon"></i>
-                    Add Sync
-                  </div>
-                </div>
-              </div>
-              <!-- Other sync cards added asynchronously -->
-            </div>
-          </section>
+          <p class="section-note">
+            Syncs automatically add Series from your media servers.
+            Use filters to control which Series are included, assign Templates for consistent styling,
+            and run them on a schedule from the <a href="/scheduler">Scheduler</a>.
+            Use the <i class="sync icon"></i> action on any sync to run it immediately.
+          </p>
+        </div>
 
-          <!-- Jellyfin -->
-          <section data-connection="jellyfin">
-            <h3 class="ui horizontal divider left aligned header">Jellyfin</h3>
-            <div id="jellyfin-syncs" class="ui raised cards">
-              <div class="ui add card">
-                <div class="center aligned content">
-                  <div id="add-jellyfin-sync" class="ui blue button">
-                    <i class="plus icon"></i>
-                    Add Sync
-                  </div>
-                </div>
-              </div>
-              <!-- Other sync cards added asynchronously -->
-            </div>
-          </section>
-
-          <!-- Plex -->
-          <section data-connection="plex">
-            <h3 class="ui horizontal divider left aligned header">Plex</h3>
-            <div id="plex-syncs" class="ui raised cards">
-              <div class="ui add card">
-                <div class="center aligned content">
-                  <div id="add-plex-sync" class="ui blue button">
-                    <i class="plus icon"></i>
-                    Add Sync
-                  </div>
-                </div>
-              </div>
-              <!-- Other sync cards added asynchronously -->
-            </div>
-          </section>
-
-          <!-- Sonarr -->
-          <section data-connection="sonarr">
-            <h3 class="ui horizontal divider left aligned header">Sonarr</h3>
-            <div id="sonarr-syncs" class="ui raised cards">
-              <div class="ui add card">
-                <div class="center aligned content">
-                  <div id="add-sonarr-sync" class="ui blue button">
-                    <i class="plus icon"></i>
-                    Add Sync
-                  </div>
-                </div>
-              </div>
-              <!-- Other sync cards added asynchronously -->
-            </div>
+        <!-- ── Emby ────────────────────────────────────────────────────── -->
+        <div class="settings-panel sync-source-panel sync-source-panel--emby" data-connection="emby">
+          <div class="settings-panel-header">
+            <i class="play circle outline icon"></i>
+            Emby
+            <button id="add-emby-sync" class="panel-action-btn sync-add-btn" type="button">
+              <i class="plus icon"></i>
+              New Sync
+            </button>
+          </div>
+          <section>
+            <div id="emby-syncs" class="sync-list"></div>
+            <p class="sync-empty-msg" data-empty-for="emby">No Emby syncs configured yet.</p>
           </section>
         </div>
-      </div>
 
-      <!-- Help Section -->
-      <div class="ui info message">
-        <ul class="list">
-          <li><strong>Automated Syncing:</strong> Syncs automatically add new Series from Emby, Jellyfin, Plex, or Sonarr to TitleCardMaker</li>
-          <li><strong>Filtering:</strong> Use Tags, Libraries, and other criteria to control which Series are synced</li>
-          <li><strong>Templates:</strong> Automatically apply Templates to newly synced Series for consistent styling</li>
-          <li><strong>Scheduling:</strong> Syncs run automatically from the <a href="/scheduler">Scheduler</a> to keep TitleCardMaker up to date</li>
-          <li><strong>Manual Sync:</strong> Click the <i class="sync icon"></i> icon to run a sync immediately</li>
-        </ul>
+        <!-- ── Jellyfin ───────────────────────────────────────────────── -->
+        <div class="settings-panel sync-source-panel sync-source-panel--jellyfin" data-connection="jellyfin">
+          <div class="settings-panel-header">
+            <i class="film icon"></i>
+            Jellyfin
+            <button id="add-jellyfin-sync" class="panel-action-btn sync-add-btn" type="button">
+              <i class="plus icon"></i>
+              New Sync
+            </button>
+          </div>
+          <section>
+            <div id="jellyfin-syncs" class="sync-list"></div>
+            <p class="sync-empty-msg" data-empty-for="jellyfin">No Jellyfin syncs configured yet.</p>
+          </section>
+        </div>
+
+        <!-- ── Plex ───────────────────────────────────────────────────── -->
+        <div class="settings-panel sync-source-panel sync-source-panel--plex" data-connection="plex">
+          <div class="settings-panel-header">
+            <i class="video icon"></i>
+            Plex
+            <button id="add-plex-sync" class="panel-action-btn sync-add-btn" type="button">
+              <i class="plus icon"></i>
+              New Sync
+            </button>
+          </div>
+          <section>
+            <div id="plex-syncs" class="sync-list"></div>
+            <p class="sync-empty-msg" data-empty-for="plex">No Plex syncs configured yet.</p>
+          </section>
+        </div>
+
+        <!-- ── Sonarr ─────────────────────────────────────────────────── -->
+        <div class="settings-panel sync-source-panel sync-source-panel--sonarr" data-connection="sonarr">
+          <div class="settings-panel-header">
+            <i class="cloud download alternate icon"></i>
+            Sonarr
+            <button id="add-sonarr-sync" class="panel-action-btn sync-add-btn" type="button">
+              <i class="plus icon"></i>
+              New Sync
+            </button>
+          </div>
+          <section>
+            <div id="sonarr-syncs" class="sync-list"></div>
+            <p class="sync-empty-msg" data-empty-for="sonarr">No Sonarr syncs configured yet.</p>
+          </section>
+        </div>
+
       </div>
     </div>
 
@@ -600,6 +623,7 @@
         <br>
         <span class="ui blue text">This Sync is linked to the following Series:</span>
         <ul class="ui list" data-value="series-list"></ul>
+      </div>
       <div class="center aligned actions">
         <div class="ui green ok basic inverted button">
           <i class="remove icon"></i>

@@ -52,11 +52,11 @@ function initConnectionDropdowns() {
         }),
       });
 
-      // Remove sections with no connections
-      if (emby.length === 0) { $('section[data-connection="emby"]').remove(); }
-      if (jellyfin.length === 0) { $('section[data-connection="jellyfin"]').remove(); }
-      if (plex.length === 0) { $('section[data-connection="plex"]').remove(); }
-      if (sonarr.length === 0) { $('section[data-connection="sonarr"]').remove(); }
+      // Remove source panels with no connections
+      if (emby.length === 0) { $('.sync-source-panel[data-connection="emby"]').remove(); }
+      if (jellyfin.length === 0) { $('.sync-source-panel[data-connection="jellyfin"]').remove(); }
+      if (plex.length === 0) { $('.sync-source-panel[data-connection="plex"]').remove(); }
+      if (sonarr.length === 0) { $('.sync-source-panel[data-connection="sonarr"]').remove(); }
 
       // Display warning if there are no Connections
       if (emby.length === 0 && jellyfin.length === 0 && plex.length === 0 && sonarr.length === 0) {
@@ -299,7 +299,7 @@ async function showDeleteSyncModal(syncId) {
   $('#delete-sync-modal .button[data-action="delete-sync-only"]')
     .off('click')
     .on('click', () => {
-      $(`#sync${syncId}`).toggleClass('red double loading', true);
+      $(`#sync${syncId}`).addClass('loading');
       $.ajax({
         type: 'DELETE',
         url: `/api/v2/sync/delete/${syncId}?delete_series=false`,
@@ -309,14 +309,14 @@ async function showDeleteSyncModal(syncId) {
         },
         error: response => {
           showErrorToast({title: 'Error Deleting Sync', response});
-          $(`#sync${syncId}`).toggleClass('red double loading', false);
+          $(`#sync${syncId}`).removeClass('loading');
         },
       });
     });
   $('#delete-sync-modal .button[data-action="delete-sync-and-series"]')
     .off('click')
     .on('click', () => {
-      $(`#sync${syncId}`).toggleClass('red double loading', true);
+      $(`#sync${syncId}`).addClass('loading');
       $.ajax({
         type: 'DELETE',
         url: `/api/v2/sync/delete/${syncId}?delete_series=true`,
@@ -326,7 +326,7 @@ async function showDeleteSyncModal(syncId) {
         },
         error: response => {
           showErrorToast({title: 'Error Deleting Sync', response});
-          $(`#sync${syncId}`).toggleClass('red double loading', false);
+          $(`#sync${syncId}`).removeClass('loading');
         },
       });
     });
@@ -453,51 +453,47 @@ function getAllSyncs() {
             clone.querySelector('[data-label="templates"]').parentElement.remove();
           }
 
-          // Add placeholder text if no details are present
-          if (clone.querySelector('.sync-details').childElementCount === 0) {
-            clone.querySelector('.sync-details').innerHTML = '<p><i>No customized settings<i/></p>';
+          // Placeholder when every detail field was removed (no filters configured)
+          const detailsGrid = clone.querySelector('.sync-detail-grid');
+          if (!detailsGrid || detailsGrid.childElementCount === 0) {
+            clone.querySelector('.sync-details').innerHTML =
+              '<p class="sync-detail-empty"><i>No customized settings</i></p>';
           }
 
-          // Add toggle details functionality
+          // Toggle expandable details panel
           const toggleButton = clone.querySelector('[data-action="toggle-details"]');
           const detailsDiv = clone.querySelector('.sync-details');
           toggleButton.onclick = () => {
             const isHidden = detailsDiv.style.display === 'none';
             detailsDiv.style.display = isHidden ? 'block' : 'none';
-
-            const icon = toggleButton.querySelector('i');
-            if (isHidden) {
-              icon.className = 'chevron up icon';
-              toggleButton.innerHTML = '<i class="chevron up icon"></i> Hide Details';
-            } else {
-              icon.className = 'chevron down icon';
-              toggleButton.innerHTML = '<i class="chevron down icon"></i> Show Details';
-            }
+            toggleButton.innerHTML = isHidden
+              ? '<i class="chevron up icon"></i>'
+              : '<i class="chevron down icon"></i>';
+            toggleButton.title = isHidden ? 'Hide Details' : 'Show Details';
           };
 
-          // Edit sync if clicked
-          clone.querySelector('i.edit').onclick = () => showEditModel(sync);
+          const runBtn = clone.querySelector('.sync-action-btn--run');
+          const editBtn = clone.querySelector('.sync-action-btn--edit');
+          const deleteBtn = clone.querySelector('.sync-action-btn--delete');
+          const syncIcon = clone.querySelector('i.sync');
 
-          // Launch delete sync modal on click of the delete icon
-          clone.querySelector('i.trash').onclick = () => showDeleteSyncModal(sync.id);
+          editBtn.onclick = () => showEditModel(sync);
+          deleteBtn.onclick = () => showDeleteSyncModal(sync.id);
 
-          // Add sync API request to sync icon if there is no sync running
           if (currentlyRunningSync == null) {
-            clone.querySelector('i.sync').onclick = () => runSync(sync.id, sync.name);
+            runBtn.onclick = () => runSync(sync.id, sync.name);
           }
 
-          // Mark icon as loading if this Sync is running
           if (sync.id === currentlyRunningSync) {
-            clone.querySelector('i.sync').classList.add('disabled', 'loading', 'blue');
+            syncIcon.classList.add('disabled', 'loading', 'blue');
           } else if (currentlyRunningSync !== null) {
-            clone.querySelector('i.sync').classList.add('disabled');
+            syncIcon.classList.add('disabled');
           }
 
           return clone;
         });
 
-        // Do not replace first element as it is the add button
-        syncElement.replaceChildren(syncElement.firstElementChild, ...syncElements);
+        syncElement.replaceChildren(...syncElements);
         refreshTheme();
       },
       error: response => showErrorToast({title: `Error Querying ${source} Syncs`, response}),
