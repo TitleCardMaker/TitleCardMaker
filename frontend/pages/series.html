@@ -1055,36 +1055,44 @@
   
                 <!-- Season titles -->
                 <div data-value="season-titles" class="ui field">
-                  <label>
-                    Season Titles
-                    <i class="ui blue question circle outline icon"></i>
-                  </label>
-                  <div class="two unstackable fields">
-                    <div data-value="season-title-range" class="three wide right aligned field">
-                      <label>Range</label>
-                      {% if series.season_titles is not none %}
-                      {% for title_range, _ in series.season_titles.items() %}
-                      <input name="season_title_ranges" data-value="season-titles" type="text" value="{{ title_range }}">
-                      {% endfor %}
-                      {% endif %}
-                    </div>
-                    <div data-value="season-title-value" class="eight wide field">
-                      <label>Title</label>
-                      {% if series.season_titles is not none %}
-                      {% for _, title_value in series.season_titles.items() %}
-                      <input name="season_title_values" type="text" type="text" value="{{ title_value }}">
-                      {% endfor %}
-                      {% endif %}
+                  <div class="repl-header">
+                    <label>
+                      Season Titles
+                      <i class="question circle outline icon"
+                          style="cursor:pointer; margin-left:0.3em; opacity:0.5;"
+                          data-tooltip="A number = whole season (e.g. 1). s1e2-s1e5 = portion of a season. 5-10 = absolute episode range."
+                          data-position="right center"
+                          data-variation="small"></i>
+                    </label>
+                    <div class="repl-header-actions">
+                      <button class="repl-action-btn" data-action="add-title" type="button"
+                          onclick="addBlankTitle(this);">
+                        <i class="plus icon"></i>
+                        Add
+                      </button>
                     </div>
                   </div>
-                  <div data-value="addTitle" class="ui circular mini icon add-field button">
-                    <i class="plus square outline icon"></i>
-                    Add Title
+                  <div class="season-titles-list">
+                    {% if series.season_titles is not none %}
+                    {% for title_range, title_value in series.season_titles.items() %}
+                    <div class="season-title-row">
+                      <input name="season_title_ranges" type="text" placeholder="Range (e.g. 1, s1e2-s1e5, 5-10)" value="{{ title_range }}">
+                      <span class="repl-arrow"><i class="arrow right icon"></i></span>
+                      <input name="season_title_values" type="text" placeholder="Season title text" value="{{ title_value }}">
+                      <button class="repl-delete-btn" type="button" title="Remove season title" onclick="this.closest('.season-title-row').remove();">
+                        <i class="times icon"></i>
+                      </button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
                   </div>
-                  <div class="ui circular mini icon add-field red button" onclick="deleteListValues('season_titles')">
-                    <i class="trash alternate outline icon"></i>
-                    Delete Season Titles
-                  </div>
+                  <p class="season-title-format-note">
+                    <span><code>1</code> &rarr; whole season 1</span>
+                    <span class="format-sep">&middot;</span>
+                    <span><code>s1e2-s1e5</code> &rarr; season 1, episodes 2&ndash;5</span>
+                    <span class="format-sep">&middot;</span>
+                    <span><code>5-10</code> &rarr; absolute episodes 5&ndash;10</span>
+                  </p>
                 </div>
 
                 <!-- Hide episode text -->
@@ -1996,20 +2004,6 @@
       </div>
     </div>
 
-    <!-- Season title helper popup -->
-    <div id="season-title-popup" class="ui flowing uninvertible popup right">
-      <div class="ui list content">
-        <div class="item">
-          A number indicates an entire season - e.g. <span class="ui red text">1</span> for <span class="ui red text">season 1</span>.
-        </div>
-        <div class="item">
-          A season and episode range indicates a portion of a season - e.g. <span class="ui blue text">s1e2-s1e5</span> for <span class="ui blue text">season 1, episodes 2-5</span>.
-        </div>
-        <div class="item">
-          A numerical episode range indicates a range of absolute episode numbers - e.g. <span class="ui green text">5-10</span> for (absolute) <span class="ui green text">episodes 5-10</span>.
-        </div>
-      </div>
-    </div>
 
     <!-- Selective Reload Modal -->
     <div id="selective-reload-modal" class="ui modal">

@@ -447,17 +447,6 @@ async function initializeSeriesConfig() {
     false,
     3,
   );
-  // Add season title on button press
-  document.querySelector('#card-config-form .button[data-value="addTitle"]').onclick = () => {
-    const newRange = document.createElement('input');
-    newRange.name = 'season_title_ranges'; newRange.type = 'text';
-    newRange.setAttribute('data-value', 'season-titles');
-    const newTitle = document.createElement('input');
-    newTitle.name = 'season_title_values'; newTitle.type = 'text';
-    $('#card-config-form .field[data-value="season-title-range"]').append(newRange);
-    $('#card-config-form .field[data-value="season-title-value"]').append(newTitle);
-  };
-
   // Add translation on button press
   document.querySelector(`#card-config-form .button[data-add-field="translation"]`).onclick = () => {
     const newTranslation = document.querySelector('#translation-template').content.cloneNode(true);
@@ -1536,12 +1525,6 @@ async function initAll() {
     'placeholder': 'None',
   });
 
-  // Show season title helper popup
-  $('.field[data-value="season-titles"] label i').popup({
-    popup : $('#season-title-popup'),
-    position: 'right center',
-  });
-
   // Delete series modal
   $('#delete-series-modal').modal('attach events', '#delete-series');
 
@@ -1719,6 +1702,53 @@ function downloadSeriesPoster() {
 }
 
 /**
+ * Build a single season-title row element.
+ * @param {string} range - Range value (e.g. "1", "s1e2-s1e5", "5-10").
+ * @param {string} title - Season title text.
+ * @returns {HTMLDivElement}
+ */
+function createSeasonTitleRow(range, title) {
+  const row = document.createElement('div');
+  row.className = 'season-title-row';
+
+  const rangeInput = document.createElement('input');
+  rangeInput.name = 'season_title_ranges';
+  rangeInput.type = 'text';
+  rangeInput.placeholder = 'Range (e.g. 1, s1e2-s1e5, 5-10)';
+  rangeInput.value = range;
+
+  const arrow = document.createElement('span');
+  arrow.className = 'repl-arrow';
+  arrow.innerHTML = '<i class="arrow right icon"></i>';
+
+  const titleInput = document.createElement('input');
+  titleInput.name = 'season_title_values';
+  titleInput.type = 'text';
+  titleInput.placeholder = 'Season title text';
+  titleInput.value = title;
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'repl-delete-btn';
+  deleteBtn.type = 'button';
+  deleteBtn.title = 'Remove season title';
+  deleteBtn.innerHTML = '<i class="times icon"></i>';
+  deleteBtn.onclick = () => row.remove();
+
+  row.append(rangeInput, arrow, titleInput, deleteBtn);
+  return row;
+}
+
+/**
+ * Add a new blank season title row to the list nearest the initiating button.
+ * @param {HTMLElement} addButton - The "Add" button that was clicked.
+ */
+function addBlankTitle(addButton) {
+  const list = addButton.closest('.field[data-value="season-titles"]')
+    .querySelector('.season-titles-list');
+  list.appendChild(createSeasonTitleRow('', ''));
+}
+
+/**
  * Submit an API request clear some list values for this Series. If successful,
  * the data is also removed from the DOM.
  * @param {"season_titles" | "translations"} attribute - Name of the attribute
@@ -1739,8 +1769,7 @@ function deleteListValues(attribute) {
     contentType: 'application/json',
     success: () => {
       if (attribute === 'season_titles') {
-        $('.field[data-value="season-title-range"] > input').remove();
-        $('.field[data-value="season-title-value"] > input').remove();
+        $('.season-titles-list .season-title-row').remove();
       } else if (attribute === 'translations') {
         $('.field [data-value="translations"] >*').remove();
       }
