@@ -586,8 +586,16 @@ html.dark .series-progress-bar {
 /* ── Hero panel ──────────────────────────────────────────────────────────── */
 
 .series-hero {
+  position: relative;
+  z-index: 0;
   margin-bottom: 1rem;
   overflow: hidden;
+}
+
+.series-hero:has(.ui.dropdown.active),
+.series-hero:has(.ui.dropdown.visible) {
+  z-index: 20;
+  overflow: visible;
 }
 
 .series-hero-warning {
