@@ -1,29 +1,62 @@
 ---
 title: Recently Added
 description: >
-    Viewing recently added Title Cards.
+    Viewing recently created Title Cards and recently added Series.
 ---
 
 # Recently Added
 
-The Recently Added page displays Title Cards that have been recently created.
-This page can be accessed from the sidebar under `Series`, as well as at the
-`/recent` URL
+The Recently Added page helps you review new activity in TitleCardMaker. It
+shows Title Cards that were recently created and Series that were recently
+added. Access it from the sidebar via the `Recent` item, or at the `/recent`
+URL.
 
 ![Recently Added Page](./assets/recent-light.webp#only-light){.no-lightbox}
 ![Recently Added Page](./assets/recent-dark.webp#only-dark){.no-lightbox}
 
-The page shows a grid of recently created Title Cards, sorted by creation time
-with the newest Cards appearing first. Each Card displays:
+The page is split into two panels, each with its own time filter, refresh
+button, and pagination.
 
+## Recently Created Title Cards
+
+This panel lists Title Cards sorted by creation time, with the newest Cards
+first. Each Card shows:
+
+- A thumbnail of the Title Card;
 - The Series name;
-- The Episode's season and episode number; and
-- When the Title Card was created
+- The Episode's season and episode number (or `No associated episode` if none
+  is linked); and
+- When the Title Card was created, shown as a relative time (for example,
+  `13 minutes ago`).
 
-This provides an easy way to review recently created Cards and verify they look
-correct. Clicking on any Card will take you to that Series' page where you can
-make any needed adjustments.
+Clicking a Card opens that Series' page where you can review or adjust it.
 
-By default, this page updates to only display the Cards created from the last
-time the page was visited. This interval can be adjusted by clicking the `Since`
-calendar at the top of the page and selecting a time.
+## Recently Added Series
+
+This panel lists Series sorted by when they were added, with the newest Series
+first. Each entry shows:
+
+- The Series poster;
+- The Series name;
+- When the Series was added, shown as a relative time; and
+- How many Title Cards exist for that Series.
+
+Clicking a Series opens its Series page.
+
+## Time Filters
+
+Each panel has its own time filter at the top of the section header. By
+default, both panels show items from the last **24 hours**.
+
+Use the preset buttons to change the range:
+
+- **6h** — last 6 hours
+- **24h** — last 24 hours
+- **7d** — last 7 days
+
+Click the calendar icon to pick a custom start date. When you open the custom
+date picker, it defaults to the last time you visited this page. Changing the
+date reloads that panel immediately.
+
+Selecting a preset button reloads that panel right away. Use the refresh
+button (↻) beside the filter to reload the panel without changing the range.
