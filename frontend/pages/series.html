@@ -482,7 +482,7 @@
             {% elif series.status == 'unmonitored' %}
             <i class="eye slash outline icon"></i><span>Unmonitored</span>
             {% else %}
-            <i class="times circle outline icon"></i><span>Deleted</span>
+            <i class="times circle outline icon"></i><span>Disabled</span>
             {% endif %}
           </button>
           <button class="panel-action-btn primary" data-action="process-series" onclick="processSeries();">
@@ -975,116 +975,113 @@
             </div>
 
             <!-- Font Overrides panel (collapsible accordion) -->
-            <div class="settings-panel ui accordion" id="font-overrides-accordion">
+            <div class="settings-panel">
               <div class="settings-panel-header">
                 <i class="font icon"></i>
                 Font Overrides
-                <i class="chevron down icon" style="margin-left: auto; transition: transform 0.2s;"></i>
               </div>
-              <div class="content active">
-                <section>
-                  <div class="two fields">
-                    <div class="field" data-value="font_color">
-                      <label>
-                        Color
-                        <span class="inline color circle"></span>
-                        <a href="https://imagemagick.org/script/color.php#color_names" target="_blank" data-tooltip="ImageMagick color reference" data-position="top center">
-                          <i class="external alternate small icon"></i>
-                        </a>
-                      </label>
-                      {% if series.font_color is none %}
-                      <input name="font_color" type="text" placeholder="Default">
-                      {% else %}
-                      <input name="font_color" type="text" placeholder="Default" value="{{ series.font_color }}">
-                      {% endif %}
-                    </div>
+              <section>
+                <div class="two fields">
+                  <div class="field" data-value="font_color">
+                    <label>
+                      Color
+                      <span class="inline color circle"></span>
+                      <a href="https://imagemagick.org/script/color.php#color_names" target="_blank" data-tooltip="ImageMagick color reference" data-position="top center">
+                        <i class="external alternate small icon"></i>
+                      </a>
+                    </label>
+                    {% if series.font_color is none %}
+                    <input name="font_color" type="text" placeholder="Default">
+                    {% else %}
+                    <input name="font_color" type="text" placeholder="Default" value="{{ series.font_color }}">
+                    {% endif %}
+                  </div>
 
-                    <div class="field">
-                      <label>Text Case</label>
-                      <div data-value="font_title_case" class="ui clearable selection dropdown">
-                        {% if series.font_title_case is none %}
-                        <input name="font_title_case" type="hidden">
-                        {% else %}
-                        <input name="font_title_case" type="hidden" value="{{ series.font_title_case }}">
-                        {% endif %}
-                        <div class="default text">Default</div>
-                        <i class="dropdown icon"></i>
-                        <div class="menu">
-                          <div class="item" data-value="blank">Blank</div>
-                          <div class="item" data-value="lower">Lowercase</div>
-                          <div class="item" data-value="source">Source</div>
-                          <div class="item" data-value="title">Title</div>
-                          <div class="item" data-value="upper">Uppercase</div>
-                        </div>
+                  <div class="field">
+                    <label>Text Case</label>
+                    <div data-value="font_title_case" class="ui clearable selection dropdown">
+                      {% if series.font_title_case is none %}
+                      <input name="font_title_case" type="hidden">
+                      {% else %}
+                      <input name="font_title_case" type="hidden" value="{{ series.font_title_case }}">
+                      {% endif %}
+                      <div class="default text">Default</div>
+                      <i class="dropdown icon"></i>
+                      <div class="menu">
+                        <div class="item" data-value="blank">Blank</div>
+                        <div class="item" data-value="lower">Lowercase</div>
+                        <div class="item" data-value="source">Source</div>
+                        <div class="item" data-value="title">Title</div>
+                        <div class="item" data-value="upper">Uppercase</div>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  <div class="three fields">
-                    <div class="field">
-                      <label>Size</label>
-                      <div class="ui right labeled input">
-                        {% if series.font_size is none %}
-                        <input name="font_size" type="number" placeholder="Default">
-                        {% else %}
-                        <input name="font_size" type="number" placeholder="Default" value="{{ (series.font_size*100)|int }}">
-                        {% endif %}
-                        <div class="ui basic label">%</div>
-                      </div>
-                    </div>
-                    <div class="field">
-                      <label>Kerning</label>
-                      <div class="ui right labeled input">
-                        {% if series.font_kerning is none %}
-                        <input name="font_kerning" type="number" placeholder="Default">
-                        {% else %}
-                        <input name="font_kerning" type="number" placeholder="Default" value="{{ (series.font_kerning*100)|int }}">
-                        {% endif %}
-                        <div class="ui basic label">%</div>
-                      </div>
-                    </div>
-                    <div class="field">
-                      <label>Stroke Width</label>
-                      <div class="ui right labeled input">
-                        {% if series.font_stroke_width is none %}
-                        <input name="font_stroke_width" type="number" placeholder="Default">
-                        {% else %}
-                        <input name="font_stroke_width" type="number" placeholder="Default" value="{{ (series.font_stroke_width*100)|int }}">
-                        {% endif %}
-                        <div class="ui basic label">%</div>
-                      </div>
+                <div class="three fields">
+                  <div class="field">
+                    <label>Size</label>
+                    <div class="ui right labeled input">
+                      {% if series.font_size is none %}
+                      <input name="font_size" type="number" placeholder="Default">
+                      {% else %}
+                      <input name="font_size" type="number" placeholder="Default" value="{{ (series.font_size*100)|int }}">
+                      {% endif %}
+                      <div class="ui basic label">%</div>
                     </div>
                   </div>
-
-                  <div class="three fields">
-                    <div class="field">
-                      <label>Interline Spacing</label>
-                      {% if series.font_interline_spacing is none %}
-                      <input name="font_interline_spacing" type="number" placeholder="Default">
+                  <div class="field">
+                    <label>Kerning</label>
+                    <div class="ui right labeled input">
+                      {% if series.font_kerning is none %}
+                      <input name="font_kerning" type="number" placeholder="Default">
                       {% else %}
-                      <input name="font_interline_spacing" type="number" placeholder="Default" value="{{ series.font_interline_spacing }}">
+                      <input name="font_kerning" type="number" placeholder="Default" value="{{ (series.font_kerning*100)|int }}">
                       {% endif %}
-                    </div>
-                    <div class="field">
-                      <label>Interword Spacing</label>
-                      {% if series.font_interword_spacing is none %}
-                      <input name="font_interword_spacing" type="number" placeholder="Default">
-                      {% else %}
-                      <input name="font_interword_spacing" type="number" placeholder="Default" value="{{ series.font_interword_spacing }}">
-                      {% endif %}
-                    </div>
-                    <div class="field">
-                      <label>Vertical Shift</label>
-                      {% if series.font_vertical_shift is none %}
-                      <input name="font_vertical_shift" type="number" placeholder="Default">
-                      {% else %}
-                      <input name="font_vertical_shift" type="number" placeholder="Default" value="{{ series.font_vertical_shift }}">
-                      {% endif %}
+                      <div class="ui basic label">%</div>
                     </div>
                   </div>
-                </section>
-              </div>
-            </div><!-- end Font Overrides accordion -->
+                  <div class="field">
+                    <label>Stroke Width</label>
+                    <div class="ui right labeled input">
+                      {% if series.font_stroke_width is none %}
+                      <input name="font_stroke_width" type="number" placeholder="Default">
+                      {% else %}
+                      <input name="font_stroke_width" type="number" placeholder="Default" value="{{ (series.font_stroke_width*100)|int }}">
+                      {% endif %}
+                      <div class="ui basic label">%</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="three fields">
+                  <div class="field">
+                    <label>Interline Spacing</label>
+                    {% if series.font_interline_spacing is none %}
+                    <input name="font_interline_spacing" type="number" placeholder="Default">
+                    {% else %}
+                    <input name="font_interline_spacing" type="number" placeholder="Default" value="{{ series.font_interline_spacing }}">
+                    {% endif %}
+                  </div>
+                  <div class="field">
+                    <label>Interword Spacing</label>
+                    {% if series.font_interword_spacing is none %}
+                    <input name="font_interword_spacing" type="number" placeholder="Default">
+                    {% else %}
+                    <input name="font_interword_spacing" type="number" placeholder="Default" value="{{ series.font_interword_spacing }}">
+                    {% endif %}
+                  </div>
+                  <div class="field">
+                    <label>Vertical Shift</label>
+                    {% if series.font_vertical_shift is none %}
+                    <input name="font_vertical_shift" type="number" placeholder="Default">
+                    {% else %}
+                    <input name="font_vertical_shift" type="number" placeholder="Default" value="{{ series.font_vertical_shift }}">
+                    {% endif %}
+                  </div>
+                </div>
+              </section>
+            </div>
 
             <!-- Season & Episode Text panel -->
             <div class="settings-panel">

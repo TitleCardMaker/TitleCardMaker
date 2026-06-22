@@ -1088,29 +1088,6 @@ body.save-bar-visible #main-content {
   padding-bottom: 4rem;
 }
 
-/* ── Font overrides accordion ────────────────────────────────────────────── */
-
-#font-overrides-accordion.ui.accordion .title {
-  cursor: pointer;
-  width: 100%;
-}
-
-#font-overrides-accordion.ui.accordion .title .chevron.icon {
-  transition: transform 0.2s;
-}
-
-#font-overrides-accordion.ui.accordion .title.active .chevron.icon {
-  transform: rotate(180deg);
-}
-
-#font-overrides-accordion.ui.accordion .content {
-  display: none;
-}
-
-#font-overrides-accordion.ui.accordion .content.active {
-  display: block;
-}
-
 /* ── Episode icon legend ─────────────────────────────────────────────────── */
 
 /* Divider between the table and the legend when they share a panel */

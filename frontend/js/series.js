@@ -1872,7 +1872,7 @@ function toggleStatus() {
         $icon.parent().html('<i class="eye slash outline icon"></i><span>Unmonitored</span>');
       } else {
         showInfoToast('Disabled Series');
-        $icon.parent().html('<i class="times circle outline icon"></i><span>Deleted</span>');
+        $icon.parent().html('<i class="times circle outline icon"></i><span>Disabled</span>');
       }
       refreshTheme();
     },
