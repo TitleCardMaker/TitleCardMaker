@@ -10,59 +10,80 @@ tags:
 
 # Fonts
 
-There are two classifications of fonts in TCM - _named_ and _un-named_. _Named_
-fonts are created in the :fontawesome-solid-font: `Fonts` page within TCM (at
-the `/fonts` URL); while _un-named_ fonts can be added directly to a Series or
-Episode. Aside from that, the only differences between these two are that
-_named_ fonts can use custom font files and character replacements in addition
-to metrics like font size, spacing, etc.; while unnamed fonts can __only__
-adjust metrics.
+There are two classifications of fonts in TCM — _named_ and _un-named_. _Named_
+fonts are created on the **Named Fonts** page within TCM (the `/fonts` URL),
+accessible from the sidebar via the `Fonts` item; while _un-named_ fonts can be
+added directly to a Series or Episode. Aside from that, the only differences
+between these two are that _named_ fonts can use custom font files and character
+replacements in addition to metrics like font size, spacing, etc.; while
+unnamed fonts can __only__ adjust metrics.
 
 ![Fonts Page](../assets/fonts_light.webp#only-light){.no-lightbox}
 ![Fonts Page](../assets/fonts_dark.webp#only-dark){.no-lightbox}
 
-This page will primarily cover _named_ fonts. In general, these Fonts apply to
-the _title text_ of a particular Title Card - __not__ the season or episode
-text. That is (generically) fixed, or recolored via an extra.
+This page primarily covers _named_ fonts. In general, these Fonts apply to the
+_title text_ of a particular Title Card — __not__ the season or episode text.
+That is (generically) fixed, or recolored via an extra.
+
+## The Fonts Page
+
+Each Font appears as a collapsible accordion card. When you have more than
+twenty Fonts, they are grouped under alphabetical section headers (with further
+sub-grouping for large letter groups).
+
+Font details are loaded lazily when you first expand an accordion. Because of
+this, there may be a slight delay between clicking a Font to view its details
+and the actual details loading in.
 
 ## Creating a New Font
 
-At the top of the Fonts page, a new Font can be created by clicking the
-<span class="example md-button">Create New Font</span> button. This will create
-a "blank" Font added to the top of the page.
+Click **New Font** in the panel header to create a blank Font named
+` Blank Custom Font`. The page reloads the Font list and scrolls to the new
+entry.
 
-Clicking the accordion will expand the Font, where all customization can be
-entered.
+Expand the accordion to enter a name, upload a file, adjust metrics, and save.
+
+## Saving, Transferring, and Deleting
+
+At the bottom of each Font form:
+
+- **Save** — Persists metric and replacement changes. If a font file was
+  selected in the **File** field, it is uploaded in the same action.
+- **Transfer** — Reassigns all Series, Template, and other references from this
+  Font to another Named Font. Choose a destination from the searchable dropdown,
+  then confirm in the modal. You can transfer only, or transfer and delete this
+  Font afterwards.
+- **Delete** — Permanently removes the Font from the database.
 
 ## Previewing a Font
 
-On the right-hand side of all Fonts is a live preview of the current Font. This
-preview reflects the currently entered Font settings - not necessarily what is
-saved in the Font - and can be refreshed by clicking the
-<span class="example md-button">:material-refresh: Refresh Preview</span> button.
+Each expanded Font uses a two-column layout: settings on the left and preview
+controls on the right.
 
-### Preview Card Type
+### Preview settings
 
-Since each Card type uses different base Font values, it is important to preview
-your Font with the Card type you expect to utilize it on. While most metrics
-will apply fairly consistently across the types, some metrics (typically kerning
-and stroke width) will appear vastly different when applied to different cards.
+- **Preview Card Type** — Card type used for the preview image. Since each Card
+  type uses different base Font values, preview with the type you expect to use
+  this Font on. Most metrics apply fairly consistently, but some (typically
+  kerning and stroke width) can look very different across types.
+- **Preview Title Text** — Optional override for the Episode title shown on the
+  preview Card.
+- **Preview Episode** — Search for an Episode (requires at least two
+  characters). A preview cannot be generated until an Episode is selected.
 
-### Preview Title
-
-Above the preview image is a textbox in which you can enter the title text you
-would like to display in the preview Card. 
+Click the preview image to refresh it using the current unsaved form values.
+Changing the selected Episode also refreshes the preview automatically.
 
 !!! tip "Recommendation"
 
-    I _strongly_ recommend you test an example title with more than one line of
-    text when first honing in the Font metrics. Depending on the Font file and
-    Card type, it is not uncommon for multiple lines of text to be poorly
-    spaced.
+    Test an example title with more than one line of text when tuning Font
+    metrics. Depending on the Font file and Card type, multiple lines of text
+    are often poorly spaced.
 
-Next to the _Preview Title_ label there is also a small
-:fontawesome-solid-arrow-down-a-z: button which, when clicked, will replace the
-preview title with all lower- and upper-case characters between A and Z.
+!!! note "Custom font files"
+
+    A custom font file must be **uploaded** and **saved** before it appears in
+    the preview.
 
 ## Font Customization
 
@@ -85,16 +106,16 @@ Each of these is described in greater detail below.
 
 ### Name
 
-A Font's name is purely for easier selection within the TCM UI. It is generally
-recommended to name the Font with the name of the Series (or franchise) it will
-apply to.
+A Font's name is purely for easier selection within the TCM UI. The accordion
+header updates to match the **Name** field. It is generally recommended to name
+the Font with the name of the Series (or franchise) it will apply to.
 
 !!! note "Importing Blueprint Fonts"
 
     The name of a Font is also used to match Fonts when importing
     [Blueprints](../blueprints.md).
-    
-    For example - if you are importing a Blueprint featuring a Font named
+
+    For example — if you are importing a Blueprint featuring a Font named
     _Better Call Saul_ and have already created a Font named _Better Call Saul_,
     then TCM will not duplicate the Font and instead just assign the existing
     Font to the Series.
@@ -104,23 +125,26 @@ apply to.
 
 ### File
 
-A custom Font file to use in place of the Card's default. This is _generally_
-only applied to the title text of the Card.
+A custom Font file to use in place of the Card's default. Accepted formats
+include `.otf`, `.ttf`, and `.ttc`. This is _generally_ only applied to the
+title text of the Card.
 
 In order for a Font file to be reflected in the live Card preview, you must
-upload the File to the server and click the
-<span class="example md-button">Save Changes</span> button at the bottom
-of the Font.
+upload the file and click **Save**.
+
+After a Font file is saved, the **File** label shows its path under
+`config/assets/fonts/{font_id}/`.
 
 ??? note "File Location"
 
     Once uploaded, Font files are stored in TCM's _asset directory_. This means
-    you can delete the File from your host OS after it's been uploaded into TCM.
+    you can delete the file from your host OS after it's been uploaded into TCM.
 
 ### Color
 
 The color of the Font to use in the Title Card. If unspecified, then the Card's
-default Font color is used instead.
+default Font color is used instead. An inline color swatch beside the label
+updates as you type.
 
 This variable supports all color formats and names supported by ImageMagick.
 This includes hexcodes, `rgb()`, `rgba()`, `hsl()`, `hsla()`, `hsb()`, `hsba()`,
@@ -131,7 +155,8 @@ and color names.
     A full article on the ImageMagick color specification is available
     [here](https://imagemagick.org/script/color.php#color_names), and
     [here](https://imagecolorpicker.com/en) is
-    a convenient color picker.
+    a convenient color picker. The external-link icon next to the **Color**
+    label opens the ImageMagick color reference.
 
 ??? tip ":material-apple: MacOS Color Picker"
 
@@ -142,7 +167,7 @@ and color names.
 
 ### Text Case
 
-How to format the title text in the Card - i.e. upper or lowercase. This can be
+How to format the title text in the Card — i.e. upper or lowercase. This can be
 one of the following:
 
 | Case | Description |
@@ -198,7 +223,7 @@ has a vastly different spacing or sizing than the card type's default Font.
 
 ??? question "Why doesn't TCM split titles to always fit in the image?"
 
-    TCM currently does all the "title splitting" logic in Python - but this has
+    TCM currently does all the "title splitting" logic in Python — but this has
     the downside of occasionally requiring manual adjustment, and can result in
     some very long titles extending beyond the bounds of the image.
 
@@ -224,8 +249,8 @@ the slider below to scale this paragraph's kerning.
 <input type="range" min="-3" max="20" value="0" class="slider" id="font-kerning">
 
 Depending on the Font and Card, it is not uncommon for Kerning values to be
-very large (or very small) - for example, I used a value of 1500% for my _Jane
-the Virgin_ Title Cards. 
+very large (or very small) — for example, I used a value of 1500% for my _Jane
+the Virgin_ Title Cards.
 
 Whether values >100% _increase_ or _decrease_ the letter
 spacing is dependent on the Card.
@@ -234,14 +259,14 @@ spacing is dependent on the Card.
 
 !!! note "Stroke vs. Drop Shadows"
 
-    Rather than using a text stroke, many card types instead feature a drop 
-    shadow which will be unaffacted by this stroke width metric. In particular,
-    the Calligraphy, Tinted Frame, and Lanscape cards.
+    Rather than using a text stroke, many card types instead feature a drop
+    shadow which will be unaffected by this stroke width metric. In particular,
+    the Calligraphy, Tinted Frame, and Landscape cards.
 
 Scale of the Font's stroke width. This generally refers to title text which has
 an outer stroke which helps the characters appear more visible.
 
-The follow examples showcase stroke widths of 10%, 100%, 200%, and 500%
+The following examples showcase stroke widths of 10%, 100%, 200%, and 500%
 respectively.
 
 ![10% Stroke](../assets/font_stroke10.webp){width="75%"}
@@ -256,7 +281,7 @@ values _increase_ the spacing between lines, and negative values _decrease_ it.
 
 ### Interword Spacing
 
-Additional pixel spacing between words in text. This is similiar to
+Additional pixel spacing between words in text. This is similar to
 [kerning](#kerning), except only applies to the spacing between separate words,
 not the spacing between letters of the same word.
 
@@ -273,15 +298,13 @@ needed for all the titles of a given Series. Especially for titles with lots of
 punctuation, or accented characters like é.
 
 To aid with this, any Font can have a predefined set of character replacements
-which will be applied to an Episode title before the Card is created. These can
-be manually entered, or TCM can perform an
-[automatic analysis](#character-replacement-analysis) of the Font by clicking
-the <span class="example md-button">:fontawesome-solid-wand-magic-sparkles:
-Analyze Font Replacements</span> button.
+which will be applied to an Episode title before the Card is created. Use
+**Add** to create a row manually, or click **Analyze** to run an
+[automatic analysis](#character-replacement-analysis) of the Font.
 
-These replacements can take any text (the left input field) and will replace
-that with the replacement text (the right input field). This replacement text
-can be blank to indicate the input text should be deleted.
+Each row has a text-to-replace field and a replacement field. The replacement
+can be blank to indicate the input text should be deleted. Use the **×** button
+on a row to remove it.
 
 ??? tip "Advanced Replacement Logic"
 
@@ -302,38 +325,40 @@ can be blank to indicate the input text should be deleted.
     To only apply a character replacement only before the
     [text case](#text-case), preface the text to replace with `pre:`. Likewise,
     to only apply a character replacement after the text case, preface the text
-    with with `post:`. TCM will ignore the `pre:` and `post:` text in the
+    with `post:`. TCM will ignore the `pre:` and `post:` text in the
     actual replacement.
 
 ??? warning "Replacing Backslashes"
 
     If you would like to add a replacement for a backslash ++backslash++ (`\`)
     character, you __need__ to specify this as `post:\`, rather than just `\`.
-    This is because Python represents newline characters - the character which
-    forces the cursor to move to a new line of text - with `\n`. If left as just
+    This is because Python represents newline characters — the character which
+    forces the cursor to move to a new line of text — with `\n`. If left as just
     `\` will cause any manually split titles to be handled incorrectly.
 
     For more details on pre- and post- splits, see above.
 
 ## Character Replacement Analysis
 
-Under the [Character Replacements](#character-replacements) section of a Font
-is a <span class="example md-button">:fontawesome-solid-wand-magic-sparkles:
-Analyze Font Replacements</span> button which can be pressed to prompt TCM to
-perform an automated analysis of the Font and make suggested replacements.
+Click **Analyze** in the Character Replacements section to prompt TCM to
+perform an automated analysis of the uploaded Font file and add suggested
+replacements. The button is disabled until a font file has been uploaded.
 
 During this analysis, TCM will look for any appropriate glyph within the Font
 for all the most commonly used English characters (i.e. A-Z and all standard
 punctuation). If the Font is assigned to a Template, Series, or Episode[^2] then
-TCM will look at the titles of those assigned elements for characters. 
+TCM will look at the titles of those assigned elements for characters.
 
 TCM will then suggest replacements by looking for common character replacements
-(like `&` to `and`, `’` to `'`), the lower or uppercase equivalent (if
+(like `&` to `and`, `'` to `'`), the lower or uppercase equivalent (if
 applicable), and finally attempt a Unicode character decomposition.
+
+If characters cannot be replaced, TCM shows an error toast listing them. Blank
+suggested replacements indicate a deleted character.
 
 !!! example "Example Analysis"
 
-    Say the Font in question does not have the character `Á` - TCM will look for
+    Say the Font in question does not have the character `Á` — TCM will look for
     a "common" replacement; then `á`; and finally an `A` or `a` character.
 
 [^1]:
