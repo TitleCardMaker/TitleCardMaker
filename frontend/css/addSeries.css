@@ -50,7 +50,15 @@
 /* Scroll very long Blueprint descriptions */
 .card .content .description {
   max-height: 150px;
-  overflow-y: scroll;
+  overflow-y: auto;
+  /* Extend scroll area into content padding so the track aligns with the card edge */
+  margin-right: -1em;
+  padding-right: 1em;
+  scrollbar-color: var(--tcm-blue-color) transparent;
+}
+
+.card .content .description::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .card .multi.image {
@@ -76,6 +84,8 @@
   /* Do not cap description height on mobile (to avoid weird scrolling) */
   .card .content .description {
     max-height: none;
+    margin-right: 0;
+    padding-right: 0;
   }
 
   /* Left-float blueprint actions to avoid weird alignment issues */
