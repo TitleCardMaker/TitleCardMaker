@@ -92,22 +92,21 @@ function getStatistics() {
      * @param {Statistic[]} statistics 
      */
     success: statistics => {
-      // Update card count text
+      // Update card count badge
       const [cardStat, episodeStat] = statistics;
-      $('#card-count').html(`<i class="image outline icon"></i><span class="ui pulsate text" onclick="getStatistics();">${cardStat.value} Cards / ${episodeStat.value} Episodes</span>`);
-      
+      $('#card-count').html(`<i class="images outline icon"></i><span>${cardStat.value} / ${episodeStat.value} Title Cards</span>`);
+
       // Determine maximum number of cards
       const maxCards = global_library_unique_cards
         ? episodeStat.value * series_libraries.length
         : episodeStat.value
       ;
 
-      // Update progress bar
-      $('#card-progress').progress({
-        total: maxCards,
-        value: `${cardStat.value},${maxCards-cardStat.value}`,
-        duration: 1500,
-      });
+      // Update custom progress bar widths
+      const greenPct = maxCards > 0 ? (cardStat.value / maxCards) * 100 : 0;
+      const redPct = maxCards > 0 ? ((maxCards - cardStat.value) / maxCards) * 100 : 0;
+      $('#card-progress .series-progress-fill.green').css('width', `${greenPct}%`);
+      $('#card-progress .series-progress-fill.red').css('width', `${redPct}%`);
     },
     error: response => {
       if (response.status === 401) {
@@ -448,7 +447,7 @@ async function initializeSeriesConfig() {
     3,
   );
   // Add translation on button press
-  document.querySelector(`#card-config-form .button[data-add-field="translation"]`).onclick = () => {
+  document.querySelector(`#card-config-form [data-add-field="translation"]`).onclick = () => {
     const newTranslation = document.querySelector('#translation-template').content.cloneNode(true);
     $(`#card-config-form [data-value="translations"]`).append(newTranslation);
     // Language code dropdown
@@ -472,11 +471,26 @@ async function initializeSeriesConfig() {
 }
 
 /**
+ * Open the poster change modal.
+ */
+function openPosterModal() {
+  $('#poster-modal').modal('show');
+}
+
+/**
+ * Toggle loading state on the poster modal.
+ * @param {boolean} loading Whether the modal should show a loading state.
+ */
+function setPosterModalLoading(loading) {
+  $('#poster-modal').toggleClass('loading', loading);
+}
+
+/**
  * Submit an API request to query TPDb for this Series' poster. If successful,
  * the URL field of the edit poster modal is populated.
  */
 function queryTMDbPoster() {
-  $('#poster-dialog .input[data-value="url"]').toggleClass('loading', true);
+  $('#poster-modal .input[data-value="url"]').toggleClass('loading', true);
   $.ajax({
     type: 'GET',
     url: '/api/v2/series/series/{{ series.id }}/poster/query',
@@ -489,11 +503,11 @@ function queryTMDbPoster() {
       if (posterUrl === null) {
         $.toast({class: 'error', title: 'TMDb returned no images'});
       } else {
-        $('#poster-dialog input[name="url"]').val(posterUrl);
+        $('#poster-modal input[name="url"]').val(posterUrl);
       }
     },
     error: () => showErrorToast({class: 'error', title: 'TMDb returned no images'}),
-    complete: () => $('#poster-dialog .input[data-value="url"]').toggleClass('loading', false),
+    complete: () => $('#poster-modal .input[data-value="url"]').toggleClass('loading', false),
   });
 }
 
@@ -1255,8 +1269,8 @@ function querySeriesLogs() {
     success: logs => {
       document.getElementById('logs-loader')?.remove();
 
-      // Feed for all elements
-      const feed = document.querySelector('.tab[data-tab="logs"] .feed');
+      // Container for all log entries
+      const feed = document.querySelector('.tab[data-tab="logs"] .series-log-list');
       const items = logs.items || [];
 
       if (items.length === 0) {
@@ -1268,46 +1282,50 @@ function querySeriesLogs() {
         return;
       }
 
-      // Template for all log elements
+      // Template for all log entries
       const eventTemplate = document.getElementById('log-event-template');
+
+      const levelColors = {
+        'CRITICAL': 'critical',
+        'ERROR': 'error',
+        'WARNING': 'warning',
+        'INFO': 'info',
+        'DEBUG': 'debug',
+        'TRACE': 'trace',
+      };
 
       // Create elements for each log entry
       const events = items.map(log => {
         const event = eventTemplate.content.cloneNode(true);
-        const color = {
-          'CRITICAL': 'red',
-          'ERROR': 'orange',
-          'WARNING': 'yellow',
-          'INFO': 'blue',
-          'DEBUG': 'grey',
-          'TRACE': 'white',
-        }[log.level];
+        const colorClass = levelColors[log.level] || 'info';
+
+        // Apply level color class to the entry root
+        event.querySelector('.log-entry').classList.add(`log-level-${colorClass}`);
 
         // If this message has a context ID add interactivity when hovering
         if (log.context_id !== null) {
-          event.querySelector('.event').dataset.contextId = log.context_id;
-          event.querySelector('.event [data-value="context_id"]').addEventListener('mouseenter', () => {
-            feed.querySelectorAll('.event').forEach(event => {
-              if (event.dataset.contextId !== log.context_id) {
-                event.classList.add('blurred');
+          event.querySelector('.log-entry').dataset.contextId = log.context_id;
+          event.querySelector('[data-value="context_id"]').addEventListener('mouseenter', () => {
+            feed.querySelectorAll('.log-entry').forEach(entry => {
+              if (entry.dataset.contextId !== log.context_id) {
+                entry.classList.add('blurred');
               }
             });
           });
-          event.querySelector('.event [data-value="context_id"]').addEventListener('mouseleave', () => {
-            feed.querySelectorAll('.event').forEach(event => {
-              event.classList.remove('blurred');
+          event.querySelector('[data-value="context_id"]').addEventListener('mouseleave', () => {
+            feed.querySelectorAll('.log-entry').forEach(entry => {
+              entry.classList.remove('blurred');
             });
           });
         }
 
-        // Populate template
-        event.querySelector('.label .icon').classList.add(color);
-        event.querySelector('.summary span').innerText = `${toTitleCase(log.level_name)} Message`;
+        // Populate template fields
+        event.querySelector('.log-entry-level').innerText = `${toTitleCase(log.level_name)} Message`;
         event.querySelector('[data-value="date"]').innerText = timeDiffString(log.timestamp);
         if (log.context_id === null) {
           event.querySelector('[data-value="context_id"]').remove();
         } else {
-          event.querySelector('[data-value="context_id"]').innerText = log.context_id || '';
+          event.querySelector('[data-value="context_id"]').innerText = `#${log.context_id}`;
         }
         event.querySelector('[data-value="message"]').innerText = log.message
           .replace(`Series[{{ series.id }}] ${series_full_name}`, series_full_name);
@@ -1501,6 +1519,7 @@ async function initAll() {
   const tab = window.location.hash.substring(1) || 'options';
   $('#series-tabs-menu .item')
     .tab({
+      context: '#main-content',
       onVisible: (tabPath) => {
         history.replaceState(null, null, `#${tabPath}`);
         if (tabPath === 'logs') {
@@ -1514,7 +1533,17 @@ async function initAll() {
     })
     .tab('change tab', tab);
 
-  // Enable all dropdowns, menus, and accordians
+  // Sticky save bar: show on first change in each form
+  document.getElementById('series-config-form').addEventListener('change', function() {
+    document.getElementById('sticky-save-bar-options').classList.add('visible');
+    document.body.classList.add('save-bar-visible');
+  }, { once: true });
+  document.getElementById('card-config-form').addEventListener('change', function() {
+    document.getElementById('sticky-save-bar-card').classList.add('visible');
+    document.body.classList.add('save-bar-visible');
+  }, { once: true });
+
+  // Enable all dropdowns, menus, and accordions
   $('.ui.dropdown:not([data-value="card-types"])').dropdown();
   $('.ui.accordion').accordion();
   $('.ui.checkbox').checkbox();
@@ -1602,8 +1631,7 @@ async function initAll() {
       if (!editedEpisodeIds.includes(episodeId*1)) { editedEpisodeIds.push(episodeId*1); }
     });
 
-  // Show popup when poster is clicked
-  $('#poster').popup({on: 'click', inline: true, position: 'right center'});
+  $('#poster-modal').modal({ autofocus: false });
 
   new ImageCompare(
     document.querySelector('#mask-editor-modal .image-compare'),
@@ -1631,11 +1659,11 @@ async function initAll() {
 function editSeriesPoster() {
   // Generate form data of the provided URL or file
   const form = new FormData();
-  if (document.querySelector('#poster-dialog input[name="file"]').files[0]) {
-    form.append('file', document.querySelector('#poster-dialog input[name="file"]').files[0]);
+  if (document.querySelector('#poster-modal input[name="file"]').files[0]) {
+    form.append('file', document.querySelector('#poster-modal input[name="file"]').files[0]);
   }
-  else if (document.querySelector('#poster-dialog input[name="url"]').value) {
-    form.append('url', document.querySelector('#poster-dialog input[name="url"]').value);
+  else if (document.querySelector('#poster-modal input[name="url"]').value) {
+    form.append('url', document.querySelector('#poster-modal input[name="url"]').value);
   }
   else {
     showErrorToast({title: 'Must provide URL or file'});
@@ -1643,7 +1671,7 @@ function editSeriesPoster() {
   }
 
   // Submit API request
-  $('#poster-dialog').toggleClass('loading', true)
+  setPosterModalLoading(true);
   $.ajax({
     type: 'PUT',
     url: '/api/v2/series/series/{{ series.id }}/poster',
@@ -1658,9 +1686,11 @@ function editSeriesPoster() {
     success: url => {
       showInfoToast('Updated Poster');
       document.getElementById('poster').src = `${url}?${new Date().getTime()}`;
+      $('#poster-modal').modal('hide');
+      document.querySelector('#poster-modal input[name="file"]').value = '';
     },
     error: response => showErrorToast({title: 'Error Updating Poster', response}),
-    complete: () => $('#poster-dialog').toggleClass('loading', false),
+    complete: () => setPosterModalLoading(false),
   });
 }
 
@@ -1669,8 +1699,7 @@ function editSeriesPoster() {
  * either a media server or TMDb.
  */
 function downloadSeriesPoster() {
-  // Mark the popup as loading
-  $('#poster-dialog').toggleClass('loading', true)
+  setPosterModalLoading(true);
 
   // Submit API request to delete existing poster(s)
   $.ajax({
@@ -1689,14 +1718,15 @@ function downloadSeriesPoster() {
         success: posterUrl => {
           showInfoToast('Updated Poster');
           document.getElementById('poster').src = `${posterUrl}?${new Date().getTime()}`;
+          $('#poster-modal').modal('hide');
         },
         error: () => response => showErrorToast({title: 'Error Updating Poster', response}),
-        complete: () => $('#poster-dialog').toggleClass('loading', false),
+        complete: () => setPosterModalLoading(false),
       });
     },
     error: response => {
       showErrorToast({title: 'Error Deleting Poster', response});
-      $('#poster-dialog').toggleClass('loading', false);
+      setPosterModalLoading(false);
     },
   });
 }
@@ -1798,13 +1828,13 @@ function toggleStatus() {
       // Show toast, toggle text and icon to show new status
       if (response.status === 'monitored') {
         showInfoToast('Started Monitoring Series');
-        $icon.parent().html('<i class="ui eye outline green icon"></i>');
+        $icon.parent().html('<i class="eye outline icon"></i><span>Monitored</span>');
       } else if (response.status === 'unmonitored') {
         showInfoToast('Stopped Monitoring Series');
-        $icon.parent().html('<i class="ui eye slash outline yellow icon"></i>');
+        $icon.parent().html('<i class="eye slash outline icon"></i><span>Unmonitored</span>');
       } else {
         showInfoToast('Disabled Series');
-        $icon.parent().html('<i class="ui times circle outline red icon"></i>');
+        $icon.parent().html('<i class="times circle outline icon"></i><span>Deleted</span>');
       }
       refreshTheme();
     },
@@ -2123,6 +2153,107 @@ function selectTmdbImage(episodeId, url) {
 }
 
 /**
+ * Get the DOM card for a series asset.
+ * @param {'logo' | 'backdrop'} type Asset type.
+ * @param {number | null} seasonNumber Season number, or null for series-wide.
+ * @returns {HTMLElement | null}
+ */
+function getSeriesAssetCard(type, seasonNumber = null) {
+  const season = seasonNumber === null ? '' : String(seasonNumber);
+  return document.querySelector(`.series-asset-card[data-type="${type}"][data-season="${season}"]`);
+}
+
+/**
+ * Build a source URL for a series asset file.
+ * @param {'logo' | 'backdrop'} type Asset type.
+ * @param {number | null} seasonNumber Season number, or null for series-wide.
+ * @returns {string}
+ */
+function getSeriesAssetUrl(type, seasonNumber = null) {
+  const base = '/source/{{ series.path_safe_name }}';
+  if (type === 'logo') {
+    return seasonNumber === null
+      ? `${base}/logo.png`
+      : `${base}/logo_season${seasonNumber}.png`;
+  }
+  return seasonNumber === null
+    ? `${base}/backdrop.jpg`
+    : `${base}/backdrop_season${seasonNumber}.jpg`;
+}
+
+/**
+ * Show an asset preview and enable asset-dependent controls.
+ * @param {'logo' | 'backdrop'} type Asset type.
+ * @param {number | null} seasonNumber Season number, or null for series-wide.
+ * @param {string} [url] Optional explicit URL; otherwise derived from type/season.
+ */
+function updateSeriesAssetPreview(type, seasonNumber = null, url = null) {
+  const card = getSeriesAssetCard(type, seasonNumber);
+  if (!card) {
+    return;
+  }
+
+  const image = card.querySelector('.series-asset-image');
+  const empty = card.querySelector('.series-asset-empty');
+  const assetUrl = url || getSeriesAssetUrl(type, seasonNumber);
+
+  if (image) {
+    image.src = `${assetUrl}?t=${Date.now()}`;
+    image.hidden = false;
+  }
+  if (empty) {
+    empty.hidden = true;
+  }
+
+  card.dataset.exists = 'true';
+  card.querySelectorAll('[data-requires-asset]').forEach(button => {
+    button.disabled = false;
+  });
+}
+
+/**
+ * Clear an asset preview and disable asset-dependent controls.
+ * @param {'logo' | 'backdrop'} type Asset type.
+ * @param {number | null} seasonNumber Season number, or null for series-wide.
+ */
+function clearSeriesAssetPreview(type, seasonNumber = null) {
+  const card = getSeriesAssetCard(type, seasonNumber);
+  if (!card) {
+    return;
+  }
+
+  const image = card.querySelector('.series-asset-image');
+  const empty = card.querySelector('.series-asset-empty');
+
+  if (image) {
+    image.removeAttribute('src');
+    image.hidden = true;
+  }
+  if (empty) {
+    empty.hidden = false;
+  }
+
+  card.dataset.exists = 'false';
+  card.querySelectorAll('.palette .color').forEach(swatch => swatch.remove());
+  card.querySelectorAll('[data-requires-asset]').forEach(button => {
+    button.disabled = true;
+  });
+}
+
+/**
+ * Analyze palette colors for a series asset card.
+ * @param {'logo' | 'backdrop'} type Asset type.
+ * @param {number | null} seasonNumber Season number, or null for series-wide.
+ */
+function analyzeSeriesAssetPalette(type, seasonNumber = null) {
+  const season = seasonNumber === null ? '' : String(seasonNumber);
+  analyzePalette(
+    `.series-asset-card[data-type="${type}"][data-season="${season}"] .series-asset-image`,
+    `.series-asset-card[data-type="${type}"][data-season="${season}"] .series-asset-palette`,
+  );
+}
+
+/**
  * Submit an API request to download the logo at the specified URL.
  * @param {string} url URL of the logo file to download.
  * @param {?number} seasonNumber Season number associated with this URL.
@@ -2142,13 +2273,7 @@ function downloadLogo(url, seasonNumber=null) {
     processData: false,
     success: () => {
       showInfoToast('Downloaded Logo');
-      if (seasonNumber === null) {
-        logo = document.getElementById('logo');
-        logo.src = `/source/{{series.path_safe_name}}/logo.png?${new Date().getTime()}`;
-        logo.style.display = 'block';
-      } else {
-        document.querySelector(`[data-type="logo"][data-season="${seasonNumber}"] img`).src = `/source/{{ series.path_safe_name }}/logo_season${seasonNumber}.png?${new Date().getTime()}`;
-      }
+      updateSeriesAssetPreview('logo', seasonNumber);
     },
     error: response => showErrorToast({title: 'Error Downloading Logo', response}),
   });
@@ -2174,13 +2299,7 @@ function downloadSeriesBackdrop(url, seasonNumber=null) {
     processData: false,
     success: () => {
       showInfoToast('Downloaded Backdrop');
-      if (seasonNumber === null) {
-        const backdrop = document.getElementById('backdrop');
-        backdrop.src = `/source/{{series.path_safe_name}}/backdrop.jpg?${new Date().getTime()}`;
-        backdrop.style.display = 'block';
-      } else {
-        document.querySelector(`[data-type="backdrop"][data-season="${seasonNumber}"] img`).src = `/source/{{ series.path_safe_name }}/backdrop_season${seasonNumber}.jpg?${new Date().getTime()}`;
-      }
+      updateSeriesAssetPreview('backdrop', seasonNumber);
     },
     error: response => showErrorToast({title: 'Error Downloading Backdrop', response}),
   });
@@ -2269,9 +2388,9 @@ function browseLogos(seasonNumber) {
   // Mark icon as loading
   let $icon;
   if (seasonNumber === null) {
-    $icon = $('.button[data-action="browse-series-logo"] .icon');
+    $icon = $('[data-action="browse-series-logo"] .icon[data-action="browse"]');
   } else {
-    $icon = $(`[data-season="${seasonNumber}"][data-type="logo"] .icon[data-action="browse"]`);
+    $icon = $(`.series-asset-card[data-type="logo"][data-season="${seasonNumber}"] .icon[data-action="browse"]`);
   }
   setLoadingIcon($icon);
 
@@ -2310,9 +2429,9 @@ function browseBackdrops(seasonNumber) {
   // Mark icon as loading
   let $icon;
   if (seasonNumber === null) {
-    $icon = $('.button[data-action="browse-series-backdrop"] .icon');
+    $icon = $('[data-action="browse-series-backdrop"] .icon[data-action="browse"]');
   } else {
-    $icon = $(`[data-season="${seasonNumber}"][data-type="backdrop"] .icon[data-action="browse"]`);
+    $icon = $(`.series-asset-card[data-type="backdrop"][data-season="${seasonNumber}"] .icon[data-action="browse"]`);
   }
   setLoadingIcon($icon);
 
@@ -2380,14 +2499,9 @@ function uploadLogo(seasonNumber=null) {
     contentType: false,
     processData: false,
     success: () => {
-      if (seasonNumber === null) {
-        showInfoToast('Updated Logo');
-        const logo = document.getElementById('#logo');
-        logo.src = `/source/{{series.path_safe_name}}/logo.png?${new Date().getTime()}`;
-        logo.style.display = 'block';
-      } else {
-        showInfoToast('Updated logo, refresh page to see changes');
-      }
+      showInfoToast('Updated Logo');
+      updateSeriesAssetPreview('logo', seasonNumber);
+      document.getElementById(inputId).value = '';
     },
     error: response => showErrorToast({title: 'Error Updating Logo', response}),
   });
@@ -2430,14 +2544,9 @@ function uploadBackdrop(seasonNumber) {
     contentType: false,
     processData: false,
     success: () => {
-      if (seasonNumber === null) {
-        showInfoToast('Updated backdrop');
-        const backdrop = document.getElementById('backdrop');
-        backdrop.src = `/source/{{series.path_safe_name}}/backdrop.jpg?${new Date().getTime()}`;
-        backdrop.style.display = 'block';
-      } else {
-        showInfoToast('Updated backdrop, refresh page to see changes');
-      }
+      showInfoToast('Updated Backdrop');
+      updateSeriesAssetPreview('backdrop', seasonNumber);
+      document.getElementById(inputId).value = '';
     },
     error: response => showErrorToast({title: 'Error Updating Backdrop', response}),
   });
@@ -2754,16 +2863,40 @@ function updateSeries(formName) {
     };
   }
 
-  // Submit API request
-  $('#submit-changes').toggleClass('loading', true); // Mark buttons as loading
+  // Determine which save button to show loading on
+  const $saveBtn = formName === 'options'
+    ? $('#sticky-save-bar-options button')
+    : formName === 'card'
+    ? $('#sticky-save-bar-card button')
+    : $(`#series-${formName === 'ids' ? 'ids' : 'config'}-form button[type="button"], #series-ids-form button`).first();
+
+  $saveBtn.toggleClass('loading', true);
   $.ajax({
     type: 'PATCH',
     url: '/api/v2/series/series/{{ series.id }}',
     data: JSON.stringify(data),
     contentType: 'application/json',
-    success: () => showInfoToast('Updated Series'),
+    success: () => {
+      showInfoToast('Updated Series');
+      // Hide the relevant sticky save bar and re-arm the once listener
+      if (formName === 'options') {
+        document.getElementById('sticky-save-bar-options').classList.remove('visible');
+        document.body.classList.remove('save-bar-visible');
+        document.getElementById('series-config-form').addEventListener('change', function() {
+          document.getElementById('sticky-save-bar-options').classList.add('visible');
+          document.body.classList.add('save-bar-visible');
+        }, { once: true });
+      } else if (formName === 'card') {
+        document.getElementById('sticky-save-bar-card').classList.remove('visible');
+        document.body.classList.remove('save-bar-visible');
+        document.getElementById('card-config-form').addEventListener('change', function() {
+          document.getElementById('sticky-save-bar-card').classList.add('visible');
+          document.body.classList.add('save-bar-visible');
+        }, { once: true });
+      }
+    },
     error: response => showErrorToast({title: 'Error Updating Series', response}),
-    complete: () => $('#submit-changes').toggleClass('loading', false),
+    complete: () => $saveBtn.toggleClass('loading', false),
   });
 }
 
@@ -3347,17 +3480,7 @@ function deleteLogo(seasonNumber) {
     url: `/api/v2/sources/series/{{ series.id }}/logo${query}`,
     success: () => {
       showInfoToast('File Deleted');
-      if (seasonNumber) {
-        // Remove image src
-        document.querySelector(`[data-season="${seasonNumber}"][data-type="logo"] img`).removeAttribute('src');
-        // Remove any color palettes
-        $(`[data-season="${seasonNumber}"][data-type="logo"] .palette .color`).remove();
-      } else {
-        // Remove image src
-        document.getElementById('logo').removeAttribute('src');
-        // Remove any color palettes
-        $(`#logo-palette .color`).remove();
-      }
+      clearSeriesAssetPreview('logo', seasonNumber);
     },
     error: response => showErrorToast({title: 'Error Deleting File', response}),
   });
@@ -3365,18 +3488,17 @@ function deleteLogo(seasonNumber) {
 
 /**
  * Submit an API request to delete the backdrop of the given season number.
- * @param {number} seasonNumber Season number of the backdrop to delete.
+ * @param {number | null} seasonNumber Season number of the backdrop to delete,
+ * or null for the series-wide backdrop.
  */
-function deleteBackdrop(seasonNumber) {
+function deleteBackdrop(seasonNumber = null) {
+  const query = seasonNumber === null ? '' : `?season_number=${seasonNumber}`;
   $.ajax({
     type: 'DELETE',
-    url: `/api/v2/sources/series/{{ series.id }}/backdrop?season_number=${seasonNumber}`,
+    url: `/api/v2/sources/series/{{ series.id }}/backdrop${query}`,
     success: () => {
       showInfoToast('File Deleted');
-      // Remove image src
-      document.querySelector(`[data-season="${seasonNumber}"][data-type="backdrop"] img`).removeAttribute('src');
-      // Remove any color palettes
-      $(`[data-season="${seasonNumber}"][data-type="backdrop"] .palette .color`).remove();
+      clearSeriesAssetPreview('backdrop', seasonNumber);
     },
     error: response => showErrorToast({title: 'Error Deleting File', response}),
   });

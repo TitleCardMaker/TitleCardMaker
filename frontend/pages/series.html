@@ -417,17 +417,15 @@
   </template>
 
   <template id="log-event-template">
-    <div class="event">
-      <div class="label">
-        <i class="check icon"></i>
-      </div>
-      <div class="content">
-        <div class="summary">
-          <span></span>
-          <div class="date" data-value="context_id"></div>
-          <div class="date" data-value="date"></div>
+    <div class="log-entry">
+      <span class="log-entry-dot"></span>
+      <div class="log-entry-body">
+        <div class="log-entry-meta">
+          <span class="log-entry-level"></span>
+          <span class="log-entry-context" data-value="context_id"></span>
+          <span class="log-entry-time" data-value="date"></span>
         </div>
-        <div class="text" data-value="message"></div>
+        <div class="log-entry-message" data-value="message"></div>
       </div>
     </div>
   </template>
@@ -465,380 +463,412 @@
 
     <!-- Actual page content -->
     <div id="main-content" class="article">
-      <div class="ui menu" style="box-shadow: 1px 1px 10px -3px rgba(252, 252, 252, 0.8);">
-        <span data-tooltip="Go to the previous Series" data-position="right center">
-          <a class="item" onclick="navigateSeries('previous');">
-            <i data-action="previous-series" class="ui arrow alternate circle left outline link icon"></i>
-          </a>
-        </span>
-        <span data-tooltip="Toggle Status" data-position="bottom center">
-          <a class="item" id="status" onclick="toggleStatus();">
+
+      <!-- Sticky action bar -->
+      <div class="series-action-bar">
+        <div class="series-action-bar-left">
+          <button class="series-nav-btn" data-tooltip="Previous Series" data-position="bottom center" onclick="navigateSeries('previous');">
+            <i data-action="previous-series" class="arrow alternate circle left outline icon"></i>
+          </button>
+          <button class="series-nav-btn" data-tooltip="Next Series" data-position="bottom center" onclick="navigateSeries('next');">
+            <i data-action="next-series" class="arrow alternate circle right outline icon"></i>
+          </button>
+        </div>
+
+        <div class="series-action-bar-center">
+          <button class="series-status-btn" id="status" onclick="toggleStatus();" data-tooltip="Toggle monitored status" data-position="bottom center">
             {% if series.status == 'monitored' %}
-            <i class="ui eye outline green icon"></i>
+            <i class="eye outline icon"></i><span>Monitored</span>
             {% elif series.status == 'unmonitored' %}
-            <i class="ui eye slash outline yellow icon"></i>
+            <i class="eye slash outline icon"></i><span>Unmonitored</span>
             {% else %}
-            <i class="ui times circle outline red icon"></i>
+            <i class="times circle outline icon"></i><span>Deleted</span>
             {% endif %}
-          </a>
-        </span>
-        <a class="item" data-action="process-series" onclick="processSeries();">
-          <i class="images outline icon"></i>
-          Create Title Cards
-        </a>
-        {% for library in series.libraries %}
-        <div class="ui dropdown item">
-          {{ library.name }}｜<span data-interface-type="{{ library.interface }}" data-value="interface-type">{{ library.interface }}</span>
-          <i class="dropdown icon"></i>
-          <div class="menu">
-            <a class="item" data-interface-id="{{ library.interface_id }}" data-library-name="{{ library.name }}" data-force="false" onclick="loadCards({{library.interface_id}}, `{{library.name}}`, false);">
-              <i class="hdd outline icon"></i>
-              Load Cards
-            </a>
-            <a class="item" data-interface-id="{{ library.interface_id }}" data-library-name="{{ library.name }}" data-force="true" onclick="loadCards({{library.interface_id}}, `{{library.name}}`, true);">
-              <i class="orange hdd outline icon"></i>
-              Force Reload Cards
-            </a>
-            <a class="item" onclick="showSelectiveReloadModal({{library.interface_id}}, `{{library.name}}`);">
-              <i class="filter icon"></i>
-              Selectively Reload Season
-            </a>
-            {% if library.interface == 'Plex' %}
+          </button>
+          <button class="panel-action-btn primary" data-action="process-series" onclick="processSeries();">
+            <i class="images outline icon"></i>
+            Create Title Cards
+          </button>
+          {% for library in series.libraries %}
+          <div class="ui dropdown series-library-btn">
+            <span class="library-name">{{ library.name }}</span>
+            <span class="library-interface" data-interface-type="{{ library.interface }}" data-value="interface-type">{{ library.interface }}</span>
+            <i class="chevron down small icon"></i>
+            <div class="menu">
+              <a class="item" data-interface-id="{{ library.interface_id }}" data-library-name="{{ library.name }}" data-force="false" onclick="loadCards({{library.interface_id}}, `{{library.name}}`, false);">
+                <i class="hdd outline icon"></i>
+                Load Cards
+              </a>
+              <a class="item" data-interface-id="{{ library.interface_id }}" data-library-name="{{ library.name }}" data-force="true" onclick="loadCards({{library.interface_id}}, `{{library.name}}`, true);">
+                <i class="orange hdd outline icon"></i>
+                Force Reload Cards
+              </a>
+              <a class="item" onclick="showSelectiveReloadModal({{library.interface_id}}, `{{library.name}}`);">
+                <i class="filter icon"></i>
+                Selectively Reload Season
+              </a>
+              {% if library.interface == 'Plex' %}
               <a class="item" onclick="removePlexLabels({{library.interface_id}}, `{{library.name}}`);">
                 <i class="red tags icon"></i>
                 Remove Episode Labels
               </a>
-            {% endif %}
+              {% endif %}
+            </div>
           </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-        <div class="right menu">
-          <div class="ui dropdown red item">
-            <!-- <i class="trash alternate outline icon"></i> -->
+
+        <div class="series-action-bar-right">
+          <div class="ui dropdown series-delete-btn">
+            <i class="trash alternate outline icon"></i>
             Delete
-            <i class="dropdown icon"></i>
+            <i class="chevron down small icon"></i>
             <div class="menu">
               <a class="item" onclick="deleteSourceImages();">
+                <i class="file image outline icon"></i>
                 Source Images
               </a>
               <a class="item" onclick="deleteTitleCards();">
+                <i class="images outline icon"></i>
                 Title Cards
               </a>
               <a class="item" id="delete-series">
+                <i class="times circle outline icon"></i>
                 Series
               </a>
             </div>
           </div>
-          <a class="item" onclick="navigateSeries('next');">
-            <i data-action="next-series" class="ui arrow alternate circle right outline link icon"></i>
-          </a>
         </div>
       </div>
 
-      <div id="card-progress" class="ui tiny progress">
-        <div class="green bar"></div>
-        <div class="red bar"></div>
-        <div class="label" id="card-count" data-tooltip="Click to refresh" data-position="bottom center" data-variation="small">
-          0 / 0 Title Cards
-        </div>
+      <!-- Progress bar (spans full width below action bar) -->
+      <div id="card-progress" class="series-progress-bar">
+        <div class="series-progress-fill green"></div>
+        <div class="series-progress-fill red"></div>
       </div>
 
-      <div class="ui raised segment">
-        <div class="ui stackable grid">
-          <div class="eight wide column" style="max-height: 350px; display: flex;">
-            <img src="{{ series.poster_url }}" id="poster">
-            <div id="poster-dialog" class="ui uninvertible popup right center">
-              <div class="content">
-                <div class="ui left icon uninvertible right action input" data-value="url">
-                  <i class="circular search link icon" onclick="queryTMDbPoster();" title="Search TMDb"></i>
-                  <input name="url" placeholder="URL..">
-                  <button class="ui green icon uninvertible button" onclick="editSeriesPoster();" data-tooltip="Load URL">
-                    <i class="arrow alternate circle right outline icon"></i>
-                  </button>
-                </div>
-      
-                <div class="ui horizontal uninvertible divider">Or</div>
-      
-                <div class="ui file uninvertible input" data-value="file">
-                  <input type="file" name="file" accept="image/*" onchange="editSeriesPoster();">
-                </div>
+      <!-- Hero panel -->
+      <div class="series-hero settings-panel">
+        <!-- Connection warnings (consolidated) -->
+        {% set has_warnings = (preferences.use_emby and not series.emby_id) or (preferences.use_jellyfin and not series.jellyfin_id) or (preferences.use_sonarr and not series.sonarr_id) or (preferences.use_tmdb and series.tmdb_id is none) %}
+        {% if has_warnings %}
+        <div class="series-hero-warning">
+          <i class="exclamation triangle icon"></i>
+          <span>This series was not found in:
+            {% set missing = [] %}
+            {% if preferences.use_emby and not series.emby_id %}{% set _ = missing.append('Emby') %}{% endif %}
+            {% if preferences.use_jellyfin and not series.jellyfin_id %}{% set _ = missing.append('Jellyfin') %}{% endif %}
+            {% if preferences.use_sonarr and not series.sonarr_id %}{% set _ = missing.append('Sonarr') %}{% endif %}
+            {% if preferences.use_tmdb and series.tmdb_id is none %}{% set _ = missing.append('TMDb') %}{% endif %}
+            {{ missing | join(', ') }}.
+          </span>
+          <span class="series-hero-warning-hint">Check the <a href="#ids" onclick="$('#series-tabs-menu .item[data-tab=ids]').tab('change tab', 'ids');">External IDs</a> tab.</span>
+        </div>
+        {% endif %}
 
-                <div class="ui horizontal uninvertible divider">Or</div>
+        <div class="series-hero-body">
+          <!-- Poster column -->
+          <div class="series-hero-poster-col">
+            <button type="button" class="series-poster-trigger" onclick="openPosterModal();" aria-label="Change poster">
+              <img src="{{ series.poster_url }}" id="poster" class="series-poster" alt="">
+              <span class="series-poster-edit">
+                <i class="edit icon"></i>
+                Change
+              </span>
+            </button>
+          </div>
 
-                <button class="ui uninvertible labeled fluid icon button" onclick="downloadSeriesPoster();" data-action="delete-poster">
-                  <i class="arrow alternate circle down outline icon"></i>
-                  Pull from Server
-                </button>
+          <!-- Series info column -->
+          <div class="series-hero-info">
+            <div class="series-hero-title-row">
+              <h1 class="series-hero-name" contenteditable="">{{ series.name }}</h1>
+              <span class="series-year-badge">{{ series.year }}</span>
+            </div>
+            <div class="series-hero-stats">
+              <span class="series-stat-badge" id="card-count" data-tooltip="Click to refresh" data-position="bottom center" onclick="getStatistics();">
+                <i class="images outline icon"></i>
+                <span>0 / 0 Title Cards</span>
+              </span>
+            </div>
+            <div class="series-hero-preview-picker ui form">
+              <div class="field" id="preview-episode-dropdown">
+                <label>
+                  Preview Episode
+                  <span class="help-tip" data-tip="Episode to display a preview Title Card for">ⓘ</span>
+                </label>
+                <div data-value="episode_id" class="ui compact selection dropdown">
+                  <input name="episode_id" type="hidden" placeholder="No Episodes">
+                  <i class="dropdown icon"></i>
+                  <div class="default text"></div>
+                  <div class="menu"></div>
+                </div>
               </div>
             </div>
-            <div class="ui invisible segment">
-              <h2 class="ui header">
-                <span contenteditable="">{{ series.name }}</span>
-                <div class="sub header">{{ series.year }}</div>
-                <div id="card-progress" class="ui bottom attached progress">
-                  <div class="green bar"></div>
-                  <div class="red bar"></div>
-                </div>
-              </h2>
-
-              <form class="ui form">
-                <div class="field" id="preview-episode-dropdown">
-                  <label>Preview Episode</label>
-                  <div data-value="episode_id" class="ui compact selection dropdown">
-                    <input name="episode_id" type="hidden" placeholder="No Episodes">
-                    <i class="dropdown icon"></i>
-                    <div class="default text"></div>
-                    <div class="menu"></div>
-                  </div>
-                  <p class="help">Episode to display a preview Title Card for</p>
-                </div>
-
-                <!-- <div class="field" id="copy-config-dropdown">
-                  <label>Copy Card Configuration</label>
-                  <div data-value="from_series_id" class="ui compact selection dropdown">
-                    <input name="from_series_id" type="hidden" placeholder="None">
-                    <i class="dropdown icon"></i>
-                    <div class="default text"></div>
-                    <div class="menu"></div>
-                  </div>
-                  <p class="help">Copy the Card settings from another Series to this Series</p>
-                </div> -->
-              </form>
-            </div>
           </div>
-          <div class="eight wide column">
-            <a href="#" class="ui floated right image" style="box-shadow: 0 1px 3px 0 #555,0 0 0 1px #555; border-radius: .29rem;" onclick="refreshPreview();">
-              <img id="live-preview" src="/public/blank.png" loading="lazy" style="border-radius: .29rem;">
+
+          <!-- Live preview column -->
+          <div class="series-hero-preview-col">
+            <a href="#" class="series-preview-link" onclick="refreshPreview();" data-tooltip="Click to refresh preview" data-position="left center">
+              <img id="live-preview" src="/public/blank.png" loading="lazy" class="series-preview-img">
             </a>
           </div>
         </div>
+      </div>
 
-        <div id="series-tabs-menu" class="ui top attached stackable tabular menu">
+      <!-- Tab navigation (pill style, Fomantic tab system retained) -->
+      <div class="series-tab-nav-wrap">
+        <div id="series-tabs-menu" class="series-tab-nav">
           <a class="item active" data-tab="options">Options</a>
-          <a class="item" data-tab="card-config">Card Configuration</a>
-          <a class="item" data-tab="blueprints">Blueprints<span data-value="blueprint-count"></span></a>
+          <a class="item" data-tab="card-config">Card Config</a>
+          <a class="item" data-tab="blueprints">Blueprints<span class="tab-badge" data-value="blueprint-count"></span></a>
           <a class="item" data-tab="episodes">Episode Data</a>
           <a class="item" data-tab="files">Files</a>
           <a class="item" data-tab="ids">External</a>
           <a class="item" data-tab="logs">Logs</a>
         </div>
+      </div>
 
         <!-- Options tab -->
-        <div class="ui bottom attached tab active segment" data-tab="options">
+        <div class="ui tab series-tab-pane active" data-tab="options">
           <form id="series-config-form" class="ui compact form">
-            <!-- Warning if Series is not found in various interfaces -->
-            {% if preferences.use_emby and not series.emby_id %}
-            <div class="ui visible floating warning message">
-              <i class="exclamation triangle icon"></i>
-              This Series has not been found in Emby.
-            </div>
-            {% endif %}
-            {% if preferences.use_jellyfin and not series.jellyfin_id %}
-            <div class="ui visible floating warning message">
-              <i class="exclamation triangle icon"></i>
-              This Series has not been found in Jellyfin.
-            </div>
-            {% endif %}
-            {% if preferences.use_sonarr and not series.sonarr_id %}
-            <div class="ui visible floating warning message">
-              <i class="exclamation triangle icon"></i>
-              This Series has not been found in Sonarr.
-            </div>
-            {% endif %}
-            {% if preferences.use_tmdb and series.tmdb_id is none %}
-            <div class="ui visible floating warning message">
-              <i class="exclamation triangle icon"></i>
-              This Series has not been found on TMDb.
-            </div>
-            {% endif %}
 
-            <div class="ui three fields">
-              <!-- Libraries -->
-              <div class="ui field">
-                <label>Libraries</label>
-                <div data-value="libraries" class="ui multiple selection dropdown">
-                  <input name="libraries" type="hidden">
-                  <i class="dropdown icon"></i>
-                  <div class="default text">None</div>
-                  <div class="menu"><!-- Added asynchronousely --></div>
-                </div>
-                <p class="help">Libraries to load Title Cards into. These are queried and loaded in order.</p>
+            <!-- Data Sources panel -->
+            <div class="settings-panel">
+              <div class="settings-panel-header">
+                <i class="database icon"></i>
+                Data Sources
               </div>
-  
-              <!-- Episode Data Source -->
-              <div class="field">
-                <label>Episode Data Source</label>
-                <div data-value="data_source_id" class="ui selection clearable dropdown">
-                  {% if series.data_source_id is none %}
-                  <input name="data_source_id" type="hidden">
-                  {% else %}
-                  <input name="data_source_id" type="hidden" value="{{ series.data_source_id }}">
-                  {% endif %}
-                  <i class="dropdown icon"></i>
-                  <div class="default text">Default</div>
-                  <div class="menu">
-                    {% for connection in all_connections | sort(attribute='name') %}
-                      <div class="item" data-value="{{ connection.id }}">{{ connection.name }}</div>
-                    {% endfor %}
+              <section>
+                <div class="ui three fields">
+                  <div class="ui field">
+                    <label>
+                      Libraries
+                      <span class="help-tip" data-tip="Libraries to load Title Cards into. These are queried and loaded in order.">ⓘ</span>
+                    </label>
+                    <div data-value="libraries" class="ui multiple selection dropdown">
+                      <input name="libraries" type="hidden">
+                      <i class="dropdown icon"></i>
+                      <div class="default text">None</div>
+                      <div class="menu"><!-- Added asynchronously --></div>
+                    </div>
                   </div>
-                </div>
-                <p class="help">Where to get Episode data from.</p>
-              </div>
 
-              <!-- Image source priority -->
-              <div class="ui field">
-                <label>Image Source Priority</label>
-                <div data-value="image_source_priority" class="ui multiple selection dropdown">
-                  <input name="image_source_priority" type="hidden">
-                  <i class="dropdown icon"></i>
-                  <div class="default text">Default</div>
-                  <div class="menu">
-                    {% for connection in all_connections | sort(attribute='name') %}
-                      {% if connection.interface_type != 'Sonarr' %}
-                        <div class="item" data-value="{{ connection.id }}">{{ connection.name }}</div>
+                  <div class="field">
+                    <label>
+                      Episode Data Source
+                      <span class="help-tip" data-tip="Where to get Episode data from.">ⓘ</span>
+                    </label>
+                    <div data-value="data_source_id" class="ui selection clearable dropdown">
+                      {% if series.data_source_id is none %}
+                      <input name="data_source_id" type="hidden">
+                      {% else %}
+                      <input name="data_source_id" type="hidden" value="{{ series.data_source_id }}">
                       {% endif %}
-                    {% endfor %}
+                      <i class="dropdown icon"></i>
+                      <div class="default text">Default</div>
+                      <div class="menu">
+                        {% for connection in all_connections | sort(attribute='name') %}
+                          <div class="item" data-value="{{ connection.id }}">{{ connection.name }}</div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ui field">
+                    <label>
+                      Image Source Priority
+                      <span class="help-tip" data-tip="Order of Connections to try and download images from.">ⓘ</span>
+                    </label>
+                    <div data-value="image_source_priority" class="ui multiple selection dropdown">
+                      <input name="image_source_priority" type="hidden">
+                      <i class="dropdown icon"></i>
+                      <div class="default text">Default</div>
+                      <div class="menu">
+                        {% for connection in all_connections | sort(attribute='name') %}
+                          {% if connection.interface_type != 'Sonarr' %}
+                            <div class="item" data-value="{{ connection.id }}">{{ connection.name }}</div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <p class="help">Order of Connections to try and download images from.</p>
-              </div>
+              </section>
             </div>
 
-            <div class="ui three fields">
-              <div class="ui left aligned checkbox field">
-                <label>Match Titles</label>
-                {% if series.match_titles %}
-                <input name="match_titles" type="checkbox" checked="">
-                {% else %}
-                <input name="match_titles" type="checkbox">
-                {% endif %}
-                <p class="help">Whether to rename Episode titles if they differ from the Episode data source.</p>
+            <!-- Behaviour panel -->
+            <div class="settings-panel">
+              <div class="settings-panel-header">
+                <i class="sliders horizontal icon"></i>
+                Behaviour
               </div>
-              <br>
-  
-              <div class="ui left aligned checkbox field">
-                <label>Auto-Split Titles</label>
-                {% if series.auto_split_title %}
-                <input name="auto_split_title" type="checkbox" checked="">
-                {% else %}
-                <input name="auto_split_title" type="checkbox">
-                {% endif %}
-                <p class="help">Whether to automatically split the title text into separate lines.</p>
-              </div>
+              <section>
+                <div class="toggle-grid">
+                  <div class="toggle-field">
+                    <label class="toggle-switch">
+                      {% if series.match_titles %}
+                      <input name="match_titles" type="checkbox" checked="">
+                      {% else %}
+                      <input name="match_titles" type="checkbox">
+                      {% endif %}
+                      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    </label>
+                    <div class="toggle-label">
+                      Match Titles
+                      <span class="help-tip" data-tip="Whether to rename Episode titles if they differ from the Episode data source.">ⓘ</span>
+                    </div>
+                  </div>
 
-              <div class="ui left aligned checkbox field">
-                <label>Use Per-Season Assets</label>
-                {% if series.use_per_season_assets %}
-                <input name="use_per_season_assets" type="checkbox" checked="">
-                {% else %}
-                <input name="use_per_season_assets" type="checkbox">
-                {% endif %}
-                <p class="help">Whether to utilize manually added backdrops and logos unique to each season.</p>
-              </div>
-            </div>
+                  <div class="toggle-field">
+                    <label class="toggle-switch">
+                      {% if series.auto_split_title %}
+                      <input name="auto_split_title" type="checkbox" checked="">
+                      {% else %}
+                      <input name="auto_split_title" type="checkbox">
+                      {% endif %}
+                      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    </label>
+                    <div class="toggle-label">
+                      Auto-Split Titles
+                      <span class="help-tip" data-tip="Whether to automatically split the title text into separate lines.">ⓘ</span>
+                    </div>
+                  </div>
 
-
-            <div class="ui two fields">
-              <div class="ui field">
-                <label>Enable Specials</label>
-                <div data-value="sync_specials" class="ui selection clearable dropdown">
-                  {% if series.sync_specials is none %}
-                  <input name="sync_specials" type="hidden">
-                  {% else %}
-                  <input name="sync_specials" type="hidden" value="{{ series.sync_specials }}">
-                  {% endif %}
-                  <i class="dropdown icon"></i>
-                  <div class="default text">Default</div>
-                  <div class="menu">
-                    <div class="item" data-value="True">True</div>
-                    <div class="item" data-value="False">False</div>
+                  <div class="toggle-field">
+                    <label class="toggle-switch">
+                      {% if series.use_per_season_assets %}
+                      <input name="use_per_season_assets" type="checkbox" checked="">
+                      {% else %}
+                      <input name="use_per_season_assets" type="checkbox">
+                      {% endif %}
+                      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    </label>
+                    <div class="toggle-label">
+                      Per-Season Assets
+                      <span class="help-tip" data-tip="Whether to utilize manually added backdrops and logos unique to each season.">ⓘ</span>
+                    </div>
                   </div>
                 </div>
-                <p class="help">Whether to include Episodes from Season 0.</p>
-              </div>
-  
-              <div class="ui field">
-                <label>Ignore Localized Images</label>
-                <div data-value="skip_localized_images" class="ui selection clearable dropdown">
-                  {% if series.skip_localized_images is none %}
-                  <input name="skip_localized_images" type="hidden">
-                  {% else %}
-                  <input name="skip_localized_images" type="hidden" value="{{ series.skip_localized_images }}">
-                  {% endif %}
-                  <i class="dropdown icon"></i>
-                  <div class="default text">Default</div>
-                  <div class="menu">
-                    <div class="item" data-value="True">True</div>
-                    <div class="item" data-value="False">False</div>
+
+                <div class="ui two fields" style="margin-top: 1.1rem;">
+                  <div class="ui field">
+                    <label>
+                      Enable Specials
+                      <span class="help-tip" data-tip="Whether to include Episodes from Season 0.">ⓘ</span>
+                    </label>
+                    <div data-value="sync_specials" class="ui selection clearable dropdown">
+                      {% if series.sync_specials is none %}
+                      <input name="sync_specials" type="hidden">
+                      {% else %}
+                      <input name="sync_specials" type="hidden" value="{{ series.sync_specials }}">
+                      {% endif %}
+                      <i class="dropdown icon"></i>
+                      <div class="default text">Default</div>
+                      <div class="menu">
+                        <div class="item" data-value="True">True</div>
+                        <div class="item" data-value="False">False</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ui field">
+                    <label>
+                      Ignore Localized Images
+                      <span class="help-tip" data-tip="Whether to ignore images with assigned Languages (i.e. images with text).">ⓘ</span>
+                    </label>
+                    <div data-value="skip_localized_images" class="ui selection clearable dropdown">
+                      {% if series.skip_localized_images is none %}
+                      <input name="skip_localized_images" type="hidden">
+                      {% else %}
+                      <input name="skip_localized_images" type="hidden" value="{{ series.skip_localized_images }}">
+                      {% endif %}
+                      <i class="dropdown icon"></i>
+                      <div class="default text">Default</div>
+                      <div class="menu">
+                        <div class="item" data-value="True">True</div>
+                        <div class="item" data-value="False">False</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <p class="help">Whether to ignore images with assigned Languages (i.e. images with text).</p>
-              </div>
+              </section>
             </div>
 
-            <div class="ui two fields">
-              <div class="ui field">
-                <label>Card Directory</label>
-                <div class="ui left icon fluid input">
-                  {% if series.directory is none %}
-                  {% if '/' in preferences.card_directory|string %}
-                  <input name="directory" type="text" placeholder="{{ preferences.card_directory }}/{{ series.path_safe_name }}">
-                  {% else %}
-                  <input name="directory" type="text" placeholder="{{ preferences.card_directory }}\{{ series.path_safe_name }}">
-                  {% endif %}
-                  {% else %}
-                  <input name="directory" type="text" value="{{ series.directory }}">
-                  {% endif %}
-                  <i class="folder icon"></i>
+            <!-- File Layout panel -->
+            <div class="settings-panel">
+              <div class="settings-panel-header">
+                <i class="folder open outline icon"></i>
+                File Layout
+              </div>
+              <section>
+                <div class="ui two fields">
+                  <div class="ui field">
+                    <label>
+                      Card Directory
+                      <span class="help-tip" data-tip="Directory to store this Series' Title Cards.">ⓘ</span>
+                    </label>
+                    <div class="ui left icon fluid input">
+                      {% if series.directory is none %}
+                        {% if '/' in preferences.card_directory|string %}
+                        <input name="directory" type="text" placeholder="{{ preferences.card_directory }}/{{ series.path_safe_name }}">
+                        {% else %}
+                        <input name="directory" type="text" placeholder="{{ preferences.card_directory }}\{{ series.path_safe_name }}">
+                        {% endif %}
+                      {% else %}
+                      <input name="directory" type="text" value="{{ series.directory }}">
+                      {% endif %}
+                      <i class="folder icon"></i>
+                    </div>
+                  </div>
+
+                  <div class="ui field">
+                    <label>
+                      Filename Format
+                      <span class="help-tip" data-tip="Format of how to name this Series' Title Cards.">ⓘ</span>
+                    </label>
+                    {% if series.card_filename_format is none %}
+                    <input name="card_filename_format" type="text" placeholder="Default">
+                    {% else %}
+                    <input name="card_filename_format" type="text" value="{{ series.card_filename_format }}">
+                    {% endif %}
+                  </div>
                 </div>
-                <p class="help">Directory to store this Series' Title Cards.</p>
-              </div>
-  
-              <div class="ui field">
-                <label>Filename Format</label>
-                {% if series.card_filename_format is none %}
-                <input name="card_filename_format" type="text" placeholder="Default">
-                {% else %}
-                <input name="card_filename_format" type="text" value="{{ series.card_filename_format }}">
-                {% endif %}
-                <p class="help">Format of how to name this Series' Title Cards.</p>
-              </div>
+              </section>
             </div>
 
-            <!-- Submit changes button -->
-            <button id="submit-changes" class="ui animated primary button" onclick="updateSeries('options');">
-              <div class="visible content">Save</div>
-              <div class="hidden content">
-                <i class="right arrow icon"></i>
-              </div>
-            </button>
           </form>
         </div>
 
         <!-- Card Configuration -->
-        <div class="ui bottom attached tab segment" data-tab="card-config">
-          <div class="ui stackable grid">
-            <!-- Card config  -->
-            <div class="sixteen wide column">
-              <form id="card-config-form" class="ui compact form">
-                <!-- Templates -->
-                <div class="field">
-                  <label>Templates</label>
+        <div class="ui tab series-tab-pane" data-tab="card-config">
+          <form id="card-config-form" class="ui compact form">
+
+            <!-- Templates & Card Type panel -->
+            <div class="settings-panel">
+              <div class="settings-panel-header">
+                <i class="copy outline icon"></i>
+                Templates &amp; Card Type
+              </div>
+              <section>
+                <div class="ui field">
+                  <label>
+                    Templates
+                    <span class="help-tip" data-tip="Templates are evaluated in order and provide default settings for this series.">ⓘ</span>
+                  </label>
                   <div data-value="template_ids" class="ui long clearable search selection multiple dropdown">
                     <input name="template_ids" type="hidden">
                     <i class="dropdown icon"></i>
                     <div class="default text">None</div>
                     <div class="menu"><!-- Added asynchronously --></div>
                   </div>
-                  <p class="help">Templates are evaluated in order.</p>
                 </div>
 
-                <div class="ui divider"></div>
-
-                <!-- Card type and font -->
                 <div class="ui two fields">
                   <div class="field">
-                    <label>Card Type <i class="question circle outline icon" id="series-card-type-help" style="cursor: pointer; margin-left: 0.25em;" title="View all card types"></i></label>
+                    <label>
+                      Card Type
+                      <i class="question circle outline icon" id="series-card-type-help" style="cursor: pointer; margin-left: 0.25em;" title="View all card types"></i>
+                    </label>
                     <div data-value="card-types" class="ui long selection clearable search dropdown">
                       <input name="card_type" type="hidden">
                       <i class="dropdown icon"></i>
@@ -849,10 +879,9 @@
 
                   <div class="field">
                     <label>
-                      {% if series.font_id is none %}
                       Font
-                      {% else %}
-                      Font <a data-value="font-link" href="/fonts#font-id{{ series.font_id }}"><i class="external alternate small link icon"></i></a>
+                      {% if series.font_id is not none %}
+                      <a data-value="font-link" href="/fonts#font-id{{ series.font_id }}"><i class="external alternate small link icon"></i></a>
                       {% endif %}
                     </label>
                     <div data-value="fonts" class="ui very long clearable selection search dropdown">
@@ -871,8 +900,16 @@
                     </div>
                   </div>
                 </div>
+              </section>
+            </div>
 
-                <!-- Styles -->
+            <!-- Episode Style panel -->
+            <div class="settings-panel">
+              <div class="settings-panel-header">
+                <i class="eye outline icon"></i>
+                Episode Style
+              </div>
+              <section>
                 <div class="ui two fields">
                   <div class="field">
                     <label>Watched Episode Style</label>
@@ -898,7 +935,7 @@
                       </div>
                     </div>
                   </div>
-    
+
                   <div class="field">
                     <label>Unwatched Episode Style</label>
                     <div data-value="unwatched-style" class="ui long selection clearable dropdown">
@@ -924,119 +961,134 @@
                     </div>
                   </div>
                 </div>
+              </section>
+            </div>
 
-                <h4 class="ui horizontal middle aligned divider header">Font Overrides</h4>
-
-                <!-- Font color and case -->
-                <div class="two fields">
-                  <div class="field" data-value="font_color">
-                    <label>
-                      Color
-                      <span class="inline color circle"></span>
-                      <a href="https://imagemagick.org/script/color.php#color_names" target="_blank">
-                        <i class="external alternate small icon"></i>
-                      </a>
-                    </label>
-                    {% if series.font_color is none %}
-                    <input name="font_color" type="text" placeholder="Default">
-                    {% else %}
-                    <input name="font_color" type="text" placeholder="Default" value="{{ series.font_color }}">
-                    {% endif %}
-                  </div>
-  
-                  <div class="field">
-                    <label>Text Case</label>
-                    <div data-value="font_title_case" class="ui clearable selection dropdown">
-                      {% if series.font_title_case is none %}
-                      <input name="font_title_case" type="hidden">
+            <!-- Font Overrides panel (collapsible accordion) -->
+            <div class="settings-panel ui accordion" id="font-overrides-accordion">
+              <div class="settings-panel-header title active">
+                <i class="font icon"></i>
+                Font Overrides
+                <i class="chevron down icon" style="margin-left: auto; transition: transform 0.2s;"></i>
+              </div>
+              <div class="content active">
+                <section>
+                  <div class="two fields">
+                    <div class="field" data-value="font_color">
+                      <label>
+                        Color
+                        <span class="inline color circle"></span>
+                        <a href="https://imagemagick.org/script/color.php#color_names" target="_blank" data-tooltip="ImageMagick color reference" data-position="top center">
+                          <i class="external alternate small icon"></i>
+                        </a>
+                      </label>
+                      {% if series.font_color is none %}
+                      <input name="font_color" type="text" placeholder="Default">
                       {% else %}
-                      <input name="font_title_case" type="hidden" value="{{ series.font_title_case }}">
+                      <input name="font_color" type="text" placeholder="Default" value="{{ series.font_color }}">
                       {% endif %}
-                      <div class="default text">Default</div>
-                      <i class="dropdown icon"></i>
-                      <div class="menu">
-                        <div class="item" data-value="blank">Blank</div>
-                        <div class="item" data-value="lower">Lowercase</div>
-                        <div class="item" data-value="source">Source</div>
-                        <div class="item" data-value="title">Title</div>
-                        <div class="item" data-value="upper">Uppercase</div>
+                    </div>
+
+                    <div class="field">
+                      <label>Text Case</label>
+                      <div data-value="font_title_case" class="ui clearable selection dropdown">
+                        {% if series.font_title_case is none %}
+                        <input name="font_title_case" type="hidden">
+                        {% else %}
+                        <input name="font_title_case" type="hidden" value="{{ series.font_title_case }}">
+                        {% endif %}
+                        <div class="default text">Default</div>
+                        <i class="dropdown icon"></i>
+                        <div class="menu">
+                          <div class="item" data-value="blank">Blank</div>
+                          <div class="item" data-value="lower">Lowercase</div>
+                          <div class="item" data-value="source">Source</div>
+                          <div class="item" data-value="title">Title</div>
+                          <div class="item" data-value="upper">Uppercase</div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Font size, kerning, and stroke width -->
-                <div class="three fields">
-                  <div class="field">
-                    <label>Size</label>
-                    <div class="ui right labeled input">
-                      {% if series.font_size is none %}
-                      <input name="font_size" type="number" placeholder="Default">
-                      {% else %}
-                      <input name="font_size" type="number" placeholder="Default" value="{{ (series.font_size*100)|int }}">
-                      {% endif %}
-                      <div class="ui basic label">%</div>
+                  <div class="three fields">
+                    <div class="field">
+                      <label>Size</label>
+                      <div class="ui right labeled input">
+                        {% if series.font_size is none %}
+                        <input name="font_size" type="number" placeholder="Default">
+                        {% else %}
+                        <input name="font_size" type="number" placeholder="Default" value="{{ (series.font_size*100)|int }}">
+                        {% endif %}
+                        <div class="ui basic label">%</div>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Kerning</label>
+                      <div class="ui right labeled input">
+                        {% if series.font_kerning is none %}
+                        <input name="font_kerning" type="number" placeholder="Default">
+                        {% else %}
+                        <input name="font_kerning" type="number" placeholder="Default" value="{{ (series.font_kerning*100)|int }}">
+                        {% endif %}
+                        <div class="ui basic label">%</div>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Stroke Width</label>
+                      <div class="ui right labeled input">
+                        {% if series.font_stroke_width is none %}
+                        <input name="font_stroke_width" type="number" placeholder="Default">
+                        {% else %}
+                        <input name="font_stroke_width" type="number" placeholder="Default" value="{{ (series.font_stroke_width*100)|int }}">
+                        {% endif %}
+                        <div class="ui basic label">%</div>
+                      </div>
                     </div>
                   </div>
-                  <div class="field">
-                    <label>Kerning</label>
-                    <div class="ui right labeled input">
-                      {% if series.font_kerning is none %}
-                      <input name="font_kerning" type="number" placeholder="Default">
+
+                  <div class="three fields">
+                    <div class="field">
+                      <label>Interline Spacing</label>
+                      {% if series.font_interline_spacing is none %}
+                      <input name="font_interline_spacing" type="number" placeholder="Default">
                       {% else %}
-                      <input name="font_kerning" type="number" placeholder="Default" value="{{ (series.font_kerning*100)|int }}">
+                      <input name="font_interline_spacing" type="number" placeholder="Default" value="{{ series.font_interline_spacing }}">
                       {% endif %}
-                      <div class="ui basic label">%</div>
+                    </div>
+                    <div class="field">
+                      <label>Interword Spacing</label>
+                      {% if series.font_interword_spacing is none %}
+                      <input name="font_interword_spacing" type="number" placeholder="Default">
+                      {% else %}
+                      <input name="font_interword_spacing" type="number" placeholder="Default" value="{{ series.font_interword_spacing }}">
+                      {% endif %}
+                    </div>
+                    <div class="field">
+                      <label>Vertical Shift</label>
+                      {% if series.font_vertical_shift is none %}
+                      <input name="font_vertical_shift" type="number" placeholder="Default">
+                      {% else %}
+                      <input name="font_vertical_shift" type="number" placeholder="Default" value="{{ series.font_vertical_shift }}">
+                      {% endif %}
                     </div>
                   </div>
-                  <div class="field">
-                    <label>Stroke Width</label>
-                    <div class="ui right labeled input">
-                      {% if series.font_stroke_width is none %}
-                      <input name="font_stroke_width" type="number" placeholder="Default">
-                      {% else %}
-                      <input name="font_stroke_width" type="number" placeholder="Default" value="{{ (series.font_stroke_width*100)|int }}">
-                      {% endif %}
-                      <div class="ui basic label">%</div>
-                    </div>
-                  </div>
-                </div>
+                </section>
+              </div>
+            </div><!-- end Font Overrides accordion -->
 
-                <!-- Font interline spacing, interword spacing, vertical shift -->
-                <div class="three fields">
-                  <div class="field">
-                    <label>Interline Spacing</label>
-                    {% if series.font_interline_spacing is none %}
-                    <input name="font_interline_spacing" type="number" placeholder="Default">
-                    {% else %}
-                    <input name="font_interline_spacing" type="number" placeholder="Default" value="{{ series.font_interline_spacing }}">
-                    {% endif %}
-                  </div>
-
-                  <div class="field">
-                    <label>Interword Spacing</label>
-                    {% if series.font_interword_spacing is none %}
-                    <input name="font_interword_spacing" type="number" placeholder="Default">
-                    {% else %}
-                    <input name="font_interword_spacing" type="number" placeholder="Default" value="{{ series.font_interword_spacing }}">
-                    {% endif %}
-                  </div>
-  
-                  <div class="field">
-                    <label>Vertical Shift</label>
-                    {% if series.font_vertical_shift is none %}
-                    <input name="font_vertical_shift" type="number" placeholder="Default">
-                    {% else %}
-                    <input name="font_vertical_shift" type="number" placeholder="Default" value="{{ series.font_vertical_shift }}">
-                    {% endif %}
-                  </div>
-                </div>
-  
-                <h4 class="ui horizontal middle aligned divider header">Season and Episode Text</h4>
-
+            <!-- Season & Episode Text panel -->
+            <div class="settings-panel">
+              <div class="settings-panel-header">
+                <i class="list ol icon"></i>
+                Season &amp; Episode Text
+              </div>
+              <section>
                 <!-- Hide season text -->
                 <div class="ui field">
-                  <label>Hide Season Titles</label>
+                  <label>
+                    Hide Season Titles
+                    <span class="help-tip" data-tip="Remove the season text - e.g. &quot;Season 1&quot;">ⓘ</span>
+                  </label>
                   <div data-value="hide_season_text" class="ui compact selection clearable dropdown">
                     {% if series.hide_season_text is none %}
                     <input name="hide_season_text" type="hidden">
@@ -1050,9 +1102,8 @@
                       <div class="item" data-value="False">False</div>
                     </div>
                   </div>
-                  <p class="help">Remove the season text - e.g. "Season 1"</p>
                 </div>
-  
+
                 <!-- Season titles -->
                 <div data-value="season-titles" class="ui field">
                   <div class="repl-header">
@@ -1098,7 +1149,10 @@
                 <!-- Hide episode text -->
                 <div class="fields">
                   <div class="four wide field">
-                    <label>Hide Episode Text</label>
+                    <label>
+                      Hide Episode Text
+                      <span class="help-tip" data-tip="Remove the episode text - e.g. &quot;Episode 1&quot;">ⓘ</span>
+                    </label>
                     <div data-value="hide_episode_text" class="ui selection clearable dropdown">
                       {% if series.hide_episode_text is none %}
                       <input name="hide_episode_text" type="hidden">
@@ -1112,10 +1166,8 @@
                         <div class="item">False</div>
                       </div>
                     </div>
-                    <p class="help">Remove the episode text - e.g. "Episode 1"</p>
                   </div>
 
-                  <!-- Episode text format -->
                   <div class="twelve wide field">
                     <label>Episode Text Format</label>
                     {% if series.episode_text_format is none %}
@@ -1125,23 +1177,32 @@
                     {% endif %}
                   </div>
                 </div>
-  
+              </section>
+            </div>
 
-                <h4 class="ui horizontal middle aligned divider header">Translations and Extras</h4>
-
-                <!-- Translations -->
+            <!-- Translations & Extras panel -->
+            <div class="settings-panel">
+              <div class="settings-panel-header">
+                <i class="language icon"></i>
+                Translations &amp; Extras
+              </div>
+              <section>
                 <div class="ui field">
-                  <label>Translations</label>
+                  <div class="repl-header">
+                    <label>Translations</label>
+                    <div class="repl-header-actions">
+                      <button data-add-field="translation" class="repl-action-btn" type="button">
+                        <i class="plus icon"></i>
+                        Add
+                      </button>
+                      <button class="repl-action-btn danger" type="button" onclick="deleteListValues('translations')">
+                        <i class="trash alternate outline icon"></i>
+                        Delete All
+                      </button>
+                    </div>
+                  </div>
                   <div data-value="translations" class="ui compact segment">
                     <!-- Added asynchronously -->
-                  </div>
-                  <div data-add-field="translation" class="ui circular mini icon add-field button">
-                    <i class="plus square outline icon"></i>
-                    Add Translation
-                  </div>
-                  <div class="ui circular mini icon add-field red button" onclick="deleteListValues('translations')">
-                    <i class="trash alternate outline icon"></i>
-                    Delete Translations
                   </div>
                 </div>
 
@@ -1149,521 +1210,562 @@
                 <section aria-label="extras">
                   <div class="ui top attached tabular wrapping menu"></div>
                 </section>
-
-                <!-- Submit changes button -->
-                <button id="submit-changes" class="ui animated primary button" onclick="updateSeries('card');">
-                  <div class="visible content">Save</div>
-                  <div class="hidden content">
-                    <i class="right arrow icon"></i>
-                  </div>
-                </button>
-              </form>
+              </section>
             </div>
-          </div>
+
+          </form>
         </div>
 
         <!-- Blueprints Tab -->
-        <div class="ui bottom attached tab segment" data-tab="blueprints">
-          <button data-action="search" onclick="queryBlueprints();" class="ui blue tertiary button">
-            <i class="search icon"></i>
-            Search
-          </button>
-          <button data-action="export" onclick="exportBlueprint();" class="ui green tertiary button">
-            <i class="file export icon"></i>
-            Export
-          </button>
+        <div class="ui tab series-tab-pane" data-tab="blueprints">
+          <div class="settings-panel">
+            <div class="settings-panel-header">
+              <i class="puzzle piece icon"></i>
+              Blueprints
+              <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                <button data-action="search" onclick="queryBlueprints();" class="panel-action-btn">
+                  <i class="search icon"></i>
+                  Search
+                </button>
+                <button data-action="export" onclick="exportBlueprint();" class="panel-action-btn green">
+                  <i class="file export icon"></i>
+                  Export
+                </button>
+              </div>
+            </div>
+            <section>
+              <p class="section-note">
+                Blueprints are community-made card configurations that can be imported and applied to this Series.
+                When imported, any included Fonts, Templates, and Episode customizations are applied directly.
+              </p>
 
-          <div class="ui floating hidden info icon message">
-            <i class="blue notched circle loading icon"></i>
-            <div class="content">
-              <div class="header">Searching for Blueprints</div>
-              <p>This may take a moment.</p>
-            </div>
-          </div>
-          <div class="ui floating hidden warning icon message">
-            <i class="exclamation icon"></i>
-            <div class="content">
-              <div class="header">No Blueprints Available</div>
-              <span>There are no Blueprints available on <a href="https://github.com/TitleCardMaker/Blueprints/" target="_blank">GitHub</a>.</span>
-              <span>Feel free to submit your own.</span>
-            </div>
-          </div>
-          <br>
-          <div id="blueprint-cards" class="ui two stackable raised cards"><!-- Added asynchronously --></div>
-          <div class="ui raised segment" id="blueprint-sets" style="display: none;"></div>
-          <br>
-          <div class="ui visible floating info message">
-            <div class="header">What are Blueprints?</div>
-            <ul class="list">
-              <li>Blueprints are pre-made Card configurations which can be imported and applied to a Series.</li>
-              <li> When imported, any included Fonts, Templates, Series, and Episode customizations are applied directly.</li>
-              <li>All Blueprints are user-made and submitted - feel free to submit your own by clicking the <b>Export</b> button above.</li>
-            </ul>
+              <div class="ui floating hidden info icon message">
+                <i class="blue notched circle loading icon"></i>
+                <div class="content">
+                  <div class="header">Searching for Blueprints</div>
+                  <p>This may take a moment.</p>
+                </div>
+              </div>
+              <div class="ui floating hidden warning icon message">
+                <i class="exclamation icon"></i>
+                <div class="content">
+                  <div class="header">No Blueprints Available</div>
+                  <span>There are no Blueprints available on <a href="https://github.com/TitleCardMaker/Blueprints/" target="_blank">GitHub</a>.</span>
+                  <span>Feel free to submit your own using the Export button above.</span>
+                </div>
+              </div>
+
+              <div id="blueprint-cards" class="ui two stackable raised cards"><!-- Added asynchronously --></div>
+              <div class="settings-panel" id="blueprint-sets" style="display: none;"></div>
+            </section>
           </div>
         </div>
 
         <!-- Episode Data Tab -->
-        <div class="ui bottom attached tab segment" data-tab="episodes">
-          <!-- Mass table editor buttons -->
-          <div class="uu buttons">
-            <button data-action="refresh-episodes" class="ui green tertiary button" onclick="refreshEpisodes();">
-              <i class="sync icon"></i>
-              Refresh
-            </button>
-            <button data-action="add-episode" id="new-episode" class="ui green tertiary button">
-              <i class="plus square outline icon"></i>
-              Add
-            </button>
-            <button data-action="save-episodes" class="ui blue tertiary button" onclick="saveAllEpisodes();">
-              <i class="save outline icon"></i>
-              Save All Changes
-            </button>
-            <button data-action="delete-episodes" class="ui red tertiary button" onclick="deleteAllEpisodes();">
-              <i class="trash alternate outline icon"></i>
-              Delete All
-            </button>
-            <button data-action="toggle-advanced-mode" class="ui right floated teal tertiary button" onclick="toggleAdvancedMode();">
-              <i class="sliders horizontal icon"></i>
-              Toggle Advanced Mode
-            </button>
-          </div>
-
-          <!-- Episode data table -->
-          <div class="ui scrolling long fluid container">
-            <table class="ui compact striped head stuck sortable unstackable table">
-              <thead>
-                <tr class="center aligned">
-                  <th class="collapsing">Create<br>Card</th>
-                  <th class="collapsing">Save<br>Changes</th>
-                  <th class="collapsing">Season</th>
-                  <th class="collapsing">Episode</th>
-                  <th class="collapsing">Absolute</th>
-
-                  <th class="left aligned">Title</th>
-                  <th class="collapsing">Match<br>Title</th>
-                  <th class="collapsing">Auto-Split<br>Title</th>
-                  {% if not preferences.simplified_data_table %}
-                  <th class="collapsing">Templates</th>
-                  <th class="collapsing">Font</th>
-                  <th class="collapsing">Card<br>Type</th>
-                  {% endif %}
-                  <th class="collapsing">Hide<br>Season Text</th>
-                  <th class="collapsing">Season<br>Text</th>
-
-                  <th class="collapsing">Hide<br>Episode Text</th>
-                  <th class="collapsing">Episode<br>Text</th>
-                  {% if not preferences.simplified_data_table %}
-                  <th class="collapsing">Unwatched<br>Style</th>
-                  <th class="collapsing">Watched<br>Style</th>
-                  
-                  <th class="collapsing">Font<br>Color</th>
-                  <th class="collapsing">Font<br>Size (%)</th>
-                  <th class="collapsing">Font<br>Kerning (%)</th>
-                  <th class="collapsing">Font Stroke<br>Width (%)</th>
-                  <th class="collapsing">Font Interline<br>Spacing</th>
-                  <th class="collapsing">Font Interword<br>Spacing</th>
-                  <th class="collapsing">Font<br>Vertical Shift</th>
-                  {% endif %}
-                  <th class="collapsing">Extras &<br>Translations</th>
-                  {% if not preferences.simplified_data_table %}
-                  <th class="collapsing">Source<br>File</th>
-                  <th class="collapsing">Card<br>File</th>
-                  {% endif %}
-                  {% if not preferences.simplified_data_table %}
-                  {% if preferences.use_emby %}
-                  <th class="collapsing">Emby<br>ID</th>
-                  {% endif %}
-                  <th class="collapsing">IMDb<br>ID</th>
-                  {% if preferences.use_jellyfin %}
-                  <th class="collapsing">Jellyfin<br>ID</th>
-                  {% endif %}
-                  <th class="collapsing">TMDb<br>ID</th>
-                  <th class="collapsing">TVDb<br>ID</th>
-                  {% if series.year < 2017 %}
-                  <th class="collapsing">TVRage<br>ID</th>
-                  {% endif %}
-                  <th class="collapsing">Airdate</th>
-                  {% endif %}
-                  <th class="collapsing">Delete</th>
-                </tr>
-              </thead>
-              <tbody id="episode-data-table" ><!-- Rows added asynchronously --></tbody>
-            </table>
-          </div>
-          <div id="pagination" class="ui attached pagination menu"><!-- Added asynchronously --></div>
-
-          <!-- Icon descriptions -->
-          <div class="ui segment">
-            <span class="ui text"><i>Click icons to toggle between states.</i></span><br>
-            <span class="ui text">
-              <i class="ui gray question icon"></i>
-              The value is <span class="ui blue text">not set</span> and will be determined by the Series or Template.
-            </span>
-            <br>
-            <span class="ui text">
-              <i class="ui green check icon"></i>
-              The value is <span class="ui green text">true</span>, overriding any Series or Template.
-            </span>
-            <br>
-            <span class="ui text">
-              <i class="ui red times circle outline icon"></i>
-              The value is <span class="ui red text">false</span>, overriding any Series or Template.
-            </span>
+        <div class="ui tab series-tab-pane" data-tab="episodes">
+          <div class="settings-panel">
+            <div class="settings-panel-header">
+              <i class="list icon"></i>
+              Episode Data
+              <div style="margin-left: auto; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button data-action="refresh-episodes" class="panel-action-btn" onclick="refreshEpisodes();">
+                  <i class="sync icon"></i>
+                  Refresh
+                </button>
+                <button data-action="add-episode" id="new-episode" class="panel-action-btn green">
+                  <i class="plus icon"></i>
+                  Add Episode
+                </button>
+                <button data-action="save-episodes" class="panel-action-btn" onclick="saveAllEpisodes();">
+                  <i class="save outline icon"></i>
+                  Save All
+                </button>
+                <button data-action="delete-episodes" class="panel-action-btn danger" onclick="deleteAllEpisodes();">
+                  <i class="trash alternate outline icon"></i>
+                  Delete All
+                </button>
+                <button data-action="toggle-advanced-mode" class="panel-action-btn" onclick="toggleAdvancedMode();">
+                  <i class="sliders horizontal icon"></i>
+                  Toggle Mode
+                </button>
+              </div>
+            </div>
+            <section style="padding: 0; overflow-x: auto;">
+              <!-- Episode data table -->
+              <table class="ui compact striped head stuck sortable unstackable table">
+                  <thead>
+                    <tr class="center aligned">
+                      <th class="collapsing">Create<br>Card</th>
+                      <th class="collapsing">Save<br>Changes</th>
+                      <th class="collapsing">Season</th>
+                      <th class="collapsing">Episode</th>
+                      <th class="collapsing">Absolute</th>
+                      <th class="left aligned">Title</th>
+                      <th class="collapsing">Match<br>Title</th>
+                      <th class="collapsing">Auto-Split<br>Title</th>
+                      {% if not preferences.simplified_data_table %}
+                      <th class="collapsing">Templates</th>
+                      <th class="collapsing">Font</th>
+                      <th class="collapsing">Card<br>Type</th>
+                      {% endif %}
+                      <th class="collapsing">Hide<br>Season Text</th>
+                      <th class="collapsing">Season<br>Text</th>
+                      <th class="collapsing">Hide<br>Episode Text</th>
+                      <th class="collapsing">Episode<br>Text</th>
+                      {% if not preferences.simplified_data_table %}
+                      <th class="collapsing">Unwatched<br>Style</th>
+                      <th class="collapsing">Watched<br>Style</th>
+                      <th class="collapsing">Font<br>Color</th>
+                      <th class="collapsing">Font<br>Size (%)</th>
+                      <th class="collapsing">Font<br>Kerning (%)</th>
+                      <th class="collapsing">Font Stroke<br>Width (%)</th>
+                      <th class="collapsing">Font Interline<br>Spacing</th>
+                      <th class="collapsing">Font Interword<br>Spacing</th>
+                      <th class="collapsing">Font<br>Vertical Shift</th>
+                      {% endif %}
+                      <th class="collapsing">Extras &<br>Translations</th>
+                      {% if not preferences.simplified_data_table %}
+                      <th class="collapsing">Source<br>File</th>
+                      <th class="collapsing">Card<br>File</th>
+                      {% endif %}
+                      {% if not preferences.simplified_data_table %}
+                      {% if preferences.use_emby %}
+                      <th class="collapsing">Emby<br>ID</th>
+                      {% endif %}
+                      <th class="collapsing">IMDb<br>ID</th>
+                      {% if preferences.use_jellyfin %}
+                      <th class="collapsing">Jellyfin<br>ID</th>
+                      {% endif %}
+                      <th class="collapsing">TMDb<br>ID</th>
+                      <th class="collapsing">TVDb<br>ID</th>
+                      {% if series.year < 2017 %}
+                      <th class="collapsing">TVRage<br>ID</th>
+                      {% endif %}
+                      <th class="collapsing">Airdate</th>
+                      {% endif %}
+                      <th class="collapsing">Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody id="episode-data-table"><!-- Rows added asynchronously --></tbody>
+                </table>
+              <div id="pagination" class="ui attached pagination menu"><!-- Added asynchronously --></div>
+            </section>
+            <section style="border-top: 1px solid rgba(0,0,0,0.06); padding-top: 0.9rem; padding-bottom: 0.9rem;">
+              <p class="section-note" style="margin:0 0 0.5rem;"><em>Click boolean icons to toggle between states.</em></p>
+              <div class="episode-icon-legend">
+                <span><i class="ui gray question icon"></i> Not set — determined by the Series or Template</span>
+                <span><i class="ui green check icon"></i> <span class="ui green text">True</span> — overrides Series &amp; Template</span>
+                <span><i class="ui red times circle outline icon"></i> <span class="ui red text">False</span> — overrides Series &amp; Template</span>
+              </div>
+            </section>
           </div>
         </div>
 
         <!-- Files Tab -->
-        <div class="ui bottom attached tab segment" data-tab="files">
-          <h2 class="ui dividing header">Title Cards</h2>
+        <div class="ui tab series-tab-pane" data-tab="files">
 
-          <button class="ui blue tertiary button" data-action="refresh-cards" onclick="getCardData(undefined, true);" >
-            <i class="redo icon"></i>
-            Refresh
-          </button>
-
-          <button class="ui green tertiary button" onclick="showCardUpload();">
-            <i class="upload icon"></i>
-            Upload
-          </button>
-
-          <button class="ui teal tertiary button" onclick="downloadSeriesTitleCards();">
-            <i class="download icon"></i>
-            Download
-          </button>
-
-          <button class="ui mediux tertiary button" onclick="openImportMediuxModal();">
-            <i class="code icon"></i>
-            MediUX Import
-          </button>
-
-          <div class="ui styled fluid accordion">
-            <div class="title">
-              <i class="dropdown icon"></i>
-              View Images
-            </div>
-            <div class="content">
-              <div id="card-previews" class="ui images"><!-- Added asynchronously --></div>
-              <div id="card-pagination" class="ui attached pagination menu"><!-- Added asynchronously --></div>
-            </div>
-          </div>
-
-          <h2 class="ui dividing header">
-            Source Images
-            {% if series.status != 'monitored' %}
-            <span data-tooltip="Series must be monitored to automatically download Source Images" data-position="right center">
-              <i class="small yellow exclamation triangle icon"></i>
-            </span>
-            {% else %}
-            <span data-tooltip="Source Images are downloaded automatically when Title Cards are created" data-position="right center">
-              <i class="small blue question circle outline icon"></i>
-            </span>
-            {% endif %}
-          </h2>
-
-          <div class="ui tertiary buttons">
-            <button class="ui blue tertiary button" data-action="refresh-source-images" onclick="getSourceFileData();" >
-              <i class="redo icon"></i>
-              Refresh
-            </button>
-
-            <input type="file" id="source-image-upload" class="ui invisible file input" onchange="uploadSourceImages();" multiple accept="image/*">
-            <label for="source-image-upload" data-action="upload-source-images" class="ui green tertiary button">
-              <i class="upload icon"></i>
-              Upload
-            </label>
-          </div>
-
-          <div class="ui scrolling long fluid container">
-            <table class="ui compact striped head stuck sortable unstackable scrolling long table">
-              <thead>
-                <tr class="center aligned">
-                  <th class="collapsing">Season</th>
-                  <th class="collapsing">Episode</th>
-                  <th class="collapsing">Width</th>
-                  <th class="collapsing">Height</th>
-                  <th class="collapsing">Filesize</th>
-                  <th class="collapsing">Browse</th>
-                  <th class="collapsing">Upload</th>
-                  <th class="collapsing">Mirror</th>
-                  <th class="collapsing">Download</th>
-                  <th class="collapsing">Delete</th>
-                </tr>
-              </thead>
-              <tbody id="source-images"><!-- Added asynchronously --></tbody>
-            </table>
-          </div>
-          <div id="file-pagination" class="ui attached pagination menu"><!-- Added asynchronously --></div>
-
-          <div class="ui styled fluid accordion">
-            <div class="title">
-              <i class="dropdown icon"></i>
-              View Images
-            </div>
-            <div class="content">
-              <div id="source-image-previews" class="ui images"><!-- Added asynchronously --></div>
-            </div>
-          </div>
-
-          <div class="ui visible floating info message">
-            <i class="info circle icon"></i>
-            Source images are located within <span class="ui blue text">{{ series.source_directory }}</span>
-          </div>
-
-          <!-- Logo -->
-          <h2 class="ui dividing header">Logo</h2>
-
-          <div class="ui tertiary buttons">
-            <div class="ui blue tertiary button" data-action="browse-series-logo" onclick="browseLogos(null);">
-              <i data-action="browse" class="border all icon"></i>
-              Browse
-            </div>
-  
-            <input type="file" id="logo-upload" class="ui invisible file input" onchange="uploadLogo(null);">
-            <label for="logo-upload" class="ui green tertiary button">
-              <i class="upload icon"></i>
-              Upload
-            </label>
-  
-            <div class="ui purple tertiary button" onclick="analyzePalette('#logo', '#logo-palette');">
-              <i class="magic icon"></i>
-              Analyze Palette
-            </div>
-
-            <div class="ui red tertiary button" onclick="deleteLogo(null);">
-              <i class="small red trash alternate outline icon"></i>
-              Delete
-            </div>
-          </div>
-
-          <div class="image-analysis-group">
-            <img id="logo" class="ui rounded image" src="{{ series.get_logo_uri()[1] }}" loading="lazy" >
-            <div class="color palette" id="logo-palette"></div>
-          </div>
-
-          {% if series.use_per_season_assets %}
-          <div class="ui large list">
-            {% for season_number in series.season_numbers %}
-            {% set exists, file = series.get_logo_uri(season_number) %}
-            <div class="item" data-season="{{ season_number }}" data-type="logo">
-              <div class="content">
-                <div class="header">
-                  Season {{ season_number }}
-                  <span data-tooltip="Browse">
-                    <i data-action="browse" class="small blue border all icon" onclick="browseLogos({{ season_number }});"></i>
-                  </span>
-                  <span data-tooltip="Upload">
-                    <label for="logo-upload-season{{ season_number }}">
-                      <i data-action="upload" class="small green upload icon"></i>
-                    </label>
-                  </span>
-                  {% if exists %}
-                  <span data-tooltip="Analyze">
-                    <i data-action="analyze" class="small purple magic icon" onclick="analyzePalette(`[data-type='logo'][data-season='{{ season_number }}'] img`, `[data-type='logo'][data-season='{{ season_number }}'] .palette`);"></i></i>
-                  </span>
-                  <span data-tooltip="Delete">
-                    <i data-action="delete" class="small red trash alternate outline icon" onclick="deleteLogo({{ season_number }})"></i>
-                  </span>
-                  {% else %}
-                  <i data-action="analyze" class="disabled small purple magic icon"></i>
-                  <i data-action="delete" class="disabled small red trash alternate outline icon"></i>
-                  {% endif %}
-                </div>
-                <div class="description">
-                  <input type="file" id="logo-upload-season{{ season_number }}" class="ui invisible file input" onchange="uploadLogo({{ season_number }});">
-                  <div class="image-analysis-group" data-season="{{ season_number }}" data-type="logo">
-                    {% if exists %}
-                    <img class="ui rounded image" loading="lazy" src="{{ file }}">
-                    {% else %}
-                    <img class="ui rounded image" loading="lazy">
-                    {% endif %}
-                    <div class="small color palette"></div>
-                  </div>
-                </div>
+          <!-- Title Cards panel -->
+          <div class="settings-panel">
+            <div class="settings-panel-header">
+              <i class="film icon"></i>
+              Title Cards
+              <div style="margin-left: auto; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="panel-action-btn" data-action="refresh-cards" onclick="getCardData(undefined, true);">
+                  <i class="redo icon"></i>
+                  Refresh
+                </button>
+                <button class="panel-action-btn green" onclick="showCardUpload();">
+                  <i class="upload icon"></i>
+                  Upload
+                </button>
+                <button class="panel-action-btn" onclick="downloadSeriesTitleCards();">
+                  <i class="download icon"></i>
+                  Download
+                </button>
+                <button class="panel-action-btn mediux" onclick="openImportMediuxModal();">
+                  <i class="code icon"></i>
+                  MediUX Import
+                </button>
               </div>
             </div>
-            {% endfor %}
-          </div>
-          {% endif %}
-
-          <!-- Backdrop -->
-          <h2 class="ui dividing header">Backdrop</h2>
-
-          <div class="ui visible floating info message">
-            <i class="info circle icon"></i>
-            The Backdrop is automatically used as the source image for any <b>Art</b> styles.
-          </div>
-
-          <div class="ui blue tertiary button" data-action="browse-series-backdrop" onclick="browseBackdrops(null);">
-            <i data-action="browse" class="border all icon"></i>
-            Browse
-          </div>
-          <input type="file" id="backdrop-upload" class="ui invisible file input" onchange="uploadBackdrop(null);">
-          <label for="backdrop-upload" class="ui green tertiary button">
-            <i class="upload icon"></i>
-            Upload
-          </label>
-          <div class="ui purple tertiary button" onclick="analyzePalette('#backdrop', '#backdrop-palette');">
-            <i class="magic icon"></i>
-            Analyze Palette
-          </div>
-          <div class="color palette" id="backdrop-palette"></div>
-
-          <img id="backdrop" class="ui rounded image" src="/source/{{ series.path_safe_name }}/backdrop.jpg" loading="lazy" onerror="this.style.display='none';">
-
-          {% if series.use_per_season_assets %}
-          <div class="ui large list">
-            {% for season_number in series.season_numbers %}
-            {% set exists, file = series.get_backdrop_uri(season_number) %}
-            <div class="item" data-season="{{ season_number }}" data-type="backdrop">
-              <div class="content">
-                <div class="header">
-                  Season {{ season_number }}
-                  <span data-tooltip="Browse">
-                    <i data-action="browse" class="small blue border all icon" onclick="browseBackdrops({{ season_number }});"></i>
-                  </span>
-                  <span data-tooltip="Upload">
-                    <label for="backdrop-upload-season{{ season_number }}">
-                      <i data-action="upload" class="small green upload icon"></i>
-                    </label>
-                  </span>
-                  {% if exists %}
-                  <span data-tooltip="Analyze">
-                    <i data-action="analyze" class="small purple magic icon" onclick="analyzePalette(`[data-type='backdrop'][data-season='{{ season_number }}'] img`, `[data-type='backdrop'][data-season='{{ season_number }}'] .palette`);"></i></i>
-                  </span>
-                  <span data-tooltip="Delete">
-                    <i data-action="delete" class="small red trash alternate outline icon" onclick="deleteBackdrop({{ season_number }})"></i>
-                  </span>
-                  {% else %}
-                  <i data-action="analyze" class="disabled small purple magic icon"></i>
-                  <i data-action="delete" class="disabled small red trash alternate outline icon"></i>
-                  {% endif %}
+            <section>
+              <div class="ui styled fluid accordion">
+                <div class="title">
+                  <i class="dropdown icon"></i>
+                  View Card Images
                 </div>
-                <div class="description">
-                  <input type="file" id="backdrop-upload-season{{ season_number }}" class="ui invisible file input" onchange="uploadBackdrop({{ season_number }});">
-                  <div class="image-analysis-group" data-season="{{ season_number }}" data-type="backdrop">
-                    {% if exists %}
-                    <img class="ui rounded big image" loading="lazy" src="{{ file }}">
-                    {% else %}
-                    <img class="ui rounded big image" loading="lazy">
-                    {% endif %}
-                    <div class="small color palette"></div>
-                  </div>
+                <div class="content">
+                  <div id="card-previews" class="ui images"><!-- Added asynchronously --></div>
+                  <div id="card-pagination" class="ui attached pagination menu"><!-- Added asynchronously --></div>
                 </div>
               </div>
-            </div>
-            {% endfor %}
+            </section>
           </div>
-          {% endif %}
+
+          <!-- Source Images panel -->
+          <div class="settings-panel">
+            <div class="settings-panel-header">
+              <i class="photo video icon"></i>
+              Source Images
+              {% if series.status != 'monitored' %}
+              <span data-tooltip="Series must be monitored to automatically download Source Images" data-position="right center">
+                <i class="small yellow exclamation triangle icon" style="margin-left: 0.35em;"></i>
+              </span>
+              {% endif %}
+              <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                <button class="panel-action-btn" data-action="refresh-source-images" onclick="getSourceFileData();">
+                  <i class="redo icon"></i>
+                  Refresh
+                </button>
+                <input type="file" id="source-image-upload" class="ui invisible file input" onchange="uploadSourceImages();" multiple accept="image/*">
+                <label for="source-image-upload" data-action="upload-source-images" class="panel-action-btn green" style="cursor:pointer;">
+                  <i class="upload icon"></i>
+                  Upload
+                </label>
+              </div>
+            </div>
+            <section>
+              <p class="section-note">Source images are located within <code style="font-size:0.9em;">{{ series.source_directory }}</code></p>
+              <div class="ui scrolling long fluid container" style="margin: 0;">
+                <table class="ui compact striped head stuck sortable unstackable scrolling long table">
+                  <thead>
+                    <tr class="center aligned">
+                      <th class="collapsing">Season</th>
+                      <th class="collapsing">Episode</th>
+                      <th class="collapsing">Width</th>
+                      <th class="collapsing">Height</th>
+                      <th class="collapsing">Filesize</th>
+                      <th class="collapsing">Browse</th>
+                      <th class="collapsing">Upload</th>
+                      <th class="collapsing">Mirror</th>
+                      <th class="collapsing">Download</th>
+                      <th class="collapsing">Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody id="source-images"><!-- Added asynchronously --></tbody>
+                </table>
+              </div>
+              <div id="file-pagination" class="ui attached pagination menu"><!-- Added asynchronously --></div>
+
+              <div class="ui styled fluid accordion" style="margin-top: 0.75rem;">
+                <div class="title">
+                  <i class="dropdown icon"></i>
+                  View Source Images
+                </div>
+                <div class="content">
+                  <div id="source-image-previews" class="ui images"><!-- Added asynchronously --></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Series Assets panel -->
+          <div class="settings-panel">
+            <div class="settings-panel-header">
+              <i class="images outline icon"></i>
+              Series Assets
+            </div>
+            <section>
+              {% set logo_exists, logo_uri = series.get_logo_uri() %}
+              {% set backdrop_exists, backdrop_uri = series.get_backdrop_uri() %}
+
+              <!-- Logo -->
+              <h3 class="series-subsection-title">
+                <i class="image outline icon"></i>
+                Logo
+              </h3>
+
+              <div class="series-asset-card" id="series-logo-asset" data-type="logo" data-season="" data-exists="{{ 'true' if logo_exists else 'false' }}">
+                <div class="series-asset-frame series-asset-frame--logo">
+                  <img id="logo" class="series-asset-image" src="{{ logo_uri if logo_exists else '' }}" alt="Series logo" loading="lazy"{% if not logo_exists %} hidden{% endif %}>
+                  <div class="series-asset-empty"{% if logo_exists %} hidden{% endif %}>
+                    <i class="image outline icon"></i>
+                    <span>No logo on server</span>
+                  </div>
+                </div>
+                <div class="series-asset-toolbar">
+                  <button class="panel-action-btn" type="button" data-action="browse-series-logo" onclick="browseLogos(null);">
+                    <i data-action="browse" class="border all icon"></i>
+                    Browse
+                  </button>
+                  <input type="file" id="logo-upload" class="ui invisible file input" onchange="uploadLogo(null);">
+                  <label for="logo-upload" class="panel-action-btn green" style="cursor:pointer;">
+                    <i class="upload icon"></i>
+                    Upload
+                  </label>
+                  <button class="panel-action-btn" type="button" data-requires-asset onclick="analyzeSeriesAssetPalette('logo', null);"{% if not logo_exists %} disabled{% endif %}>
+                    <i class="magic icon"></i>
+                    Analyze Palette
+                  </button>
+                  <button class="panel-action-btn danger" type="button" data-requires-asset onclick="deleteLogo(null);"{% if not logo_exists %} disabled{% endif %}>
+                    <i class="trash alternate outline icon"></i>
+                    Delete
+                  </button>
+                </div>
+                <div class="color palette series-asset-palette" id="logo-palette"></div>
+              </div>
+
+              {% if series.use_per_season_assets %}
+              <div class="series-asset-season-grid">
+                {% for season_number in series.season_numbers %}
+                {% set season_logo_exists, season_logo_uri = series.get_logo_uri(season_number) %}
+                <div class="series-asset-card series-asset-card--season" data-type="logo" data-season="{{ season_number }}" data-exists="{{ 'true' if season_logo_exists else 'false' }}">
+                  <div class="series-asset-season-label">Season {{ season_number }}</div>
+                  <div class="series-asset-frame series-asset-frame--logo">
+                    <img class="series-asset-image" src="{{ season_logo_uri if season_logo_exists else '' }}" alt="Season {{ season_number }} logo" loading="lazy"{% if not season_logo_exists %} hidden{% endif %}>
+                    <div class="series-asset-empty"{% if season_logo_exists %} hidden{% endif %}>
+                      <i class="image outline icon"></i>
+                      <span>No logo</span>
+                    </div>
+                  </div>
+                  <div class="series-asset-toolbar series-asset-toolbar--compact">
+                    <button class="panel-action-btn" type="button" data-action="browse" onclick="browseLogos({{ season_number }});" title="Browse">
+                      <i data-action="browse" class="border all icon"></i>
+                    </button>
+                    <input type="file" id="logo-upload-season{{ season_number }}" class="ui invisible file input" onchange="uploadLogo({{ season_number }});">
+                    <label for="logo-upload-season{{ season_number }}" class="panel-action-btn green" style="cursor:pointer;" title="Upload">
+                      <i class="upload icon"></i>
+                    </label>
+                    <button class="panel-action-btn" type="button" data-requires-asset onclick="analyzeSeriesAssetPalette('logo', {{ season_number }});" title="Analyze Palette"{% if not season_logo_exists %} disabled{% endif %}>
+                      <i class="magic icon"></i>
+                    </button>
+                    <button class="panel-action-btn danger" type="button" data-requires-asset onclick="deleteLogo({{ season_number }});" title="Delete"{% if not season_logo_exists %} disabled{% endif %}>
+                      <i class="trash alternate outline icon"></i>
+                    </button>
+                  </div>
+                  <div class="color palette small series-asset-palette"></div>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+
+              <!-- Backdrop -->
+              <h3 class="series-subsection-title">
+                <i class="mountain icon"></i>
+                Backdrop
+                <span class="help-tip" data-tip="The Backdrop is automatically used as the source image for any Art styles.">ⓘ</span>
+              </h3>
+
+              <div class="series-asset-card" id="series-backdrop-asset" data-type="backdrop" data-season="" data-exists="{{ 'true' if backdrop_exists else 'false' }}">
+                <div class="series-asset-frame series-asset-frame--backdrop">
+                  <img id="backdrop" class="series-asset-image" src="{{ backdrop_uri if backdrop_exists else '' }}" alt="Series backdrop" loading="lazy"{% if not backdrop_exists %} hidden{% endif %}>
+                  <div class="series-asset-empty"{% if backdrop_exists %} hidden{% endif %}>
+                    <i class="mountain icon"></i>
+                    <span>No backdrop on server</span>
+                  </div>
+                </div>
+                <div class="series-asset-toolbar">
+                  <button class="panel-action-btn" type="button" data-action="browse-series-backdrop" onclick="browseBackdrops(null);">
+                    <i data-action="browse" class="border all icon"></i>
+                    Browse
+                  </button>
+                  <input type="file" id="backdrop-upload" class="ui invisible file input" onchange="uploadBackdrop(null);">
+                  <label for="backdrop-upload" class="panel-action-btn green" style="cursor:pointer;">
+                    <i class="upload icon"></i>
+                    Upload
+                  </label>
+                  <button class="panel-action-btn" type="button" data-requires-asset onclick="analyzeSeriesAssetPalette('backdrop', null);"{% if not backdrop_exists %} disabled{% endif %}>
+                    <i class="magic icon"></i>
+                    Analyze Palette
+                  </button>
+                  <button class="panel-action-btn danger" type="button" data-requires-asset onclick="deleteBackdrop(null);"{% if not backdrop_exists %} disabled{% endif %}>
+                    <i class="trash alternate outline icon"></i>
+                    Delete
+                  </button>
+                </div>
+                <div class="color palette series-asset-palette" id="backdrop-palette"></div>
+              </div>
+
+              {% if series.use_per_season_assets %}
+              <div class="series-asset-season-grid">
+                {% for season_number in series.season_numbers %}
+                {% set season_backdrop_exists, season_backdrop_uri = series.get_backdrop_uri(season_number) %}
+                <div class="series-asset-card series-asset-card--season" data-type="backdrop" data-season="{{ season_number }}" data-exists="{{ 'true' if season_backdrop_exists else 'false' }}">
+                  <div class="series-asset-season-label">Season {{ season_number }}</div>
+                  <div class="series-asset-frame series-asset-frame--backdrop">
+                    <img class="series-asset-image" src="{{ season_backdrop_uri if season_backdrop_exists else '' }}" alt="Season {{ season_number }} backdrop" loading="lazy"{% if not season_backdrop_exists %} hidden{% endif %}>
+                    <div class="series-asset-empty"{% if season_backdrop_exists %} hidden{% endif %}>
+                      <i class="mountain icon"></i>
+                      <span>No backdrop</span>
+                    </div>
+                  </div>
+                  <div class="series-asset-toolbar series-asset-toolbar--compact">
+                    <button class="panel-action-btn" type="button" data-action="browse" onclick="browseBackdrops({{ season_number }});" title="Browse">
+                      <i data-action="browse" class="border all icon"></i>
+                    </button>
+                    <input type="file" id="backdrop-upload-season{{ season_number }}" class="ui invisible file input" onchange="uploadBackdrop({{ season_number }});">
+                    <label for="backdrop-upload-season{{ season_number }}" class="panel-action-btn green" style="cursor:pointer;" title="Upload">
+                      <i class="upload icon"></i>
+                    </label>
+                    <button class="panel-action-btn" type="button" data-requires-asset onclick="analyzeSeriesAssetPalette('backdrop', {{ season_number }});" title="Analyze Palette"{% if not season_backdrop_exists %} disabled{% endif %}>
+                      <i class="magic icon"></i>
+                    </button>
+                    <button class="panel-action-btn danger" type="button" data-requires-asset onclick="deleteBackdrop({{ season_number }});" title="Delete"{% if not season_backdrop_exists %} disabled{% endif %}>
+                      <i class="trash alternate outline icon"></i>
+                    </button>
+                  </div>
+                  <div class="color palette small series-asset-palette"></div>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </section>
+          </div>
         </div>
 
-        <!-- Database IDs Tab -->
-        <div class="ui bottom attached tab segment" data-tab="ids">
-          <form id="series-ids-form" class="ui compact form">
-            {% if preferences.use_emby %}
-            <div id-type="Emby ID" class="field">
-              {% if series.emby_id %}
-              <label>Emby</label>
-              <input name="emby_id" type="text" placeholder="None" value="{{ series.emby_id }}">
-              {% else %}
-              <label>Emby</label>
-              <input name="emby_id" type="text" placeholder="None">
-              {% endif %}
-              <p class="help">Enter as {Interface ID}:{Library Name}:{ID} - can be multiple, comma-separated IDs.</p>
+        <!-- External IDs Tab -->
+        <div class="ui tab series-tab-pane" data-tab="ids">
+          <div class="settings-panel">
+            <div class="settings-panel-header">
+              <i class="id badge outline icon"></i>
+              External IDs
             </div>
-            {% endif %}
+            <section>
+              <p class="section-note">These IDs link this series to external services. They are usually set automatically — only edit them if something is incorrect.</p>
+              <form id="series-ids-form" class="ui compact form">
 
-            <div id-type="IMDb" class="field">
-              {% if series.imdb_id %}
-              <label>IMDb <a href="https://www.imdb.com/title/{{ series.imdb_id }}" target="_blank"><i class="external alternate small icon"></i></a></label>
-              <input name="imdb_id" type="text" placeholder="None" value="{{ series.imdb_id }}">
-              {% else %}
-              <label>IMDb</label>
-              <input name="imdb_id" type="text" placeholder="None">
-              {% endif %}
-            </div>
+                {% if preferences.use_emby %}
+                <h3 class="series-subsection-title emby">Emby</h3>
+                <div id-type="Emby ID" class="field">
+                  {% if series.emby_id %}
+                  <input name="emby_id" type="text" placeholder="None" value="{{ series.emby_id }}">
+                  {% else %}
+                  <input name="emby_id" type="text" placeholder="None">
+                  {% endif %}
+                  <p class="help" style="margin-top:0.3em;">Format: <code>{Interface ID}:{Library Name}:{ID}</code> — multiple values comma-separated.</p>
+                </div>
+                {% endif %}
 
-            {% if preferences.use_jellyfin %}
-            <div id-type="Jellyfin" class="field">
-              {% if series.jellyfin_id %}
-              <label>Jellyfin</label>
-              <input name="jellyfin_id" type="text" placeholder="None" value="{{ series.jellyfin_id }}">
-              {% else %}
-              <label>Jellyfin</label>
-              <input name="jellyfin_id" type="text" placeholder="None">
-              {% endif %}
-              <p class="help">Enter as {Interface ID}:{Library Name}:{ID} - can be multiple, comma-separated IDs.</p>
-            </div>
-            {% endif %}
+                {% if preferences.use_jellyfin %}
+                <h3 class="series-subsection-title jellyfin">Jellyfin</h3>
+                <div id-type="Jellyfin" class="field">
+                  {% if series.jellyfin_id %}
+                  <input name="jellyfin_id" type="text" placeholder="None" value="{{ series.jellyfin_id }}">
+                  {% else %}
+                  <input name="jellyfin_id" type="text" placeholder="None">
+                  {% endif %}
+                  <p class="help" style="margin-top:0.3em;">Format: <code>{Interface ID}:{Library Name}:{ID}</code> — multiple values comma-separated.</p>
+                </div>
+                {% endif %}
 
-            {% if preferences.use_sonarr %}
-            <div id-type="Sonarr" class="field">
-              {% if series.sonarr_id %}
-              <label>Sonarr</label>
-              <input name="sonarr_id" type="text" placeholder="None" value="{{ series.sonarr_id }}">
-              {% else %}
-              <label>Sonarr</label>
-              <input name="sonarr_id" type="text" placeholder="None">
-              {% endif %}
-              <p class="help">Enter as {Interface ID}:{ID} - can be multiple, comma-separated IDs.</p>
-            </div>
-            {% endif %}
+                {% if preferences.use_sonarr %}
+                <h3 class="series-subsection-title">Sonarr</h3>
+                <div id-type="Sonarr" class="field">
+                  {% if series.sonarr_id %}
+                  <input name="sonarr_id" type="text" placeholder="None" value="{{ series.sonarr_id }}">
+                  {% else %}
+                  <input name="sonarr_id" type="text" placeholder="None">
+                  {% endif %}
+                  <p class="help" style="margin-top:0.3em;">Format: <code>{Interface ID}:{ID}</code> — multiple values comma-separated.</p>
+                </div>
+                {% endif %}
 
-            <div id-type="TMDb" class="field">
-              {% if series.tmdb_id %}
-              <label>TMDb <a href="https://www.themoviedb.org/tv/{{ series.tmdb_id }}" target="_blank"><i class="external alternate small icon"></i></a></label>
-              <input name="tmdb_id" type="text" placeholder="None" value="{{ series.tmdb_id }}">
-              {% else %}
-              <label>TMDb</label>
-              <input name="tmdb_id" type="text" placeholder="None">
-              {% endif %}
-            </div>
+                <h3 class="series-subsection-title">Metadata Databases</h3>
+                <div class="ui three fields">
+                  <div id-type="IMDb" class="field">
+                    <label>
+                      IMDb
+                      {% if series.imdb_id %}
+                      <a href="https://www.imdb.com/title/{{ series.imdb_id }}" target="_blank"><i class="external alternate small icon"></i></a>
+                      {% endif %}
+                    </label>
+                    {% if series.imdb_id %}
+                    <input name="imdb_id" type="text" placeholder="None" value="{{ series.imdb_id }}">
+                    {% else %}
+                    <input name="imdb_id" type="text" placeholder="None">
+                    {% endif %}
+                  </div>
 
-            <div id-type="TVDb" class="field">
-              {% if series.tvdb_id %}
-              <label>TVDb <a href="https://www.thetvdb.com/dereferrer/series/{{ series.tvdb_id }}" target="_blank"><i class="external alternate small icon"></i></a></label>
-              <input name="tvdb_id" type="text" placeholder="None" value="{{ series.tvdb_id }}">
-              {% else %}
-              <label>TVDb</label>
-              <input name="tvdb_id" type="text" placeholder="None">
-              {% endif %}
-            </div>
+                  <div id-type="TMDb" class="field">
+                    <label>
+                      TMDb
+                      {% if series.tmdb_id %}
+                      <a href="https://www.themoviedb.org/tv/{{ series.tmdb_id }}" target="_blank"><i class="external alternate small icon"></i></a>
+                      {% endif %}
+                    </label>
+                    {% if series.tmdb_id %}
+                    <input name="tmdb_id" type="text" placeholder="None" value="{{ series.tmdb_id }}">
+                    {% else %}
+                    <input name="tmdb_id" type="text" placeholder="None">
+                    {% endif %}
+                  </div>
 
-            {% if series.year < 2017 or series.tvrage_id %}
-            <div id-type="TVRage" class="field">
-              <label>TVRage</label>
-              {% if series.tvrage_id %}
-              <input name="tvrage_id" type="text" placeholder="None" value="{{ series.tvrage_id }}">
-              {% else %}
-              <input name="tvrage_id" type="text" placeholder="None">
-              {% endif %}
-            </div>
-            {% endif %}
+                  <div id-type="TVDb" class="field">
+                    <label>
+                      TVDb
+                      {% if series.tvdb_id %}
+                      <a href="https://www.thetvdb.com/dereferrer/series/{{ series.tvdb_id }}" target="_blank"><i class="external alternate small icon"></i></a>
+                      {% endif %}
+                    </label>
+                    {% if series.tvdb_id %}
+                    <input name="tvdb_id" type="text" placeholder="None" value="{{ series.tvdb_id }}">
+                    {% else %}
+                    <input name="tvdb_id" type="text" placeholder="None">
+                    {% endif %}
+                  </div>
+                </div>
 
-            <div class="field">
-              {% if series.set_url %}
-              <label>Set URL <a href="{{ series.set_url }}" target="_blank"><i class="external alternate small icon"></i></a></label></label>
-              <input name="set_url" type="text" placeholder="None" value="{{ series.set_url }}">
-              {% else %}
-              <label>Set URL</label>
-              <input name="set_url" type="text" placeholder="None">
-              {% endif %}
-            </div>
+                {% if series.year < 2017 or series.tvrage_id %}
+                <div class="ui one field">
+                  <div id-type="TVRage" class="field">
+                    <label>TVRage</label>
+                    {% if series.tvrage_id %}
+                    <input name="tvrage_id" type="text" placeholder="None" value="{{ series.tvrage_id }}">
+                    {% else %}
+                    <input name="tvrage_id" type="text" placeholder="None">
+                    {% endif %}
+                  </div>
+                </div>
+                {% endif %}
 
-            <button class="ui animated primary button" onclick="updateSeries('ids');">
-              <div class="visible content">Save</div>
-              <div class="hidden content">
-                <i class="right arrow icon"></i>
-              </div>
-            </button>
-          </form>
+                <h3 class="series-subsection-title">Other</h3>
+                <div class="field">
+                  <label>
+                    Set URL
+                    {% if series.set_url %}
+                    <a href="{{ series.set_url }}" target="_blank"><i class="external alternate small icon"></i></a>
+                    {% endif %}
+                  </label>
+                  {% if series.set_url %}
+                  <input name="set_url" type="text" placeholder="None" value="{{ series.set_url }}">
+                  {% else %}
+                  <input name="set_url" type="text" placeholder="None">
+                  {% endif %}
+                </div>
+
+                <button class="ui animated primary button" onclick="updateSeries('ids');" style="margin-top: 0.75rem;">
+                  <div class="visible content">Save</div>
+                  <div class="hidden content"><i class="right arrow icon"></i></div>
+                </button>
+              </form>
+            </section>
+          </div>
         </div>
 
         <!-- Logs Tab -->
-        <div class="ui bottom attached tab segment" data-tab="logs">
-          <div class="ui active centered inline blue elastic loader" id="logs-loader"></div>
-          <div class="ui connected feed"></div>
+        <div class="ui tab series-tab-pane" data-tab="logs">
+          <div class="settings-panel">
+            <div class="settings-panel-header">
+              <i class="history icon"></i>
+              Activity
+            </div>
+            <section>
+              <div class="ui active centered inline blue elastic loader" id="logs-loader"></div>
+              <div class="series-log-list"></div>
+            </section>
+          </div>
         </div>
+
+      <!-- Sticky save bars (one per form) -->
+      <div id="sticky-save-bar-options" class="sticky-save-bar">
+        <span class="sticky-save-label">You have unsaved changes</span>
+        <button class="ui primary button" type="button" onclick="updateSeries('options');">Save Options</button>
       </div>
+      <div id="sticky-save-bar-card" class="sticky-save-bar">
+        <span class="sticky-save-label">You have unsaved changes</span>
+        <button class="ui primary button" type="button" onclick="updateSeries('card');">Save Card Config</button>
+      </div>
+
     </div>
 
     <!-- MODALS -->
@@ -1736,6 +1838,32 @@
       </div>
       <div class="center aligned scrolling image content">
         <div class="ui large images"></div>
+      </div>
+    </div>
+
+    <!-- Change poster modal -->
+    <div id="poster-modal" class="ui small modal">
+      <i class="close icon"></i>
+      <div class="header">Change Poster</div>
+      <div class="content">
+        <div class="poster-modal-options">
+          <div class="ui left icon right action input" data-value="url">
+            <i class="circular search link icon" onclick="queryTMDbPoster();" title="Search TMDb"></i>
+            <input name="url" placeholder="Poster URL">
+            <button class="ui green icon button" type="button" onclick="editSeriesPoster();" data-tooltip="Load URL">
+              <i class="arrow alternate circle right outline icon"></i>
+            </button>
+          </div>
+          <div class="ui horizontal divider">Or</div>
+          <div class="ui file input" data-value="file">
+            <input type="file" name="file" accept="image/*" onchange="editSeriesPoster();">
+          </div>
+          <div class="ui horizontal divider">Or</div>
+          <button class="ui labeled fluid icon button" type="button" onclick="downloadSeriesPoster();" data-action="delete-poster">
+            <i class="arrow alternate circle down outline icon"></i>
+            Pull from Server
+          </button>
+        </div>
       </div>
     </div>
 

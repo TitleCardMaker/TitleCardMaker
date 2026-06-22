@@ -476,8 +476,14 @@ html.dark .settings-panel-header {
 }
 
 /* Panel body padding */
-.settings-panel > section {
-  padding: 1.25rem 1.25rem 0.75rem;
+.settings-panel > section,
+.settings-panel .content > section {
+  padding: 1.25rem;
+}
+
+/* Suppress extra Fomantic accordion content padding so our section controls it */
+.settings-panel.ui.accordion .content {
+  padding: 0;
 }
 
 /* Subdued note at the top of a panel section */
@@ -578,6 +584,7 @@ html.dark .pill-filter-label {
   padding: 0.3rem 0.8rem;
   font-size: 0.9rem;
   font-weight: 600;
+  text-transform: none;
   border-radius: 6px;
   border: 1px solid rgba(99, 145, 210, 0.38);
   background: rgba(99, 145, 210, 0.09);
@@ -744,6 +751,7 @@ html.dark .repl-delete-btn {
   font-size: 0.95rem;
   font-weight: normal;
   cursor: default;
+  position: relative;
   display: inline-block;
   vertical-align: middle;
   user-select: none;
