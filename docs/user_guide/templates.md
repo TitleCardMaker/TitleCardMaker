@@ -8,21 +8,21 @@ tags:
 
 # Templates
 
-!!! warning "Under Construction"
-
-    This documentation is actively being developed.
-
 A Template is a set of custom settings and Card configurations that can be
-assigned to multiple Series or Episodes at once. Mutliple Templates can be
+assigned to multiple Series or Episodes at once. Multiple Templates can be
 assigned to a Series or Episode, and, with Filters, can be used to conditionally
-apply setting changes. Templates can be viewed and edited at the Templates page
-within TCM (the `/card-templates` URL).
+apply setting changes. Templates can be viewed and edited on the Templates page
+(the `/card-templates` URL), accessible from the sidebar via the `Templates`
+item.
+
+![Templates Page](./assets/templates-light.webp#only-light){.no-lightbox}
+![Templates Page](./assets/templates-dark.webp#only-dark){.no-lightbox}
 
 An easy way to view Templates is that they allow you to group Card
-customizations together so they can be easily edited en-masse without changing
+customizations together so they can be easily edited en masse without changing
 each Series individually. The most common use-case is to develop a Template (or
-a set of Templates) that applies to some subset of your Series - e.g. all anime,
-or all documentaries - and apply those Templates automatically when
+a set of Templates) that applies to some subset of your Series — e.g. all anime,
+or all documentaries — and apply those Templates automatically when
 [Syncing](./syncs.md).
 
 !!! example "Standard Example"
@@ -31,9 +31,7 @@ or all documentaries - and apply those Templates automatically when
     different card configurations for anime and non-anime cards. Creating an
     anime Template which overrides the card type, adds translations, and
     potentially adds absolute episode numbering allows for easily maintaining
-    two very separate card looks. 
-
-Some widely used Templates can be found [here](...).
+    two very separate card looks.
 
 ## Template Priority
 
@@ -49,30 +47,33 @@ Within the UI, Templates are __always__ displayed in order. Meaning the first
 Template listed in the dropdown of a Sync, Series, or Episode is the highest
 priority Template.
 
-## Creating a New Template
+## Creating and Editing Templates
 
-At the top of the Templates page, a new Template can be created by clicking the
-<span class="example md-button">Create New Template</span> button. This will
-create a "blank" Template.
+Click **New Template** to create a blank Template named ` Blank Template`. Expand
+the accordion to enter a name, configure settings, and save.
 
-Clicking the accordion will expand the Template, where all customization can be
-entered.
+At the bottom of each Template form:
 
-## Previews
+- **Save Changes** — Persists the current form values to the database.
+- **Delete** — Opens a confirmation modal listing Series linked to this
+  Template Confirm to permanently delete the Template.
 
-On the right-hand side of all Templates are 'live' previews of the current
-Template. This preview reflects the currently entered settings - not necessarily
-what is saved - and can be refreshed by clicking the
-<span class="example md-button">:material-refresh: Refresh Preview</span> button.
+## Preview
+
+Each Template includes a live preview of the current form values — not
+necessarily what was last saved.
+
+1. Search for an Episode in the **Preview Episode** dropdown (requires at least
+   two characters).
+2. Click **Refresh Preview**, or click the preview image itself, to generate a
+   Card using the current unsaved settings.
+
+An Episode must be selected before a preview can be generated.
 
 ## Customization
 
-All Templates have the following options which can be adjusted:
-
-- ...
-
-Each of these is described in greater detail below. All values can be left
-blank - if blank, TCM will use the next highest priority setting from the
+Each expanded Template is organized into labeled sections. All values can be
+left blank — if blank, TCM uses the next highest priority setting from the
 Series, Episode, or global setting. Setting priorities are listed
 [here](./setting_priority.md).
 
@@ -80,15 +81,17 @@ Series, Episode, or global setting. Setting priorities are listed
 
 A Template's name is purely for easier selection within the TCM UI. If you are
 using [Tiered](#template-priority) Templates, it is recommended to include the
-relative priority of the Template in the name - e.g. _Tier 1 - Unwatched Anime_,
+relative priority of the Template in the name — e.g. _Tier 1 - Unwatched Anime_,
 or _Tier 0 - All Anime_.
+
+The accordion header updates to match the **Template Name** field.
 
 !!! note "Importing Blueprint Templates"
 
     The name of a Template is also used to match Templates when importing
     [Blueprints](../blueprints.md).
-    
-    For example - if you are importing a Blueprint featuring a Template named
+
+    For example — if you are importing a Blueprint featuring a Template named
     _Anime_ and have already created a Template named _Anime_, then TCM will not
     duplicate the Template and instead just assign the existing Template to the
     Series.
@@ -103,11 +106,14 @@ Filters are a critical component of utilizing different
 Template can have any number of Filters, and all Filters must be true (or
 unevaluatable) for a Template to be applied.
 
-Each condition of a Filter is made up of 3 parts. An _Argument_, which is the
-variable pulled from the specific Series or Episode being evaluated; an
-_Operation_ which is what operation is being applied to the _Argument_; and a
-_Reference Value_ which is what the result of the evaluation is compared
-against. To remove a condition, clear its Operation (the middle column).
+Use **Add Condition** to add a row. Each condition has three parts: an
+_Argument_ (the variable from the Series or Episode being evaluated), an
+_Operation_, and an optional _Reference Value_. To remove a condition, click the
+**×** button on that row or clear its Operation.
+
+The Filters section notes that text comparison is case-insensitive, that
+`matches` / `does not match` accept
+[Regex](https://regex101.com/), and that airdate values use `YYYY-MM-DD`.
 
 !!! example "Example"
 
@@ -124,15 +130,15 @@ against. To remove a condition, clear its Operation (the middle column).
     condition, as the `is false` operation does not need to reference another
     value.
 
-If you enter some invalid condition - like a bad reference value, or a
-nonsensical operation - then the condition is skipped (which is the same as
+If you enter some invalid condition — like a bad reference value, or a
+nonsensical operation — then the condition is skipped (which is the same as
 being true).
 
 !!! tip "Optimal Filter Ordering"
 
-    If you'd like to make marginal perfomance improvements, it is best practice
-    to put conditions which are more likely to fail - i.e. the more restrictive
-    conditions - first, as this short-circuits the Filter evaluation logic.
+    If you'd like to make marginal performance improvements, it is best practice
+    to put conditions which are more likely to fail — i.e. the more restrictive
+    conditions — first, as this short-circuits the Filter evaluation logic.
 
     For example, putting a condition for `Episode Number` `equals` _before_
     `Season Number` `equals` would be ideal since more failures will occur on
@@ -161,10 +167,10 @@ reference value.
 
     === "Series Year"
 
-        The `is before` and `is after` conditions  cannot be used with a Series
+        The `is before` and `is after` conditions cannot be used with a Series
         Year argument; see the Episode Airdate argument, or use the math
         operations (less than, greater than, etc.).
-    
+
         | Operation | Description | Reference Value |
         | --------: | :---------- | :-------------: |
         | equals | Only apply to Series whose year is exactly the given number | :fontawesome-regular-circle-check:{.green} |
@@ -200,11 +206,11 @@ reference value.
         | Operation | Description | Reference Value |
         | --------: | :---------- | :-------------: |
         | contains | Only apply to Series with a library of the given name | :fontawesome-regular-circle-check:{.green} |
-        | does not contain | Do not apply to Series with a library of the givens name | :fontawesome-regular-circle-check:{.green} |
+        | does not contain | Do not apply to Series with a library of the given name | :fontawesome-regular-circle-check:{.green} |
 
     === "Series Logo"
 
-        This Filter condition only looks at the _default_ Series logo - e.g.
+        This Filter condition only looks at the _default_ Series logo — e.g.
         `logo.png` within the source directory.
 
         | Operation | Description | Reference Value |
@@ -225,15 +231,15 @@ reference value.
 
     === "Episode Watched Status"
 
-        Watched statuses are evaluated per-library (even in [Multi-Library
+        Watched statuses are evaluated per-library (even if [Multi-Library
         mode](./settings.md#multi-library-file-naming) is disabled).
 
         | Operation | Description | Reference Value |
         | --------: | :---------- | :-------------: |
         | is true | Only apply to Episodes that have been watched | :fontawesome-regular-circle-xmark:{.red} |
-        | is false | Do not apply to Episode that have been watched | :fontawesome-regular-circle-xmark:{.red} |
-        | is null | Only apply to Episode whose watched status is unknown[^2] | :fontawesome-regular-circle-xmark:{.red} |
-        | is not null | Only apply to Episode whose watched status is known[^2] | :fontawesome-regular-circle-xmark:{.red} |
+        | is false | Do not apply to Episodes that have been watched | :fontawesome-regular-circle-xmark:{.red} |
+        | is null | Only apply to Episodes whose watched status is unknown[^2] | :fontawesome-regular-circle-xmark:{.red} |
+        | is not null | Only apply to Episodes whose watched status is known[^2] | :fontawesome-regular-circle-xmark:{.red} |
 
     === "Season Number"
 
@@ -258,6 +264,25 @@ reference value.
         | is greater than | Only apply to Episodes whose episode number is greater than the given number | :fontawesome-regular-circle-check:{.green} |
         | is greater than or equal | Only apply to Episodes whose episode number is greater than or equal to the given number | :fontawesome-regular-circle-check:{.green} |
 
+    === "Episode Identifier"
+
+        The Episode Identifier is formatted as `S01E03` (zero-padded season and
+        episode numbers). This is useful for targeting specific Episodes without
+        separate season and episode conditions.
+
+        | Operation | Description | Reference Value |
+        | --------: | :---------- | :-------------: |
+        | equals | Only apply to Episodes with exactly the given identifier | :fontawesome-regular-circle-check:{.green} |
+        | does not equal | Do not apply to Episodes with exactly the given identifier | :fontawesome-regular-circle-check:{.green} |
+        | starts with | Only apply to Episodes whose identifier starts with the given text | :fontawesome-regular-circle-check:{.green} |
+        | does not start with | Do not apply to Episodes whose identifier starts with the given text | :fontawesome-regular-circle-check:{.green} |
+        | ends with | Only apply to Episodes whose identifier ends with the given text | :fontawesome-regular-circle-check:{.green} |
+        | does not end with | Do not apply to Episodes whose identifier ends with the given text | :fontawesome-regular-circle-check:{.green} |
+        | contains | Only apply to Episodes whose identifier contains the given text | :fontawesome-regular-circle-check:{.green} |
+        | does not contain | Do not apply to Episodes whose identifier contains the given text | :fontawesome-regular-circle-check:{.green} |
+        | matches | Only apply to Episodes whose identifier matches the given regex | :fontawesome-regular-circle-check:{.green} |
+        | does not match | Do not apply to Episodes whose identifier matches the given regex | :fontawesome-regular-circle-check:{.green} |
+
     === "Absolute Number"
 
         !!! tip "Special Variable"
@@ -270,7 +295,7 @@ reference value.
         | Operation | Description | Reference Value |
         | --------: | :---------- | :-------------: |
         | is null | Only apply to Episodes with no absolute episode number | :fontawesome-regular-circle-xmark:{.red} |
-        | is not null | Only apply to episodes with an absolute episode number | :fontawesome-regular-circle-xmark:{.red} |
+        | is not null | Only apply to Episodes with an absolute episode number | :fontawesome-regular-circle-xmark:{.red} |
         | equals | Only apply to Episodes with exactly the given absolute episode number | :fontawesome-regular-circle-check:{.green} |
         | does not equal | Do not apply to Episodes with exactly the given absolute episode number | :fontawesome-regular-circle-check:{.green} |
         | is less than | Only apply to Episodes whose absolute episode number is less than the given number | :fontawesome-regular-circle-check:{.green} |
@@ -304,12 +329,12 @@ reference value.
         | does not equal | Do not apply to Episodes whose title length is exactly the given number | :fontawesome-regular-circle-check:{.green} |
         | is less than | Only apply to Episodes whose title length is less than the given number | :fontawesome-regular-circle-check:{.green} |
         | is less than or equal | Only apply to Episodes whose title length is less than or equal to the given number | :fontawesome-regular-circle-check:{.green} |
-        | is greater than | Only apply to Episodes whose episode title length is greater than the given number | :fontawesome-regular-circle-check:{.green} |
-        | is greater than or equal | Only apply to Episodes whose episode title length is greater than or equal to the given number | :fontawesome-regular-circle-check:{.green} |
+        | is greater than | Only apply to Episodes whose title length is greater than the given number | :fontawesome-regular-circle-check:{.green} |
+        | is greater than or equal | Only apply to Episodes whose title length is greater than or equal to the given number | :fontawesome-regular-circle-check:{.green} |
 
     === "Episode Airdate"
 
-        All time reference values must be entered as `YYYY-MM-DD` - e.g.
+        All time reference values must be entered as `YYYY-MM-DD` — e.g.
         `2023-12-30` for December 30th, 2023.
 
         | Operation | Description | Reference Value |
@@ -321,7 +346,7 @@ reference value.
 
     === "Current Time"
 
-        All time reference values must be entered as `YYYY-MM-DD` - e.g.
+        All time reference values must be entered as `YYYY-MM-DD` — e.g.
         `2023-12-30` for December 30th, 2023.
 
         | Operation | Description | Reference Value |
@@ -338,30 +363,73 @@ reference value.
         | contains | Only apply to Episodes with extras of the given label | :fontawesome-regular-circle-check:{.green} |
         | does not contain | Do not apply to Episodes with extras of the given label | :fontawesome-regular-circle-check:{.green} |
 
-### Card Type
+### Card Settings
 
-The card type to apply as part of this Template.
+- **Card Type** — The card type to apply as part of this Template. Defaults to
+  the global default when unset. Click the **ⓘ** icon next to the label to open
+  a modal listing all available card types.
+- **Font** — A [Named Font](./fonts.md) to apply. Defaults to the card default
+  when unset. When a Font is selected, an external-link icon opens that Font's
+  entry on the [Fonts](./fonts.md) page.
+- **Watched Style** / **Unwatched Style** — How to
+  [stylize](./settings.md#watched-and-unwatched-episode-styles) watched and
+  unwatched Episodes. Defaults to the server default when unset.
 
-### Font
+### Season and Episode Text
 
-A [Named Font](./fonts.md) to apply as part of this Template.
+- **Hide Season Titles** — Whether to hide season text on Title Cards (`True`,
+  `False`, or inherit the default).
+- **Hide Episode Text** — Whether to hide episode text on Title Cards.
+- **Season Titles** — Custom titles for specific season or episode ranges. Use
+  **Add** to create a row. Each row has a range key and a title value:
 
-### Watched and Unwatched Episode Style
+    - `1` — whole season 1
+    - `s1e2-s1e5` — season 1, episodes 2–5
+    - `5-10` — absolute episodes 5–10
 
-How to [stylize](./settings.md#watched-and-unwatched-episode-styles) watched
-and unwatched Episodes as part of this Template.
+- **Episode Text Format** — Custom format string for episode text. Defaults to
+  the card default when blank.
 
-### Hide Season Titles
+### Non-Card Settings
 
-Whether to hide season titles as part of this Template.
+- **Episode Data Source** — Where to get Episode data from. See
+  [Episode Data Source](./settings.md#episode-data-source).
+- **Image Source Priority** — Order of Connections to try when downloading
+  Source Images. See
+  [Image Source Priority](./settings.md#image-source-priority).
+- **Ignored Localized Images** — Whether to skip localized Source Images.
+- **Enable Specials** — Whether to include Episodes from Season 0 (specials).
+  See [Enable Specials](./settings.md#enable-specials).
 
-### Season Titles
+### Translations and Extras
 
-...
+#### Quick translation settings
+
+- **Title Language** — Select a TMDb language to fetch Episode titles as the
+  _preferred title_. Leave at **Default (source title)** to use the title from
+  your Episode data source without translation.
+- **Enable Kanji** — When enabled, TCM fetches Japanese titles from TMDb into
+  the `kanji` field (used by Anime-style card types). Equivalent to adding a
+  `ja → kanji` translation entry.
+
+#### Additional Translations
+
+Each row specifies a language and a target data key. Use **Add** to create a row
+and **Delete All** to remove all additional rows (this does not affect the Title
+Language or Kanji settings above).
+
+#### Extras
+
+The **Extras** section provides tabbed fields for card-type-specific custom
+values. The available extras depend on the selected **Card Type**. Extras tabs
+are initialized when you first expand a Template accordion.
+
+In-depth documentation of each extra (along with example images) can be found on
+the [Card Types](../card_types/index.md) page.
 
 
 [^1]: Argument and operation pairs which are meaningless (but technically
-valid) - e.g. `Series Name` `is greater than` `...` - are not listed. Many of
+valid) — e.g. `Series Name` `is greater than` `...` — are not listed. Many of
 these are either always true or always false, but hold no real meaning.
 
 [^2]: An Episode's watched status is unknown if the Episode cannot be found
