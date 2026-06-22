@@ -828,17 +828,71 @@ html.dark .series-stat-badge:hover {
   align-items: flex-start;
 }
 
+.series-preview-wrap {
+  position: relative;
+  display: inline-block;
+}
+
 .series-preview-link {
   display: block;
+  padding: 0;
+  border: none;
+  background: none;
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
   transition: transform 0.2s, box-shadow 0.2s;
+  cursor: zoom-in;
 }
 
-.series-preview-link:hover {
+.series-preview-link:hover,
+.series-preview-link:focus-visible {
   transform: scale(1.02);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.series-preview-link:focus-visible {
+  outline: 2px solid var(--tcm-blue-color);
+  outline-offset: 2px;
+}
+
+.series-preview-actions {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  display: flex;
+  gap: 0.35rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.series-preview-wrap:hover .series-preview-actions,
+.series-preview-wrap:focus-within .series-preview-actions {
+  opacity: 1;
+}
+
+.series-preview-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.58);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.series-preview-action-btn:hover {
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.series-preview-action-btn .icon {
+  margin: 0;
+  font-size: 0.9em;
 }
 
 .series-preview-img {
@@ -846,6 +900,33 @@ html.dark .series-stat-badge:hover {
   max-height: 220px;
   width: auto;
   border-radius: 6px;
+}
+
+/* Fullscreen preview lightbox */
+.series-preview-lightbox > .content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 2.5rem 1.5rem;
+  background: rgba(8, 10, 16, 0.94) !important;
+}
+
+.series-preview-lightbox-content img {
+  display: block;
+  max-width: min(96vw, 1600px);
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+}
+
+.series-preview-lightbox > .close.icon {
+  color: rgba(255, 255, 255, 0.75);
+  top: 1rem;
+  right: 1rem;
 }
 
 /* ── Tab navigation ──────────────────────────────────────────────────────── */

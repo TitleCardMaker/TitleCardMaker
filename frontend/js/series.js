@@ -1647,6 +1647,7 @@ async function initAll() {
     });
 
   $('#poster-modal').modal({ autofocus: false });
+  $('#preview-lightbox-modal').modal({ autofocus: false });
 
   new ImageCompare(
     document.querySelector('#mask-editor-modal .image-compare'),
@@ -3494,6 +3495,33 @@ function getEpisodeOverviews(pageNumber=1) {
 }
 
 /**
+ * Open a fullscreen lightbox showing the current live preview image.
+ */
+function openPreviewLightbox() {
+  const preview = document.getElementById('live-preview');
+  const src = preview?.src || '';
+  if (!src || src.includes('/public/blank.png')) {
+    showErrorToast({ title: 'No preview to display' });
+    return;
+  }
+
+  document.getElementById('preview-lightbox-img').src = src;
+  $('#preview-lightbox-modal').modal('show');
+}
+
+/**
+ * Update the live preview image and keep the lightbox in sync if open.
+ * @param {string} url Preview image URL.
+ */
+function setLivePreviewImage(url) {
+  document.getElementById('live-preview').src = url;
+  const lightboxImg = document.getElementById('preview-lightbox-img');
+  if (lightboxImg && $('#preview-lightbox-modal').hasClass('visible')) {
+    lightboxImg.src = url;
+  }
+}
+
+/**
  * Submit an API request to generate a preview card and update the preview card.
  * If the currently selected preview ID is actually an item to load the next
  * page of episode overviews, then the preview is not actually refreshed.
@@ -3528,7 +3556,7 @@ function refreshPreview() {
     url: `/api/v2/cards/preview/episode/${episodeId}`,
     data: JSON.stringify(data),
     contentType: 'application/json',
-    success: preview_uri => document.getElementById('live-preview').src = `${preview_uri}?${new Date().getTime()}`,
+    success: preview_uri => setLivePreviewImage(`${preview_uri}?${new Date().getTime()}`),
     error: response => showErrorToast({title: 'Error Updating Preview', response}),
     complete: () => $('#preview-episode-dropdown .dropdown').toggleClass('loading', false),
   });

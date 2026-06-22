@@ -608,9 +608,19 @@
 
           <!-- Live preview column -->
           <div class="series-hero-preview-col">
-            <a href="#" class="series-preview-link" onclick="refreshPreview();" data-tooltip="Click to refresh preview" data-position="left center">
-              <img id="live-preview" src="/public/blank.png" loading="lazy" class="series-preview-img">
-            </a>
+            <div class="series-preview-wrap">
+              <button type="button" class="series-preview-link" onclick="openPreviewLightbox();" aria-label="Expand title card preview" data-tooltip="Click to expand preview" data-position="left center">
+                <img id="live-preview" src="/public/blank.png" loading="lazy" class="series-preview-img" alt="Title card preview">
+              </button>
+              <div class="series-preview-actions">
+                <button type="button" class="series-preview-action-btn" onclick="refreshPreview();" title="Refresh preview" aria-label="Refresh preview">
+                  <i class="sync icon"></i>
+                </button>
+                <button type="button" class="series-preview-action-btn" onclick="openPreviewLightbox();" title="Expand preview" aria-label="Expand preview">
+                  <i class="expand icon"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1864,6 +1874,14 @@
       </div>
       <div class="center aligned scrolling image content">
         <div class="ui large images"></div>
+      </div>
+    </div>
+
+    <!-- Title card preview lightbox -->
+    <div id="preview-lightbox-modal" class="ui fullscreen modal series-preview-lightbox">
+      <i class="close icon"></i>
+      <div class="content series-preview-lightbox-content">
+        <img id="preview-lightbox-img" alt="Title card preview">
       </div>
     </div>
 
