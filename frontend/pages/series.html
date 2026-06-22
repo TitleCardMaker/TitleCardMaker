@@ -1187,9 +1187,34 @@
                 Translations &amp; Extras
               </div>
               <section>
+                <div class="series-translation-quick">
+                  <div class="field">
+                    <label>
+                      Title Language
+                      <span class="help-tip" data-tip="Fetch episode titles from TMDb in this language and use them as the preferred title. Leave unset to use the source title.">ⓘ</span>
+                    </label>
+                    <div id="title-language-dropdown" data-value="title_language_code" class="ui compact clearable selection dropdown">
+                      <input name="title_language_code" type="hidden">
+                      <div class="default text">Default (source title)</div>
+                      <i class="dropdown icon"></i>
+                      <div class="menu"></div>
+                    </div>
+                  </div>
+                  <div class="toggle-field">
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="enable-kanji" name="enable_kanji">
+                      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    </label>
+                    <div class="toggle-label">
+                      Enable Kanji
+                      <span class="help-tip" data-tip="Translate Japanese titles from TMDb into the kanji field.">ⓘ</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="ui field">
                   <div class="repl-header">
-                    <label>Translations</label>
+                    <label>Additional Translations</label>
                     <div class="repl-header-actions">
                       <button data-add-field="translation" class="repl-action-btn" type="button">
                         <i class="plus icon"></i>
@@ -1201,9 +1226,10 @@
                       </button>
                     </div>
                   </div>
-                  <div data-value="translations" class="ui compact segment">
-                    <!-- Added asynchronously -->
-                  </div>
+                  <div data-value="translations" class="series-translations-list"></div>
+                  <p class="series-translations-empty section-note" id="translations-empty-note">
+                    No additional translations configured. Use <strong>Add</strong> to create custom translation keys.
+                  </p>
                 </div>
 
                 <!-- Extras -->

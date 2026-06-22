@@ -401,34 +401,70 @@ async function initializeSeriesConfig() {
   });
   // Translations
   const allTranslations = await fetch('/api/v2/available/translations').then(resp => resp.json());
-  {% if series.translations is not none %}
-  if ({{series.translations|safe}}.length > 0) { 
+  const existingTranslations = {% if series.translations is not none %}{{ series.translations|safe }}{% else %}[]{% endif %};
+  let titleLanguageCode = '';
+  let enableKanji = false;
+  const customTranslations = [];
+
+  for (const translation of existingTranslations) {
+    if (translation.data_key === 'preferred_title') {
+      titleLanguageCode = translation.language_code;
+    } else if (translation.data_key === 'kanji') {
+      enableKanji = true;
+    } else {
+      customTranslations.push(translation);
+    }
+  }
+
+  $('#title-language-dropdown').dropdown({
+    values: allTranslations.map(({ language_code, language }) => ({
+      name: language,
+      value: language_code,
+      selected: language_code === titleLanguageCode,
+    })),
+  });
+  if (titleLanguageCode) {
+    $('#title-language-dropdown input[name="title_language_code"]').val(titleLanguageCode);
+  }
+  document.getElementById('enable-kanji').checked = enableKanji;
+
+  if (customTranslations.length > 0) {
     const translationSegment = $('#card-config-form [data-value="translations"]');
-    for (const translation of {{series.translations|safe}}) {
+    for (const translation of customTranslations) {
       const newTranslation = document.getElementById('translation-template').content.cloneNode(true);
       translationSegment.append(newTranslation);
-      $(`#card-config-form .dropdown[data-value="language_code"]`).last().dropdown({
-        values: [
-          ...allTranslations.map(({language_code, language}) => {
-            return {name: language, value: language_code, selected: translation.language_code === language_code};
-          })
-        ],
+      $(`#card-config-form [data-value="translations"] .dropdown[data-value="language_code"]`).last().dropdown({
+        values: allTranslations.map(({ language_code, language }) => ({
+          name: language,
+          value: language_code,
+          selected: translation.language_code === language_code,
+        })),
       });
-      let extraValue = [];
-      if (translation.data_key !== 'preferred_title' && translation.data_key !== 'kanji') {
-        extraValue.push({name: translation.data_key, value: translation.data_key, selected: true});
-      }
-      $(`#card-config-form .dropdown[data-value="data_key"]`).last().dropdown({
+      $(`#card-config-form [data-value="translations"] .dropdown[data-value="data_key"]`).last().dropdown({
         allowAdditions: true,
         values: [
-          {name: 'Preferred title', text: 'the preferred title', value: 'preferred_title', selected: translation.data_key === 'preferred_title'},
-          {name: 'Kanji', text: 'kanji', value: 'kanji', selected: translation.data_key === 'kanji'},
-          ...extraValue,
-        ]
+          { name: translation.data_key, value: translation.data_key, selected: true },
+        ],
       });
     }
   }
-  {% endif %}
+
+  // Add translation on button press
+  document.querySelector('#card-config-form [data-add-field="translation"]').onclick = () => {
+    const newTranslation = document.querySelector('#translation-template').content.cloneNode(true);
+    $('#card-config-form [data-value="translations"]').append(newTranslation);
+    $('#card-config-form [data-value="translations"] .dropdown[data-value="language_code"]').last().dropdown({
+      values: allTranslations.map(({ language_code, language }) => ({
+        name: language,
+        value: language_code,
+      })),
+    });
+    $('#card-config-form [data-value="translations"] .dropdown[data-value="data_key"]').last().dropdown({
+      allowAdditions: true,
+    });
+    updateTranslationsEmptyState();
+  };
+  updateTranslationsEmptyState();
   // Extras
   await initializeExtras(
     {% if series.extras %}
@@ -446,27 +482,6 @@ async function initializeSeriesConfig() {
     false,
     3,
   );
-  // Add translation on button press
-  document.querySelector(`#card-config-form [data-add-field="translation"]`).onclick = () => {
-    const newTranslation = document.querySelector('#translation-template').content.cloneNode(true);
-    $(`#card-config-form [data-value="translations"]`).append(newTranslation);
-    // Language code dropdown
-    $(`#card-config-form .dropdown[data-value="language_code"]`).last().dropdown({
-      values: [
-        ...allTranslations.map(({language_code, language}) => {
-          return {name: language, value: language_code};
-        })
-      ],
-    });
-    // Data key dropdown
-    $(`#card-config-form .dropdown[data-value="data_key"]`).last().dropdown({
-      allowAdditions: true,
-      values: [
-        {name: 'Preferred title', text: 'the preferred title', value: 'preferred_title'},
-        {name: 'Kanji', text: 'kanji', value: 'kanji'},
-      ]
-    });
-  };
   refreshTheme();
 }
 
@@ -1779,6 +1794,18 @@ function addBlankTitle(addButton) {
 }
 
 /**
+ * Show or hide the empty-state message for additional translations.
+ */
+function updateTranslationsEmptyState() {
+  const list = document.querySelector('#card-config-form [data-value="translations"]');
+  const empty = document.getElementById('translations-empty-note');
+  if (!list || !empty) {
+    return;
+  }
+  empty.hidden = list.querySelector('input[name="language_code"]') !== null;
+}
+
+/**
  * Submit an API request clear some list values for this Series. If successful,
  * the data is also removed from the DOM.
  * @param {"season_titles" | "translations"} attribute - Name of the attribute
@@ -1789,7 +1816,16 @@ function deleteListValues(attribute) {
   if (attribute === 'season_titles') {
     data = {season_titles: null};
   } else if (attribute === 'translations') {
-    data = {translations: null};
+    // Preserve quick translation settings; only clear additional rows.
+    const translations = [];
+    const titleLanguage = document.querySelector('#card-config-form input[name="title_language_code"]')?.value;
+    if (titleLanguage) {
+      translations.push({ language_code: titleLanguage, data_key: 'preferred_title' });
+    }
+    if (document.querySelector('#card-config-form input[name="enable_kanji"]')?.checked) {
+      translations.push({ language_code: 'ja', data_key: 'kanji' });
+    }
+    data = { translations: translations.length ? translations : null };
   }
 
   $.ajax({
@@ -1801,7 +1837,8 @@ function deleteListValues(attribute) {
       if (attribute === 'season_titles') {
         $('.season-titles-list .season-title-row').remove();
       } else if (attribute === 'translations') {
-        $('.field [data-value="translations"] >*').remove();
+        $('#card-config-form [data-value="translations"]').empty();
+        updateTranslationsEmptyState();
       }
       showInfoToast('Deleted Values');
     },
@@ -2750,6 +2787,42 @@ function deleteSeries() {
 }
 
 /**
+ * Build the translations payload for series card config.
+ * @returns {Array<{language_code: string, data_key: string}> | null}
+ */
+function getSeriesTranslationsData() {
+  const translations = [];
+
+  const titleLanguage = document.querySelector('#card-config-form input[name="title_language_code"]')?.value;
+  if (titleLanguage) {
+    translations.push({
+      language_code: titleLanguage,
+      data_key: 'preferred_title',
+    });
+  }
+
+  if (document.querySelector('#card-config-form input[name="enable_kanji"]')?.checked) {
+    translations.push({
+      language_code: 'ja',
+      data_key: 'kanji',
+    });
+  }
+
+  Array.from(document.querySelectorAll('#card-config-form [data-value="translations"] input[name="language_code"]'))
+    .forEach((input, index) => {
+      const dataKey = document.querySelectorAll('#card-config-form [data-value="translations"] input[name="data_key"]')[index]?.value;
+      if (input.value && dataKey) {
+        translations.push({
+          language_code: input.value,
+          data_key: dataKey,
+        });
+      }
+    });
+
+  return translations.length ? translations : null;
+}
+
+/**
  * Get the config data for this Series' Card Form.
  * @returns {Series}
  */
@@ -2802,14 +2875,7 @@ function getSeriesCardConfigData() {
     season_titles: Object.keys(season_titles).length > 0 ? season_titles : null,
     hide_episode_text: $('#card-config-form input[name="hide_episode_text"]').val() || null,
     episode_text_format: $('#card-config-form input[name="episode_text_format"]').val() || null,
-    translations: parseList(
-        Array.from(document.querySelectorAll('#card-config-form input[name="language_code"]')).map((input, index) => {
-          return {
-            language_code: input.value,
-            data_key: document.querySelectorAll('#card-config-form input[name="data_key"]')[index].value,
-          };
-        })
-      ),
+    translations: getSeriesTranslationsData(),
     extras: Object.keys(extras).length > 0 ? extras : null,
   }
 }
