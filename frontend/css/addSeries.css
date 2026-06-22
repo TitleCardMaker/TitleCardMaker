@@ -79,6 +79,10 @@
   /* filter: blur(1px); /* grayscale(70%) blur(1px); */
 }
 
+#blueprint-pagination {
+  margin-top: 1rem;
+}
+
 /* Mobile formatting */
 @media (max-width: 768px) {
   /* Do not cap description height on mobile (to avoid weird scrolling) */
