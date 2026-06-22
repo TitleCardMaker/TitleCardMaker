@@ -91,29 +91,23 @@
 
   <!-- ── Translation entry ─────────────────────────────────────────────── -->
   <template id="translation-template">
-    <div class="translation-row">
-      <span class="translation-label">Translate</span>
-      <div class="ui inline scrolling clearable dropdown" data-value="language_code">
+    <span class="ui text">
+      Translate
+      <div data-value="language_code" class="ui inline scrolling clearable dropdown">
         <input name="language_code" type="hidden">
-        <div class="default text">Language</div>
+        <div class="text">French</div>
         <i class="dropdown icon"></i>
         <div class="menu"><!-- Added asynchronously --></div>
       </div>
-      <span class="translation-label">into</span>
-      <div class="ui inline user-additions search clearable dropdown" data-value="data_key">
+      titles into
+      <div data-value="data_key" class="ui inline user-additions search clearable dropdown">
         <input name="data_key" type="hidden">
-        <div class="default text">Key</div>
+        <div class="text"></div>
         <i class="dropdown icon"></i>
-        <div class="menu">
-          <div class="item" data-value="preferred_title" data-text="the title text">Title Text</div>
-          <div class="item" data-value="kanji" data-text="kanji">Kanji</div>
-        </div>
+        <div class="menu"><!-- Added asynchronously --></div>
       </div>
-      <button class="repl-delete-btn translation-delete" type="button"
-          onclick="this.closest('.translation-row').remove();" title="Remove translation">
-        <i class="times icon"></i>
-      </button>
-    </div>
+    </span>
+    <br>
   </template>
 
   <!-- ── Template accordion ────────────────────────────────────────────── -->
@@ -376,20 +370,51 @@
           <!-- ── Translations and Extras ────────────────────────────────── -->
           <div class="template-section-label"><span>Translations and Extras</span></div>
 
+          <div class="series-translation-quick">
+            <div class="field">
+              <label>
+                Title Language
+                <span class="help-tip" data-tip="Fetch episode titles from TMDb in this language and use them as the preferred title. Leave unset to use the source title.">ⓘ</span>
+              </label>
+              <div class="title-language-dropdown ui compact clearable selection dropdown" data-value="title_language_code">
+                <input name="title_language_code" type="hidden">
+                <div class="default text">Default (source title)</div>
+                <i class="dropdown icon"></i>
+                <div class="menu"></div>
+              </div>
+            </div>
+            <div class="toggle-field">
+              <label class="toggle-switch">
+                <input type="checkbox" name="enable_kanji">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+              <div class="toggle-label">
+                Enable Kanji
+                <span class="help-tip" data-tip="Translate Japanese titles from TMDb into the kanji field.">ⓘ</span>
+              </div>
+            </div>
+          </div>
+
           <div class="field">
             <div class="repl-header">
-              <label>Translations</label>
+              <label>Additional Translations</label>
               <div class="repl-header-actions">
                 <button class="repl-action-btn" data-add-field="translation" type="button"
                     onclick="addBlankTranslation(this);">
                   <i class="plus icon"></i>
                   Add
                 </button>
+                <button class="repl-action-btn danger" type="button"
+                    onclick="deleteTemplateTranslations(this);">
+                  <i class="trash alternate outline icon"></i>
+                  Delete All
+                </button>
               </div>
             </div>
-            <div data-value="translations" class="translations-list">
-              <!-- Rows added asynchronously -->
-            </div>
+            <div data-value="translations" class="series-translations-list"></div>
+            <p class="series-translations-empty section-note" data-value="translations-empty">
+              No additional translations configured. Use <strong>Add</strong> to create custom translation keys.
+            </p>
           </div>
 
           <!-- Extras tabs -->

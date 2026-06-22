@@ -128,19 +128,9 @@ function reloadPreview(templateElementId, cardElement, imgElement, previewForm) 
   }
 
   // Build translations array
-  const translations = [];
-  $(`#${templateElementId} input[name="language_code"]`).each(function(index) {
-    const languageCode = $(this).val();
-    const dataKey = $(`#${templateElementId} input[name="data_key"]`).eq(index).val();
-    if (languageCode && dataKey) {
-      translations.push({
-        language_code: languageCode,
-        data_key: dataKey,
-      });
-    }
-  });
-  if (translations.length > 0) {
-    updateTemplate.translations = translations;
+  const templateTranslations = getTemplateTranslationsData(templateElementId);
+  if (templateTranslations) {
+    updateTemplate.translations = templateTranslations;
   }
 
   // Build season_titles dict
@@ -274,14 +264,7 @@ function updateTemplate(templateId) {
         document.querySelector(`#template-id${templateId} input[name="image_source_priority"]`).value.split(',').filter(id => id != '')
       ),
     sync_specials: $(`#template-id${templateId} input[name="sync_specials"]`).val() || null,
-    translations: parseList(
-        Array.from(document.querySelectorAll(`#template-id${templateId} input[name="language_code"]`)).map((input, index) => {
-          return {
-            language_code: input.value,
-            data_key: document.querySelectorAll(`#template-id${templateId} input[name="data_key"]`)[index].value,
-          };
-        }).filter(({data_key}) => data_key !== '')
-      ),
+    translations: getTemplateTranslationsData(`template-id${templateId}`) || [],
     extras: extras,
   }
 
@@ -300,6 +283,131 @@ function updateTemplate(templateId) {
 }
 
 let htmlTemplatesInitialized = false;
+/** @type {Translation[]} */
+let allTranslationsCache = [];
+
+/**
+ * Build the translations payload for a template accordion.
+ * @param {string} templateElementId - Accordion element ID (e.g. template-id12).
+ * @returns {Array<{language_code: string, data_key: string}> | null}
+ */
+function getTemplateTranslationsData(templateElementId) {
+  const root = `#${templateElementId}`;
+  const translations = [];
+
+  const titleLanguage = document.querySelector(`${root} input[name="title_language_code"]`)?.value;
+  if (titleLanguage) {
+    translations.push({
+      language_code: titleLanguage,
+      data_key: 'preferred_title',
+    });
+  }
+
+  if (document.querySelector(`${root} input[name="enable_kanji"]`)?.checked) {
+    translations.push({
+      language_code: 'ja',
+      data_key: 'kanji',
+    });
+  }
+
+  Array.from(document.querySelectorAll(`${root} [data-value="translations"] input[name="language_code"]`))
+    .forEach((input, index) => {
+      const dataKey = document.querySelectorAll(`${root} [data-value="translations"] input[name="data_key"]`)[index]?.value;
+      if (input.value && dataKey) {
+        translations.push({
+          language_code: input.value,
+          data_key: dataKey,
+        });
+      }
+    });
+
+  return translations.length ? translations : null;
+}
+
+/**
+ * Show or hide the empty-state message for additional translations.
+ * @param {HTMLElement} accordionEl - Template accordion element.
+ */
+function updateTemplateTranslationsEmptyState(accordionEl) {
+  const list = accordionEl.querySelector('[data-value="translations"]');
+  const empty = accordionEl.querySelector('[data-value="translations-empty"]');
+  if (!list || !empty) {
+    return;
+  }
+  empty.hidden = list.querySelector('input[name="language_code"]') !== null;
+}
+
+/**
+ * Initialize dropdowns on the most recently added translation row.
+ * @param {HTMLElement} container - Translations list container.
+ * @param {Translation[]} allTranslations - Available translation languages.
+ * @param {?Translation} translation - Existing translation to populate, if any.
+ */
+function initTranslationRowDropdowns(container, allTranslations, translation = null) {
+  $(container).find('.dropdown[data-value="language_code"]').last().dropdown({
+    clearable: true,
+    values: allTranslations.map(({ language_code, language }) => ({
+      name: language,
+      value: language_code,
+      selected: translation ? translation.language_code === language_code : false,
+    })),
+  });
+
+  const keyValues = translation
+    ? [{ name: translation.data_key, value: translation.data_key, selected: true }]
+    : [];
+  $(container).find('.dropdown[data-value="data_key"]').last().dropdown({
+    allowAdditions: true,
+    clearable: true,
+    values: keyValues,
+  });
+}
+
+/**
+ * Initialize title language, kanji toggle, and custom translation rows for a template.
+ * @param {HTMLElement} accordionEl - Template accordion element.
+ * @param {Template} templateObj - Template data.
+ * @param {Translation[]} allTranslations - Available translation languages.
+ */
+function initTemplateTranslationSettings(accordionEl, templateObj, allTranslations) {
+  let titleLanguageCode = '';
+  let enableKanji = false;
+  const customTranslations = [];
+
+  for (const translation of (templateObj.translations || [])) {
+    if (translation.data_key === 'preferred_title') {
+      titleLanguageCode = translation.language_code;
+    } else if (translation.data_key === 'kanji') {
+      enableKanji = true;
+    } else {
+      customTranslations.push(translation);
+    }
+  }
+
+  const titleDropdown = accordionEl.querySelector('.title-language-dropdown');
+  $(titleDropdown).dropdown({
+    clearable: true,
+    values: allTranslations.map(({ language_code, language }) => ({
+      name: language,
+      value: language_code,
+      selected: language_code === titleLanguageCode,
+    })),
+  });
+  if (titleLanguageCode) {
+    titleDropdown.querySelector('input[name="title_language_code"]').value = titleLanguageCode;
+  }
+
+  accordionEl.querySelector('input[name="enable_kanji"]').checked = enableKanji;
+
+  const translationSegment = accordionEl.querySelector('[data-value="translations"]');
+  for (const translation of customTranslations) {
+    const newTranslation = document.getElementById('translation-template').content.cloneNode(true);
+    translationSegment.appendChild(newTranslation);
+    initTranslationRowDropdowns(translationSegment, allTranslations, translation);
+  }
+
+  updateTemplateTranslationsEmptyState(accordionEl);
+}
 
 /**
  * Add a dropdown item (or header) to the dropdown.
@@ -347,10 +455,10 @@ async function getAllTemplates() {
       // fetch('/api/v2/available/template-filters').then(resp => resp.json()),
       fetch('/api/v2/available/translations').then(resp => resp.json()),
     ]);
+    allTranslationsCache = allTranslations;
   
     // ----------------------- Add selectable items to the HTML template dropdowns
     const htmlTemplate = document.getElementById('template').content;
-    const translationTemplate = document.getElementById('translation-template').content;
     // Fonts
     const fontMenu = htmlTemplate.querySelector('.dropdown[data-value="font_id"] .menu');
     allFonts.forEach(font => {
@@ -364,11 +472,6 @@ async function getAllTemplates() {
     // Image Source Priorities
     const ispMenu = htmlTemplate.querySelector('.dropdown[data-value="image_source_priority"] .menu');
     allImageSources.forEach(source => addDropdownItem(ispMenu, {innerText: source.name, value: source.interface_id}));
-    // Translation languages
-    const translationMenu = translationTemplate.querySelector('.dropdown[data-value="language_code"] .menu');
-    allTranslations.forEach(translation => {
-      addDropdownItem(translationMenu, {innerText: translation.language, value: translation.language_code});
-    });
     // ---------------------------------------------------------------------------
     // Populate extras
     await populateExtraTemplate({
@@ -475,16 +578,7 @@ async function getAllTemplates() {
     if (templateObj.image_source_priority !== null) {
       base.querySelector('.dropdown[data-value="image_source_priority"] > input').value = templateObj.image_source_priority;
     }
-    // Translations
-    if (templateObj.translations !== null && templateObj.translations.length > 0) {
-      const translationSegment = base.querySelector('[data-value="translations"]');
-      for (const translation of templateObj.translations) {
-        const newTranslation = document.getElementById('translation-template').content.cloneNode(true);
-        newTranslation.querySelector('input[name="language_code"]').value = translation.language_code;
-        newTranslation.querySelector('input[name="data_key"]').value = translation.data_key;
-        translationSegment.append(newTranslation);
-      }
-    }
+    // Translations are initialized after the accordion is in the DOM.
     // Extras
     if (templateObj.extras && Object.entries(templateObj.extras).length > 0) {
       for (const [identifier, value] of Object.entries(templateObj.extras)) {
@@ -554,6 +648,14 @@ async function getAllTemplates() {
   $('.ui.dropdown').dropdown();
   $('.ui.clearable.dropdown').dropdown({clearable: true});
   // Season-title help tooltip is now a native data-tooltip attribute; no popup init needed.
+
+  // Initialize translation quick settings and custom rows after general dropdown init
+  allTemplates.forEach(templateObj => {
+    const accordionEl = document.getElementById(`template-id${templateObj.id}`);
+    if (accordionEl) {
+      initTemplateTranslationSettings(accordionEl, templateObj, allTranslationsCache);
+    }
+  });
 
   // Initialize episode search dropdowns after general dropdown initialization
   // This must be done after elements are in the DOM and after general dropdown init
@@ -679,15 +781,42 @@ function addBlankTitle(addButton) {
  * @param {HTMLDivElement} addButton Initiating add button which was clicked.
  */
 function addBlankTranslation(addButton) {
-  // Get blank translation template
+  const accordion = addButton.closest('.ui.accordion');
+  const container = accordion.querySelector('[data-value="translations"]');
   const newTranslation = document.getElementById('translation-template').content.cloneNode(true);
-  // Add to the translations list container
-  addButton.closest('div.field')
-    .querySelector('[data-value="translations"]')
-    .appendChild(newTranslation);
-  // Initialize newly added dropdowns, refresh theme
-  $(addButton).closest('div.field').find('.ui.dropdown').dropdown({
-    allowAdditions: true,
-  });
+  container.appendChild(newTranslation);
+  initTranslationRowDropdowns(container, allTranslationsCache);
+  updateTemplateTranslationsEmptyState(accordion);
   refreshTheme();
+}
+
+/**
+ * Clear additional translation rows for a template, preserving quick settings.
+ * @param {HTMLButtonElement} deleteButton - The "Delete All" button that was clicked.
+ */
+function deleteTemplateTranslations(deleteButton) {
+  const accordion = deleteButton.closest('.ui.accordion');
+  const templateId = parseInt(accordion.id.replace('template-id', ''), 10);
+  const translations = [];
+
+  const titleLanguage = accordion.querySelector('input[name="title_language_code"]')?.value;
+  if (titleLanguage) {
+    translations.push({ language_code: titleLanguage, data_key: 'preferred_title' });
+  }
+  if (accordion.querySelector('input[name="enable_kanji"]')?.checked) {
+    translations.push({ language_code: 'ja', data_key: 'kanji' });
+  }
+
+  $.ajax({
+    type: 'PATCH',
+    url: `/api/v2/templates/template/${templateId}`,
+    data: JSON.stringify({ translations: translations.length ? translations : null }),
+    contentType: 'application/json',
+    success: () => {
+      accordion.querySelector('[data-value="translations"]').replaceChildren();
+      updateTemplateTranslationsEmptyState(accordion);
+      showInfoToast('Cleared additional translations');
+    },
+    error: response => showErrorToast({ title: 'Error Clearing Translations', response }),
+  });
 }
