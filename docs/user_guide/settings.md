@@ -8,10 +8,12 @@ tags:
 
 # Settings
 
-From the left-hand navigation menu, Global Settings can be accessed and set.
+TitleCardMaker features a variety of settings to control the default behavior
+of the program. These include aspects such as the defaults for Title Card
+creation, features of the UI, and more.
 
-![](../assets/settings_light.webp#only-light){.no-lightbox}
-![](../assets/settings_dark.webp#only-dark){.no-lightbox}
+![Settings Page](./assets/settings-light.webp#only-light){.no-lightbox}
+![Settings Page](./assets/settings-dark.webp#only-dark){.no-lightbox}
 
 Settings listed here are the _global_ defaults for TitleCardMaker, but many can
 be overwritten within an Episode, Series, or Template. If a specific setting can
