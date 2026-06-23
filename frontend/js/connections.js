@@ -112,6 +112,30 @@ function describeErrorsHTML(errorObj) {
 }   
 
 /**
+ * Populate the title row of a cloned connection card template.
+ * @param {DocumentFragment} cardFragment - Cloned connection template.
+ * @param { id: number, name: string } connection - Connection metadata.
+ */
+function setConnectionCardTitle(cardFragment, connection) {
+  if (invalidConnectionIDs.includes(connection.id)) {
+    cardFragment.querySelector('.connection-title').classList.add('invalid');
+  }
+  cardFragment.querySelector('.connection-name').textContent = connection.name;
+  cardFragment.querySelector('.connection-id-badge').textContent = String(connection.id);
+  cardFragment.querySelector('.content').id = `connection${connection.id}`;
+}
+
+/**
+ * Set a connection form toggle to the given state.
+ * @param {number} connectionId - ID of the Connection whose form to update.
+ * @param {string} name - Checkbox input name.
+ * @param {boolean} checked - Whether the toggle should be on.
+ */
+function setConnectionToggle(connectionId, name, checked) {
+  $(`#connection${connectionId} input[name="${name}"]`).prop('checked', checked);
+}
+
+/**
  * Submit the API request to enable authentication. If successful the page is
  * redirected to the login page with a callback to redirect back here if the
  * subsequent login is successful.
@@ -156,8 +180,8 @@ function disableAuthentication() {
     type: 'POST',
     url: '/api/v2/auth/disable',
     success: () => {
-      // Uncheck checkbox, disable fields
-      $('.checkbox[data-value="require_auth"]').checkbox('uncheck');
+      // Uncheck toggle, disable fields
+      $('#require-auth-toggle').prop('checked', false);
       $('#auth-settings .field').toggleClass('disabled', true);
 
       // Clear username input
@@ -207,19 +231,23 @@ function editUserAuth() {
  * assigns functions to all events/presses.
  */
 function initializeAuthForm() {
+  const $toggle = $('#require-auth-toggle');
+
   // Enable/disable auth fields based on initial state
   if (requireAuth) {
-    $('.checkbox[data-value="require_auth"]').checkbox('check');
+    $toggle.prop('checked', true);
     $('#auth-settings .field').toggleClass('disabled', false);
   } else {
-    $('.checkbox[data-value="require_auth"]').checkbox('uncheck');
+    $toggle.prop('checked', false);
     $('#auth-settings .field').toggleClass('disabled', true);
   }
 
-  // Assign checked/unchecked functions
-  $('.checkbox[data-value="require_auth"]').checkbox({
-    onChecked: enableAuthentication,
-    onUnchecked: disableAuthentication,
+  $toggle.on('change', function() {
+    if (this.checked) {
+      enableAuthentication();
+    } else {
+      disableAuthentication();
+    }
   });
 
   // Assign edit API request to button press
@@ -557,15 +585,7 @@ function initializeEmby() {
   // Add accordions for each Connection
   const embyForms = connections.map(connection => {
     const embyForm = embyTemplate.content.cloneNode(true);
-
-    if (invalidConnectionIDs.includes(connection.id)) {
-      embyForm.querySelector('.title').classList.add('invalid');
-    }
-
-    embyForm.querySelector('.title').id = `connection${connection.id}-title`;
-    embyForm.querySelector('.content').id = `connection${connection.id}`;
-    // Enable later
-    embyForm.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${connection.name} <span class="right floated">${connection.id}</span>`;
+    setConnectionCardTitle(embyForm, connection);
     embyForm.querySelector('input[name="name"]').value = connection.name;
     embyForm.querySelector('input[name="url"]').value = connection.url;
     embyForm.querySelector('input[name="api_key"]').value = connection.api_key;
@@ -581,9 +601,7 @@ function initializeEmby() {
   // Initialize elements of Form
   connections.forEach(connection => {
     // Enabled
-    $(`#connection${connection.id} .checkbox[data-value="enabled"]`).checkbox(
-      connection.enabled ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'enabled', connection.enabled);
     // Query for usernames to initialize Dropdown if Connection is enabled
     if (connection.enabled) {
       $.ajax({
@@ -610,9 +628,7 @@ function initializeEmby() {
       });
     }
     // SSL
-    $(`#connection${connection.id} .checkbox[data-value="use_ssl"]`).checkbox(
-      connection.use_ssl ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'use_ssl', connection.use_ssl);
     // Libraries
     const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui right icon label" data-library-name="${library}">${library}<i class="trash alternate outline link icon" onclick="deleteLibrary(${connection.id}, '${library}')"></i></div>`));
     $(`#connection${connection.id} .labels[data-value="libraries"]`).append(libraries);
@@ -648,13 +664,7 @@ function initializeJellyfin() {
   // Add accordions for each Connection
   const jellyfinForms = connections.map(connection => {
     const jellyfinForm = jellyfinTemplate.content.cloneNode(true);
-    if (invalidConnectionIDs.includes(connection.id)) {
-      jellyfinForm.querySelector('.title').classList.add('invalid');
-    }
-    jellyfinForm.querySelector('.title').id = `connection${connection.id}-title`;
-    jellyfinForm.querySelector('.content').id = `connection${connection.id}`;
-    // Enable later
-    jellyfinForm.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${connection.name} <span class="right floated">${connection.id}</span>`;
+    setConnectionCardTitle(jellyfinForm, connection);
     jellyfinForm.querySelector('input[name="name"]').value = connection.name;
     jellyfinForm.querySelector('input[name="url"]').value = connection.url;
     jellyfinForm.querySelector('input[name="api_key"]').value = connection.api_key;
@@ -670,9 +680,7 @@ function initializeJellyfin() {
   // Initialize elements of Form
   connections.forEach(connection => {
     // Enabled
-    $(`#connection${connection.id} .checkbox[data-value="enabled"]`).checkbox(
-      connection.enabled ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'enabled', connection.enabled);
     // Query for usernames to initialize Dropdown if Connection is enabled
     if (connection.enabled) {
       $.ajax({
@@ -699,9 +707,7 @@ function initializeJellyfin() {
     }
 
     // SSL
-    $(`#connection${connection.id} .checkbox[data-value="use_ssl"]`).checkbox(
-      connection.use_ssl ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'use_ssl', connection.use_ssl);
 
     // Libraries
     const libraries = libraryMap[connection.id]?.map(library => $(`<div class="ui right icon label" data-library-name="${library}">${library}<i class="trash alternate outline link icon" onclick="deleteLibrary(${connection.id}, '${library}')"></i></div>`));
@@ -738,13 +744,7 @@ function initializePlex() {
   // Add accordions for each Connection
   const plexForms = connections.map(connection => {
     const plexForm = plexTemplate.content.cloneNode(true);
-    if (invalidConnectionIDs.includes(connection.id)) {
-      plexForm.querySelector('.title').classList.add('invalid');
-    }
-    plexForm.querySelector('.title').id = `connection${connection.id}-title`;
-    plexForm.querySelector('.content').id = `connection${connection.id}`;
-    // Enable later
-    plexForm.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${connection.name} <span class="right floated">${connection.id}</span>`;
+    setConnectionCardTitle(plexForm, connection);
     plexForm.querySelector('input[name="name"]').value = connection.name;
     plexForm.querySelector('input[name="url"]').value = connection.url;
     plexForm.querySelector('input[name="api_key"]').value = connection.api_key;
@@ -760,17 +760,11 @@ function initializePlex() {
   // Initialize elements of Form
   connections.forEach(connection => {
     // Enabled
-    $(`#connection${connection.id} .checkbox[data-value="enabled"]`).checkbox(
-      connection.enabled ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'enabled', connection.enabled);
     // SSL
-    $(`#connection${connection.id} .checkbox[data-value="use_ssl"]`).checkbox(
-      connection.use_ssl ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'use_ssl', connection.use_ssl);
     // Integrate with Kometa
-    $(`#connection${connection.id} .checkbox[data-value="integrate_with_kometa"]`).checkbox(
-      connection.integrate_with_kometa ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'integrate_with_kometa', connection.integrate_with_kometa);
 
     // Assign appropriate Tautulli modal form launch to button
     $(`#connection${connection.id} .button[data-action="tautulli"]`).on('click', () => {
@@ -817,15 +811,9 @@ function initializeSonarr() {
   // Add accordions for each Connection
   const sonarrForms = connections.map(connection => {
     const sonarrForm = sonarrTemplate.content.cloneNode(true);
-    if (invalidConnectionIDs.includes(connection.id)) {
-      sonarrForm.querySelector('.title').classList.add('invalid');
-    }
-    // Remove warning
+    setConnectionCardTitle(sonarrForm, connection);
+    // Remove warning for existing connections
     sonarrForm.querySelector('.warning.message').remove();
-    sonarrForm.querySelector('.title').id = `connection${connection.id}-title`;
-    sonarrForm.querySelector('.content').id = `connection${connection.id}`;
-    // Enable later
-    sonarrForm.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${connection.name} <span class="right floated">${connection.id}</span>`;
     sonarrForm.querySelector('input[name="name"]').value = connection.name;
     sonarrForm.querySelector('input[name="url"]').value = connection.url;
     sonarrForm.querySelector('input[name="api_key"]').value = connection.api_key;
@@ -850,17 +838,11 @@ function initializeSonarr() {
   // Initialize elements of Form
   connections.forEach(connection => {
     // Enabled
-    $(`#connection${connection.id} .checkbox[data-value="enabled"]`).checkbox(
-      connection.enabled ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'enabled', connection.enabled);
     // SSL
-    $(`#connection${connection.id} .checkbox[data-value="use_ssl"]`).checkbox(
-      connection.use_ssl ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'use_ssl', connection.use_ssl);
     // Downloaded only
-    $(`#connection${connection.id} .checkbox[data-value="downloaded_only"]`).checkbox(
-      connection.downloaded_only ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'downloaded_only', connection.downloaded_only);
     // Library interface dropdowns
     connection.libraries.forEach(({interface_id}, index) => {
       $(`#connection${connection.id} .dropdown[data-value="interface_id"]`).eq(index).dropdown({
@@ -933,13 +915,7 @@ function initializeTMDb() {
   // Add accordions for each Connection
   const tmdbForms = connections.map(connection => {
     const tmdbForm = tmdbTemplate.content.cloneNode(true);
-    if (invalidConnectionIDs.includes(connection.id)) {
-      tmdbForm.querySelector('.title').classList.add('invalid');
-    }
-    tmdbForm.querySelector('.title').id = `connection${connection.id}-title`;
-    tmdbForm.querySelector('.content').id = `connection${connection.id}`;
-    // Enable later
-    tmdbForm.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${connection.name} <span class="right floated">${connection.id}</span>`;
+    setConnectionCardTitle(tmdbForm, connection);
     tmdbForm.querySelector('input[name="name"]').value = connection.name;
     tmdbForm.querySelector('input[name="api_key"]').value = connection.api_key;
     tmdbForm.querySelector('input[name="minimum_dimensions"]').value = connection.minimum_dimensions;
@@ -951,13 +927,9 @@ function initializeTMDb() {
   // Initialize elements of Form
   connections.forEach(connection => {
     // Enabled
-    $(`#connection${connection.id} .checkbox[data-value="enabled"]`).checkbox(
-      connection.enabled ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'enabled', connection.enabled);
     // Ignore localized images
-    $(`#connection${connection.id} .checkbox[data-value="skip_localized"]`).checkbox(
-      connection.skip_localized ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'skip_localized', connection.skip_localized);
     // Initialize logo language priority dropdown
     $(`#connection${connection.id} .dropdown[data-value="language_priority"]`).dropdown({
       values: availableLanguages.map(language => {
@@ -998,13 +970,7 @@ function initializeTVDb() {
   // Add accordions for each Connection
   const tvdbForms = connections.map(connection => {
     const tvdbForm = tvdbTemplate.content.cloneNode(true);
-    if (invalidConnectionIDs.includes(connection.id)) {
-      tvdbForm.querySelector('.title').classList.add('invalid');
-    }
-    tvdbForm.querySelector('.title').id = `connection${connection.id}-title`;
-    tvdbForm.querySelector('.content').id = `connection${connection.id}`;
-    // Enable later
-    tvdbForm.querySelector('.title').innerHTML = `<i class="dropdown icon"></i>${connection.name} <span class="right floated">${connection.id}</span>`;
+    setConnectionCardTitle(tvdbForm, connection);
     tvdbForm.querySelector('input[name="name"]').value = connection.name;
     tvdbForm.querySelector('input[name="api_key"]').value = connection.api_key;
     tvdbForm.querySelector('input[name="minimum_dimensions"]').value = connection.minimum_dimensions;
@@ -1018,13 +984,9 @@ function initializeTVDb() {
   // Initialize elements of Form
   connections.forEach(connection => {
     // Enabled
-    $(`#connection${connection.id} .checkbox[data-value="enabled"]`).checkbox(
-      connection.enabled ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'enabled', connection.enabled);
     // Ignore movies
-    $(`#connection${connection.id} .checkbox[data-value="include_movies"]`).checkbox(
-      connection.include_movies ? 'check' : 'uncheck'
-    );
+    setConnectionToggle(connection.id, 'include_movies', connection.include_movies);
     // Initialize language priority dropdown
     $(`#connection${connection.id} .dropdown[data-value="language_priority"]`).dropdown({
       values: availableTVDbLanguages.map(language => {
@@ -1106,8 +1068,8 @@ function addConnection(connectionType) {
   }
 
   // Set accordion as active
-  template.querySelector('.title').classList.add('active');
-  template.querySelector('.content').classList.add('active');
+  template.querySelector('.connection-title').classList.add('active');
+  template.querySelector('.connection-content').classList.add('active');
 
   // Turn save button into create
   template.querySelector('button[data-action="save"]').innerHTML = '<i class="add icon"></i> Create';
@@ -1148,14 +1110,15 @@ function addConnection(connectionType) {
   template.querySelector('button[data-action="delete"]').remove();
 
   // Add Connection to relevant section, open accordion
-  const connections = document.getElementById(`${connectionType.toLowerCase()}-connections`);
-  connections.appendChild(template);
-  $(`#new-connection${tempFormId}`).accordion('open');
+  const connectionsList = document.getElementById(`${connectionType.toLowerCase()}-connections`);
+  connectionsList.appendChild(template);
+  const newCard = connectionsList.lastElementChild;
+  $(newCard).accordion();
+  $(newCard).accordion('open', 0);
 
   // Refresh theme
   refreshTheme();
   addFormValidation();
-  $('.ui.checkbox').checkbox();
 }
 
 async function initAll() {
@@ -1169,8 +1132,7 @@ async function initAll() {
 
   // Enable elements
   $('.ui.dropdown').dropdown();
-  $('.ui.checkbox').checkbox();
-  $('.ui.accordion').accordion();
+  $('.connection-card.ui.accordion').accordion();
 
   initializeAuthForm();
 }

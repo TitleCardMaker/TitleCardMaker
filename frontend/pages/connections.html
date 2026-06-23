@@ -9,6 +9,7 @@
     {% include "/js/connections.js" %}
   </script>
 
+  <link rel="stylesheet" type="text/css" href="/css/settings.css?v={{preferences.config.CURRENT_VERSION}}"/>
   <link rel="stylesheet" type="text/css" href="/css/connections.css?v={{preferences.config.CURRENT_VERSION}}"/>
 
   <template id="interface-dropdown-template">
@@ -21,79 +22,95 @@
   </template>
 
   <template id="emby-connection-template">
-    <div class="title">
-      <i class="dropdown icon"></i>
-      New Connection
-      <span class="right floated">New</span>
-    </div>
-    <div class="content">
+    <div class="ui accordion connection-card">
+      <div class="title connection-title">
+        <span class="connection-name">New Connection</span>
+        <span class="connection-id-badge">New</span>
+        <i class="dropdown icon connection-caret"></i>
+      </div>
+      <div class="content connection-content">
       <form class="ui fluid form" form-type="emby">
-        <div data-value="enabled" class="ui left aligned checkbox field">
-          <input name="enabled" type="checkbox" checked="">
-          <label>Enabled</label>
-          <p class="help">Disabled Connections cannot be interacted with by TitleCardMaker.</p>
+        <div class="toggle-field standalone" data-value="enabled">
+          <label class="toggle-switch">
+            <input name="enabled" type="checkbox" checked="">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+          <div class="toggle-label">
+            Enabled
+            <span class="help-tip" data-tip="Disabled Connections cannot be interacted with by TitleCardMaker.">ⓘ</span>
+          </div>
         </div>
 
         <div class="ui two fields">
           <div class="ui required field">
-            <label>Connection Name</label>
+            <label>
+              Connection Name
+              <span class="help-tip" data-tip="Name of this Connection within TCM.">ⓘ</span>
+            </label>
             <input name="name" type="text" value="Server">
-            <p class="help">Name of this Connection within TCM.</p>
           </div>
   
           <div class="ui required field">
-            <label>URL</label>
+            <label>
+              URL
+              <span class="help-tip" data-tip="Host URL or IP Address of the server (including the port number).">ⓘ</span>
+            </label>
             <div class="ui icon input">
               <i class="lock icon"></i>
               <input name="url" type="text" placeholder="http://192.168.0.1:8000/">
             </div>
-            <p class="help">Host URL or IP Address of the server (including the port number).</p>
           </div>
         </div>
 
         <div class="ui two fields">
           <div class="ui required field">
-            <label>API Key</label>
+            <label>
+              API Key
+              <span class="help-tip" data-tip="API key to authenticate communication.">ⓘ</span>
+            </label>
             <div class="ui icon input">
               <i class="lock icon"></i>
               <input name="api_key" type="text" class="private">
             </div>
-            <p class="help">API key to authenticate communication.</p>
           </div>
 
           <div class="ui field">
-            <label>Filesize Limit</label>
+            <label>
+              Filesize Limit
+              <span class="help-tip" data-tip="Maximum file size of Title Cards to upload. Title Cards larger than this will be compressed.">ⓘ</span>
+            </label>
             <input name="filesize_limit" type="text" value="5 Megabytes">
-            <p class="help">
-              Maximum file size of Title Cards to upload.
-              <br>
-              Title Cards larger than this will be compressed.
-            </p>
           </div>
         </div>
 
-        <div class="ui two fields">
-          <div class="ui required field" data-value="username">
-            <label>Username</label>
+        <div class="ui required field" data-value="username">
+            <label>
+              Username
+              <span class="help-tip" data-tip="Username of the user to query Episode watched statuses from.">ⓘ</span>
+            </label>
             <div data-value="username" class="ui compact selection dropdown">
               <input type="hidden" name="username">
               <i class="dropdown icon"></i>
               <div class="default text"></div>
               <div class="menu"></div>
             </div>
-            <p class="help">Username of the user to query Episode watched statuses from.</p>
           </div>
 
-          <div data-value="use_ssl" class="ui left aligned checkbox field">
-            <label>Use SSL</label>
+        <div class="toggle-field standalone" data-value="use_ssl">
+          <label class="toggle-switch">
             <input name="use_ssl" type="checkbox" checked="">
-            <p class="help">Connect with HTTPS instead of HTTP.</p>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+          <div class="toggle-label">
+            Use SSL
+            <span class="help-tip" data-tip="Connect with HTTPS instead of HTTP.">ⓘ</span>
           </div>
         </div>
 
         <div class="ui field">
           <label>
             Libraries
+            <span class="help-tip" data-tip="Names of libraries associated with this Connection.">ⓘ</span>
             <span data-tooltip="Refresh the library list" data-action="refresh-libraries">
               <i class="small redo link icon"></i>
             </span>
@@ -102,114 +119,129 @@
             </span>
           </label>
           <div class="ui basic labels" data-value="libraries"></div>
-          <p class="help">Names of libraries associated with this Connection.</p>
         </div>
 
         <div class="ui error message">
           <div class="header">Invalid Connection Details</div>
           <p></p>
         </div>
-        <button class="ui primary icon button" type="submit" data-action="save">
-          <i class="save outline icon"></i>
-          Save Changes
-        </button>
-        <button class="ui negative icon button" data-action="delete">
-          <i class="trash icon"></i>
-          Delete
-        </button>
+        <div class="connection-actions">
+          <button class="ui primary icon button" type="submit" data-action="save">
+            <i class="save outline icon"></i>
+            Save Changes
+          </button>
+          <button class="ui negative icon button" data-action="delete">
+            <i class="trash icon"></i>
+            Delete
+          </button>
+        </div>
       </form>
+    </div>
     </div>
   </template>
 
   <template id="plex-connection-template">
-    <div class="title">
-      <i class="dropdown icon"></i>
-      New Connection
-      <span class="right floated">New</span>
-    </div>
-    <div class="content">
+    <div class="ui accordion connection-card">
+      <div class="title connection-title">
+        <span class="connection-name">New Connection</span>
+        <span class="connection-id-badge">New</span>
+        <i class="dropdown icon connection-caret"></i>
+      </div>
+      <div class="content connection-content">
       <form class="ui fluid form" form-type="plex">
-        <div data-value="enabled" class="ui left aligned checkbox field">
-          <label>Enabled</label>
-          <input name="enabled" type="checkbox" checked="">
-          <p class="help">Disabled Connections cannot be interacted with by TitleCardMaker.</p>
+        <div data-value="enabled" class="toggle-field standalone">
+          <label class="toggle-switch">
+            <input name="enabled" type="checkbox" checked="">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+          <div class="toggle-label">
+            Enabled
+            <span class="help-tip" data-tip="Disabled Connections cannot be interacted with by TitleCardMaker.">ⓘ</span>
+          </div>
         </div>
 
         <div class="ui two fields">
           <div class="ui required field">
-            <label>Connection Name</label>
+            <label>
+              Connection Name
+              <span class="help-tip" data-tip="Name of this Connection within TCM.">ⓘ</span>
+            </label>
             <input name="name" type="text" value="Plex">
-            <p class="help">Name of this Connection within TCM.</p>
           </div>
   
           <div class="ui required field">
-            <label>URL</label>
+            <label>
+              URL
+              <span class="help-tip" data-tip="Host URL or IP Address of the server (including the port number).">ⓘ</span>
+            </label>
             <div class="ui icon input">
               <i class="lock icon"></i>
               <input name="url" type="text" placeholder="http://localhost:32400/">
             </div>
-            <p class="help">Host URL or IP Address of the server (including the port number).</p>
           </div>
         </div>
 
         <div class="ui two fields">
           <div class="ui required field">
-            <label>Token <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank"><i class="external alternate small icon"></i></a></label>
+            <label>
+              Token
+              <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank"><i class="external alternate small icon"></i></a>
+              <span class="help-tip" data-tip="X-Plex-Token to authenticate communication.">ⓘ</span>
+            </label>
             <div class="ui icon input">
               <i class="lock icon"></i>
               <input name="api_key" type="text" class="private" placeholder="Token">
             </div>
-            <p class="help">X-Plex-Token to authenticate communication.</p>
           </div>
 
           <div class="ui field">
-            <label>Filesize Limit</label>
+            <label>
+              Filesize Limit
+              <span class="help-tip" data-tip="Maximum file size of Title Cards to upload. Title Cards larger than this will be compressed. Plex rejects all images larger than 10 Megabytes.">ⓘ</span>
+            </label>
             <input name="filesize_limit" type="text" value="5 Megabytes">
-            <p class="help">
-              Maximum file size of Title Cards to upload.
-              <br>
-              Title Cards larger than this will be compressed.
-              <br>
-              Plex rejects all images larger than 10 Megabytes.
-            </p>
           </div>
         </div>
 
-        <div class="ui two fields">
-          <div data-value="use_ssl" class="ui left aligned checkbox field"">
-            <label>Use SSL</label>
-            <input name="use_ssl" type="checkbox" checked="">
-            <p class="help">Connect with HTTPS instead of HTTP.</p>
+        <div class="toggle-grid">
+          <div class="toggle-field" data-value="use_ssl">
+            <label class="toggle-switch">
+              <input name="use_ssl" type="checkbox" checked="">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+            <div class="toggle-label">
+              Use SSL
+              <span class="help-tip" data-tip="Connect with HTTPS instead of HTTP.">ⓘ</span>
+            </div>
           </div>
-          <br>
-  
-          <div data-value="integrate_with_kometa" class="ui left aligned checkbox field">
-            <label>Integrate with Kometa</label>
-            <input name="integrate_with_kometa" type="checkbox">
-            <p class="help">
-              Whether to remove the <b>Overlay</b> label after uploading Title Cards.
-              <br>
-              This also prevents TCM from grabbing Source Images from episodes with overlays.
-            </p>
+
+          <div class="toggle-field" data-value="integrate_with_kometa">
+            <label class="toggle-switch">
+              <input name="integrate_with_kometa" type="checkbox">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+            <div class="toggle-label">
+              Integrate with Kometa
+              <span class="help-tip" data-tip="Whether to remove the Overlay label after uploading Title Cards. This also prevents TCM from grabbing Source Images from episodes with overlays.">ⓘ</span>
+            </div>
           </div>
         </div>
 
         <div class="ui field">
-          <label>Tautulli Agent</label>
+          <label>
+            Tautulli Agent
+            <span class="help-tip" data-tip="Create a Notification Agent in Tautulli. Once created, this does not need to be re-created unless this Connection is deleted.">ⓘ</span>
+          </label>
           <button class="ui green icon button" data-action="tautulli" type="button">
             <i class="bell icon"></i>
             Create Notification Agent
           </button>
-          <p class="help">
-            Create a Notification Agent in Tautulli.
-            <br>
-            Once created, this does not need to be re-created unless this Connection is deleted.
-          </p>
         </div>
 
         <div class="ui field">
           <label>
             Libraries
+            <span class="help-tip" data-tip="Names of libraries associated with this Connection.">ⓘ</span>
             <span data-tooltip="Refresh the library list" data-action="refresh-libraries">
               <i class="small redo link icon"></i>
             </span>
@@ -218,7 +250,6 @@
             </span>
           </label>
           <div class="ui basic labels" data-value="libraries"></div>
-          <p class="help">Names of libraries associated with this Connection.</p>
         </div>
 
         <div class="ui error message">
@@ -226,79 +257,102 @@
           <p></p>
         </div>
 
-        <button class="ui primary icon button" type="submit" data-action="save">
-          <i class="save outline icon"></i>
-          Save Changes
-        </button>
-        <button class="ui negative icon button" data-action="delete">
-          <i class="trash icon"></i>
-          Delete
-        </button>
+        <div class="connection-actions">
+          <button class="ui primary icon button" type="submit" data-action="save">
+            <i class="save outline icon"></i>
+            Save Changes
+          </button>
+          <button class="ui negative icon button" data-action="delete">
+            <i class="trash icon"></i>
+            Delete
+          </button>
+        </div>
       </form>
+    </div>
     </div>
   </template>
 
   <template id="sonarr-connection-template">
-    <div class="title">
-      <i class="dropdown icon"></i>
-      New Connection
-      <span class="right floated">New</span>
-    </div>
-    <div class="content">
+    <div class="ui accordion connection-card">
+      <div class="title connection-title">
+        <span class="connection-name">New Connection</span>
+        <span class="connection-id-badge">New</span>
+        <i class="dropdown icon connection-caret"></i>
+      </div>
+      <div class="content connection-content">
       <form class="ui fluid form" form-type="sonarr">
-        <div data-value="enabled" class="ui left aligned checkbox field">
-          <label>Enabled</label>
-          <input name="enabled" type="checkbox" checked="">
-          <p class="help">Disabled Connections cannot be interacted with by TitleCardMaker.</p>
+        <div data-value="enabled" class="toggle-field standalone">
+          <label class="toggle-switch">
+            <input name="enabled" type="checkbox" checked="">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+          <div class="toggle-label">
+            Enabled
+            <span class="help-tip" data-tip="Disabled Connections cannot be interacted with by TitleCardMaker.">ⓘ</span>
+          </div>
         </div>
 
         <div class="ui two fields">
           <div class="ui required field">
-            <label>Connection Name</label>
+            <label>
+              Connection Name
+              <span class="help-tip" data-tip="Name of this Connection within TCM.">ⓘ</span>
+            </label>
             <input name="name" type="text" value="Sonarr">
-            <p class="help">Name of this Connection within TCM.</p>
           </div>
   
           <div class="ui required field">
-            <label>URL</label>
+            <label>
+              URL
+              <span class="help-tip" data-tip="Host URL or IP Address of the server (including the port number).">ⓘ</span>
+            </label>
             <div class="ui icon input">
               <i class="lock icon"></i>
               <input name="url" type="text" placeholder="http://localhost:8989/">
             </div>
-            <p class="help">Host URL or IP Address of the server (including the port number).</p>
           </div>
         </div>
 
         <div class="ui required eight wide field">
-          <label>API Key</label>
+          <label>
+            API Key
+            <span class="help-tip" data-tip="API key to authenticate communication.">ⓘ</span>
+          </label>
           <div class="ui icon input">
             <i class="lock icon"></i>
             <input name="api_key" type="text" class="private" placeholder="API Key">
           </div>
-          <p class="help">API key to authenticate communication.</p>
         </div>
 
-        <div class="ui two fields">
-          <div data-value="use_ssl" class="ui left aligned checkbox field">
-            <label>Use SSL</label>
-            <input name="use_ssl" type="checkbox" checked="">
-            <p class="help">Connect with HTTPS instead of HTTP.</p>
+        <div class="toggle-grid">
+          <div class="toggle-field" data-value="use_ssl">
+            <label class="toggle-switch">
+              <input name="use_ssl" type="checkbox" checked="">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+            <div class="toggle-label">
+              Use SSL
+              <span class="help-tip" data-tip="Connect with HTTPS instead of HTTP.">ⓘ</span>
+            </div>
           </div>
 
-          <div data-value="downloaded_only" class="ui left aligned checkbox field">
-            <label>Query Downloaded Episodes Only</label>
-            <input name="downloaded_only" type="checkbox" checked="">
-            <p class="help">Only add Episodes which are downloaded.</p>
+          <div class="toggle-field" data-value="downloaded_only">
+            <label class="toggle-switch">
+              <input name="downloaded_only" type="checkbox" checked="">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+            <div class="toggle-label">
+              Query Downloaded Episodes Only
+              <span class="help-tip" data-tip="Only add Episodes which are downloaded.">ⓘ</span>
+            </div>
           </div>
         </div>
 
         <div class="ui eight wide field" data-value="libraries">
-          <label>Library Paths</label>
-          <p class="help">
-            How to interpret Sonarr's paths when auto-assigning Libraries.
-            <br>
-            Only required if Syncing from Sonarr.
-          </p>
+          <label>
+            Library Paths
+            <span class="help-tip" data-tip="How to interpret Sonarr's paths when auto-assigning Libraries. Only required if Syncing from Sonarr.">ⓘ</span>
+          </label>
           <div class="ui compact floating visible warning message">
             <i class="exclamation icon"></i>
             Libraries must be added after the Connection is created.
@@ -306,20 +360,26 @@
           <div class="ui segment">
             <div class="three equal width fields">
               <div class="ui required library field" data-value="media_server">
-                <label>Media Server</label>
-                <p class="help">Associated server.</p>
+                <label>
+                  Media Server
+                  <span class="help-tip" data-tip="Associated server.">ⓘ</span>
+                </label>
                 <!-- Added asynchronously -->
               </div>
   
               <div class="library field" data-value="library_name">
-                <label>Library Name</label>
-                <p class="help">Name of the library to assign.</p>
+                <label>
+                  Library Name
+                  <span class="help-tip" data-tip="Name of the library to assign.">ⓘ</span>
+                </label>
                 <!-- Added asynchronously -->
               </div>
               
               <div class="library field" data-value="library_path">
-                <label>Path</label>
-                <p class="help">Root directory of this library.</p>
+                <label>
+                  Path
+                  <span class="help-tip" data-tip="Root directory of this library.">ⓘ</span>
+                </label>
                 <!-- Added asynchronously -->
               </div>
             </div>
@@ -339,140 +399,173 @@
           <p></p>
         </div>
 
-        <button class="ui primary icon button" type="submit" data-action="save">
-          <i class="save outline icon"></i>
-          Save Changes
-        </button>
-        <button class="ui negative icon button" data-action="delete">
-          <i class="trash icon"></i>
-          Delete
-        </button>
+        <div class="connection-actions">
+          <button class="ui primary icon button" type="submit" data-action="save">
+            <i class="save outline icon"></i>
+            Save Changes
+          </button>
+          <button class="ui negative icon button" data-action="delete">
+            <i class="trash icon"></i>
+            Delete
+          </button>
+        </div>
       </form>
     </div>
-  </template>
-  
-  <template id="tmdb-connection-template">
-    <div class="title">
-      <i class="dropdown icon"></i>
-      New Connection
-      <span class="right floated">New</span>
     </div>
-    <div class="content">
+  </template>
+
+  <template id="tmdb-connection-template">
+    <div class="ui accordion connection-card">
+      <div class="title connection-title">
+        <span class="connection-name">New Connection</span>
+        <span class="connection-id-badge">New</span>
+        <i class="dropdown icon connection-caret"></i>
+      </div>
+      <div class="content connection-content">
       <form class="ui fluid form" form-type="plex">
-        <div data-value="enabled" class="ui left aligned checkbox field">
-          <label>Enabled</label>
-          <input name="enabled" type="checkbox" checked="">
-          <p class="help">Disabled Connections cannot be interacted with by TitleCardMaker.</p>
+        <div data-value="enabled" class="toggle-field standalone">
+          <label class="toggle-switch">
+            <input name="enabled" type="checkbox" checked="">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+          <div class="toggle-label">
+            Enabled
+            <span class="help-tip" data-tip="Disabled Connections cannot be interacted with by TitleCardMaker.">ⓘ</span>
+          </div>
         </div>
 
         <div class="ui two fields">
           <div data-value="name" class="ui required eight wide field">
-            <label>Connection Name</label>
+            <label>
+              Connection Name
+              <span class="help-tip" data-tip="Name of this Connection within TCM.">ⓘ</span>
+            </label>
             <input name="name" type="text" value="TMDb">
-            <p class="help">Name of this Connection within TCM.</p>
           </div>
   
           <div data-value="api_key" class="ui required eight wide field">
-            <label>API Key <a href="https://developers.themoviedb.org/3/getting-started/introduction" target="_blank"><i class="external alternate small icon"></i></a></label>
+            <label>
+              API Key
+              <a href="https://developers.themoviedb.org/3/getting-started/introduction" target="_blank"><i class="external alternate small icon"></i></a>
+              <span class="help-tip" data-tip="Key to submit API requests to TMDb.">ⓘ</span>
+            </label>
             <div class="ui icon input">
               <i class="lock icon"></i>
               <input name="api_key" type="text" class="private">
             </div>
-            <p class="help">Key to submit API requests to TMDb.</p>
           </div>
         </div>
 
         <div class="ui two fields">
           <div data-value="minimum_dimensions" class="ui required field">
-            <label>Minimum Image Dimensions</label>
+            <label>
+              Minimum Image Dimensions
+              <span class="help-tip" data-tip="Minimum image resolution for Source Images from TMDb (in pixels) - enter as width x height.">ⓘ</span>
+            </label>
             <input name="minimum_dimensions" type="text" value="800x400">
-            <p class="help">
-              Minimum image resolution for Source Images from TMDb (in pixels) - enter as <b>width</b>x<b>height</b>.
-            </p>
           </div>
 
           <div data-value="language_priority" class="ui required field">
-            <label>Language Priority</label>
+            <label>
+              Language Priority
+              <span class="help-tip" data-tip="Order of languages to search for posters and logos.">ⓘ</span>
+            </label>
             <div data-value="language_priority" class="ui multiple search selection dropdown">
               <input type="hidden" name="language_priority">
               <i class="dropdown icon"></i>
               <div class="default text"></div>
               <div class="menu"></div>
             </div>
-            <p class="help">Order of languages to search for posters and logos.</p>
           </div>
         </div>
 
-        <div data-value="skip_localized" class="ui left aligned checkbox field">
-          <label>Ignore Localized Images</label>
-          <input name="skip_localized" type="checkbox" checked="">
-          <p class="help">
-            Whether to ignore images with assigned Languages (i.e. images with text).
-            <br>
-            Can be overwritten per-Series.
-          </p>
+        <div class="toggle-field standalone" data-value="skip_localized">
+          <label class="toggle-switch">
+            <input name="skip_localized" type="checkbox" checked="">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+          <div class="toggle-label">
+            Ignore Localized Images
+            <span class="help-tip" data-tip="Whether to ignore images with assigned Languages (i.e. images with text). Can be overwritten per-Series.">ⓘ</span>
+          </div>
         </div>
-        <br>
 
         <div class="ui error message">
           <div class="header">Invalid Connection Details</div>
           <p></p>
         </div>
 
-        <button class="ui primary icon button" type="submit" data-action="save">
-          <i class="save outline icon"></i>
-          Save Changes
-        </button>
-        <button class="ui negative icon button" data-action="delete">
-          <i class="trash icon"></i>
-          Delete
-        </button>
+        <div class="connection-actions">
+          <button class="ui primary icon button" type="submit" data-action="save">
+            <i class="save outline icon"></i>
+            Save Changes
+          </button>
+          <button class="ui negative icon button" data-action="delete">
+            <i class="trash icon"></i>
+            Delete
+          </button>
+        </div>
       </form>
+    </div>
     </div>
   </template>
 
   <template id="tvdb-connection-template">
-    <div class="title">
-      <i class="dropdown icon"></i>
-      New Connection
-      <span class="right floated">New</span>
-    </div>
-    <div class="content">
+    <div class="ui accordion connection-card">
+      <div class="title connection-title">
+        <span class="connection-name">New Connection</span>
+        <span class="connection-id-badge">New</span>
+        <i class="dropdown icon connection-caret"></i>
+      </div>
+      <div class="content connection-content">
       <form class="ui fluid form" form-type="plex">
-        <div data-value="enabled" class="ui left aligned checkbox field">
-          <label>Enabled</label>
-          <input name="enabled" type="checkbox" checked="">
-          <p class="help">Disabled Connections cannot be interacted with by TitleCardMaker.</p>
+        <div data-value="enabled" class="toggle-field standalone">
+          <label class="toggle-switch">
+            <input name="enabled" type="checkbox" checked="">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+          <div class="toggle-label">
+            Enabled
+            <span class="help-tip" data-tip="Disabled Connections cannot be interacted with by TitleCardMaker.">ⓘ</span>
+          </div>
         </div>
 
         <div class="ui two fields">
           <div data-value="name" class="ui required eight wide field">
-            <label>Connection Name</label>
+            <label>
+              Connection Name
+              <span class="help-tip" data-tip="Name of this Connection within TCM.">ⓘ</span>
+            </label>
             <input name="name" type="text" value="TVDb">
-            <p class="help">Name of this Connection within TCM.</p>
           </div>
   
           <div data-value="api_key" class="ui required eight wide field">
-            <label>API Key <a href="https://thetvdb.com/api-information" target="_blank"><i class="external alternate small icon"></i></a></label>
+            <label>
+              API Key
+              <a href="https://thetvdb.com/api-information" target="_blank"><i class="external alternate small icon"></i></a>
+              <span class="help-tip" data-tip="Key to submit API requests to TVDb.">ⓘ</span>
+            </label>
             <div class="ui icon input">
               <i class="lock icon"></i>
               <input name="api_key" type="text" class="private">
             </div>
-            <p class="help">Key to submit API requests to TVDb.</p>
           </div>
         </div>
 
         <div class="ui two fields">
           <div data-value="minimum_dimensions" class="ui required field">
-            <label>Minimum Image Dimensions</label>
+            <label>
+              Minimum Image Dimensions
+              <span class="help-tip" data-tip="Minimum image resolution for Source Images from TVDb (in pixels) - enter as width x height.">ⓘ</span>
+            </label>
             <input name="minimum_dimensions" type="text" value="400x200">
-            <p class="help">
-              Minimum image resolution for Source Images from TVDb (in pixels) - enter as <b>width</b>x<b>height</b>.
-            </p>
           </div>
   
           <div data-value="language_priority" class="ui required field">
-            <label>Language Priority</label>
+            <label>
+              Language Priority
+              <span class="help-tip" data-tip="Order of languages to search for posters and logos.">ⓘ</span>
+            </label>
             <div data-value="language_priority" class="ui multiple search selection dropdown">
               <input type="hidden" name="language_priority">
               <i class="dropdown icon"></i>
@@ -499,13 +592,14 @@
                 <div class="item" data-value="zhtw">Chinese (Traditional)</div>
               </div>
             </div>
-            <p class="help">Order of languages to search for posters and logos.</p>
           </div>
         </div>
 
-        <div class="ui two fields">
-          <div class="ui required field" data-value="episode_ordering">
-            <label>Episode Ordering</label>
+        <div class="ui required field" data-value="episode_ordering">
+            <label>
+              Episode Ordering
+              <span class="help-tip" data-tip="Which order of episodes to utilize. Not all Series have all orderings.">ⓘ</span>
+            </label>
             <div data-value="episode_ordering" class="ui selection dropdown">
               <input type="hidden" name="episode_ordering">
               <i class="dropdown icon"></i>
@@ -519,13 +613,16 @@
                 <div class="item" data-value="regional">Regional</div>
               </div>
             </div>
-            <p class="help">Which order of episodes to utilize. Not all Series have all orderings.</p>
           </div>
 
-          <div data-value="include_movies" class="ui left aligned checkbox field">
-            <label>Include Movies</label>
+        <div class="toggle-field standalone" data-value="include_movies">
+          <label class="toggle-switch">
             <input name="include_movies" type="checkbox">
-            <p class="help">Whether to include Episodes which are marked as movies.</p>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+          <div class="toggle-label">
+            Include Movies
+            <span class="help-tip" data-tip="Whether to include Episodes which are marked as movies.">ⓘ</span>
           </div>
         </div>
 
@@ -534,16 +631,18 @@
           <p></p>
         </div>
 
-        <button class="ui primary icon button" type="submit" data-action="save">
-          <i class="save outline icon"></i>
-          Save Changes
-        </button>
-
-        <button class="ui negative icon button" data-action="delete">
-          <i class="trash icon"></i>
-          Delete
-        </button>
+        <div class="connection-actions">
+          <button class="ui primary icon button" type="submit" data-action="save">
+            <i class="save outline icon"></i>
+            Save Changes
+          </button>
+          <button class="ui negative icon button" data-action="delete">
+            <i class="trash icon"></i>
+            Delete
+          </button>
+        </div>
       </form>
+    </div>
     </div>
   </template>
 </head>
@@ -560,96 +659,165 @@
 
     <!-- Actual page content -->
     <div id="main-content" class="article">
-      <!-- Page title -->
-      <h1 class="ui header">Connections</h1>
+      <div id="connections">
 
-      <!-- Authentication -->
-      <h2 class="ui dividing header">Authentication</h2>
-      <div class="connection-form">
-        <!-- Enable button -->
-        <div data-value="require_auth" class="ui left aligned checkbox field">
-          <label>Require Authentication</label>
-          <input type="checkbox">
-          <p class="help">
-            Whether to require a username and password to access TCM.
-            {% if not preferences.require_auth %}
-            <br>
-            When first enabled a temporary username (<b>admin</b>) and password (<b>password</b>) will be created.
-            {% endif %}
+        <div class="connections-intro">
+          <h1 class="connections-page-title">
+            <i class="plug icon"></i>
+            Connections
+          </h1>
+          <p class="section-note">
+            Connect TitleCardMaker to media servers and metadata sources.
+            At least one Connection is required before configuring
+            <a href="/settings">Settings</a> or creating <a href="/sync">Syncs</a>.
           </p>
         </div>
 
-        <form id="auth-settings" class="ui fluid form">
-          <div class="ui two fields">
-            <div class="ui four wide field">
-              <label>Username</label>
-              {% if active_username is none %}
-              <input name="username" type="text">
-              {% else %}
-              <input name="username" type="text" value="{{active_username}}">
-              {% endif %}
-            </div>
-
-            <div class="ui four wide field">
-              <label>Password</label>
-              <div class="ui icon input">
-                <i class="lock icon"></i>
-                <input name="password" type="password" class="private">
+        <!-- Authentication -->
+        <div class="settings-panel">
+          <div class="settings-panel-header">
+            <i class="lock icon"></i>
+            Authentication
+          </div>
+          <section>
+            <div class="toggle-field standalone">
+              <label class="toggle-switch">
+                <input id="require-auth-toggle" name="require_auth" type="checkbox">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+              <div class="toggle-label">
+                Require Authentication
+                <span class="help-tip" data-tip="Whether to require a username and password to access TCM.{% if not preferences.require_auth %} When first enabled, a temporary username (admin) and password (password) will be created.{% endif %}">ⓘ</span>
               </div>
             </div>
-          </div>
 
-          <div class=field>
-            <button class="ui primary icon button">
-              <i class="save outline icon"></i>
-              Save Changes
+            <form id="auth-settings" class="ui fluid form">
+              <div class="two fields">
+                <div class="field">
+                  <label>Username</label>
+                  {% if active_username is none %}
+                  <input name="username" type="text">
+                  {% else %}
+                  <input name="username" type="text" value="{{active_username}}">
+                  {% endif %}
+                </div>
+
+                <div class="field">
+                  <label>Password</label>
+                  <div class="ui icon input">
+                    <i class="lock icon"></i>
+                    <input name="password" type="password" class="private">
+                  </div>
+                </div>
+              </div>
+
+              <div class="connection-actions">
+                <button class="ui primary icon button" type="button">
+                  <i class="save outline icon"></i>
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+
+        <!-- Emby -->
+        <div class="settings-panel connection-source-panel connection-source-panel--emby">
+          <div class="settings-panel-header">
+            <i class="play circle outline icon"></i>
+            Emby
+            <button class="panel-action-btn connection-add-btn add-connection button" type="button" onclick="addConnection('emby');">
+              <i class="plus icon"></i>
+              New Connection
             </button>
           </div>
-        </form>
+          <section>
+            <div id="emby-connections" class="connection-list"></div>
+            <p class="connection-empty-msg">No Emby connections configured yet.</p>
+          </section>
+        </div>
+
+        <!-- Jellyfin -->
+        <div class="settings-panel connection-source-panel connection-source-panel--jellyfin">
+          <div class="settings-panel-header">
+            <i class="film icon"></i>
+            Jellyfin
+            <button class="panel-action-btn connection-add-btn add-connection button" type="button" onclick="addConnection('jellyfin');">
+              <i class="plus icon"></i>
+              New Connection
+            </button>
+          </div>
+          <section>
+            <div id="jellyfin-connections" class="connection-list"></div>
+            <p class="connection-empty-msg">No Jellyfin connections configured yet.</p>
+          </section>
+        </div>
+
+        <!-- Plex -->
+        <div class="settings-panel connection-source-panel connection-source-panel--plex">
+          <div class="settings-panel-header">
+            <i class="video icon"></i>
+            Plex
+            <button class="panel-action-btn connection-add-btn add-connection button" type="button" onclick="addConnection('plex');">
+              <i class="plus icon"></i>
+              New Connection
+            </button>
+          </div>
+          <section>
+            <div id="plex-connections" class="connection-list"></div>
+            <p class="connection-empty-msg">No Plex connections configured yet.</p>
+          </section>
+        </div>
+
+        <!-- Sonarr -->
+        <div class="settings-panel connection-source-panel connection-source-panel--sonarr">
+          <div class="settings-panel-header">
+            <i class="cloud download alternate icon"></i>
+            Sonarr
+            <button class="panel-action-btn connection-add-btn add-connection button" type="button" onclick="addConnection('sonarr');">
+              <i class="plus icon"></i>
+              New Connection
+            </button>
+          </div>
+          <section>
+            <div id="sonarr-connections" class="connection-list"></div>
+            <p class="connection-empty-msg">No Sonarr connections configured yet.</p>
+          </section>
+        </div>
+
+        <!-- TMDb -->
+        <div class="settings-panel connection-source-panel connection-source-panel--tmdb">
+          <div class="settings-panel-header">
+            <i class="database icon"></i>
+            TheMovieDatabase
+            <button class="panel-action-btn connection-add-btn add-connection button" type="button" onclick="addConnection('tmdb');">
+              <i class="plus icon"></i>
+              New Connection
+            </button>
+          </div>
+          <section>
+            <div id="tmdb-connections" class="connection-list"></div>
+            <p class="connection-empty-msg">No TMDb connections configured yet.</p>
+          </section>
+        </div>
+
+        <!-- TVDb -->
+        <div class="settings-panel connection-source-panel connection-source-panel--tvdb">
+          <div class="settings-panel-header">
+            <i class="tv icon"></i>
+            TVDb
+            <button class="panel-action-btn connection-add-btn add-connection button" type="button" onclick="addConnection('tvdb');">
+              <i class="plus icon"></i>
+              New Connection
+            </button>
+          </div>
+          <section>
+            <div id="tvdb-connections" class="connection-list"></div>
+            <p class="connection-empty-msg">No TVDb connections configured yet.</p>
+          </section>
+        </div>
+
       </div>
-
-      <!-- Emby Connections -->
-      <h2 class="ui dividing header">Emby</h2>
-      <button class="ui blue tertiary add-connection button" onclick="addConnection('emby');">
-        Add Connection
-      </button>
-      <div id="emby-connections" class="ui styled fluid accordion"><!-- Added later --></div>
-
-      <!-- Jellyfin Connections -->
-      <h2 class="ui dividing header">Jellyfin</h2>
-      <button class="ui blue tertiary add-connection button" onclick="addConnection('jellyfin');">
-        Add Connection
-      </button>
-      <div id="jellyfin-connections" class="ui styled fluid accordion"><!-- Added later --></div>
-
-      <!-- Plex Connections -->
-      <h2 class="ui dividing header">Plex</h2>
-      <button class="ui blue tertiary add-connection button" onclick="addConnection('plex');">
-        Add Connection
-      </button>
-      <div id="plex-connections" class="ui styled fluid accordion"><!-- Added later --></div>
-
-      <!-- Sonarr Connections -->
-      <h2 class="ui dividing header">Sonarr</h2>
-      <button class="ui blue tertiary add-connection button" onclick="addConnection('sonarr');">
-        Add Connection
-      </button>
-      <div id="sonarr-connections" class="ui styled fluid accordion"><!-- Added later --></div>
-
-      <!-- TMDb Connections -->
-      <h2 class="ui dividing header">TheMovieDatabase</h2>
-      <button class="ui blue tertiary add-connection button" onclick="addConnection('tmdb');">
-        Add Connection
-      </button>
-      <div id="tmdb-connections" class="ui styled fluid accordion"><!-- Added later --></div>
-
-      <!-- TVDb Connections -->
-      <h2 class="ui dividing header">TVDb</h2>
-      <button class="ui blue tertiary add-connection button" onclick="addConnection('tvdb');">
-        Add Connection
-      </button>
-      <div id="tvdb-connections" class="ui styled fluid accordion"><!-- Added later --></div>
-
     </div>
 
     <!-- Modals -->
@@ -677,9 +845,12 @@
             </div>
           </div>
 
-          <div class="ui left aligned checkbox field">
-            <label>Use SSL</label>
-            <input name="use_ssl" type="checkbox" checked="">
+          <div class="toggle-field standalone">
+            <label class="toggle-switch">
+              <input name="use_ssl" type="checkbox" checked="">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+            <div class="toggle-label">Use SSL</div>
           </div>
 
           <div class="ui divider"></div>
@@ -691,24 +862,33 @@
             </div>
   
             <div class="ui field">
-              <label>TitleCardMaker URL</label>
+              <label>
+                TitleCardMaker URL
+                <span class="help-tip" data-tip="Root TitleCardMaker URL - typically only required when using a reverse proxy.">ⓘ</span>
+              </label>
               <input name="tcm_url" placeholder="Default">
-              <p class="help">Root TitleCardMaker URL - typically only required when using a reverse proxy.</p>
             </div>
           </div>
 
           <!-- <div class="ui divider"></div> -->
 
-          <div class="ui left aligned checkbox field">
-            <label>Trigger on Recently Watched</label>
-            <input name="trigger_watched" type="checkbox" checked="">
-            <p class="help">If enabled, a separate Agent will be created to update TitleCardMaker when an Episode has been watched.</p>
+          <div class="toggle-field standalone">
+            <label class="toggle-switch">
+              <input name="trigger_watched" type="checkbox" checked="">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+            <div class="toggle-label">
+              Trigger on Recently Watched
+              <span class="help-tip" data-tip="If enabled, a separate Agent will be created to update TitleCardMaker when an Episode has been watched.">ⓘ</span>
+            </div>
           </div>
 
           <div class="ui field">
-            <label>Plex Username</label>
+            <label>
+              Plex Username
+              <span class="help-tip" data-tip="If left blank, all users will trigger TitleCardMaker.">ⓘ</span>
+            </label>
             <input name="username" placeholder="All Users">
-            <p class="help">If left blank, all users will trigger TitleCardMaker.</p>
           </div>
 
           <div class="ui info message"></div>
