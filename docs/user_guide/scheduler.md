@@ -13,9 +13,9 @@ adjusted by accessing the Scheduler page under `Settings` > `Scheduler` (or at
 the `/scheduler` URL).
 
 The Scheduler can be in one of two modes: basic (the default) mode, and advanced
-mode. These two modes can be switched between at any point by clicking the green
-button at the bottom of the page. All intervals are reset when switching between
-modes.
+mode. These two modes can be switched between at any point by clicking the 
+_Toggle Type_ button in the top right of the page. All intervals are reset when
+switching between modes.
 
 In both modes, scheduled Tasks happen according to a "cron" expression. These
 are expressions which allow for succinctly describing when something can occur,

@@ -33,7 +33,6 @@ below:
 - [Settings](./settings.md)
 - [Connections](./connections.md)
 - [Scheduler](./scheduler.md)
-- [Importer](./importer.md)
 - [System Summary](./system.md)
 - [Logs](./logs.md)
 - [Graphs](./graphs.md)
