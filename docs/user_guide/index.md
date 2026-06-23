@@ -6,11 +6,7 @@ description: >
 
 # User Guide
 
-!!! warning "Under Construction"
-
-    This documentation is actively being developed.
-
-!!! warning "Not for New Users"
+!!! note "Not for New Users"
 
     The User Guide __is not__ intended to be an introduction to TitleCardMaker
     for new users - it is a detailed reference for those already familiar with
@@ -21,23 +17,173 @@ description: >
 
 The TitleCardMaker interface is separated into various pages which can be
 navigated to via the sidebar or buttons on the header. Each page is detailed
-below:
+below, grouped by how you are likely to use them.
 
-- [Series](./series.md)
-- [Adding Series](./new_series.md)
-- [Recently Added](./recent.md)
-- [Missing Summary](./missing.md)
-- [Templates](./templates.md)
-- [Fonts](./fonts.md)
-- [Sync](./syncs.md)
-- [Settings](./settings.md)
-- [Connections](./connections.md)
-- [Scheduler](./scheduler.md)
-- [System Summary](./system.md)
-- [Logs](./logs.md)
-- [Graphs](./graphs.md)
-- [Changelog](./changelog.md)
-- [Command Line Image Creation](./command_line/index.md)
+### Library & Series
+
+<div class="grid cards" markdown>
+
+-   ![Series](../assets/series_light.webp#only-light){.no-lightbox href="./series.md"}
+    ![Series](../assets/series_dark.webp#only-dark){.no-lightbox}
+
+    **[Series](./series.md)**
+
+    ---
+
+    All Series-specific customizations and actions.
+
+-   ![Adding Series](../assets/add_series_light.webp#only-light){.no-lightbox}
+    ![Adding Series](../assets/add_series_dark.webp#only-dark){.no-lightbox}
+
+    **[Adding Series](./new_series.md)**
+
+    ---
+
+    Manually adding a Series or Blueprint.
+
+-   ![Recently Added](./assets/recent-light.webp#only-light){.no-lightbox}
+    ![Recently Added](./assets/recent-dark.webp#only-dark){.no-lightbox}
+
+    **[Recently Added](./recent.md)**
+
+    ---
+
+    Viewing recently created Title Cards and recently added Series.
+
+-   ![Missing Summary](./assets/missing-light.webp#only-light){.no-lightbox}
+    ![Missing Summary](./assets/missing-dark.webp#only-dark){.no-lightbox}
+
+    **[Missing Summary](./missing.md)**
+
+    ---
+
+    Summary of missing Title Cards, missing Logos, and unloaded Title Cards.
+
+</div>
+
+### Design
+
+<div class="grid cards" markdown>
+
+-   ![Templates](./assets/templates-light.webp#only-light){.no-lightbox}
+    ![Templates](./assets/templates-dark.webp#only-dark){.no-lightbox}
+
+    **[Templates](./templates.md)**
+
+    ---
+
+    Create, customize, and view Templates for bulk-editing settings.
+
+-   ![Fonts](../assets/fonts_light.webp#only-light){.no-lightbox}
+    ![Fonts](../assets/fonts_dark.webp#only-dark){.no-lightbox}
+
+    **[Fonts](./fonts.md)**
+
+    ---
+
+    Create, customize, and view custom Fonts.
+
+</div>
+
+### Automation
+
+<div class="grid cards" markdown>
+
+-   ![Sync](./assets/sync-light.webp#only-light){.no-lightbox}
+    ![Sync](./assets/sync-dark.webp#only-dark){.no-lightbox}
+
+    **[Sync](./syncs.md)**
+
+    ---
+
+    Creating and editing Syncs to automatically add Series to TCM.
+
+-   ![Scheduler](./assets/scheduler_basic-light.webp#only-light){.no-lightbox}
+    ![Scheduler](./assets/scheduler_basic-dark.webp#only-dark){.no-lightbox}
+
+    **[Scheduler](./scheduler.md)**
+
+    ---
+
+    The schedulable Tasks which automatically perform all major operations.
+
+</div>
+
+### Configuration
+
+<div class="grid cards" markdown>
+
+-   ![Settings](./assets/settings-light.webp#only-light){.no-lightbox}
+    ![Settings](./assets/settings-dark.webp#only-dark){.no-lightbox}
+
+    **[Settings](./settings.md)**
+
+    ---
+
+    In-depth descriptions of all global settings.
+
+-   ![Connections](./assets/connections-light.webp#only-light){.no-lightbox}
+    ![Connections](./assets/connections-dark.webp#only-dark){.no-lightbox}
+
+    **[Connections](./connections.md)**
+
+    ---
+
+    Add connections to external services like Plex, Sonarr, Tautulli, or TMDb.
+
+</div>
+
+### Monitoring
+
+<div class="grid cards" markdown>
+
+-   ![System Summary](./assets/system-light.webp#only-light){.no-lightbox}
+    ![System Summary](./assets/system-dark.webp#only-dark){.no-lightbox}
+
+    **[System Summary](./system.md)**
+
+    ---
+
+    Viewing the system details.
+
+-   ![Logs](./assets/logs-light.webp#only-light){.no-lightbox}
+    ![Logs](./assets/logs-dark.webp#only-dark){.no-lightbox}
+
+    **[Logs](./logs.md)**
+
+    ---
+
+    Viewing and filtering logs within the UI.
+
+-   ![Graphs](./assets/graphs-light.webp#only-light){.no-lightbox}
+    ![Graphs](./assets/graphs-dark.webp#only-dark){.no-lightbox}
+
+    **[Graphs](./graphs.md)**
+
+    ---
+
+    Visualizing database snapshots and scheduled task durations over time.
+
+</div>
+
+### Other
+
+<div class="grid cards" markdown>
+
+-   :material-history:{ .lg .middle } **[Changelog](./changelog.md)**
+
+    ---
+
+    Release notes and version history for TitleCardMaker.
+
+-   :material-console:{ .lg .middle } **[Command Line Image Creation](./command_line/index.md)**
+
+    ---
+
+    Create Title Cards and posters from the command line for testing,
+    debugging, and one-off image generation.
+
+</div>
 
 ## Selecting a Branch / Tag
 
