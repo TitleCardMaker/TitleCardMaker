@@ -40,13 +40,13 @@ are visible within the UI in _Basic_ mode.
 
 ### Basic Mode
 
-![](../assets/scheduler_basic_light.webp#only-light){.no-lightbox}
-![](../assets/scheduler_basic_dark.webp#only-dark){.no-lightbox}
+![Basic Scheduler Page](./assets/scheduler_basic-light.webp#only-light){.no-lightbox}
+![Basic Scheduler Page](./assets/scheduler_basic-dark.webp#only-dark){.no-lightbox}
 
 ### Advanced Mode
 
-![](../assets/scheduler_advanced_light.webp#only-light){.no-lightbox}
-![](../assets/scheduler_advanced_dark.webp#only-dark){.no-lightbox}
+![Advanced Scheduler Page](./assets/scheduler_advanced-light.webp#only-light){.no-lightbox}
+![Advanced Scheduler Page](./assets/scheduler_advanced-dark.webp#only-dark){.no-lightbox}
 
 ## Tasks
 
