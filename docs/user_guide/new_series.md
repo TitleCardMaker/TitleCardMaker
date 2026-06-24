@@ -32,8 +32,8 @@ Connection to search. The default is to search your global
 [Episode Data Source](./settings.md#episode-data-source), but it is largely
 irrelevant which Connection you browse (as TCM uses them all). Click `Search`.
 
-![Browsing Series](../assets/add_series_light.webp#only-light){.no-lightbox}
-![Browsing Series](../assets/add_series_dark.webp#only-dark){.no-lightbox}
+![Browsing Series](../assets/add_series-light.webp#only-light){.no-lightbox}
+![Browsing Series](../assets/add_series-dark.webp#only-dark){.no-lightbox}
 
 !!! note "Unclickable Results"
 
@@ -60,8 +60,8 @@ _which_ Blueprints are displayed:
 - Only show Blueprints for Series which you have already added to TCM
 - Display Blueprints which you have already imported
 
-![](../assets/blueprint_all_light.webp#only-light){.no-lightbox}
-![](../assets/blueprint_all_dark.webp#only-dark){.no-lightbox}
+![](../assets/blueprints_all-light.webp#only-light){.no-lightbox}
+![](../assets/blueprints_all-dark.webp#only-dark){.no-lightbox}
 
 The Blueprint themselves can be interacted with in various ways:
 

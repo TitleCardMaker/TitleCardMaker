@@ -13,8 +13,8 @@ you will access the **Series page** (at `/series/{series_id}`) where all
 Series-level options, Title Card customizations, files, and actions can be
 viewed and edited.
 
-![Series Page](../assets/series_light.webp#only-light){.no-lightbox}
-![Series Page](../assets/series_dark.webp#only-dark){.no-lightbox}
+![Series Page](../assets/series-light.webp#only-light){.no-lightbox}
+![Series Page](../assets/series-dark.webp#only-dark){.no-lightbox}
 
 The page is organized into four main areas:
 

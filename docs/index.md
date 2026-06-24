@@ -20,12 +20,12 @@ meaning that it is installed and run on your computer.
   <div class="scroller__inner">
     <img class="no-lightbox" src="./assets/home_poster_light.webp#only-light">
     <img class="no-lightbox" src="./assets/home_poster_dark.webp#only-dark">
-    <a href="./user_guide/series"><img class="no-lightbox" src="./assets/series_light.webp#only-light"></a>
-    <a href="./user_guide/series"><img class="no-lightbox" src="./assets/series_dark.webp#only-dark"></a>
-    <a href="./user_guide/new_series"><img class="no-lightbox" src="./assets/add_series_light.webp#only-light"></a>
-    <a href="./user_guide/new_series"><img class="no-lightbox" src="./assets/add_series_dark.webp#only-dark"></a>
-    <a href="./blueprints"><img class="no-lightbox" src="./assets/blueprint_all_light.webp#only-light"></a>
-    <a href="./blueprints"><img class="no-lightbox" src="./assets/blueprint_all_dark.webp#only-dark"></a>
+    <a href="./user_guide/series"><img class="no-lightbox" src="./assets/series-light.webp#only-light"></a>
+    <a href="./user_guide/series"><img class="no-lightbox" src="./assets/series-dark.webp#only-dark"></a>
+    <a href="./user_guide/new_series"><img class="no-lightbox" src="./assets/add_series-light.webp#only-light"></a>
+    <a href="./user_guide/new_series"><img class="no-lightbox" src="./assets/add_series-dark.webp#only-dark"></a>
+    <a href="./blueprints"><img class="no-lightbox" src="./assets/blueprints_all-light.webp#only-light"></a>
+    <a href="./blueprints"><img class="no-lightbox" src="./assets/blueprints_all-dark.webp#only-dark"></a>
     <a href="./user_guide/fonts"><img class="no-lightbox" src="./assets/fonts_light.webp#only-light"></a>
     <a href="./user_guide/fonts"><img class="no-lightbox" src="./assets/fonts_dark.webp#only-dark"></a>
     <a href="./user_guide/recent"><img class="no-lightbox" src="./user_guide/assets/recent-light.webp#only-light"></a>

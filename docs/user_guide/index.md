@@ -23,8 +23,8 @@ below, grouped by how you are likely to use them.
 
 <div class="grid cards" markdown>
 
--   ![Series](../assets/series_light.webp#only-light){.no-lightbox href="./series.md"}
-    ![Series](../assets/series_dark.webp#only-dark){.no-lightbox}
+-   ![Series](../assets/series-light.webp#only-light){.no-lightbox href="./series.md"}
+    ![Series](../assets/series-dark.webp#only-dark){.no-lightbox}
 
     **[Series](./series.md)**
 
@@ -32,8 +32,8 @@ below, grouped by how you are likely to use them.
 
     All Series-specific customizations and actions.
 
--   ![Adding Series](../assets/add_series_light.webp#only-light){.no-lightbox}
-    ![Adding Series](../assets/add_series_dark.webp#only-dark){.no-lightbox}
+-   ![Adding Series](../assets/add_series-light.webp#only-light){.no-lightbox}
+    ![Adding Series](../assets/add_series-dark.webp#only-dark){.no-lightbox}
 
     **[Adding Series](./new_series.md)**
 

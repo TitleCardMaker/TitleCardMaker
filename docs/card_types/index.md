@@ -6,10 +6,6 @@ description: >
 
 # Custom Card Types
 
-!!! warning "Under Construction"
-
-    This documentation is actively being developed.
-
 ## Background
 
 In addition to customizing individual parts of a Title Card like the text,
