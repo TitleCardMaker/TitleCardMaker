@@ -96,6 +96,14 @@ When set to `top`, the line sits above the title text and the index text appears
 above the title. When set to `bottom`, the line sits below the title text and
 the index text appears below the title.
 
+??? tip "Multi-Line Titles"
+
+    If a title is split across multiple lines and the _Line Position_ is set to
+    `top`, then the line and text will be positioned between the bottom two
+    lines of text - see the example below.
+
+    ![Example Multi-Line Title Card](./assets/overline/multi_line_text.webp)
+
 ??? example "Examples"
 
     <div class="image-compare example-card"
