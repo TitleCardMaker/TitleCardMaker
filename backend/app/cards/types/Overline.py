@@ -477,4 +477,49 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_card_cli(__name__, OverlineTitleCard, get_validator_model())
+add_card_cli(
+    __name__,
+    OverlineTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': "CHIDI'S CHOICE",
+            'season_text': 'SEASON 1',
+            'episode_text': 'EPISODE 10',
+        },
+        cards=[
+            PreviewCard(
+                filename='episode_text_color',
+                variables={'episode_text_color': '#53B6E2'},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 1.3},
+            ),
+            PreviewCard(
+                filename='line_color',
+                variables={'line_color': 'gold'},
+            ),
+            PreviewCard(
+                filename='line_position',
+                variables={'line_position': 'bottom'},
+            ),
+            PreviewCard(
+                filename='line_width',
+                variables={'line_width': 20},
+            ),
+            PreviewCard(
+                filename='hide_line',
+                variables={'hide_line': True},
+            ),
+            PreviewCard(
+                filename='separator',
+                variables={'separator': '//'},
+            ),
+            PreviewCard(
+                filename='omit_gradient',
+                variables={'omit_gradient': True},
+            ),
+        ],
+    ),
+)

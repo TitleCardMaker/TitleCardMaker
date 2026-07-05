@@ -24,7 +24,6 @@ Any local card type files should be placed inside the `card_types` directory in
 your main `config` directory. On Docker, this is `/config/card_types/`, and on
 non-Docker this is `./config/card_types/`.
 
-TCM will automatically parse all Python (`.py`) files in this directory.
 
 ## Syntax Requirements
 
