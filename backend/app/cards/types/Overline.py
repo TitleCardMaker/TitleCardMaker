@@ -318,8 +318,7 @@ class OverlineTitleCard(BaseCardType):
         return [
             f'-density 200',
             f'-gravity south',
-            # f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
-            f'-font "{self.REF_DIRECTORY.parent / "Proxima Nova Semibold.otf"}"',
+            f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
             f'-fill "{self.episode_text_color}"',
             f'-strokewidth 2',
             f'-pointsize {22 * self.episode_text_font_size:.1f}',
