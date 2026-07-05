@@ -132,7 +132,7 @@ character is added between them. This character can be adjusted with the
 _Separator Character_ extra.
 
 The color of this character will be controlled by the
-[_Episode Text Color_](#color) and _Season Text Color_ extras, with the season
+[_Episode Text Color_](#coloring) and _Season Text Color_ extras, with the season
 coloring taking priority over the episode.
 
 ??? example "Example"
