@@ -301,3 +301,36 @@ Cypress.Commands.add(
       .should('contain', optionText)
   }
 );
+
+/**
+ * Click the "New Connection" button for a connection type panel.
+ * @param {number} index - Zero-based panel index (Emby=0, Jellyfin=1, ...).
+ */
+Cypress.Commands.add('clickNewConnectionButton', (index = 0) => {
+  cy.get('.connection-add-btn').eq(index).click();
+});
+
+/**
+ * Expand a connection card in a connection list.
+ * @param {string} connectionType - Connection list id prefix (e.g. "emby").
+ * @param {number} index - Zero-based card index.
+ */
+Cypress.Commands.add('expandConnectionCard', (connectionType, index = 0) => {
+  cy.wait(125);
+  cy.get(`#${connectionType}-connections .connection-title`).eq(index).click();
+});
+
+/**
+ * Set a boolean connection form toggle by input name.
+ * @param {string} connectionType - Connection list id prefix (e.g. "emby").
+ * @param {string} name - Checkbox input name.
+ * @param {boolean} checked - Whether the toggle should be on.
+ */
+Cypress.Commands.add('setConnectionFormToggle', (connectionType, name, checked = true) => {
+  const input = cy.get(`#${connectionType}-connections input[name="${name}"]`);
+  if (checked) {
+    input.check({ force: true });
+  } else {
+    input.uncheck({ force: true });
+  }
+});

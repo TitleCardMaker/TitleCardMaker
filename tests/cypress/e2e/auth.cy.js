@@ -5,12 +5,10 @@ describe('Authentication', () => {
   });
 
   it('Enables authentication', () => {
-    // Visit Connections page, click checkbox
+    // Visit Connections page, enable auth toggle
     cy.visit('/connections')
 
-    cy.get('.checkbox[data-value="require_auth"] label')
-      .should('exist')
-      .click('left')
+    cy.get('#require-auth-toggle').check({ force: true })
 
     // Should be redirected to the login page
     cy.url().should('eq', Cypress.config('baseUrl') + '/login?redirect=/connections')
@@ -166,9 +164,7 @@ describe('Authentication', () => {
     cy.login('/login?redirect=/connections', 'new username', 'new password')
 
     cy.wait(500)
-    cy.get('.checkbox[data-value="require_auth"] label')
-      .should('exist')
-      .click('left')
+    cy.get('#require-auth-toggle').uncheck({ force: true })
 
     cy.visit('/login')
     cy.url().should('eq', Cypress.config('baseUrl') + '/')
