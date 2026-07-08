@@ -115,9 +115,14 @@ describe('Settings', () => {
       .type('0')
       .should('have.value', '0');
 
-    // Save changes - should show validation error
+    // Attempt to save - client-side validation should prevent the API call
     cy.get('#save-changes').click({ force: true });
-    cy.get('.ui.error.message').should('be.visible');
+
+    // Reload and verify the invalid values were not persisted
+    cy.reload();
+    cy.get('#settings-form').should('be.visible');
+    cy.get('input[name="card_width"]').should('not.have.value', '-100');
+    cy.get('input[name="card_height"]').should('not.have.value', '0');
   });
 
   it('Selects global extras', () => {
@@ -177,26 +182,39 @@ describe('Settings', () => {
   });
 
   it('Enters an invalid title card filename format and the change is rejected', () => {
+    // Record the current (valid) filename format before clearing it
+    cy.get('input[name="card_filename_format"]').invoke('val').as('originalFormat');
+
     // Enter an invalid filename format (empty string)
     cy.get('input[name="card_filename_format"]')
       .clear()
       .should('have.value', '');
 
-    // Save changes - should show validation error
+    // Attempt to save - client-side validation should prevent the API call
     cy.get('#save-changes').click({ force: true });
-    cy.get('.ui.error.message').should('be.visible');
+
+    // Reload and verify the empty format was not persisted
+    cy.reload();
+    cy.get('#settings-form').should('be.visible');
+    cy.get('@originalFormat').then((originalFormat) => {
+      cy.get('input[name="card_filename_format"]').should('have.value', originalFormat);
+    });
   });
 
   it('Enters an invalid folder format and the change is rejected', () => {
-    // Enter an invalid folder format (empty string)
+    // Enter an invalid folder format (unknown variable)
     cy.get('input[name="season_folder_format"]')
       .clear()
       .type('{fake_variable}', { parseSpecialCharSequences: false })
       .should('have.value', '{fake_variable}');
 
-    // Save changes - should show validation error
+    // Attempt to save - the server should reject the unknown variable
     cy.get('#save-changes').click({ force: true });
-    cy.get('.ui.error.toast').should('be.visible');
+
+    // Reload and verify the invalid format was not persisted
+    cy.reload();
+    cy.get('#settings-form').should('be.visible');
+    cy.get('input[name="season_folder_format"]').should('not.have.value', '{fake_variable}');
   });
 
   it('Changes the web interface settings', () => {
@@ -245,9 +263,13 @@ describe('Settings', () => {
       .type('0')
       .should('have.value', '0');
 
-    // Save changes - should show validation error
+    // Attempt to save - client-side validation should prevent the API call
     cy.get('#save-changes').click({ force: true });
-    cy.get('.ui.error.message').should('be.visible');
+
+    // Reload and verify the invalid size was not persisted
+    cy.reload();
+    cy.get('#settings-form').should('be.visible');
+    cy.get('input[name="home_page_size"]').should('not.have.value', '0');
   });
 
   it('Enters an invalid episode data table page size', () => {
@@ -257,9 +279,13 @@ describe('Settings', () => {
       .type('-10')
       .should('have.value', '-10');
 
-    // Save changes - should show validation error
+    // Attempt to save - client-side validation should prevent the API call
     cy.get('#save-changes').click({ force: true });
-    cy.get('.ui.error.message').should('be.visible');
+
+    // Reload and verify the invalid size was not persisted
+    cy.reload();
+    cy.get('#settings-form').should('be.visible');
+    cy.get('input[name="episode_data_page_size"]').should('not.have.value', '-10');
   });
 
   it('Opens and closes the episode style modal', () => {
@@ -303,17 +329,17 @@ describe('Settings', () => {
 
   it('Updates preview title card when card type changes', () => {
     // Wait for the preview card to be visible
-    cy.get('#title-card-image').scrollIntoView().should('be.visible');
+    cy.get('#card-type-preview img').scrollIntoView().should('be.visible');
     
     // Get the initial image URL
-    cy.get('#title-card-image').invoke('attr', 'src').then((initialSrc) => {
+    cy.get('#card-type-preview img').invoke('attr', 'src').then((initialSrc) => {
       // Change the default card type
       cy.get('#default-card-type').click();
       cy.get('#default-card-type .menu .item').eq(5).click();
 
       // Verify the image URL has changed
-      cy.get('#title-card-image').should('not.have.attr', 'src', initialSrc);
-      cy.get('#title-card-image').should('have.attr', 'src').and('not.be.empty');
+      cy.get('#card-type-preview img').should('not.have.attr', 'src', initialSrc);
+      cy.get('#card-type-preview img').should('have.attr', 'src').and('not.be.empty');
     });
   });
 
@@ -340,7 +366,7 @@ describe('Settings', () => {
     cy.get('input[name="imagemagick_executable"]').should('be.disabled');
     
     // The field container should have the disabled class
-    cy.get('input[name="imagemagick_executable"]').parent().parent().should('have.class', 'disabled');
+    cy.get('input[name="imagemagick_executable"]').parent().should('have.class', 'disabled');
     
     // Verify the field exists and shows the expected placeholder
     cy.get('input[name="imagemagick_executable"]').should('be.visible');
