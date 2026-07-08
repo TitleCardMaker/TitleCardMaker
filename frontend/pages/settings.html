@@ -420,9 +420,9 @@
                       <span class="help-tip" data-tip="Path to the ImageMagick executable file for running commands with. Only required for some Windows installations.">ⓘ</span>
                     </label>
                     {% if preferences.imagemagick_executable %}
-                    <input type="text" name="imagemagick_executable" placeholder="{{preferences.imagemagick_executable}}" value="{{preferences.imagemagick_executable}}">
+                    <input type="text" name="imagemagick_executable" placeholder="{{preferences.imagemagick_executable}}" value="{{preferences.imagemagick_executable}}"{% if preferences.is_docker %} disabled{% endif %}>
                     {% else %}
-                    <input type="text" name="imagemagick_executable" placeholder="Unspecified">
+                    <input type="text" name="imagemagick_executable" placeholder="Unspecified"{% if preferences.is_docker %} disabled{% endif %}>
                     {% endif %}
                   </div>
                 </div>
