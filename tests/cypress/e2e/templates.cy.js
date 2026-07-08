@@ -30,7 +30,7 @@ describe('Card Templates', () => {
             // Content should be marked active
             .should('be.visible')
             .within(() => {
-              cy.get('input:not([name="name"])').each($input => {
+              cy.get('input:not([name="name"], [name="enable_kanji"])').each($input => {
                 cy.wrap($input).should('have.value', '');
               });
             })
