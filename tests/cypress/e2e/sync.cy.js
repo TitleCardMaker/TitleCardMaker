@@ -9,7 +9,7 @@ describe('Sync Page', () => {
 
   describe('Page Structure and Navigation', () => {
     it('displays the sync page with correct title', () => {
-      cy.get('h1.ui.header').should('contain', 'Syncs');
+      cy.get('h1.sync-page-title').should('contain', 'Sync');
       cy.url().should('contain', '/sync');
     });
 
@@ -21,38 +21,38 @@ describe('Sync Page', () => {
       cy.reload();
 
       ['emby', 'jellyfin', 'plex', 'sonarr'].forEach(connection => {
-        cy.get(`section[data-connection="${connection}"]`).should('exist');
-        cy.get(`section[data-connection="${connection}"] h3`).should('contain', connection.charAt(0).toUpperCase() + connection.slice(1));
+        cy.get(`[data-connection="${connection}"]`).should('exist');
+        cy.get(`[data-connection="${connection}"] .settings-panel-header`).should('contain', connection.charAt(0).toUpperCase() + connection.slice(1));
       });
     });
 
     it('only shows sections with created connections', () => {
       // Initially, no connections exist, so only the warning should be visible
       cy.get('.ui.warning.floating.message').should('exist');
-      cy.get('section[data-connection="emby"]').should('not.exist');
-      cy.get('section[data-connection="jellyfin"]').should('not.exist');
-      cy.get('section[data-connection="plex"]').should('not.exist');
-      cy.get('section[data-connection="sonarr"]').should('not.exist');
+      cy.get('[data-connection="emby"]').should('not.exist');
+      cy.get('[data-connection="jellyfin"]').should('not.exist');
+      cy.get('[data-connection="plex"]').should('not.exist');
+      cy.get('[data-connection="sonarr"]').should('not.exist');
 
       // Create only Emby connection
       cy.createEmbyConnection(true);
       cy.reload();
 
       // Only Emby section should be visible
-      cy.get('section[data-connection="emby"]').should('exist');
-      cy.get('section[data-connection="jellyfin"]').should('not.exist');
-      cy.get('section[data-connection="plex"]').should('not.exist');
-      cy.get('section[data-connection="sonarr"]').should('not.exist');
+      cy.get('[data-connection="emby"]').should('exist');
+      cy.get('[data-connection="jellyfin"]').should('not.exist');
+      cy.get('[data-connection="plex"]').should('not.exist');
+      cy.get('[data-connection="sonarr"]').should('not.exist');
 
       // Create Jellyfin connection as well
       cy.createJellyfinConnection(true);
       cy.reload();
 
       // Both Emby and Jellyfin sections should be visible
-      cy.get('section[data-connection="emby"]').should('exist');
-      cy.get('section[data-connection="jellyfin"]').should('exist');
-      cy.get('section[data-connection="plex"]').should('not.exist');
-      cy.get('section[data-connection="sonarr"]').should('not.exist');
+      cy.get('[data-connection="emby"]').should('exist');
+      cy.get('[data-connection="jellyfin"]').should('exist');
+      cy.get('[data-connection="plex"]').should('not.exist');
+      cy.get('[data-connection="sonarr"]').should('not.exist');
     });
 
     it('shows warning when no connections are configured', () => {
@@ -171,7 +171,7 @@ describe('Sync Page', () => {
       cy.get('#add-emby-sync-modal').should('not.be.visible');
 
       // Verify new Sync element is visible
-      cy.get('#emby-syncs .ui.card .header').should('contain', 'Emby Sync');
+      cy.get('#emby-syncs .card .header').should('contain', 'Emby Sync');
     });
   });
 
@@ -213,7 +213,7 @@ describe('Sync Page', () => {
       cy.get('#add-jellyfin-sync-modal').should('not.be.visible');
 
       // Verify new Sync element is visible
-      cy.get('#jellyfin-syncs .ui.card .header').should('contain', 'Jellyfin Sync');
+      cy.get('#jellyfin-syncs .card .header').should('contain', 'Jellyfin Sync');
     });
   });
 
@@ -261,7 +261,7 @@ describe('Sync Page', () => {
       cy.get('#add-plex-sync-modal').should('not.be.visible');
 
       // Verify new Sync element is visible
-      cy.get('#plex-syncs .ui.card .header').should('contain', 'Plex Sync');
+      cy.get('#plex-syncs .card .header').should('contain', 'Plex Sync');
     });
   });
 
@@ -327,7 +327,7 @@ describe('Sync Page', () => {
       cy.get('#add-sonarr-sync-modal').should('not.be.visible');
 
       // Verify new Sync element is visible
-      cy.get('#sonarr-syncs .ui.card .header').should('contain', 'Sonarr Sync');
+      cy.get('#sonarr-syncs .card .header').should('contain', 'Sonarr Sync');
     });
   });
 
@@ -346,27 +346,27 @@ describe('Sync Page', () => {
     });
 
     it('displays existing syncs', () => {
-      cy.get('#emby-syncs .ui.card').should('have.length.greaterThan', 1); // Including add card
+      cy.get('#emby-syncs .card').should('have.length.greaterThan', 0);
     });
 
     it('shows sync information in cards', () => {
-      cy.get('#emby-syncs .ui.card').not('.add').first().within(() => {
+      cy.get('#emby-syncs .card').first().within(() => {
         cy.get('.header').should('contain', 'Test Sync');
         cy.get('.sync-meta').should('contain', 'Sync ID');
-        cy.get('.trash.icon').should('exist');
+        cy.get('.trash.alternate.outline.icon').should('exist');
         cy.get('.sync.icon').should('exist');
         cy.get('.edit.icon').should('exist');
       });
     });
 
     it('opens delete confirmation modal when clicking trash icon', () => {
-      cy.get('#emby-syncs .ui.card').not('.add').first().find('.trash.icon').click();
+      cy.get('#emby-syncs .card').first().find('.sync-action-btn--delete').click();
       cy.get('#delete-sync-modal').should('be.visible');
       cy.get('#delete-sync-modal .header').should('contain', 'Delete Sync?');
     });
 
     it('provides delete options in confirmation modal', () => {
-      cy.get('#emby-syncs .ui.card').not('.add').first().find('.trash.icon').click();
+      cy.get('#emby-syncs .card').first().find('.sync-action-btn--delete').click();
       cy.get('#delete-sync-modal').should('be.visible');
 
       cy.get('#delete-sync-modal [data-action="delete-sync-only"]').should('contain', 'Yes');
@@ -375,19 +375,19 @@ describe('Sync Page', () => {
     });
 
     it('cancels delete when clicking No', () => {
-      cy.get('#emby-syncs .ui.card').not('.add').first().find('.trash.icon').click();
+      cy.get('#emby-syncs .card').first().find('.sync-action-btn--delete').click();
       cy.get('#delete-sync-modal').should('be.visible');
       cy.get('#delete-sync-modal .ui.green.ok.basic.inverted.button').click();
       cy.get('#delete-sync-modal').should('not.be.visible');
-      cy.get('#emby-syncs .ui.card').should('have.length.greaterThan', 1); // Including add card
+      cy.get('#emby-syncs .card').should('have.length.greaterThan', 0);
     });
 
     it('deletes sync when clicking Yes', () => {
-      cy.get('#emby-syncs .ui.card').not('.add').first().find('.trash.icon').click();
+      cy.get('#emby-syncs .card').first().find('.sync-action-btn--delete').click();
       cy.get('#delete-sync-modal').should('be.visible');
       cy.get('#delete-sync-modal .button').contains('Yes').click();
       cy.get('#delete-sync-modal').should('not.be.visible');
-      cy.get('#emby-syncs .ui.card').should('not.contain', 'Test Sync');
+      cy.get('#emby-syncs .card').should('not.contain', 'Test Sync');
     });
   });
 
@@ -481,16 +481,16 @@ describe('Sync Page', () => {
       cy.get('#add-emby-sync-modal').should('not.be.visible');
 
       // Verify sync was created
-      cy.get('#emby-syncs .ui.card .header').should('contain', 'Persistent Emby Sync');
+      cy.get('#emby-syncs .card .header').should('contain', 'Persistent Emby Sync');
 
       // Reload the page
       cy.reload();
 
       // Verify sync still exists with same settings
-      cy.get('#emby-syncs .ui.card .header').should('contain', 'Persistent Emby Sync');
+      cy.get('#emby-syncs .card .header').should('contain', 'Persistent Emby Sync');
 
       // Open edit modal to verify settings persisted
-      cy.get('#emby-syncs .ui.card').not('.add').first().find('.edit.icon').click();
+      cy.get('#emby-syncs .card').first().find('.sync-action-btn--edit').click();
 
       // Verify settings are still there
       cy.get('.visible.sync.modal input[name="name"]').should('have.value', 'Persistent Emby Sync');
@@ -531,16 +531,16 @@ describe('Sync Page', () => {
       cy.get('#add-jellyfin-sync-modal').should('not.be.visible');
 
       // Verify sync was created
-      cy.get('#jellyfin-syncs .ui.card .header').should('contain', 'Persistent Jellyfin Sync');
+      cy.get('#jellyfin-syncs .card .header').should('contain', 'Persistent Jellyfin Sync');
 
       // Reload the page
       cy.reload();
 
       // Verify sync still exists with same settings
-      cy.get('#jellyfin-syncs .ui.card .header').should('contain', 'Persistent Jellyfin Sync');
+      cy.get('#jellyfin-syncs .card .header').should('contain', 'Persistent Jellyfin Sync');
 
       // Open edit modal to verify settings persisted
-      cy.get('#jellyfin-syncs .ui.card').not('.add').first().find('.edit.icon').click();
+      cy.get('#jellyfin-syncs .card').first().find('.sync-action-btn--edit').click();
 
       // Verify settings are still there
       cy.get('.visible.sync.modal input[name="name"]').should('have.value', 'Persistent Jellyfin Sync');
@@ -581,16 +581,16 @@ describe('Sync Page', () => {
       cy.get('#add-plex-sync-modal').should('not.be.visible');
 
       // Verify sync was created
-      cy.get('#plex-syncs .ui.card .header').should('contain', 'Persistent Plex Sync');
+      cy.get('#plex-syncs .card .header').should('contain', 'Persistent Plex Sync');
 
       // Reload the page
       cy.reload();
 
       // Verify sync still exists with same settings
-      cy.get('#plex-syncs .ui.card .header').should('contain', 'Persistent Plex Sync');
+      cy.get('#plex-syncs .card .header').should('contain', 'Persistent Plex Sync');
 
       // Open edit modal to verify settings persisted
-      cy.get('#plex-syncs .ui.card').not('.add').first().find('.edit.icon').click();
+      cy.get('#plex-syncs .card').first().find('.sync-action-btn--edit').click();
 
       // Verify settings are still there
       cy.get('.visible.sync.modal input[name="name"]').should('have.value', 'Persistent Plex Sync');
@@ -639,16 +639,16 @@ describe('Sync Page', () => {
       cy.get('#add-sonarr-sync-modal').should('not.be.visible');
 
       // Verify sync was created
-      cy.get('#sonarr-syncs .ui.card .header').should('contain', 'Persistent Sonarr Sync');
+      cy.get('#sonarr-syncs .card .header').should('contain', 'Persistent Sonarr Sync');
 
       // Reload the page
       cy.reload();
 
       // Verify sync still exists with same settings
-      cy.get('#sonarr-syncs .ui.card .header').should('contain', 'Persistent Sonarr Sync');
+      cy.get('#sonarr-syncs .card .header').should('contain', 'Persistent Sonarr Sync');
 
       // Open edit modal to verify settings persisted
-      cy.get('#sonarr-syncs .ui.card').not('.add').first().find('.edit.icon').click();
+      cy.get('#sonarr-syncs .card').first().find('.sync-action-btn--edit').click();
 
       // Verify settings are still there
       cy.get('.visible.sync.modal input[name="name"]').should('have.value', 'Persistent Sonarr Sync');
@@ -693,16 +693,16 @@ describe('Sync Page', () => {
       cy.get('#add-emby-sync-modal').should('not.be.visible');
 
       // Verify sync was created
-      cy.get('#emby-syncs .ui.card .header').should('contain', 'Template Sync');
+      cy.get('#emby-syncs .card .header').should('contain', 'Template Sync');
 
       // Reload the page
       cy.reload();
 
       // Verify sync still exists
-      cy.get('#emby-syncs .ui.card .header').should('contain', 'Template Sync');
+      cy.get('#emby-syncs .card .header').should('contain', 'Template Sync');
 
       // Open edit modal to verify template selection persisted
-      cy.get('#emby-syncs .ui.card').not('.add').first().find('.edit.icon').click();
+      cy.get('#emby-syncs .card').first().find('.sync-action-btn--edit').click();
 
       // Verify Templates is still selected
       cy.get('.visible.sync.modal [data-value="template_ids"] .label').first().should('contain', 'Test Template 2');
