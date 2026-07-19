@@ -1009,6 +1009,53 @@ html.dark .series-tab-nav .item:hover:not(.active) {
   display: block;
 }
 
+/* ── Blueprint header name search ────────────────────────────────────────── */
+
+.blueprint-name-search {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.blueprint-name-search input {
+  width: 10.5rem;
+  max-width: 28vw;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 6px 0 0 6px;
+  border: 1px solid rgba(99, 145, 210, 0.38);
+  border-right: none;
+  background: rgba(99, 145, 210, 0.09);
+  color: var(--tcm-blue-color);
+  outline: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.blueprint-name-search input::placeholder {
+  color: rgba(99, 145, 210, 0.65);
+  font-weight: 500;
+}
+
+.blueprint-name-search input:hover,
+.blueprint-name-search input:focus {
+  background: rgba(99, 145, 210, 0.18);
+  border-color: rgba(99, 145, 210, 0.6);
+}
+
+html.dark .blueprint-name-search input {
+  color: var(--tcm-blue-color);
+  background: rgba(99, 145, 210, 0.09);
+}
+
+html.dark .blueprint-name-search input::placeholder {
+  color: rgba(148, 180, 220, 0.55);
+}
+
+.blueprint-name-search .panel-action-btn {
+  border-radius: 0 6px 6px 0;
+}
+
 /* ── panel-action-btn variants ───────────────────────────────────────────── */
 
 .panel-action-btn.green {

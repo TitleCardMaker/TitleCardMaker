@@ -2025,21 +2025,11 @@ function viewBlueprintSets(blueprintId) {
             blueprint,
             blueprintId: elementId,
             importCallback: () => importBlueprint(elementId, blueprint, true),
-            searchSeriesCallback: () => {
-              $('#search-bar input').val(blueprint.series.name).focus();
+            filterSeriesCallback: () => {
+              $('input[name="blueprint_series_name"]').val(blueprint.series.name).focus();
+              searchBlueprintsByName();
             },
           }));
-          return;
-
-          const card = populateBlueprintCard(
-            blueprintTemplate.content.cloneNode(true), blueprint, elementId
-          );
-          card.querySelector('[data-value="creator"]').innerText = blueprint.series.name;
-
-          // Assign function to import button
-          card.querySelector('[data-action="import"]').onclick = () => importBlueprint(elementId, blueprint, true);
-
-          bpCards.appendChild(card);
         });
       });
 
@@ -2051,56 +2041,136 @@ function viewBlueprintSets(blueprintId) {
 }
 
 /**
+ * Reset Blueprint tab result containers and toggle loading / empty messages.
+ * @param {'match' | 'search' | null} emptyState - Which empty-state message to
+ * show, or null to hide both.
+ * @param {boolean} [loading=false] - Whether to show the loading message.
+ */
+function resetBlueprintResults(emptyState = null, loading = false) {
+  const blueprintCards = document.getElementById('blueprint-cards');
+  if (blueprintCards) {
+    blueprintCards.replaceChildren();
+  }
+
+  const setSection = document.getElementById('blueprint-sets');
+  if (setSection) {
+    setSection.replaceChildren();
+    setSection.style.display = 'none';
+  }
+
+  $('.tab[data-tab="blueprints"] [data-label="blueprint-loading"]')
+    .toggleClass('hidden', !loading);
+  $('.tab[data-tab="blueprints"] [data-label="blueprint-empty-match"]')
+    .toggleClass('hidden', emptyState !== 'match');
+  $('.tab[data-tab="blueprints"] [data-label="blueprint-empty-search"]')
+    .toggleClass('hidden', emptyState !== 'search');
+}
+
+/**
+ * Render Blueprint cards into the Series Blueprints tab.
+ * @param {RemoteBlueprint[]} allBlueprints - Blueprints to display.
+ */
+function renderBlueprintCards(allBlueprints) {
+  const blueprintCards = document.getElementById('blueprint-cards');
+  const blueprintTemplate = document.getElementById('blueprint-template');
+  if (blueprintCards === null || blueprintTemplate === null) { return; }
+
+  const blueprints = allBlueprints.map(blueprint => {
+    const elementId = `blueprint-id${blueprint.id}`;
+    return populateBlueprintCard({
+      card: blueprintTemplate.content.cloneNode(true),
+      blueprint,
+      blueprintId: elementId,
+      importCallback: () => importBlueprint(elementId, blueprint),
+      filterSeriesCallback: () => {
+        $('input[name="blueprint_series_name"]').val(blueprint.series.name).focus();
+        searchBlueprintsByName();
+      },
+      viewSetCallback: () => viewBlueprintSets(blueprint.id),
+    });
+  });
+
+  blueprintCards.replaceChildren(...blueprints);
+  $('.blueprint.card [data-action="actions"]').popup({inline: true, on: 'click'});
+  $('.blueprint.card [data-value="file-count"]').popup({inline: true});
+}
+
+/**
  * Submit an API request to query for all available Blueprints of this Series.
  * If successful and there are Blueprints, the card elements are added to the
  * DOM.
  */
 function queryBlueprints() {
-  const $icon = $('.segment[data-tab="blueprints"] .button[data-action="search"] .icon');
+  const $icon = $('.tab[data-tab="blueprints"] [data-action="search"] .icon');
   setLoadingIcon($icon);
+  resetBlueprintResults(null, true);
 
-  // Get templates
-  const blueprintCards = document.getElementById('blueprint-cards');
-  const blueprintTemplate = document.getElementById('blueprint-template');
-  if (blueprintCards === null || blueprintTemplate === null) { return; }
-
-  // Show loading message
-  $('.tab[data-tab="blueprints"] .info.message').toggleClass('hidden', false);
-
-  // Query for Blueprints
+  // Query for Blueprints matching this Series
   $.ajax({
     type: 'GET',
     url: '/api/v2/blueprints/query/series/{{ series.id }}',
     /**
      * Query successful, display available blueprints, or display a warning
      * message if none are.
-     * @param {Blueprint[]} allBlueprints - List of Blueprints available for
-     * this Series.
+     * @param {RemoteBlueprint[]} allBlueprints - List of Blueprints available
+     * for this Series.
      */
     success: allBlueprints => {
-      // Hide info message and disable search button
-      $('.tab[data-tab="blueprints"] .info.message').toggleClass('hidden', true);
-      $('.tab[data-tab="blueprints"] .button[data-action="search"]').toggleClass('disabled', true);
+      // Disable exact-match Lookup after it completes
+      $('.tab[data-tab="blueprints"] [data-action="search"]').toggleClass('disabled', true);
 
-      // No Blueprints available, hide loading and show warning message
       if (allBlueprints === null || allBlueprints.length === 0) {
-        $('.tab[data-tab="blueprints"] .warning.message').toggleClass('hidden', false);
+        resetBlueprintResults('match');
         return;
-      } 
-      
-      // Blueprints available, create elements
-      const blueprints = allBlueprints.map((blueprint, blueprintId) => populateBlueprintCard({
-        card: blueprintTemplate.content.cloneNode(true),
-        blueprint,
-        blueprintId: `blueprint-id${blueprintId}`,
-        importCallback: () => importBlueprint(`blueprint-id${blueprintId}`, blueprint),
-        viewSetCallback: () => viewBlueprintSets(blueprint.id),
-      }));
-      blueprintCards.replaceChildren(...blueprints);
-      $('.blueprint.card [data-action="actions"]').popup({inline: true, on: 'click'});
-      $('.blueprint.card [data-value="file-count"]').popup({inline: true});
+      }
+
+      resetBlueprintResults();
+      renderBlueprintCards(allBlueprints);
     },
-    error: response => showErrorToast({title: 'Error Querying Blueprints', response}),
+    error: response => {
+      resetBlueprintResults();
+      showErrorToast({title: 'Error Querying Blueprints', response});
+    },
+    complete: () => removeLoadingIcon($icon),
+  });
+}
+
+/**
+ * Search for Blueprints by Series name and display them for import into the
+ * current Series.
+ */
+function searchBlueprintsByName() {
+  const name = ($('input[name="blueprint_series_name"]').val() || '').trim();
+  if (!name) {
+    showErrorToast({title: 'Blueprint Search', message: 'Enter a Series name to search for Blueprints'});
+    return;
+  }
+
+  const $icon = $('.tab[data-tab="blueprints"] [data-action="search-by-name"] .icon');
+  setLoadingIcon($icon);
+  resetBlueprintResults(null, true);
+
+  const query = new URLSearchParams({name, order_by: 'date'});
+  $.ajax({
+    type: 'GET',
+    url: `/api/v2/blueprints/query/series?${query.toString()}`,
+    /**
+     * Name search succeeded; render matching Blueprints or show empty state.
+     * @param {RemoteBlueprint[]} allBlueprints - Blueprints matching the name.
+     */
+    success: allBlueprints => {
+      if (allBlueprints === null || allBlueprints.length === 0) {
+        resetBlueprintResults('search');
+        return;
+      }
+
+      resetBlueprintResults();
+      renderBlueprintCards(allBlueprints);
+    },
+    error: response => {
+      resetBlueprintResults();
+      showErrorToast({title: 'Error Searching Blueprints', response});
+    },
     complete: () => removeLoadingIcon($icon),
   });
 }
@@ -2110,7 +2180,7 @@ function queryBlueprints() {
  * the Blueprint zip file is downloaded.
  */
 function exportBlueprint() {
-  const $icon = $('.segment[data-tab="blueprints"] .button[data-action="export"] .icon');
+  const $icon = $('.tab[data-tab="blueprints"] [data-action="export"] .icon');
   setLoadingIcon($icon);
 
   $.ajax({

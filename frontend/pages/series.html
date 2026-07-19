@@ -1255,10 +1255,29 @@
             <div class="settings-panel-header">
               <i class="puzzle piece icon"></i>
               Blueprints
-              <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+              <div style="margin-left: auto; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <div class="blueprint-name-search">
+                  <input
+                    id="blueprint-series-name"
+                    type="text"
+                    name="blueprint_series_name"
+                    placeholder="Series Name"
+                    aria-label="Search Blueprints by Series name"
+                    onkeydown="if (event.key === 'Enter') { event.preventDefault(); searchBlueprintsByName(); }"
+                  >
+                  <button
+                    type="button"
+                    data-action="search-by-name"
+                    class="panel-action-btn"
+                    onclick="searchBlueprintsByName();"
+                  >
+                    <i class="search icon"></i>
+                    Find
+                  </button>
+                </div>
                 <button data-action="search" onclick="queryBlueprints();" class="panel-action-btn">
                   <i class="search icon"></i>
-                  Search
+                  Lookup this Series
                 </button>
                 <button data-action="export" onclick="exportBlueprint();" class="panel-action-btn green">
                   <i class="file export icon"></i>
@@ -1269,22 +1288,29 @@
             <section>
               <p class="section-note">
                 Blueprints are community-made card configurations that can be imported and applied to this Series.
-                When imported, any included Fonts, Templates, and Episode customizations are applied directly.
+                Use <b>Lookup this Series</b> to find Blueprints that match this Series, or enter another Series name and click <b>Find</b> to search and import a Blueprint from a different show.
               </p>
 
-              <div class="ui floating hidden info icon message">
+              <div class="ui floating hidden info icon message" data-label="blueprint-loading">
                 <i class="blue notched circle loading icon"></i>
                 <div class="content">
                   <div class="header">Searching for Blueprints</div>
                   <p>This may take a moment.</p>
                 </div>
               </div>
-              <div class="ui floating hidden warning icon message">
+              <div class="ui floating hidden warning icon message" data-label="blueprint-empty-match">
                 <i class="exclamation icon"></i>
                 <div class="content">
                   <div class="header">No Blueprints Available</div>
-                  <span>There are no Blueprints available on <a href="https://github.com/TitleCardMaker/Blueprints/" target="_blank">GitHub</a>.</span>
-                  <span>Feel free to submit your own using the Export button above.</span>
+                  <span>There are no Blueprints available for this Series on <a href="https://github.com/TitleCardMaker/Blueprints/" target="_blank">GitHub</a>.</span>
+                  <span>Try searching by Series name above, or submit your own using the Export button.</span>
+                </div>
+              </div>
+              <div class="ui floating hidden warning icon message" data-label="blueprint-empty-search">
+                <i class="exclamation icon"></i>
+                <div class="content">
+                  <div class="header">No Blueprints Found</div>
+                  <span>No Blueprints matched that Series name. Try a different search, or browse all Blueprints on the <a href="/add">Add</a> page.</span>
                 </div>
               </div>
 
