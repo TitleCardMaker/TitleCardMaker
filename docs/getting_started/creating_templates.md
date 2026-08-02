@@ -25,6 +25,9 @@ this automatically with a [Sync](./first_sync/index.md).
 1. Navigate to the Template page by clicking :fontawesome-regular-clone:
 `Templates` from the side navigation bar.
 
+    ![Templates Page](../user_guide/assets/templates-light.webp#only-light){.no-lightbox}
+    ![Templates Page](../user_guide/assets/templates-dark.webp#only-dark){.no-lightbox}
+
 2. Create a new Template by clicking the
 <span class="example md-button">Create New Template</span> button.
 
@@ -39,7 +42,7 @@ Template".
 
         If you added this card type to your global list of
         [excluded card types](../user_guide/settings.md#excluded-card-types)
-        then it will not appear. I recommend removing it and continuining with
+        then it will not appear. I recommend removing it and continuing with
         the tutorial.
 
 6. Scroll down to "Translations and Extras" and find the tab labeled "Tinted

@@ -13,16 +13,16 @@ Sponsors of the project will be invited to a [private GitHub
 repository](https://github.com/CollinHeist/TitleCardMaker-WebUI/). These steps
 will walk you through getting the code from that repository.
 
-After being invited, you will recieve an email at your GitHub's associated email
+After being invited, you will receive an email at your GitHub's associated email
 address, open it and accept the invitation while signed into your GitHub
 account.
 
 ## Installation
 
-There are three primary ways to install TitleCardMaker - Docker, Docker Compose,
-and non-Docker. Docker Compose is generally recommended because it comes with
-all the requirements (Python, ImageMagick, etc.), and does not require copying
-any long commands.
+There are several ways to install TitleCardMaker - Docker Compose, Docker,
+non-Docker, and Unraid. Docker Compose is generally recommended because it comes
+with all the requirements (Python, ImageMagick, etc.), and does not require
+copying any long commands.
 
 Unraid users can directly add the container as a "template" within the UI.
 
@@ -91,7 +91,7 @@ Unraid users can directly add the container as a "template" within the UI.
 
     4. Determine your timezone, a full list is available
     [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). You
-    will want to take note of the text in the _TZ Identifer_ column - e.g.
+    will want to take note of the text in the _TZ Identifier_ column - e.g.
     `America/Los_Angeles` - for the next step.
 
     5. Write the following contents to a file named `docker-compose.yml` in your
@@ -130,7 +130,7 @@ Unraid users can directly add the container as a "template" within the UI.
         ??? failure "Permission Denied?"
 
             If you get an error saying any variation of permission denied - then
-            you should check the PAT you genered in Step 2 has `read:packages`
+            you should check the PAT you generated in Step 2 has `read:packages`
             permission; and that you typed `docker login ghcr.io` __exactly__.
 
     7. Verify your volumes are mapped correctly by looking for a `db.sqlite`
@@ -203,12 +203,12 @@ Unraid users can directly add the container as a "template" within the UI.
 
     4. Determine your timezone, a full list is available
     [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). You
-    will want to take note of the text in the _TZ Identifer_ column - e.g.
+    will want to take note of the text in the _TZ Identifier_ column - e.g.
     `America/Los_Angeles` - for the next step.
 
     5. Create (and launch) the Docker container by executing the following
     command - make sure to replace the install directory and timezone with
-    _your_ directory (from Step 2) and timezone (from Step 6).
+    _your_ directory (from Step 1) and timezone (from Step 4).
 
         === ":material-linux: Linux"
 
@@ -243,7 +243,7 @@ Unraid users can directly add the container as a "template" within the UI.
         ??? failure "Permission Denied?"
 
             If you get an error saying any variation of permission denied - then
-            you should check the PAT you genered in Step 2 has `read:packages`
+            you should check the PAT you generated in Step 2 has `read:packages`
             permission; and that you typed `docker login ghcr.io` __exactly__.
 
     6. Verify your volumes are mapped correctly by looking for a `db.sqlite`
@@ -253,16 +253,21 @@ Unraid users can directly add the container as a "template" within the UI.
 
 === ":material-language-python: Non-Docker"
 
+    <a id="non-docker-install"></a>
+
     ### Downloading Python
 
     === ":material-linux: Linux"
 
         Depending on your Linux distro, Python may already be installed. If not,
-        most likely you able to install Python on your own.
+        most likely you are able to install Python on your own.
 
     === ":material-apple: MacOS"
 
-        Python comes pre-installed in MacOS.
+        Install a current Python 3 release from
+        [python.org](https://www.python.org/downloads/) or via Homebrew
+        (`brew install python`). The system Python that ships with macOS is not
+        recommended for running TitleCardMaker.
 
     === ":material-powershell: Windows (Powershell)"
 
@@ -414,13 +419,11 @@ Unraid users can directly add the container as a "template" within the UI.
 
     3. Enter the `backend` directory.
 
-
         ```bash
         cd backend
         ```
 
-
-    3. Run the following commands to install the required Python packages and
+    4. Run the following commands to install the required Python packages and
     launch the TCM interface.
 
         ```bash
@@ -430,8 +433,8 @@ Unraid users can directly add the container as a "template" within the UI.
         ```bash
         python3 -m uv run uvicorn server:app --host "0.0.0.0" --port 4242
         ```
-    
-    4. You should see an output _like_ this:
+
+    5. You should see an output _like_ this:
     
         ```log
         INFO:     Started server process [17385]
@@ -455,14 +458,27 @@ Unraid users can directly add the container as a "template" within the UI.
 
 === ":simple-unraid: Unraid"
 
-    1. Follow steps 1-4 of the [Docker](#__tabbed_1_2) instructions.
+    1. Create a classic GitHub personal access token with `read:packages` scope
+    (see the Docker Compose tab, Steps 2–3), then log in to `ghcr.io` from a
+    terminal on your Unraid host:
 
-    2. At the bottom of the _Docker_ tab of the Unraid interface, click `Add
+        ```bash
+        docker login ghcr.io
+        ```
+
+        Use your GitHub username and the PAT as the password.
+
+    2. Determine your timezone from the
+    [TZ Identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+    column (e.g. `America/Los_Angeles`), and choose a host path for TCM's
+    config directory (e.g. `/mnt/user/appdata/titlecardmaker`).
+
+    3. At the bottom of the _Docker_ tab of the Unraid interface, click `Add
     Container`.
 
-    3. Make sure _Advanced View_ is toggled in the top-right corner.
+    4. Make sure _Advanced View_ is toggled in the top-right corner.
 
-    4. Enter the following information - leaving all other options blank or
+    5. Enter the following information - leaving all other options blank or
     default.
 
         | Option     | Value                                                                                  |
@@ -472,15 +488,15 @@ Unraid users can directly add the container as a "template" within the UI.
         | Icon URL   | `https://raw.githubusercontent.com/CollinHeist/TitleCardMaker/web-ui/.github/logo.png` |
         | WebUI      | `http://[IP]:[PORT:4242]/`                                                             |
 
-    5. At the bottom of the page, click `Add another Path, Port, Variable, Label
+    6. At the bottom of the page, click `Add another Path, Port, Variable, Label
     or Device` and enter each of the following (hitting `Add` after each one):
 
-        | Option         | Value                                                  |
-        | -------------: | :----------------------------------------------------- |
-        | Config Type    | `Path`                                                 |
-        | Name           | `Config`                                               |
-        | Container Path | `/config`                                              |
-        | Host Path      | _The directory from Step 1 of the Docker instructions_ |
+        | Option         | Value                              |
+        | -------------: | :--------------------------------- |
+        | Config Type    | `Path`                             |
+        | Name           | `Config`                           |
+        | Container Path | `/config`                          |
+        | Host Path      | _The config directory from Step 2_ |
 
         | Option         | Value   |
         | -------------: | :------ |
@@ -489,25 +505,28 @@ Unraid users can directly add the container as a "template" within the UI.
         | Container Port | `4242`  |
         | Host Port      | `4242`  |
 
-        | Option      | Value                                                 |
-        | ----------: | :---------------------------------------------------- |
-        | Config Type | `Variable`                                            |
-        | Name        | `Timezone`                                            |
-        | Key         | `TZ`                                                  |
-        | Value       | _The timezone from Step 1 of the Docker instructions_ |
+        | Option      | Value                      |
+        | ----------: | :------------------------- |
+        | Config Type | `Variable`                 |
+        | Name        | `Timezone`                 |
+        | Key         | `TZ`                       |
+        | Value       | _The timezone from Step 2_ |
 
-    6. Hit `Apply`.
+    7. Hit `Apply`.
 
 !!! success "Success"
 
-    TitleCardMaker is now accessible at the `http://0.0.0.0:4242` or
-    `http://localhost:4242/` URL. It may also be at your LAN IP.
+    TitleCardMaker is now accessible at `http://localhost:4242/` (or
+    `http://0.0.0.0:4242`). It may also be at your LAN IP.
+
+    Next, configure at least one media server Connection (Plex, Jellyfin, or
+    Emby) plus TMDb — see [Configuring Connections](./connections/index.md).
 
 ## The Tutorial
 
-The following pages of the tutorial are designed to walk you through all of the
-basics of using TitleCardMaker. It covers each step between installing TCM up
-through creating example Title Cards.
+The following pages of the tutorial walk you through the basics of using
+TitleCardMaker — from Connections through creating example Title Cards. The
+tutorial uses _Breaking Bad_ as the example Series throughout.
 
 It is designed for __completely new users__ of TCM, but is still helpful for
 those migrating from TCM v1.0 (the command line tool). For more detailed

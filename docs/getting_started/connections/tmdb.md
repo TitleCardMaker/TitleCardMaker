@@ -20,7 +20,7 @@ publicly accessible database which  can serve as an
 the recommended
 [Image Source](../../user_guide/settings.md#image-source-priority) due to the 
 much higher quality (and wider selection) of images compared to the Media
-Servers. It is also the only Connection which can provided Episode translations,
+Servers. It is also the only Connection which can provide Episode translations,
 Series logos[^1], backdrops, and posters.
 
 1. Under the TMDb section, click the

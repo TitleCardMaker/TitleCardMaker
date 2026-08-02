@@ -32,8 +32,8 @@ installation, using the same Python environment as the main application.
 
 === ":material-language-python: Non-Docker"
 
-    If you followed the [local installation guide](../../getting_started/local.md),
-    activate your environment and run commands with `uv` or `pipenv`:
+    If you followed the [local installation guide](../getting_started/index.md#non-docker-install),
+    run commands with `uv` from the `backend` directory:
 
     ```bash
     cd backend

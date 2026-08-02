@@ -9,22 +9,19 @@ tags:
 
 # Adding a Series
 
+!!! info "Optional Step"
+
+    Manually adding Series is __not__ the typical day-to-day workflow — Syncs
+    (covered [earlier](./first_sync/index.md)) are how most users add libraries.
+    This page is practice for one-off Series, testing, or Series that should
+    not come from a Sync.
 
 !!! note "Example Series"
 
-    I'll be referring to _Better Call Saul_ as example Series. If you do not
-    have this Series in your server, you can add it (and remove it later if
-    needed), or just pick an entirely different Series.
-
-Now that TitleCardMaker has established connections to all of your servers, it
-is time to begin the actual Title Card creation. TCM will only create Cards for
-Series that have been added - this step is to showcase how to do this manually.
-
-!!! info "Automatically Adding Series"
-
-    Manually adding Series is not the typical use-case for TCM, as adding an
-    entire server's worth of Series would be extremely tedious. Automatically
-    adding Series is covered in [the next step](./first_sync/index.md).
+    This example uses _Breaking Bad_. If you do not have it in your server, pick
+    any other Series and follow the same steps. If _Breaking Bad_ was already
+    added by your tutorial Sync, pick a different Series (or delete it from TCM
+    first) so you can practice the Add flow.
 
 1. Navigate back to the TitleCardMaker homepage - this can be done by clicking
 :fontawesome-solid-tv: `Series` from the side navigation bar, or hitting
@@ -34,15 +31,16 @@ Series that have been added - this step is to showcase how to do this manually.
 :material-magnify-plus-outline: `Add` should appear. Click this to go to the
 "Add Series" page where you can add both Series and Blueprints.
 
-3. For this tutorial, we'll be adding and customizing
-[Better Call Saul](https://www.themoviedb.org/tv/60059-better-call-saul). Under
-`Browse Series`, type _Better Call Saul_ in the search bar and click
+    ![Add Series Page](../assets/add_series-light.webp#only-light){.no-lightbox}
+    ![Add Series Page](../assets/add_series-dark.webp#only-dark){.no-lightbox}
+
+3. Under `Browse Series`, type _Breaking Bad_ in the search bar and click
 <span class="example md-button">Search</span>.
 
     !!! note "Search Source"
 
         If your default search connection is Emby, Jellyfin, or Plex and you
-        don't have Better Call Saul in your server, you can choose a different
+        don't have the Series in your server, you can choose a different
         connection, or just search TMDb.
 
     ??? warning "Sonarr Posters Not Loading"
@@ -53,57 +51,55 @@ Series that have been added - this step is to showcase how to do this manually.
         (if using TCM locally), or just ignore this.
 
 4. TCM will now query your selected connection for all Series which match that
-name. _Better Call Saul_ should be the first result. Before you click anything,
+name. _Breaking Bad_ should be among the top results. Before you click anything,
 you may select any media server libraries you want associated with this Series.
 
     !!! example "Example Libraries"
 
-        If I had _Better Call Saul_ in a server under two libraries, then I
+        If I had _Breaking Bad_ in a server under two libraries, then I
         could select either or both libraries in the dropdown so that TCM knows
         to load Cards into those libraries.
 
-        If I did not have _Better Call Saul_ in any of my servers, then I can
+        If I did not have _Breaking Bad_ in any of my servers, then I can
         leave this blank. This can always be changed later.
 
 5. Click the search result and TCM will begin processing it. While you are on
-this page, scroll down to `Browse Blueprints` section at the bottom of the page.
+this page, scroll down to the `Browse Blueprints` section at the bottom of the
+page.
 
-6. Type _Better Call Saul_ in the Blueprint search field and click
+6. Type _Breaking Bad_ in the Blueprint search field and click
 <span class="example md-button">Browse Blueprints</span>. TCM will display all
-available Blueprints for this Series - at the time of writing, there are 3. For
-the purposes of this tutorial we will _not_ be importing these, instead we'll be
-customizing the Cards ourselves. But keep in mind this is _one way_ to find
-Blueprints.
+available Blueprints for this Series. For the purposes of this tutorial we will
+_not_ be importing these — instead we'll customize the Cards ourselves. Keep in
+mind this is _one way_ to find Blueprints.
 
     ??? question "What are Blueprints?"
 
         Blueprints are described in greater detail [here](../blueprints.md), but
         in-short: they are pre-made Title Card configurations that include
-        everything needed to made Cards in a given style. This includes Fonts,
+        everything needed to make Cards in a given style. This includes Fonts,
         Templates, Series customizations, etc.
 
-7. Once TCM has finished processing the Series, go to the _Better Call Saul_
-Series page in one of a few ways:
+7. Once TCM has finished processing the Series, go to the Series page in one of
+a few ways:
 
     1. Click the Search box in the top left corner, then search for and select
-    _Better Call Saul_.
+    the Series.
 
         !!! tip "Keyboard Shortcut"
 
             You can enter the Search box by typing ++f++ or ++s++ (for `f`ind
             and `s`earch) anywhere in TCM (when a textbox is not selected).
-    
+
     2. Return to the home page by clicking the :fontawesome-solid-tv: `Series`
-    button on the left navigation bar, find _Better Call Saul_ and click either
+    button on the left navigation bar, find the Series and click either
     the <span class="example md-button">View</span> button or the Series name.
 
-8. Click the `Card Configuration` tab. In the `Font` dropdown, select the
-`Better Call Saul` font we created earlier. This assigns this custom font (and
-all of it's associated settings) to _Better Call Saul_. Scroll down and click
-<span class="example md-button">Save</span>.
+8. Click the `Card Configuration` tab. Assign a Font and/or Template as desired,
+then scroll down and click <span class="example md-button">Save</span>.
 
 !!! success "Success"
 
-    You've now manually added a Series to TCM, as well as assigned a custom
-    font. After the tutorial is completed you can review the cards created for
-    BCS and see how this font is applied.
+    You've now manually added a Series to TCM. Continue to
+    [Creating Title Cards](./creating_cards.md) if you still need to build Cards
+    for it, or to [Rescheduling Tasks](./scheduler.md) to adjust automation.

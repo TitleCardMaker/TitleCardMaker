@@ -10,14 +10,15 @@ tags:
 # Creating Title Cards
 
 There has been a lot of preamble, but the core of TitleCardMaker is making
-Title Cards. We'll be creating Title Cards in order to showcase the effects of
-our Template, as well as show how these Cards can be further customized.
+Title Cards. We'll create Cards to showcase the effects of our Template, apply
+the custom Font, and show how Cards can be further customized - then load them
+into your media server.
 
 !!! example "Example Series"
 
-    This part of the tutorial will refer to _Breaking Bad_ as the example Series. 
-    Those who decided to Sync a Series __other than__ _Breaking Bad_ can still
-    follow these steps, just apply them to whatever Series you chose.
+    This part of the tutorial refers to _Breaking Bad_ as the example Series.
+    Those who Synced a Series __other than__ _Breaking Bad_ can still follow
+    these steps; just apply them to whatever Series you chose.
 
 ## Episode Data
 
@@ -31,10 +32,15 @@ it manually.
 it by searching for the title in the top left search bar (next to the TCM logo).
 
 2. At the top of the page is a set of buttons where many global actions can be
-performed. However, in this case, open the `Episode Data` tab in the middle of
-the page and click the <span class="example md-button">Refresh</span> button.
-TCM will now query your global Episode Data Source for any new Episodes
-(although this is also done when you first add a Series to TCM).
+performed. Open the `Episode Data` tab in the middle of the page and click the
+<span class="example md-button">Refresh</span> button. TCM will now query your
+global Episode Data Source for any new Episodes (although this is also done
+when you first add a Series to TCM).
+
+## Assign the Custom Font
+
+3. Open the `Card Configuration` tab. In the `Font` dropdown, select the
+`Better call Saul` font created [earlier](./custom_font.md). Click <span class="example md-button">Save</span>.
 
 ## Source Images
 
@@ -55,10 +61,10 @@ TMDb. Clicking any image will request TCM download it and store it inside the
 Source Image directory. Download any image.
 
     ??? tip "Image Resolution"
-    
+
         In the corner of each image is a small ribbon that indicates the
         resolution of the image.
-        
+
         When manually browsing the images on TMDb, your global minimum
         resolution is ignored.
 
@@ -76,14 +82,14 @@ with Source Image information.
 _Title Cards_ section on the _Files_ tab and expand the _View Images_ accordion.
 
 9. You should see that Title Cards have been created using the Tinted Frame card
-type.
+type (from the Template) with the custom Font applied.
 
 10. Back in the _Episode Data_ tab, click the :material-eye-outline: icon
 under the _Extras & Translations_ column for Season 2 Episode 1. In that window,
 change the _Bottom Element_ input to `omit`, hit
 <span class="example md-button">Save</span> and close out the window.
 
-11. Close Click <span class="example md-button">Create Title Cards</span> again.
+11. Click <span class="example md-button">Create Title Cards</span> again.
 This Card should be remade with no logo in the bottom position, overriding what
 was placed in the Template.
 
@@ -94,37 +100,62 @@ was placed in the Template.
         Because we entered this extra for the Episode, the extra from the
         Series' Template is completely ignored.
 
+## Load Cards into Your Media Server
+
+Creating Cards stores image files on disk. To see them in Plex, Jellyfin, or
+Emby, TCM also needs to __load__ those Cards into the Series' libraries.
+
+12. From the Series page, open the library actions dropdown for your media
+server library and click <span class="example md-button">Load Cards</span> so
+TCM pushes the new Cards to that library.
+
+    ![Library Actions Dropdown](../user_guide/assets/library_actions-light.webp#only-light){.no-lightbox}
+    ![Library Actions Dropdown](../user_guide/assets/library_actions-dark.webp#only-dark){.no-lightbox}
+
+    Alternatively, the Scheduler task "Load all Title Cards into media servers"
+    does this automatically on its schedule — see
+    [The Scheduler](../user_guide/scheduler.md#load-title-cards).
+
+13. Open the Series in your media server and confirm the Episode thumbnails
+reflect your new Title Cards.
+
 ## Cleanup
 
-The substantive part of the tutorial is over, and I recommend removing cleaning
-up the artifacts from the tutorial. These are:
+The substantive part of the tutorial is over, and I recommend cleaning up the
+artifacts from the tutorial. These are:
 
 - Delete the Template
 - Delete (or edit) the Sync
-- Set the scheduler task interval to something sensible
-- If you want to use different Cards, then the Series and Fonts can also be
-deleted.
+- Remove the `tcm-test` tag/label from _Breaking Bad_ in your media server
+  (or Sonarr)
+- If you adjusted a Scheduler Task, set it back to something sensible (and
+  restart TCM)
+- If you want different Cards, the Series and Fonts can also be deleted
 
 !!! success "Tutorial Completed"
 
     With that finished, you have successfully grabbed Episode data, downloaded
     Source Images (manually _and_ automatically), created Title Cards, seen how
-    Templates work, as well as observed the effects of overriding card creation
-    on an Episode-level.
+    Templates and Fonts work, observed Episode-level overrides, and loaded Cards
+    into your media server.
 
-    These are all the major components of TCM, and mark the end of the tutorial.
-    If you have any other questions, you can browse this documentation or reach
-    out for help on the [Discord](https://discord.gg/bJ3bHtw8wH).
+    These are all the major components of TCM, and mark the end of the core
+    tutorial. If you have any other questions, you can browse this documentation
+    or reach out for help on the [Discord](https://discord.gg/bJ3bHtw8wH).
 
 !!! question "What's Next?"
 
-    For most users, the next step is to create a Sync that doesn't just Sync
-    the example Series, but instead _all_ (or large portions) of your Series.
-    Review [Creating the First Sync](./first_sync/index.md) for a reminder on
-    how to create Syncs.
-
-    See the [User Guide](../user_guide/index.md) for detailed guides on each
-    part of TCM.
+    - Expand your Sync filters (or create new Syncs) so TCM covers more than
+      the example Series — see [Creating the First Sync](./first_sync/index.md)
+    - Optionally learn [manually adding a Series](./add_series.md)
+    - Tweak automated Task schedules in [Rescheduling Tasks](./scheduler.md)
+    - Browse [Card Types](../card_types/index.md) for other looks
+    - Import community [Blueprints](../blueprints.md) for pre-made styles
+    - Set up [Integrations](../user_guide/integrations.md) (webhooks, Tautulli)
+    - Review [Environment Variables](../user_guide/environment_variables.md) if
+      you need Docker permission or path tweaks
+    - Read the [User Guide](../user_guide/index.md) for detailed page-by-page
+      documentation
 
 [^1]:
     There are very few instances of [card types](../card_types/index.md) which

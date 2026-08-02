@@ -21,8 +21,8 @@ the only differences between these two are that _named_ fonts can use custom
 font files and character replacements in addition to metrics like font size,
 spacing, etc.; while unnamed fonts can __only__ adjust metrics.
 
-For this tutorial we'll create be creating a named font for Better Call Saul
-that look like this (in particular the font used for the __title text__ `Nacho`):
+For this tutorial we'll be creating a named font for _Better Call Saul_ that looks
+like this (in particular the font used for the __title text__ `Nacho`):
 
 ![Example Custom Font](../assets/custom_font_preview.jpg)
 

@@ -12,33 +12,30 @@ tags:
 
 !!! note "Example Series"
 
-    I'll be referring to _Better Call Saul_ and _Breaking Bad_ as example
-    Series. If you do not have either of these Series in your Plex server, you
-    can add them (and remove them later - or not, because they're great shows
-    :wink:), or just pick two entirely different Series.
+    This tutorial uses _Breaking Bad_. If you do not have it in your Plex
+    server, add it temporarily (or pick a different Series) and apply the same
+    steps.
 
-For the purposes of this tutorial, we will be Syncing a subset of your Series
-by using a filter tag within Plex.
+For the purposes of this tutorial, we will Sync a subset of your Series by
+using a filter tag within Plex.
 
 1. Open Plex.
 
-2. Open _Better Call Saul_, and then click the :material-pencil: edit icon, then
-open the :busts_in_silhouette: `Sharing` section from the sidebar.
+2. Open _Breaking Bad_, click the :material-pencil: edit icon, then open the
+:busts_in_silhouette: `Sharing` section from the sidebar.
 
 3. In the Labels field, type `tcm-test` and hit ++enter++ - click `Save Changes`.
 
-4. Repeat Steps 2-3 for _Breaking Bad_.
-
-5. Back within TitleCardMaker, navigate to the Sync page by clicking
+4. Back within TitleCardMaker, navigate to the Sync page by clicking
 :fontawesome-solid-arrows-rotate: `Sync` from the side navigation bar.
 
-6. Under the Plex section of the page, click the
+5. Under the Plex section of the page, click the
 <span class="example md-button">+ Add Sync</span> button.
 
-7. In the launched dialog, fill out the following information:
+6. In the launched dialog, fill out the following information:
 
     1. Enter the Sync Name as `Test Sync`
-    2. In the "Templates to Apply", select `Tinted Frame` Template from
+    2. In the "Templates to Apply", select the `Tinted Frame` Template from
     [earlier](../creating_templates.md) in the tutorial.
 
         !!! tip "Template Order Matters"
@@ -56,25 +53,17 @@ open the :busts_in_silhouette: `Sharing` section from the sidebar.
         in Plex that are tagged with `tcm-test`, and assigns our Template to
         them.
 
-8. At the top of the page is an indication of when all your Syncs will next
-run - we'll adjust this [next](../scheduler.md) - but to run a Sync
-immediately, click the small :fontawesome-solid-arrows-rotate: Sync icon.
+7. At the top of the page is an indication of when all your Syncs will next
+run. To run a Sync immediately, click the small
+:fontawesome-solid-arrows-rotate: Sync icon.
 
-9. TCM will then query Plex for all your Series, filter the results by our
+8. TCM will then query Plex for all your Series, filter the results by our
 indicated filters (in our case the `tcm-test` tag), and then filter out any
 exclusions (none). The added Series will be listed in a message. You should
 see "Synced 1 Series", with _Breaking Bad_ listed below.
 
-    ??? question "Why is _Better Call Saul_ not listed here?"
-
-        The reason BCS is not listed as having been Synced is because when TCM
-        runs a Sync, it checks the resulting list of Series against any
-        _existing_ Series. Since BCS was added in the previous step, TCM does
-        not add it again.
-
 !!! success "Synced from Plex"
 
     You have successfully Synced from Plex. This exact structure can be used
-    to create and run any number of Syncs.
-
-*[BCS]: Better Call Saul
+    to create and run any number of Syncs. Next, continue to
+    [Creating Title Cards](../creating_cards.md).

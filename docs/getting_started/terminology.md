@@ -9,7 +9,7 @@ tags:
 # Terminology
 
 TitleCardMaker uses many specific terms throughout this documentation and within
-TCM itself. Most of these will be explained as your progress through the
+TCM itself. Most of these will be explained as you progress through the
 tutorial, but to help alleviate some confusion (and to serve as a reference),
 here are the core concepts:
 
@@ -26,6 +26,13 @@ Source Image
     TCM adds layers of text, images, effects, etc. to create a finished Title
     Card. These are files which exist on your server in the `config/source`
     directory.
+
+Connection
+
+:   A configured link between TitleCardMaker and an external service such as
+    Plex, Jellyfin, Emby, Sonarr, TMDb, TVDb, or Tautulli. Connections supply
+    Episode data, Source Images, library lists for Syncs, and (for media
+    servers) a destination to load finished Title Cards into.
 
 Card Type
 
@@ -44,7 +51,7 @@ Card Type
 
         As different types, each card allows unique customization. For example,
         the Tinted Frame card type gives options to adjust aspects of Frame,
-        while the Anime card type has can have Japanese kanji added to it.
+        while the Anime card type can have Japanese kanji added to it.
 
 Font (or Named Font)
 
@@ -62,7 +69,7 @@ Template
 Sync
 
 :   This can be used as a noun or verb. _A Sync_ (noun) is an object which
-    defines how how to add Series to TCM __automatically__ by communicating with
+    defines how to add Series to TCM __automatically__ by communicating with
     Emby, Jellyfin, Plex, or Sonarr. _To Sync_ (verb) is the act of "running" a
     Sync and communicating with Emby, Jellyfin, Plex, or Sonarr to add new
     Series.

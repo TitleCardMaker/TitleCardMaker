@@ -257,7 +257,7 @@ TCM, then you need to do the following:
     1. Navigate to your original install directory - like so:
 
         ```bash
-        cd ~/My/Install/Diretory/TitleCardMaker-WebUI
+        cd ~/My/Install/Directory/TitleCardMaker-WebUI
         ```
 
     2. Pull and relaunch the container:
@@ -271,7 +271,7 @@ TCM, then you need to do the following:
     1. Navigate to your original install directory - like so:
 
         ```bash
-        cd ~/My/Install/Diretory/TitleCardMaker-WebUI
+        cd ~/My/Install/Directory/TitleCardMaker-WebUI
         ```
 
     2. Remove the old container.
@@ -294,7 +294,7 @@ TCM, then you need to do the following:
     1. Navigate to your original install directory - like so:
 
         ```bash
-        cd ~/My/Install/Diretory/TitleCardMaker-WebUI
+        cd ~/My/Install/Directory/TitleCardMaker-WebUI
         ```
 
     2. Switch to the branch you would like to be on - this is `main` or `develop`:

@@ -182,15 +182,15 @@ nav:
     - Global Settings: getting_started/settings.md
     - Creating a Font: getting_started/custom_font.md
     - Creating Templates: getting_started/creating_templates.md
-    - Adding a Series: getting_started/add_series.md
     - Creating the First Sync:
       - getting_started/first_sync/index.md
       - Emby: getting_started/first_sync/emby.md
       - Jellyfin: getting_started/first_sync/jellyfin.md
       - Plex: getting_started/first_sync/plex.md
       - Sonarr: getting_started/first_sync/sonarr.md
-    - Rescheduling Tasks: getting_started/scheduler.md
     - Creating Title Cards: getting_started/creating_cards.md
+    - Rescheduling Tasks: getting_started/scheduler.md
+    - Manually Adding a Series: getting_started/add_series.md
   - Blueprints: blueprints.md
   - User Guide:
     - user_guide/index.md
