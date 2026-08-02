@@ -500,10 +500,9 @@ async function initAll() {
   );
 
   // Launch style modal when helper buttons are clicked
-  $('#style-modal')
-    .modal('attach events', '.button[data-value="style-button"]', 'show')
-    .modal('setting', 'transition', 'fade up')
-    .modal({blurring: true});
+  if (window.StyleModal) {
+    window.StyleModal.init('.button[data-value="style-button"]');
+  }
 
   // Toggle card extension warning on input
   $('#card-extension')

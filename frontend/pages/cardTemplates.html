@@ -7,6 +7,7 @@
 
   <script type="text/javascript">
     {% include "/js/components/available_card_types_modal.js" %}
+    {% include "/js/components/style_modal.js" %}
   </script>
   <script type="text/javascript">
     {% include "/js/cardTemplates.js" %}
@@ -210,7 +211,10 @@
 
           <div class="two fluid fields">
             <div class="field">
-              <label>Watched Style</label>
+              <label>
+                Watched Style
+                <i class="question circle outline icon style-help" style="cursor: pointer; margin-left: 0.25em;" title="View episode styles"></i>
+              </label>
               <div data-value="watched_style" class="ui long selection clearable dropdown">
                 <span class="default text">Server Default</span>
                 <input name="watched_style" type="hidden">
@@ -230,7 +234,10 @@
               </div>
             </div>
             <div class="field">
-              <label>Unwatched Style</label>
+              <label>
+                Unwatched Style
+                <i class="question circle outline icon style-help" style="cursor: pointer; margin-left: 0.25em;" title="View episode styles"></i>
+              </label>
               <div data-value="unwatched_style" class="ui long selection clearable dropdown">
                 <span class="default text">Server Default</span>
                 <input name="unwatched_style" type="hidden">
@@ -499,6 +506,7 @@
     </div>
   </div>
 
+  {% include "/pages/components/style_modal.html" %}
   {% include "/pages/components/available_card_types_modal.html" %}
 </body>
 </html>

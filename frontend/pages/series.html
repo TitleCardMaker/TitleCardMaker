@@ -16,6 +16,9 @@
     {% include "/js/components/available_card_types_modal.js" %}
   </script>
   <script type="text/javascript">
+    {% include "/js/components/style_modal.js" %}
+  </script>
+  <script type="text/javascript">
     {% include "/js/series.js" %}
   </script>
 
@@ -922,7 +925,10 @@
               <section>
                 <div class="ui two fields">
                   <div class="field">
-                    <label>Watched Episode Style</label>
+                    <label>
+                      Watched Episode Style
+                      <i class="question circle outline icon style-help" style="cursor: pointer; margin-left: 0.25em;" title="View episode styles"></i>
+                    </label>
                     <div data-value="watched-style" class="ui long selection clearable dropdown">
                       <span class="default text">Default</span>
                       {% if series.watched_style is none %}
@@ -947,7 +953,10 @@
                   </div>
 
                   <div class="field">
-                    <label>Unwatched Episode Style</label>
+                    <label>
+                      Unwatched Episode Style
+                      <i class="question circle outline icon style-help" style="cursor: pointer; margin-left: 0.25em;" title="View episode styles"></i>
+                    </label>
                     <div data-value="unwatched-style" class="ui long selection clearable dropdown">
                       <span class="default text">Default</span>
                       {% if series.unwatched_style is none %}
@@ -2241,6 +2250,7 @@
       </div>
     </div>
 
+    {% include "/pages/components/style_modal.html" %}
     {% include "/pages/components/available_card_types_modal.html" %}
   </div>
 </body>

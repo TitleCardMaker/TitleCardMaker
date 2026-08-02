@@ -641,6 +641,9 @@ async function getAllTemplates() {
   if (window.AvailableCardTypesModal && cardTypeResults[0]) {
     window.AvailableCardTypesModal.init(cardTypeResults[0], () => [], '.card-type-help');
   }
+  if (window.StyleModal) {
+    window.StyleModal.init('.style-help');
+  }
 
   // Enable accordion/dropdown/checkbox elements
   document.getElementById('loader')?.remove();
