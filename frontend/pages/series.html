@@ -476,7 +476,7 @@
         </div>
 
         <div class="series-action-bar-center">
-          <button class="series-status-btn" id="status" onclick="toggleStatus();" data-tooltip="Toggle monitored status" data-position="bottom center">
+          <button class="series-status-btn" id="status" onclick="toggleStatus();">
             {% if series.status == 'monitored' %}
             <i class="eye outline icon"></i><span>Monitored</span>
             {% elif series.status == 'unmonitored' %}
