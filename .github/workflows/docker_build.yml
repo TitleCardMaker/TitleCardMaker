@@ -37,7 +37,7 @@ jobs:
           password: ${{ secrets.GH_TOKEN }}
 
       - name: Set up QEMU for ARM emulation
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: all
 
