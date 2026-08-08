@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-regex = "==2026.4.4"
+regex = "==2026.7.19"
 num2words = "==0.5.14"
 pyyaml = "==6.0.3"
 requests = "==2.33.1"
