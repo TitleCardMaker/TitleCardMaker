@@ -44,7 +44,7 @@ class NotificationTitleCard(BaseCardType):
     """Whether this CardType uses season titles for archival purposes"""
     USES_SEASON_TITLE = True
 
-    """Standard class has standard archive name"""
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Notification Style'
 
     """Implementation details"""
@@ -161,7 +161,7 @@ class NotificationTitleCard(BaseCardType):
         """Subcommands required to add the title text."""
 
         # If no title text, return empty commands
-        if not self.title_text:
+        if len(self.title_text) == 0:
             return []
 
         gravity = 'southwest' if self.position == 'left' else 'southeast'
@@ -294,17 +294,18 @@ class NotificationTitleCard(BaseCardType):
             )
 
         return [
-            # Blur rectangle in the given bounds
-            f'\( -clone 0',
+            # Duplicate image to blur rectangle in the given bounds
+            fr'\( -clone 0',
             f'-fill white',
             f'-colorize 100',
             f'-fill black',
             glass.draw(),
             f'-alpha off',
             f'-write mpr:mask',
-            f'+delete \)',
+            fr'+delete \)',
             f'-mask mpr:mask',
-            f'-blur {self._GLASS_BLUR_PROFILE}',
+            # Do not blur if whole image is being blurred
+            f'' if self.blur else f'-blur {self._GLASS_BLUR_PROFILE}',
             f'+mask',
             # Draw glass shape
             f'-fill "{self.glass_color}"',
@@ -361,7 +362,8 @@ class NotificationTitleCard(BaseCardType):
             ('edge_color' in extras
                 and extras['edge_color'] != NotificationTitleCard.EDGE_COLOR)
             or ('episode_text_color' in extras
-                and extras['episode_text_color'] != NotificationTitleCard.EPISODE_TEXT_COLOR)
+                and extras['episode_text_color'] != \
+                    NotificationTitleCard.EPISODE_TEXT_COLOR)
             or ('episode_text_font_size' in extras
                 and extras['episode_text_font_size'] != 1.0)
             or ('episode_text_vertical_shift' in extras
@@ -389,8 +391,8 @@ class NotificationTitleCard(BaseCardType):
         """
 
         return (custom_episode_map
-                or episode_text_format.upper() \
-                    != NotificationTitleCard.EPISODE_TEXT_FORMAT.upper())
+                or episode_text_format.upper() != \
+                    NotificationTitleCard.EPISODE_TEXT_FORMAT.upper())
 
 
     def create(self) -> None:

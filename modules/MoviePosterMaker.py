@@ -32,32 +32,12 @@ class MoviePosterMaker(ImageMaker):
             font_file: Path = FONT,
             font_color: str = FONT_COLOR,
             font_size: float = 1.0,
+            font_vertical_shift: int = 0,
             borderless: bool = False,
             add_drop_shadow: bool = False,
             omit_gradient: bool = False,
         ) -> None:
-        """
-        Construct a new instance of a CollectionPosterMaker.
-
-        Args:
-            source: The source image to use for the poster.
-            output: The output path to write the poster to.
-            title: String to use on the created poster.
-            subtitle: String to use for smaller title text.
-            top_subtitle: String to use for smaller subtitle text that
-                appears above the title text.
-            movie_index: Optional (series) index to place behind the
-                movie title.
-            logo: Optional path to a logo file to place on top of the
-                poster.
-            font_file: Path to the font file of the poster's title.
-            font_color: Font color of the poster text.
-            font_size: Scalar for the font size of the poster's title.
-            add_drop_shadow: Whether to add a drop shadow to the text.
-            borderless: Whether to omit the white frame border.
-            omit_gradient: Whether to make the poster with no gradient
-                overlay.
-        """
+        """Construct a new instance of this object."""
 
         # Initialize parent object for the ImageMagickInterface
         super().__init__()
@@ -70,6 +50,7 @@ class MoviePosterMaker(ImageMaker):
         self.font_file = font_file
         self.font_color = font_color
         self.font_size = font_size
+        self.font_vertical_shift = font_vertical_shift
         self.borderless = borderless
         self.add_drop_shadow = add_drop_shadow
         self.omit_gradient = omit_gradient
@@ -183,10 +164,10 @@ class MoviePosterMaker(ImageMaker):
 
         return [
             # Bring in logo image
-            f'\( "{self.logo.resolve()}"',
+            fr'\( "{self.logo.resolve()}"',
             # Resize to 400px wide, limit to 200px tall
             f'-resize 400x',
-            f'-resize x200\> \)',
+            fr'-resize x200\> \)',
             # Overlay 100px from top of image
             f'-gravity north',
             f'-geometry +0+100',
@@ -215,14 +196,15 @@ class MoviePosterMaker(ImageMaker):
         if self.add_drop_shadow:
             y_offset -= 15
             shadow_commands = [
-                f'\( +clone',
+                fr'\( +clone',
                 f'-background None',
-                f'-shadow 90x3+10+10 \)',
+                fr'-shadow 90x3+10+10 \)',
                 f'+swap',
                 f'-background None',
                 f'-layers merge',
                 f'+repage',
             ]
+        y_offset += self.font_vertical_shift
 
         # At least one title being added, return entire command
         return [
@@ -230,7 +212,7 @@ class MoviePosterMaker(ImageMaker):
             f'-font "{self.font_file.resolve()}"',
             f'-fill "{self.font_color}"',
             # Create an image for each title
-            f'\( \( -background transparent',
+            fr'\( \( -background transparent',
             *self.subtitle_font_attributes,
             # Combine in order [TOP SUBTITLE] / [TITLE] / [SUBTITLE]
             f'label:"{self.top_subtitle}"' if len(self.top_subtitle)>0 else '',
@@ -239,11 +221,11 @@ class MoviePosterMaker(ImageMaker):
             *self.subtitle_font_attributes,
             f'label:"{self.subtitle}"' if len(self.subtitle) > 0 else '',
             # Merge images
-            f'-smush 30 \)',
+            fr'-smush 30 \)',
             # Add drop shadow to text
             *shadow_commands,
             # Add titles to image
-            f'\) -gravity south',
+            fr'\) -gravity south',
             f'-geometry +0+{y_offset}',
             f'-composite',
         ]

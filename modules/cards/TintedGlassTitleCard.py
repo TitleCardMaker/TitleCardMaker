@@ -6,6 +6,7 @@ from modules.BaseCardType import BaseCardType, ImageMagickCommands
 from modules.Debug import log
 
 if TYPE_CHECKING:
+    from modules.PreferenceParser import PreferenceParser
     from modules.Font import Font
 
 
@@ -49,7 +50,7 @@ class TintedGlassTitleCard(BaseCardType):
     """Whether this CardType uses unique source images"""
     USES_UNIQUE_SOURCES = True
 
-    """Standard class has standard archive name"""
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Tinted Glass Style'
 
     """Darkened area behind title/episode text is nearly black and 70% opaque"""
@@ -87,9 +88,9 @@ class TintedGlassTitleCard(BaseCardType):
             episode_text_position: Position = 'center',
             box_adjustments: Optional[str] = None,
             glass_color: str = DARKEN_COLOR,
-            preferences: Optional['Preferences'] = None, # type: ignore
             rounding_radius: int = DEFAULT_ROUNDING_RADIUS,
             vertical_adjustment: int = 0,
+            preferences: Optional['PreferenceParser'] = None,
             **unused,
         ) -> None:
 
@@ -169,16 +170,16 @@ class TintedGlassTitleCard(BaseCardType):
 
         return [
             # Blur rectangle in the given bounds
-            f'\( -clone 0',
+            fr'\( -clone 0',
             f'-fill white',
             f'-colorize 100',
             f'-fill black',
             f'-draw "roundrectangle {draw_coords}"',
             f'-alpha off',
             f'-write mpr:mask',
-            f'+delete \)',
+            fr'+delete \)',
             f'-mask mpr:mask',
-            f'-blur {self.TEXT_BLUR_PROFILE}',
+            f'-blur {self.TEXT_BLUR_PROFILE}' if not self.blur else '',
             f'+mask',
             # Darken area behind title text
             f'-fill "{self.glass_color}"',
@@ -295,7 +296,7 @@ class TintedGlassTitleCard(BaseCardType):
 
         # Center positioning requires padding adjustment
         if self.episode_text_position == 'center':
-            x_start, x_end = self.WIDTH/2 - width/2, self.WIDTH/2 + width/2
+            x_start, x_end = (self.WIDTH - width) / 2, (self.WIDTH + width) / 2
             x_start, x_end = x_start - 30, x_end + 20
         # Left positioning requires padding right bounds
         elif self.episode_text_position == 'left':
@@ -365,7 +366,8 @@ class TintedGlassTitleCard(BaseCardType):
             ('box_adjustments' in extras
                 and extras['box_adjustments'] != '0 0 0 0')
             or ('episode_text_color' in extras
-                and extras['episode_text_color'] != TintedGlassTitleCard.EPISODE_TEXT_COLOR)
+                and extras['episode_text_color'] != \
+                    TintedGlassTitleCard.EPISODE_TEXT_COLOR)
             or ('glass_color' in extras
                 and extras['glass_color'] != TintedGlassTitleCard.DARKEN_COLOR)
         )

@@ -33,7 +33,7 @@ class AspectRatioFixer(ImageMaker):
 
         Args:
             source: Path to the source image to use.
-            destination: Path to the desination file to write the image
+            destination: Path to the destination file to write the image
                 at.
             style: Aspect ratio correction style.
 
@@ -105,16 +105,16 @@ class AspectRatioFixer(ImageMaker):
             command = ' '.join([
                 f'convert',
                 # Crop left 50px and stretch
-                f'\( "{self.__RESIZED_TEMP.resolve()}"',
+                fr'\( "{self.__RESIZED_TEMP.resolve()}"',
                 f'-crop "50x1800+0+0"',
-                f'-resize "{side_width}!" \)',
+                fr'-resize "{side_width}!" \)',
                 # Crop middle section
-                f'\(  "{self.__RESIZED_TEMP.resolve()}"',
-                f'-crop "{width-100}x1800+50+0" \)',
+                fr'\(  "{self.__RESIZED_TEMP.resolve()}"',
+                fr'-crop "{width-100}x1800+50+0" \)',
                 # Crop right 50px and stretch
-                f'\(  "{self.__RESIZED_TEMP.resolve()}"',
+                fr'\(  "{self.__RESIZED_TEMP.resolve()}"',
                 f'-crop "50x1800+{width-50}+0"',
-                f'-resize "{side_width}!" \)',
+                fr'-resize "{side_width}!" \)',
                 # Append like [LEFT 50][MIDDLE][RIGHT 50] left-to-right
                 f'+append',
                 f'"{self.destination.resolve()}"',

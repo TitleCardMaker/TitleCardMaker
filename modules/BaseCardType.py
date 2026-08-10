@@ -136,7 +136,7 @@ class Line:
     def draw(self) -> str:
         """Draw this line."""
 
-        return f'-draw "path \'{str(self)}\'"'
+        return fr'-draw "path \'{str(self)}\'"'
 
 
 class Rectangle:
@@ -543,10 +543,10 @@ class BaseCardType(ImageMaker):
             pre_processing = self.resize_and_style
 
         return [
-            f'\( "{mask.resolve()}"',
+            fr'\( "{mask.resolve()}"',
             *self.resize,
             *pre_processing,
-            f'\) -geometry {x:+}{y:+}',
+            fr'\) -geometry {x:+}{y:+}',
             f'-composite',
         ]
 
@@ -593,15 +593,15 @@ class BaseCardType(ImageMaker):
         """
 
         return [
-            f'\(',
+            fr'\(',
             *commands,
-            f'\( +clone',
+            fr'\( +clone',
             f'-background "{shadow_color}"',
-            f'-shadow {shadow} \)',
+            fr'-shadow {shadow} \)',
             f'+swap',
             f'-background None',
             f'-layers merge',
-            f'+repage \)',
+            fr'+repage \)',
             f'-geometry {x:+.0f}{y:+.0f}',
             f'-composite',
         ]

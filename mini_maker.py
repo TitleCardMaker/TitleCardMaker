@@ -18,8 +18,9 @@ try:
     from modules.SeasonPoster import SeasonPoster
     from modules.StandardSummary import StandardSummary
     from modules.StylizedSummary import StylizedSummary
-except ImportError:
-    print(f'Required Python packages are missing - execute "pipenv install"')
+except ImportError as exc:
+    print('Required Python packages are missing - execute "pipenv install"')
+    print(exc)
     sys_exit(1)
 
 # Environment Variables
@@ -267,6 +268,12 @@ movie_poster_group.add_argument(
     metavar='SCALE%',
     help='A font scale (as percentage) for the movie poster')
 movie_poster_group.add_argument(
+    '--movie-font-vertical-shift',
+    type=int,
+    default=0,
+    metavar='PIXELS',
+    help='How many pixels to vertically shift the title text')
+movie_poster_group.add_argument(
     '--movie-drop-shadow',
     action='store_true',
     help='Whether to add a drop shadow to the text for the movie poster')
@@ -369,6 +376,12 @@ season_poster_group.add_argument(
     default='100%',
     metavar='SCALE%',
     help='Specify the font kerning scale (as percentage) in the season poster')
+season_poster_group.add_argument(
+    '--season-font-vertical-shift',
+    type=int,
+    default=0,
+    metavar='PIXELS',
+    help='How many pixels to vertically shift the season text')
 season_poster_group.add_argument(
     '--logo-placement',
     choices=('top', 'middle', 'bottom'),
@@ -488,6 +501,7 @@ if hasattr(args, 'movie_poster'):
         font_file=args.movie_font,
         font_color=args.movie_font_color,
         font_size=float(args.movie_font_size[:-1])/100.0,
+        font_vertical_shift=args.movie_font_vertical_shift,
         borderless=args.borderless,
         add_drop_shadow=args.movie_drop_shadow,
         omit_gradient=args.no_gradient,
@@ -589,6 +603,7 @@ if hasattr(args, 'season_poster'):
         font_color=args.season_font_color,
         font_size=float(args.season_font_size[:-1])/100.0,
         font_kerning=float(args.season_font_kerning[:-1])/100.0,
+        font_vertical_shift=args.season_font_vertical_shift,
         logo_placement=args.logo_placement,
         omit_gradient=args.no_gradient,
         omit_logo=not hasattr(args, 'season_poster_logo'),

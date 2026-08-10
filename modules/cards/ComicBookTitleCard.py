@@ -81,11 +81,11 @@ class SvgRectangle:
         return [
             f'-draw "translate {self.center.as_svg}',
             f'rotate {self.rotation}',
-            f'path \'M {start_position.as_svg}',
+            fr'path \'M {start_position.as_svg}',
             f'l {self.width} 0',
             f'l 0 {self.height}',
             f'l {-self.width} 0',
-            f'l 0 {-self.height}\' "',
+            fr'l 0 {-self.height}\' "',
         ]
 
 
@@ -120,7 +120,7 @@ class ComicBookTitleCard(BaseCardType):
     """Whether this CardType uses season titles for archival purposes"""
     USES_SEASON_TITLE = True
 
-    """Standard class has standard archive name"""
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Comic Book Style'
 
     """Implementation details"""
@@ -248,7 +248,7 @@ class ComicBookTitleCard(BaseCardType):
         """Subcommands required to add the title text."""
 
         # If no title text, return empty commands
-        if len(self.title_text) == 0:
+        if not self.title_text:
             return []
 
         # Font characteristics
@@ -279,7 +279,7 @@ class ComicBookTitleCard(BaseCardType):
         """Subcommands required to add the title text box."""
 
         # No index text, return empty commands
-        if len(self.title_text) == 0:
+        if not self.title_text:
             return []
 
         # Get dimensions of the title text

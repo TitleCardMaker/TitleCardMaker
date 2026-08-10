@@ -165,7 +165,7 @@ class StandardSummary(BaseSummary):
             f'convert',
             f'"{self.logo.resolve()}"',
             f'-resize x500',
-            f'-resize 3400x500\>',
+            fr'-resize 3400x500\>',
             f'"{self.__RESIZED_LOGO_PATH.resolve()}"',
         ])
 

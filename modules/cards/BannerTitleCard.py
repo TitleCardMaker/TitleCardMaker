@@ -39,7 +39,7 @@ class BannerTitleCard(BaseCardType):
     """Whether this CardType uses season titles for archival purposes"""
     USES_SEASON_TITLE = True
 
-    """Standard class has standard archive name"""
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Banner Style'
 
     """Implementation details"""
@@ -223,10 +223,10 @@ class BannerTitleCard(BaseCardType):
         # Determine the width of the title text
         top_y = self.banner_height + self.font_vertical_shift - 60
         top_text_commands = [
-            f'\( -background none',
+            fr'\( -background none',
             *base_commands,
             f'-gravity southwest',
-            f'label:"{self.top_title_text}" \)',
+            fr'label:"{self.top_title_text}" \)',
         ]
         top_width, _ = self.image_magick.get_text_dimensions(top_text_commands)
 

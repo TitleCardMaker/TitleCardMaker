@@ -54,7 +54,7 @@ class BaseSummary(ImageMaker):
                 "{series_background}" to use the given Show object's
                 backdrop.
             created_by: Optional string to use in custom "Created by .."
-                tag at the botom of this Summary.
+                tag at the bottom of this Summary.
         """
 
         # Initialize parent ImageMaker
@@ -155,8 +155,8 @@ class BaseSummary(ImageMaker):
             f'-fill "#CFCFCF"',
             f'label:"with"',
             # Resize TCM logo
-            f'\( "{self.__TCM_LOGO.resolve()}"',
-            f'-resize x100 \)',
+            fr'\( "{self.__TCM_LOGO.resolve()}"',
+            fr'-resize x100 \)',
             # Create "TitleCardMaker" image/text
             f'-fill "#5493D7"',
             f'label:"TitleCardMaker"',

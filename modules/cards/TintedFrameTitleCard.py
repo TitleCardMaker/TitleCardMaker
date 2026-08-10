@@ -45,7 +45,7 @@ class TintedFrameTitleCard(BaseCardType):
     """Whether this CardType uses season titles for archival purposes"""
     USES_SEASON_TITLE = True
 
-    """Standard class has standard archive name"""
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Tinted Frame Style'
 
     """Implementation details"""
@@ -215,10 +215,10 @@ class TintedFrameTitleCard(BaseCardType):
             f'-blur 0x20',
             # Crop out center area of the source image
             f'-gravity center',
-            f'\( "{self.source_file.resolve()}"',
+            fr'\( "{self.source_file.resolve()}"',
             *self.resize_and_style,
             f'-crop {crop_width}x{crop_height}+0+0',
-            f'+repage \)',
+            fr'+repage \)',
             # Overlay unblurred center area
             f'-composite',
         ]
@@ -330,16 +330,16 @@ class TintedFrameTitleCard(BaseCardType):
             # Constrain by width and height
             resize_command = [
                 f'-resize x{logo_height}',
-                f'-resize {2500 * self.logo_size}x{logo_height}\>',
+                fr'-resize {2500 * self.logo_size}x{logo_height}\>',
             ]
         else:
             resize_command = [f'-resize x{logo_height}']
 
         return self.add_drop_shadow(
             [
-                f'\( "{self.logo.resolve()}"',
+                fr'\( "{self.logo.resolve()}"',
                 *resize_command,
-                f'\) -gravity center',
+                fr'\) -gravity center',
             ],
             shadow=Shadow(opacity=85, sigma=4),
             x=0, y=vertical_shift,

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from modules.BaseCardType import BaseCardType, ImageMagickCommands
 
 if TYPE_CHECKING:
+    from modules.PreferenceParser import PreferenceParser
     from modules.Font import Font
 
 
@@ -79,7 +80,7 @@ class StandardTitleCard(BaseCardType):
             episode_text_font_size: float = 1.0,
             episode_text_vertical_shift: int = 0,
             omit_gradient: bool = False,
-            preferences: Optional['Preferences'] = None, # type: ignore
+            preferences: Optional['PreferenceParser'] = None,
             **unused,
         ) -> None:
         """Construct a new instance of this card."""
@@ -172,7 +173,7 @@ class StandardTitleCard(BaseCardType):
             *base_commands,
             f'-gravity center',
             # Black stroke behind primary text
-            f'\( -fill black',
+            fr'\( -fill black',
             f'-stroke black',
             f'-strokewidth 6',
             # Add season text
@@ -182,14 +183,14 @@ class StandardTitleCard(BaseCardType):
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
             # Combine season+episode text into one "image"
-            f'+smush 25 \)',
+            fr'+smush 25 \)',
             # Add season+episode text "image" to source image
             f'-gravity north',
             f'-geometry +0{y:+}',
             f'-composite',
             # Primary text
             f'-gravity center',
-            f'\( -fill "{self.episode_text_color}"',
+            fr'\( -fill "{self.episode_text_color}"',
             f'-stroke "{self.episode_text_color}"',
             f'-strokewidth 0.75',
             # Add season text
@@ -198,7 +199,7 @@ class StandardTitleCard(BaseCardType):
             # Add episode text
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
-            f'+smush 30 \)',
+            fr'+smush 30 \)',
             # Add text to source image
             f'-gravity north',
             f'-geometry +0{y+2:+}',
@@ -244,14 +245,13 @@ class StandardTitleCard(BaseCardType):
         # Generic font, reset custom episode text color
         if not custom_font:
             if 'episode_text_color' in extras:
-                extras['episode_text_color'] = \
-                    StandardTitleCard.SERIES_COUNT_TEXT_COLOR
+                del extras['episode_text_color']
             if 'episode_text_font_size' in extras:
-                extras['episode_text_font_size'] = 1.0
+                del extras['episode_text_font_size']
             if 'episode_text_vertical_shift' in extras:
-                extras['episode_text_vertical_shift'] = 0
+                del extras['episode_text_vertical_shift']
             if 'stroke_color' in extras:
-                extras['stroke_color'] = 'black'
+                del extras['stroke_color']
 
 
     @staticmethod
@@ -300,10 +300,9 @@ class StandardTitleCard(BaseCardType):
             True if custom season titles are indicated, False otherwise.
         """
 
-        standard_etf = StandardTitleCard.EPISODE_TEXT_FORMAT.upper()
-
         return (custom_episode_map
-                or episode_text_format.upper() != standard_etf)
+                or episode_text_format.upper() != \
+                    StandardTitleCard.EPISODE_TEXT_FORMAT.upper())
 
 
     def create(self) -> None:

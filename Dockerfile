@@ -1,37 +1,36 @@
-ARG PYVERSION=3.11
-
+# syntax=docker/dockerfile:1
 # Create pipenv image to convert Pipfile to requirements.txt
-FROM python:${PYVERSION}-slim as pipenv
+FROM python:3.13-slim AS pipenv
 
 # Copy Pipfile and Pipfile.lock
 COPY Pipfile Pipfile.lock ./
 
 # Install pipenv and convert to requirements.txt
-RUN pip3 install --no-cache-dir --upgrade pipenv; \
+RUN pip3 install --no-cache-dir --upgrade pipenv && \
     pipenv requirements > requirements.txt
 
-FROM python:${PYVERSION}-slim as python-reqs
+FROM python:3.13-slim AS python-reqs
 
 # Copy requirements.txt from pipenv stage
 COPY --from=pipenv /requirements.txt requirements.txt
 
 # Install gcc for building python dependencies; install TCM dependencies
-RUN apt-get update; \
-    apt-get install -y gcc; \
+RUN apt-get update && \
+    apt-get install -y gcc && \
     pip3 install --no-cache-dir -r requirements.txt
 
 # Set base image for running TCM
-FROM python:${PYVERSION}-slim
+FROM python:3.13-slim
 LABEL maintainer="CollinHeist" \
-      description="Automated title card maker for Plex"
+      description="Automated Title card maker for Emby, Jellyfin, and Plex" \
+      version="v1.16.0"
 
 # Set working directory, copy source into container
 WORKDIR /maker
 COPY . /maker
 
 # Copy python packages from python-reqs
-# update with python version
-COPY --from=python-reqs /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=python-reqs /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 
 # Script environment variables
 ENV TCM_PREFERENCES=/config/preferences.yml \
@@ -42,14 +41,16 @@ ENV TCM_PREFERENCES=/config/preferences.yml \
 # Install imagemagick
 # Clean up apt cache
 # Override default ImageMagick policy XML file
-RUN set -eux; \
-    rm -f Pipfile Pipfile.lock; \
-    groupadd -g 99 titlecardmaker; \
-    useradd -u 100 -g 99 titlecardmaker; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends imagemagick libmagickcore-6.q16-6-extra; \
-    rm -rf /var/lib/apt/lists/*; \
-    cp modules/ref/policy.xml /etc/ImageMagick-6/policy.xml
+RUN \
+    set -eux && \
+    rm -f Pipfile Pipfile.lock && \
+    groupadd -g 99 titlecardmaker && \
+    useradd -u 100 -g 99 titlecardmaker && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        imagemagick && \
+    rm -rf /var/lib/apt/lists/* && \
+    cp modules/ref/policy.xml /etc/ImageMagick-7/policy.xml
 
 VOLUME [ "/config" ]
 

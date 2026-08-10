@@ -16,6 +16,9 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Check Out Repo
         uses: actions/checkout@v3
@@ -46,6 +49,6 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/titlecardmaker:${{ inputs.tag }},ghcr.io/collinheist/titlecardmaker:${{ inputs.tag }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/titlecardmaker:${{ inputs.tag }},ghcr.io/titlecardmaker/titlecardmaker:${{ inputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max           

@@ -9,13 +9,27 @@ __pycache__/
 # PEP 582
 __pypackages__/
 
+app/
+backups/
 config/
-yaml/
-yml/
-source/
-logs/
+cypress/results/
+cypress/screenshots/
+docs/
 fonts/
+front/node_modules/
+front/
+frontend/
+front_nui/
 modules/.objects/
+node_modules/
+yml/
+*2.py
 *._*
 *.prof
 .DS_Store
+.env
+missing.yml
+preferences.yml
+temp*.jpg
+/site
+/tests

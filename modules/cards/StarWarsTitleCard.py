@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from modules.BaseCardType import BaseCardType, ImageMagickCommands
 
 if TYPE_CHECKING:
+    from modules.PreferenceParser import PreferenceParser
     from modules.Font import Font
 
 
@@ -66,12 +67,10 @@ class StarWarsTitleCard(BaseCardType):
             blur: bool = False,
             grayscale: bool = False,
             episode_text_color: str = EPISODE_TEXT_COLOR,
-            preferences: Optional['Preferences'] = None,
+            preferences: Optional['PreferenceParser'] = None,
             **unused,
         ) -> None:
-        """
-        Initialize the CardType object.
-        """
+        """Initialize the CardType object."""
 
         # Initialize the parent class - this sets up an ImageMagickInterface
         super().__init__(blur, grayscale, preferences=preferences)
@@ -149,13 +148,13 @@ class StarWarsTitleCard(BaseCardType):
             f'-fill "{self.episode_text_color}"',
             f'-background transparent',
             # Create prefix text
-            f'\( -font "{self.EPISODE_TEXT_FONT.resolve()}"',
+            fr'\( -font "{self.EPISODE_TEXT_FONT.resolve()}"',
             f'label:"{self.episode_prefix}"',
             # Create actual episode text
             f'-font "{self.EPISODE_NUMBER_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
             # Combine prefix and episode text
-            f'+smush 65 \)',
+            fr'+smush 65 \)',
             # Add combined text to image
             f'-geometry +325-140',
             f'-composite',

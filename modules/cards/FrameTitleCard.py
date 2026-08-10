@@ -5,6 +5,7 @@ from modules.BaseCardType import BaseCardType, ImageMagickCommands
 from modules.Debug import log
 
 if TYPE_CHECKING:
+    from modules.PreferenceParser import PreferenceParser
     from modules.Font import Font
 
 
@@ -77,7 +78,7 @@ class FrameTitleCard(BaseCardType):
             grayscale: bool = False,
             episode_text_color: str = EPISODE_TEXT_COLOR,
             episode_text_position: Position = 'surround',
-            preferences: Optional['Preferences'] = None, # type: ignore
+            preferences: Optional['PreferenceParser'] = None,
             **unused,
         ) -> None:
         """Construct a new instance of this Card."""
@@ -181,13 +182,13 @@ class FrameTitleCard(BaseCardType):
 
             return [
                 # Align text and image based on positioning
-                f'-gravity {gravity} \(',
+                fr'-gravity {gravity} \(',
                 # Add index texts
                 *self._index_font_attributes,
                 f'label:"{self.season_text}"' if not self.hide_season else '',
                 f'label:"{self.episode_text}"' if not self.hide_episode else '',
                 # Smush vertically
-                f'-smush 25 \)',
+                fr'-smush 25 \)',
                 # Overlay on left/right of the title text
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
@@ -200,9 +201,9 @@ class FrameTitleCard(BaseCardType):
         season_command = []
         if not self.hide_season:
             season_command = [
-                f'-gravity east \(',
+                fr'-gravity east \(',
                 *self._index_font_attributes,
-                f'label:"{self.season_text}" \)',
+                fr'label:"{self.season_text}" \)',
                 f'-gravity east',
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
@@ -212,9 +213,9 @@ class FrameTitleCard(BaseCardType):
         episode_command = []
         if not self.hide_episode:
             episode_command = [
-                f'-gravity west \(',
+                fr'-gravity west \(',
                 *self._index_font_attributes,
-                f'label:"{self.episode_text}" \)',
+                fr'label:"{self.episode_text}" \)',
                 f'-geometry +{offset}+{vertical_shift}',
                 f'-composite',
             ]
@@ -309,7 +310,7 @@ class FrameTitleCard(BaseCardType):
             *self.style,
             # Resize to fit within frame
             f'-resize 2915x',
-            f'-resize x1275\<',
+            fr'-resize x1275\<',
             # Increase contrast of source image
             f'-modulate 100,125',
         ]

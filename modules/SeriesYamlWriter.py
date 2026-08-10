@@ -103,7 +103,7 @@ class SeriesYamlWriter:
 
 
     def __repr__(self) -> str:
-        """Return an unambigious string representation of this object."""
+        """Return an unambiguous string representation of this object."""
 
         return (f'<SeriesYamlWriter {self.file=}, {self.sync_mode=}, '
                 f'{self.compact_mode=}, {self.volume_map=}>')
@@ -243,7 +243,7 @@ class SeriesYamlWriter:
 
         Returns:
             Dictionary that is the existing YAML. None if there is no
-            existing YAML, or if an error occured during the read.
+            existing YAML, or if an error occurred during the read.
         """
 
         # If the file DNE, just use write technique
@@ -261,7 +261,7 @@ class SeriesYamlWriter:
             return None
         except Exception as e:
             log.error(f'Cannot sync to file "{self.file.resolve()}"')
-            log.error(f'Error occured {e}')
+            log.error(f'Error occurred {e}')
             return None
 
         # Write if file exists but is blank
@@ -370,7 +370,7 @@ class SeriesYamlWriter:
 
     def __get_yaml_from_sonarr(self,
             sonarr_interface: SonarrInterface,
-            plex_libraries: dict[str, str],
+            libraries: dict[str, str],
             required_tags: list[str],
             monitored_only: bool,
             downloaded_only: bool,
@@ -382,9 +382,9 @@ class SeriesYamlWriter:
 
         Args:
             sonarr_interface: SonarrInterface to sync from.
-            plex_libraries: Dictionary of TCM paths to their
-                corresponding libraries.
-            required_tags: List of requried tags to filter the Sonarr
+            libraries: Dictionary of TCM paths to their corresponding
+                libraries.
+            required_tags: List of required tags to filter the Sonarr
                 sync with.
             monitored_only: Whether to only sync monitored series from
                 Sonarr.
@@ -422,9 +422,9 @@ class SeriesYamlWriter:
             original_path = sonarr_path
             sonarr_path = self.__convert_path(sonarr_path, media=True)
 
-            # Attempt to find matching Plex library
+            # Attempt to find matching library
             library = None
-            for tcm_base, library_name in plex_libraries.items():
+            for tcm_base, library_name in libraries.items():
                 if original_path.startswith(tcm_base):
                     library = library_name
                     break
@@ -451,7 +451,7 @@ class SeriesYamlWriter:
 
         # Create libraries YAML
         libraries_yaml = {}
-        for path, library in plex_libraries.items():
+        for path, library in libraries.items():
             if self.card_directory is None:
                 path = self.__convert_path(path, media=False)
             else:
@@ -565,7 +565,7 @@ class SeriesYamlWriter:
 
     def update_from_sonarr(self,
             sonarr_interface: SonarrInterface,
-            plex_libraries: dict[str, str] = {},
+            libraries: dict[str, str] = {},
             required_tags: list[str] = [],
             monitored_only: bool = False,
             downloaded_only: bool = False,
@@ -577,8 +577,8 @@ class SeriesYamlWriter:
 
         Args:
             sonarr_interface: SonarrInterface to sync from.
-            plex_libraries: Dictionary of TCM paths to their
-                corresponding libraries.
+            libraries: Dictionary of TCM paths to their corresponding
+                libraries.
             required_tags: List of tags to filter the Sonarr sync from.
             exclusions: List of labeled exclusions to apply to sync.
             monitored_only: Whether to only sync monitored series from
@@ -589,7 +589,7 @@ class SeriesYamlWriter:
 
         # Get complete file YAML from Sonarr
         yaml = self.__get_yaml_from_sonarr(
-            sonarr_interface, plex_libraries, required_tags,
+            sonarr_interface, libraries, required_tags,
             monitored_only, downloaded_only, series_type, exclusions,
         )
 

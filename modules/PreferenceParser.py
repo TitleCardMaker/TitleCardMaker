@@ -1,7 +1,7 @@
 from collections import namedtuple
 from pathlib import Path
 from sys import exit as sys_exit
-from typing import Any, Iterator, Optional, Union
+from typing import Any, Iterator, Literal, Optional, Union, overload
 
 from num2words import CONVERTER_CLASSES as SUPPORTED_LANGUAGE_CODES
 from tqdm import tqdm
@@ -291,8 +291,13 @@ class PreferenceParser(YamlReader):
                 if (value := sync_yaml.get('libraries', type_=list)) is not None:
                     update_args['filter_libraries'] = value
             elif sync_type == 'sonarr':
-                if (value := sync_yaml.get('plex_libraries', type_=dict)) is not None:
-                    update_args['plex_libraries'] = value
+                value = sync_yaml.get(
+                    'libraries',
+                    type_=dict,
+                    default=sync_yaml.get('plex_libraries', type_=dict),
+                )
+                if value is not None:
+                    update_args['libraries'] = value
                 if (value := sync_yaml.get('monitored_only', type_=bool)) is not None:
                     update_args['monitored_only'] = value
                 if (value := sync_yaml.get('downloaded_only', type_=bool)) is not None:
@@ -673,6 +678,9 @@ class PreferenceParser(YamlReader):
                 log.warning(f'Plex will reject all images larger than 10 MB')
 
         if (value := self.get('plex', 'timeout', type_=int)) is not None:
+            if value < 1:
+                log.critical(f'Plex timeout must be at least 1')
+                self.valid = False
             self.plex_timeout = value
 
         self.plex_style_set = StyleSet(
@@ -715,7 +723,7 @@ class PreferenceParser(YamlReader):
                     ),
                 })
 
-        # If multiple servers were specified, parse all specificiations
+        # If multiple servers were specified, parse all specifications
         if isinstance(self.get('sonarr'), list):
             for server in self.get('sonarr'):
                 parse_server(server)
@@ -763,9 +771,8 @@ class PreferenceParser(YamlReader):
                                type_=bool)) is not None:
             self.tmdb_skip_localized_images = value
 
-        if (value := self.get('tmdb', 'logo_language_priority',
-                               type_=str)) is not None:
-            codes = list(map(lambda s: str(s).lower().strip(), value.split(',')))
+        if (value := self.get('tmdb', 'logo_language_priority', type_=str)):
+            codes = list(map(str.strip, value.split(',')))
             if all(code in TMDbInterface.LANGUAGE_CODES for code in codes):
                 self.tmdb_logo_language_priority = codes
             else:
@@ -831,11 +838,10 @@ class PreferenceParser(YamlReader):
             log.warning(f'Specifying the "imagemagick" section is not '
                         f'recommended when using TitleCardMaker in Docker')
 
-        if (value := self.get('imagemagick', 'container',
-                               type_=str)) is not None:
+        if (value := self.get('imagemagick', 'container', type_=str)):
             self.imagemagick_container = value
 
-        if (value := self.get('imagemagick', 'timeout',type_=int)) is not None:
+        if (value := self.get('imagemagick', 'timeout', type_=int)):
             self.imagemagick_timeout = value
 
         return None
@@ -1068,7 +1074,7 @@ class PreferenceParser(YamlReader):
                             f'not present in font list')
                 log.info(f'Listed font names are {font_names}')
                 return None
-            # Font identifer in map, merge YAML
+            # Font identifier in map, merge YAML
             show_yaml['font'] = {}
             Template.recurse_priority_union(show_yaml['font'], font_yaml)
 
@@ -1266,7 +1272,7 @@ class PreferenceParser(YamlReader):
             'verify_ssl': self.plex_verify_ssl,
             'integrate_with_kometa': self.integrate_with_kometa,
             'filesize_limit': self.plex_filesize_limit,
-            'timeout': self.plex_timeout
+            'timeout': self.plex_timeout,
         }
 
     @property
@@ -1356,6 +1362,11 @@ class PreferenceParser(YamlReader):
             log.critical(f'Invalid season folder format - {e}')
             sys_exit(1)
 
+
+    @overload
+    def filesize_as_bytes(self, filesize: str) -> int: ...
+    @overload
+    def filesize_as_bytes(self, filesize: Literal[None]) -> None: ...
 
     def filesize_as_bytes(self, filesize: Optional[str]) -> Optional[int]:
         """

@@ -63,7 +63,7 @@ class ShapeTitleCard(BaseCardType):
     """Whether this CardType uses season titles for archival purposes"""
     USES_SEASON_TITLE = True
 
-    """Standard class has standard archive name"""
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Shape Style'
 
     """Implementation details"""
@@ -174,10 +174,8 @@ class ShapeTitleCard(BaseCardType):
         self.stroke_color = stroke_color
         self.text_position: TextPosition = text_position
 
-        # Scale side length by for multiline titles
-        self.__line_count = len(title_text.splitlines())
-        if self.__line_count > 1:
-            self.length *= 1.0 + (0.25 * (self.__line_count - 1))
+        # Scale side length by 30% for each additional line in the title
+        self.length *= 1.0 + (0.30 * (len(title_text.splitlines()) - 1))
 
         # Implementation variables
         self.__title_width = None
@@ -358,7 +356,7 @@ class ShapeTitleCard(BaseCardType):
             first_word = self.title_text.split(' ', maxsplit=1)[0]
             if (number := re_match(r'(\d+)\.?', first_word)):
                 center_text = number.group(1)
-            # First word is not number, center around first letter
+            # First word is not number, center around first character
             else:
                 center_text = self.title_text[0]
         # Text is positioned on the right
@@ -431,10 +429,6 @@ class ShapeTitleCard(BaseCardType):
         else:
             y = self.HEIGHT / 2
         # At this point y inner face is aligned to middle of the shape
-        # y += -5 + self.font_vertical_shift + title_height - 10 # 10px margin
-
-        # Adjust y-position to correct side of the title text
-        # y += self.font_vertical_shift + title_height - 25 # Manual adjustment
 
         # Adjust y-position inner boundary to the middle of the title
         # text - only adjust triangles since title text is at 1/3 height
@@ -475,7 +469,10 @@ class ShapeTitleCard(BaseCardType):
         if self.shape == 'circle':
             # sin(ϴ) = dy / r; ϴ = asin(dy / r)
             dy = half_title_height + 10
-            theta = asin(dy / self.length)
+            try:
+                theta = asin(dy / self.length)
+            except ValueError: # Domain error caused by dy > radius
+                theta = 90
             # tan(ϴ) = dy / dx; dx = dy / tan(ϴ)
             dx = dy / tan(theta)
             return x - (self.length - dx)
@@ -622,8 +619,12 @@ class ShapeTitleCard(BaseCardType):
         if self._title_text_width < radius:
             x, y = 2 * radius, 0 # 180 degrees
         else:
-            y = self._title_text_height / 2 + 10
-            theta = asin(y / radius)            # ϴ = asin(y / r)
+            # Limit y values to the radius for very tall height calcs
+            y = min(self._title_text_height / 2 + 10, radius)
+            try:
+                theta = asin(y / radius)        # ϴ = asin(y / r)
+            except ValueError: # Domain error caused by dy > radius
+                theta = 90
             x = radius + (radius * cos(theta))  # x = r * cos(ϴ)
 
         return [
@@ -650,7 +651,10 @@ class ShapeTitleCard(BaseCardType):
             x, y = 2 * radius, 0 # 180 degrees
         else:
             y = self._title_text_height / 2 + 10
-            theta = asin(y / radius)            # ϴ = asin(y / r)
+            try:
+                theta = asin(y / radius)        # ϴ = asin(y / r)
+            except ValueError: # Domain error caused by dy > radius
+                theta = 90
             x = radius + (radius * cos(theta))  # x = r * cos(ϴ)
 
         return [

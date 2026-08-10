@@ -39,7 +39,10 @@ class LogoTitleCard(BaseCardType):
     """Whether this CardType uses unique source images"""
     USES_UNIQUE_SOURCES = False
 
-    """Standard class has standard archive name"""
+    """Whether this class uses Source Images at all"""
+    USES_SOURCE_IMAGES = False # Set as False; if required then caught by model
+
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Logo Style'
 
     """Default fonts and color for series count text"""
@@ -47,7 +50,7 @@ class LogoTitleCard(BaseCardType):
     EPISODE_COUNT_FONT = REF_DIRECTORY / 'Proxima Nova Regular.otf'
     SERIES_COUNT_TEXT_COLOR = '#CFCFCF'
 
-    """Source path for the gradient image overlayed over all title cards"""
+    """Source path for the gradient image overlaid over all title cards"""
     __GRADIENT_IMAGE = REF_DIRECTORY / 'GRADIENT.png'
 
     __slots__ = (
@@ -177,10 +180,10 @@ class LogoTitleCard(BaseCardType):
 
         return [
             f'-gravity north',
-            f'\( "{self.logo.resolve()}"',
+            fr'\( "{self.logo.resolve()}"',
             f'-resize x{max_height}',
-            f'-resize {max_width}x{max_height}\>',
-            f'\) -geometry +0{offset:+}',
+            fr'-resize {max_width}x{max_height}\>',
+            fr'\) -geometry +0{offset:+}',
             f'-composite',
         ]
 
@@ -238,7 +241,7 @@ class LogoTitleCard(BaseCardType):
             f'-pointsize 67.75',
             f'-interword-spacing 14.5',
             # Black stroke behind primary text
-            f'\( -fill black',
+            fr'\( -fill black',
             f'-stroke black',
             f'-strokewidth 6',
             # Add season text
@@ -248,12 +251,12 @@ class LogoTitleCard(BaseCardType):
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
             # Combine season+episode text into one "image"
-            f'+smush 25 \)',
+            fr'+smush 25 \)',
             # Add season+episode text "image" to source image
             f'-geometry +0{y:+}',
             f'-composite',
             # Primary text
-            f'\( -fill "{self.episode_text_color}"',
+            fr'\( -fill "{self.episode_text_color}"',
             f'-stroke "{self.episode_text_color}"',
             f'-strokewidth 0.75',
             # Add season text
@@ -262,7 +265,7 @@ class LogoTitleCard(BaseCardType):
             # Add episode text
             f'-font "{self.EPISODE_COUNT_FONT.resolve()}"',
             f'label:"{self.episode_text}"',
-            f'+smush 30 \)',
+            fr'+smush 30 \)',
             # Add text to source image
             f'-geometry +0{y:+}',
             f'-composite',

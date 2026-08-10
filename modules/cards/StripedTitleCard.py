@@ -274,8 +274,9 @@ class PolygonDistribution:
 
 class StripedTitleCard(BaseCardType):
     """
-    This class describes a CardType that produces title cards which are
-    ...
+    This class describes a CardType that produces title cards which
+    feature a solid color overlay with stripes of rectangles "cut" out
+    to expose the underlying Source Image.
     """
 
     """Directory where all reference files used by this card are stored"""
@@ -303,7 +304,7 @@ class StripedTitleCard(BaseCardType):
     """Whether this CardType uses season titles for archival purposes"""
     USES_SEASON_TITLE = True
 
-    """Standard class has standard archive name"""
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Striped Style'
 
     """Implementation details"""
@@ -374,7 +375,7 @@ class StripedTitleCard(BaseCardType):
         # Font/card customizations
         self.font_color = font_color
         self.font_file = font_file
-        self.font_interline_spacing = font_interline_spacing
+        self.font_interline_spacing = -20 + font_interline_spacing
         self.font_interword_spacing = font_interword_spacing
         self.font_kerning = font_kerning
         self.font_size = font_size
@@ -533,7 +534,6 @@ class StripedTitleCard(BaseCardType):
             bottom_y_bound = self.HEIGHT - self.inset
 
             # Limit bounds of y-coordinates to not overlap with text
-            # log.debug(f'{b0} : {b1} | {_x_at(text_height, b0)} < {text_width}')
             if ((self.text_position == 'upper left'
                  and _x_at(text_height, b0) < text_width)
                 or (self.text_position == 'upper right'
@@ -544,17 +544,26 @@ class StripedTitleCard(BaseCardType):
                   or (self.text_position == 'lower right'
                       and _x_at(text_height, b1) > self.WIDTH - text_width)):
                 bottom_y_bound = self.HEIGHT - text_height
-                # log.debug(f'Limiting bottom_y to {text_height} from bottom')
 
             # Pick random y-coordinates for the top and bottom of the polygon
-            top_y = randint(
-                top_y_bound,
-                (self.HEIGHT - self._MIN_SHAPE_HEIGHT) // 2,
-            )
-            bottom_y = randint(
-                (self.HEIGHT // 2) + self._MIN_SHAPE_HEIGHT // 3,
-                bottom_y_bound,
-            )
+            try:
+                top_y = randint(
+                    top_y_bound,
+                    (self.HEIGHT // 2) - (self._MIN_SHAPE_HEIGHT // 3),
+                )
+            except ValueError:
+                # Text too high, limit to any height or only smallest possible
+                # top_y = randint(self.inset, self.HEIGHT // 2)
+                top_y = (self.HEIGHT // 2) - (self._MIN_SHAPE_HEIGHT // 3)
+            try:
+                bottom_y = randint(
+                    (self.HEIGHT // 2) + (self._MIN_SHAPE_HEIGHT // 3),
+                    bottom_y_bound,
+                )
+            except ValueError:
+                # Text too high, limit to any height or only smallest possible
+                # bottom_y = randint(self.HEIGHT // 2, self.HEIGHT - self.inset)
+                bottom_y = (self.HEIGHT // 2) + (self._MIN_SHAPE_HEIGHT // 3)
 
             # For drawing the polygon, "invert" the y-coordinate used in
             # the x-coordinate calculation since the canvas 0 is at the
@@ -688,8 +697,8 @@ class StripedTitleCard(BaseCardType):
             # Resize and apply styles to source image
             *self.resize_and_style,
             # Create mask
-            f'\( -size "{self.TITLE_CARD_SIZE}"',
-            f'xc:"{self.overlay_color}" \)',
+            fr'\( -size "{self.TITLE_CARD_SIZE}"',
+            fr'xc:"{self.overlay_color}" \)',
             # Use mask composition
             f'"{mask.resolve()}"',
             f'-composite',

@@ -222,9 +222,9 @@ class PosterTitleCard(BaseCardType):
         else:
             logo_command = [
                 f'-gravity north',
-                f'\( "{self.logo.resolve()}"',
+                fr'\( "{self.logo.resolve()}"',
                 f'-resize x450',
-                f'-resize 1775x450\> \)',
+                fr'-resize 1775x450\> \)',
                 f'-geometry +649+50',
                 f'-composite',
             ]

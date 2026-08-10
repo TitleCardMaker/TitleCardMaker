@@ -51,7 +51,7 @@ class LandscapeTitleCard(BaseCardType):
     """Whether this CardType uses unique source images"""
     USES_UNIQUE_SOURCES = True
 
-    """Standard class has standard archive name"""
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Landscape Style'
 
     """Additional spacing (in pixels) between bounding box and title text"""
@@ -175,8 +175,8 @@ class LandscapeTitleCard(BaseCardType):
 
         return [
             # Create image the size of the title card filled with darken color
-            f'\( -size "{self.TITLE_CARD_SIZE}"',
-            f'xc:"{self.DARKEN_COLOR}" \)',
+            fr'\( -size "{self.TITLE_CARD_SIZE}"',
+            fr'xc:"{self.DARKEN_COLOR}" \)',
             # Compose atop of source image
             f'-gravity center',
             f'-composite',

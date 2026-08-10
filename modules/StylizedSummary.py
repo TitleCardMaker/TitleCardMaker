@@ -60,7 +60,7 @@ class StylizedSummary(BaseSummary):
             f'-set colorspace sRGB',
             f'-background "{self.BACKGROUND_COLOR}"',
             f'-tile 3x{self.number_rows}',
-            f'-geometry 800x450\>+5+5',
+            fr'-geometry 800x450\>+5+5',
             f'"'+'" "'.join(self.inputs)+'"',
             f'"{self.__MONTAGE_PATH.resolve()}"',
         ])
@@ -84,7 +84,7 @@ class StylizedSummary(BaseSummary):
             f'convert',
             f'"{self.logo.resolve()}"',
             f'-resize x350',
-            f'-resize {max_width}x350\>',
+            fr'-resize {max_width}x350\>',
             f'"{self.__RESIZED_LOGO_PATH.resolve()}"',
         ])
 
@@ -129,13 +129,13 @@ class StylizedSummary(BaseSummary):
         command = ' '.join([
             f'convert "{montage.resolve()}"',
             # Create reflection of montage
-            f'\( +clone',
+            fr'\( +clone',
             f'-flip',
             # Blur reflection
             f'-blur 0x8',
             # Darken reflection
             f'-fill black',
-            f'-colorize 75% \)',
+            fr'-colorize 75% \)',
             f'-append',
             # Create colored background
             f'-size {width+200}x{height+700}',
@@ -147,16 +147,16 @@ class StylizedSummary(BaseSummary):
             f'-geometry +0+400',
             f'-composite',
             # Overlay created by image
-            f'\( "{created_by.resolve()}"',
+            fr'\( "{created_by.resolve()}"',
             f'-resize x75',
             # Create reflection of created by image
-            f'\( +clone',
+            fr'\( +clone',
             f'-flip',
             f'-blur 0x2',
             # Darken reflection of created by image
             f'-fill black',
-            f'-colorize 75% \)',
-            f'-append \)',
+            fr'-colorize 75% \)',
+            fr'-append \)',
             f'-gravity south',
             f'-geometry +0+50',
             f'-composite',
@@ -176,4 +176,5 @@ class StylizedSummary(BaseSummary):
         else:
             images = [montage, created_by]
         self.image_magick.delete_intermediate_images(*images)
+
         return None

@@ -48,7 +48,7 @@ class InsetTitleCard(BaseCardType):
     """Whether this CardType uses season titles for archival purposes"""
     USES_SEASON_TITLE = True
 
-    """Standard class has standard archive name"""
+    """How to name archive directories for this type of card"""
     ARCHIVE_NAME = 'Inset Style'
 
     __slots__ = (
@@ -131,14 +131,14 @@ class InsetTitleCard(BaseCardType):
         size = 250 * self.font_size
 
         return [
-            f'\( -background none',
+            fr'\( -background none',
             f'-pointsize {size}',
             f'-font "{self.font_file}"',
             f'-interline-spacing {self.font_interline_spacing}',
             f'-interword-spacing {self.font_interword_spacing}',
             f'-kerning {self.font_kerning}',
             f'-fill "{self.font_color}"',
-            f'label:"{self.title_text}" \)',
+            fr'label:"{self.title_text}" \)',
             f'-gravity south',
         ]
 
@@ -187,13 +187,13 @@ class InsetTitleCard(BaseCardType):
         size = 75 * self.episode_text_font_size # 1-3-1/4 font size base
 
         index_text_commands = [
-            f'\( -background none',
+            fr'\( -background none',
             f'-font "{self.EPISODE_TEXT_FONT.resolve()}"',
             f'+interline-spacing',
             f'-fill "{self.episode_text_color}"',
             f'-pointsize {size}',
             f'-gravity south',
-            f'label:"{index_text}" \)',
+            fr'label:"{index_text}" \)',
         ]
         index_width, index_height = self.image_magick.get_text_dimensions(
             index_text_commands
@@ -205,7 +205,7 @@ class InsetTitleCard(BaseCardType):
 
         return [
             # Copy source image
-            f'\( "{self.source_file.resolve()}"',
+            fr'\( "{self.source_file.resolve()}"',
             # Make source transparent (according to transparency)
             f'-alpha set',
             f'-channel A',
@@ -223,7 +223,7 @@ class InsetTitleCard(BaseCardType):
             # Blur edges so cropping is not so sharp
             f'-blur 0x7',
             f'-gravity south',
-            f'\) -geometry +0+{crop_y-10:.0f}',
+            fr'\) -geometry +0+{crop_y-10:.0f}',
             f'-composite',
             # Add index text with a drop shadow
             *self.add_drop_shadow(
