@@ -1,8 +1,8 @@
-name: Docker Master Release
+name: Docker Main Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   docker-master:
