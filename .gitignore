@@ -30,3 +30,6 @@ uv.lock
 /site
 /site
 /tests
+/frontend
+Dockerfile
+Dockerfile.armv7
