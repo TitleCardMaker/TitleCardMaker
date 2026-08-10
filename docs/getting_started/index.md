@@ -101,7 +101,7 @@ Unraid users can directly add the container as a "template" within the UI.
         name: titlecardmaker
         services:
           tcm:
-            image: "ghcr.io/titlecardmaker/titlecardmaker-webui:latest" # (4)!
+            image: "ghcr.io/titlecardmaker/titlecardmaker:latest" # (4)!
             container_name: titlecardmaker
             restart: unless-stopped
             network_mode: bridge
@@ -213,25 +213,25 @@ Unraid users can directly add the container as a "template" within the UI.
         === ":material-linux: Linux"
 
             ```bash
-            docker run -itd --net="bridge" -v "~/Your/Install/Directory/TitleCardMaker/config/":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
+            docker run -itd --net="bridge" -v "~/Your/Install/Directory/TitleCardMaker/config/":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker:latest"
             ```
 
         === ":material-apple: MacOS"
 
             ```bash
-            docker run -itd --net="bridge" -v "~/Your/Install/Directory/TitleCardMaker/config/":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
+            docker run -itd --net="bridge" -v "~/Your/Install/Directory/TitleCardMaker/config/":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker:latest"
             ```
 
         === ":material-powershell: Windows (Powershell)"
 
             ```bash
-            docker run -itd --net="bridge" -v "C:/Your/Install/Directory/TitleCardMaker/config":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
+            docker run -itd --net="bridge" -v "C:/Your/Install/Directory/TitleCardMaker/config":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker:latest"
             ```
 
         === ":material-microsoft-windows: Windows (Non-Powershell)"
 
             ```bash
-            docker run -itd --net="bridge" -v "C:/Your/Install/Directory/TitleCardMaker/config":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
+            docker run -itd --net="bridge" -v "C:/Your/Install/Directory/TitleCardMaker/config":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker:latest"
             ```
 
         ??? tip "User ID, Group ID, and UMASK"
@@ -484,7 +484,7 @@ Unraid users can directly add the container as a "template" within the UI.
         | Option     | Value                                                                                  |
         | :--------: | :------------------------------------------------------------------------------------- |
         | Name       | `TitleCardMaker`                                                                       |
-        | Repository | `ghcr.io/titlecardmaker/titlecardmaker-webui:latest`                                   |
+        | Repository | `ghcr.io/titlecardmaker/titlecardmaker:latest`                                         |
         | Icon URL   | `https://raw.githubusercontent.com/CollinHeist/TitleCardMaker/web-ui/.github/logo.png` |
         | WebUI      | `http://[IP]:[PORT:4242]/`                                                             |
 

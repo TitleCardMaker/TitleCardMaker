@@ -222,7 +222,7 @@ While the TCM Web UI is under active development, it is only accessible to
 project Sponsors. If you are interested, sponsor on
 [GitHub](https://github.com/sponsors/CollinHeist) for access. For free users,
 there is a non-UI / command-line version (often referred to as "v1") which you
-can read about [here](https://github.com/CollinHeist/TitleCardMaker/wiki).
+can read about [here](https://github.com/TitleCardMaker/TitleCardMaker/wiki).
 
 Installation and startup instructions are [here](./getting_started/index.md).
 
@@ -257,7 +257,7 @@ TCM, then you need to do the following:
     1. Navigate to your original install directory - like so:
 
         ```bash
-        cd ~/My/Install/Directory/TitleCardMaker-WebUI
+        cd ~/My/Install/Directory/TitleCardMaker
         ```
 
     2. Pull and relaunch the container:
@@ -271,7 +271,7 @@ TCM, then you need to do the following:
     1. Navigate to your original install directory - like so:
 
         ```bash
-        cd ~/My/Install/Directory/TitleCardMaker-WebUI
+        cd ~/My/Install/Directory/TitleCardMaker
         ```
 
     2. Remove the old container.
@@ -283,7 +283,7 @@ TCM, then you need to do the following:
     3. Pull the latest image (change `latest` to `develop` if desired).
 
         ```bash
-        docker pull "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
+        docker pull "ghcr.io/titlecardmaker/titlecardmaker:latest"
         ```
 
     4. Recreate the container by running your original `docker run` command
@@ -294,7 +294,7 @@ TCM, then you need to do the following:
     1. Navigate to your original install directory - like so:
 
         ```bash
-        cd ~/My/Install/Directory/TitleCardMaker-WebUI
+        cd ~/My/Install/Directory/TitleCardMaker
         ```
 
     2. Switch to the branch you would like to be on - this is `main` or `develop`:

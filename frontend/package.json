@@ -1,6 +1,6 @@
 {
-  "name": "titlecardmaker-webui",
-  "version": "1.0.0",
+  "name": "titlecardmaker",
+  "version": "2.16.1",
   "description": "Automated Title Card creator for Plex, Jellyfin, and Emby.",
   "main": "index.js",
   "scripts": {
