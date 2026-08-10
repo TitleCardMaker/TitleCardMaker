@@ -1,0 +1,80 @@
+name: Docker Semver Release
+
+# Build and publish Docker images when a vMAJOR.MINOR.PATCH tag is pushed.
+# Also creates a GitHub Release for the tag.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing semver tag to rebuild (e.g. v2.16.2)'
+        required: true
+        type: string
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Resolve release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Using tag ${TAG}"
+
+      - name: Verify .version matches tag
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          FILE_VERSION=$(tr -d '[:space:]' < backend/.version)
+          if [ "$FILE_VERSION" != "$TAG" ]; then
+            echo "backend/.version is '${FILE_VERSION}' but tag is '${TAG}'"
+            exit 1
+          fi
+
+  docker-release:
+    needs: verify
+    uses: ./.github/workflows/docker_build.yml
+    with:
+      tag: ${{ needs.verify.outputs.tag }}
+      addl_tag: latest
+      is_develop: false
+      publish_semver_aliases: true
+    secrets:
+      CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  github-release:
+    needs: [verify, docker-release]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.tag }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.verify.outputs.tag }}
+          name: ${{ needs.verify.outputs.tag }}
+          generate_release_notes: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

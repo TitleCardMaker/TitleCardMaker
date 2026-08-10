@@ -5,14 +5,16 @@ on:
   push:
     branches:
       - develop
+      - web-ui
 
 jobs:
   docker-develop:
     uses: ./.github/workflows/docker_build.yml
     with:
       tag: develop
+      is_develop: true
     secrets:
       CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-      # DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-      # DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
       GH_TOKEN: ${{ secrets.GH_TOKEN }}

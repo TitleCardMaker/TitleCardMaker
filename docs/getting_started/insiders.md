@@ -1,17 +1,20 @@
 ---
-title: Getting Started
+title: Getting Started (Insiders)
 description: >
-    Acquaint yourself with the basics of TitleCardMaker - from installation to
-    Title Card creation.
+    Setting up the insider edition of TitleCardMaker.
 ---
 
 # Getting Started
 
-??? "Migrating from an existing installation?"
+## Accessing the Code
 
-    If you have previously used TitleCardMaker version 1 and are simply
-    migrating to version 2, see the [Migration Guide](./migrating.md) for help
-    with what steps to take.
+Sponsors of the project will be invited to a [private GitHub
+repository](https://github.com/CollinHeist/TitleCardMaker-WebUI/). These steps
+will walk you through getting the code from that repository.
+
+After being invited, you will receive an email at your GitHub's associated email
+address, open it and accept the invitation while signed into your GitHub
+account.
 
 ## Installation
 
@@ -53,19 +56,51 @@ Unraid users can directly add the container as a "template" within the UI.
                 cd 'C:\Your\Install\Directory\TitleCardMaker'
                 ```
 
-    2. Determine your timezone, a full list is available
+    2. Follow [these](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-personal-access-token-classic)
+    instructions to get a __classic__ personal access token (PAT). Check the
+    `read:packages` checkbox in the third section from the top.
+
+        ??? question "Why is this necessary?"
+
+            Because the repository is private, accessing the Docker container
+            requires authentication.
+
+        ??? warning "Security Warning"
+
+            Keep this access code private, as it can be used to access your
+            GitHub account.
+
+    3. Store these login credentials in Docker with the following command. Type
+    your GitHub username, and enter the PAT from Step 2 as the password.
+
+        ```bash
+        docker login ghcr.io
+        ```
+
+        ??? tip "Use a Docker Manager like Portainer, or Watchtower?"
+
+            Some non-standard Docker managers require a different way of
+            authenticating with private registries.
+            
+            See [here](https://docs.portainer.io/admin/registries/add/custom)
+            for Portainer, and
+            [here](https://containrrr.dev/watchtower/private-registries/) for
+            Watchtower. You will need to follow the instructions specific to
+            your system.
+
+    4. Determine your timezone, a full list is available
     [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). You
     will want to take note of the text in the _TZ Identifier_ column - e.g.
     `America/Los_Angeles` - for the next step.
 
-    3. Write the following contents to a file named `docker-compose.yml` in your
+    5. Write the following contents to a file named `docker-compose.yml` in your
     desired install directory (from Step 1):
 
         ```yaml title="docker-compose.yml" hl_lines="11 12 14"
         name: titlecardmaker
         services:
           tcm:
-            image: "ghcr.io/titlecardmaker/titlecardmaker:latest" # (4)!
+            image: "ghcr.io/titlecardmaker/titlecardmaker-webui:latest" # (4)!
             container_name: titlecardmaker
             restart: unless-stopped
             network_mode: bridge
@@ -84,16 +119,22 @@ Unraid users can directly add the container as a "template" within the UI.
         variables if you want to control the permissions of TCM.
         4. To use the 'experimental' branch, change `:latest` to `:develop`
 
-    4. Create (and launch) the Docker container by executing the following
+    6. Create (and launch) the Docker container by executing the following
     command.
 
         ```bash
         docker compose up -d
         ```
 
+        ??? failure "Permission Denied?"
+
+            If you get an error saying any variation of permission denied - then
+            you should check the PAT you generated in Step 2 has `read:packages`
+            permission; and that you typed `docker login ghcr.io` __exactly__.
+
     7. Verify your volumes are mapped correctly by looking for a `db.sqlite`
     file inside the `config` directory. If you do not see one, then correct the
-    volumes specified in Step 3 (double check your quotes are in the correct
+    volumes specified in Step 5 (double check your quotes are in the correct
     position).
 
 === ":material-docker: Docker"
@@ -127,37 +168,69 @@ Unraid users can directly add the container as a "template" within the UI.
                 cd 'C:\Your\Install\Directory\TitleCardMaker'
                 ```
 
-    2. Determine your timezone, a full list is available
+    2. Follow [these](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-personal-access-token-classic)
+    instructions to get a __classic__ personal access token (PAT). Check the
+    `read:packages` checkbox in the third section from the top.
+
+        ??? question "Why is this necessary?"
+
+            Because the repository is private, accessing the Docker container
+            requires authentication.
+
+        ??? warning "Security Warning"
+
+            Keep this access code private, as it can be used to access your
+            GitHub account.
+
+    3. Store these login credentials in Docker with the following command. Type
+    your GitHub username, and enter the PAT from Step 2 as the password.
+
+        ```bash
+        docker login ghcr.io
+        ```
+
+        ??? tip "Use a Docker Manager like Portainer, or Watchtower?"
+
+            Some non-standard Docker managers require a different way of
+            authenticating with private registries.
+            
+            See [here](https://docs.portainer.io/admin/registries/add/custom)
+            for Portainer, and
+            [here](https://containrrr.dev/watchtower/private-registries/) for
+            Watchtower. You will need to follow the instructions specific to
+            your system.
+
+    4. Determine your timezone, a full list is available
     [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). You
     will want to take note of the text in the _TZ Identifier_ column - e.g.
     `America/Los_Angeles` - for the next step.
 
-    3. Create (and launch) the Docker container by executing the following
+    5. Create (and launch) the Docker container by executing the following
     command - make sure to replace the install directory and timezone with
-    _your_ directory (from Step 1) and timezone (from Step 2).
+    _your_ directory (from Step 1) and timezone (from Step 4).
 
         === ":material-linux: Linux"
 
             ```bash
-            docker run -itd --net="bridge" -v "~/Your/Install/Directory/TitleCardMaker/config/":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker:latest"
+            docker run -itd --net="bridge" -v "~/Your/Install/Directory/TitleCardMaker/config/":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
             ```
 
         === ":material-apple: MacOS"
 
             ```bash
-            docker run -itd --net="bridge" -v "~/Your/Install/Directory/TitleCardMaker/config/":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker:latest"
+            docker run -itd --net="bridge" -v "~/Your/Install/Directory/TitleCardMaker/config/":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
             ```
 
         === ":material-powershell: Windows (Powershell)"
 
             ```bash
-            docker run -itd --net="bridge" -v "C:/Your/Install/Directory/TitleCardMaker/config":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker:latest"
+            docker run -itd --net="bridge" -v "C:/Your/Install/Directory/TitleCardMaker/config":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
             ```
 
         === ":material-microsoft-windows: Windows (Non-Powershell)"
 
             ```bash
-            docker run -itd --net="bridge" -v "C:/Your/Install/Directory/TitleCardMaker/config":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker:latest"
+            docker run -itd --net="bridge" -v "C:/Your/Install/Directory/TitleCardMaker/config":"/config/" -e TZ="America/Los_Angeles" -p 4242:4242 --name "TitleCardMaker" "ghcr.io/titlecardmaker/titlecardmaker-webui:latest"
             ```
 
         ??? tip "User ID, Group ID, and UMASK"
@@ -166,7 +239,13 @@ Unraid users can directly add the container as a "template" within the UI.
             then you may define the `PUID`, `PGID`, and `UMASK` environment
             variables as needed.
 
-    4. Verify your volumes are mapped correctly by looking for a `db.sqlite`
+        ??? failure "Permission Denied?"
+
+            If you get an error saying any variation of permission denied - then
+            you should check the PAT you generated in Step 2 has `read:packages`
+            permission; and that you typed `docker login ghcr.io` __exactly__.
+
+    6. Verify your volumes are mapped correctly by looking for a `db.sqlite`
     file inside the `config` directory. If you do not see one, then correct the
     volumes specified in Step 5 (double check your quotes are in the correct
     position).
@@ -230,18 +309,18 @@ Unraid users can directly add the container as a "template" within the UI.
         Download the Windows Binary Release from the
         [ImageMagick website](https://imagemagick.org/script/download.php#windows).
 
-        During the installation, be sure to check the _Add application directory
-        to your system path_ and _Install legacy utilities (e.g. convert)
-        boxes_. The other options are optional.
+        During the installation, be sure to check the _Add application directory to
+        your system path_ and _Install legacy utilities (e.g. convert) boxes_. The
+        other options are optional.
 
     === ":material-microsoft-windows: Windows (Non-Powershell)"
 
         Download the Windows Binary Release from the
         [ImageMagick website](https://imagemagick.org/script/download.php#windows).
 
-        During the installation, be sure to check the _Add application directory
-        to your system path_ and _Install legacy utilities (e.g. convert)
-        boxes_. The other options are optional.
+        During the installation, be sure to check the _Add application directory to
+        your system path_ and _Install legacy utilities (e.g. convert) boxes_. The
+        other options are optional.
 
     ### Downloading the Code
 
@@ -274,12 +353,32 @@ Unraid users can directly add the container as a "template" within the UI.
                 cd 'C:\Your\Install\Directory\'
                 ```
 
-    2. In your install directory from Step 1, clone the repository with the 
-    following command - this will create a `TitleCardMaker` subdirectory.
+    2. Follow [these](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-personal-access-token-classic)
+    instructions to get a __classic__ personal access token (PAT) so that you can
+    retrieve the TCM code from git. Check the `repo` scope section. Copy this code.
+
+        ??? question "Why is this necessary?"
+
+            Because the repository is private, the `git clone` command requires
+            authentication. You _can_ download the zipped code from the website,
+            but this makes getting updates difficult.
+
+            A PAT is required instead of a password because GitHub does not allow
+            passwords to be used from the command line.
+
+        ??? warning "Security Warning"
+
+            Keep this access code private, as it can be used to access your GitHub
+            account.
+
+    3. In your install directory from Step 1, clone the repository with:
 
         ```bash
-        git clone https://github.com/TitleCardMaker/TitleCardMaker.git
+        git clone https://github.com/TitleCardMaker/TitleCardMaker-WebUI.git
         ```
+
+    4. Enter your account Username and the PAT from Step 2. The TCM code will
+    now be downloaded into a subdirectory named `TitleCardMaker-WebUI`.
 
     ### Running TitleCardMaker
 
@@ -290,25 +389,25 @@ Unraid users can directly add the container as a "template" within the UI.
             === ":material-linux: Linux"
 
                 ```bash
-                cd "~/Your/Install/Directory/TitleCardMaker"
+                cd "~/Your/Install/Directory/TitleCardMaker-WebUI"
                 ```
 
             === ":material-apple: MacOS"
 
                 ```bash
-                cd "~/Your/Install/Directory/TitleCardMaker"
+                cd "~/Your/Install/Directory/TitleCardMaker-WebUI"
                 ```
 
             === ":material-powershell: Windows (Powershell)"
 
                 ```bash
-                cd 'C:\Your\Install\Directory\TitleCardMaker'
+                cd 'C:\Your\Install\Directory\TitleCardMaker-WebUI'
                 ```
 
             === ":material-microsoft-windows: Windows (Non-Powershell)"
 
                 ```bash
-                cd 'C:\Your\Install\Directory\TitleCardMaker'
+                cd 'C:\Your\Install\Directory\TitleCardMaker-WebUI'
                 ```
 
     2. Create a subfolder named `config`.
@@ -358,27 +457,37 @@ Unraid users can directly add the container as a "template" within the UI.
 
 === ":simple-unraid: Unraid"
 
-    1. Determine your timezone from the
+    1. Create a classic GitHub personal access token with `read:packages` scope
+    (see the Docker Compose tab, Steps 2–3), then log in to `ghcr.io` from a
+    terminal on your Unraid host:
+
+        ```bash
+        docker login ghcr.io
+        ```
+
+        Use your GitHub username and the PAT as the password.
+
+    2. Determine your timezone from the
     [TZ Identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
     column (e.g. `America/Los_Angeles`), and choose a host path for TCM's
     config directory (e.g. `/mnt/user/appdata/titlecardmaker`).
 
-    2. At the bottom of the _Docker_ tab of the Unraid interface, click `Add
+    3. At the bottom of the _Docker_ tab of the Unraid interface, click `Add
     Container`.
 
-    3. Make sure _Advanced View_ is toggled in the top-right corner.
+    4. Make sure _Advanced View_ is toggled in the top-right corner.
 
-    4. Enter the following information - leaving all other options blank or
+    5. Enter the following information - leaving all other options blank or
     default.
 
-        | Option     | Value                                                                                     |
-        | :--------: | :---------------------------------------------------------------------------------------- |
-        | Name       | `TitleCardMaker`                                                                          |
-        | Repository | `ghcr.io/titlecardmaker/titlecardmaker:latest`                                            |
-        | Icon URL   | `https://raw.githubusercontent.com/TitleCardMaker/TitleCardMaker/web-ui/.github/logo.png` |
-        | WebUI      | `http://[IP]:[PORT:4242]/`                                                                |
+        | Option     | Value                                                                                  |
+        | :--------: | :------------------------------------------------------------------------------------- |
+        | Name       | `TitleCardMaker`                                                                       |
+        | Repository | `ghcr.io/titlecardmaker/titlecardmaker-webui:latest`                                   |
+        | Icon URL   | `https://raw.githubusercontent.com/CollinHeist/TitleCardMaker/web-ui/.github/logo.png` |
+        | WebUI      | `http://[IP]:[PORT:4242]/`                                                             |
 
-    5. At the bottom of the page, click `Add another Path, Port, Variable, Label
+    6. At the bottom of the page, click `Add another Path, Port, Variable, Label
     or Device` and enter each of the following (hitting `Add` after each one):
 
         | Option         | Value                              |
@@ -402,7 +511,7 @@ Unraid users can directly add the container as a "template" within the UI.
         | Key         | `TZ`                       |
         | Value       | _The timezone from Step 2_ |
 
-    6. Hit `Apply`.
+    7. Hit `Apply`.
 
 !!! success "Success"
 
