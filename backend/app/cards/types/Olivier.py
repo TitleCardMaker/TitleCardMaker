@@ -392,4 +392,43 @@ def get_validator_model() -> type[BaseCardModel]:
     return CardModel
 
 
-add_card_cli(__name__, OlivierTitleCard, get_validator_model())
+add_card_cli(
+    __name__,
+    OlivierTitleCard,
+    get_validator_model(),
+    documentation=CardDocumentation(
+        static_variables={
+            'title_text': 'The Man Trap',
+            'episode_text': 'EPISODE ONE',
+        },
+        cards=[
+            PreviewCard(
+                filename='episode_text_color',
+                variables={'episode_text_color': '#AB8630'},
+            ),
+            PreviewCard(
+                filename='episode_text_font_size',
+                variables={'episode_text_font_size': 0.8},
+            ),
+            PreviewCard(
+                filename='episode_text_vertical_shift',
+                variables={'episode_text_vertical_shift': 50},
+            ),
+            PreviewCard(
+                filename='stroke_color',
+                variables={'stroke_color': 'crimson'},
+            ),
+            PreviewCard(
+                filename='omit_gradient',
+                variables={'omit_gradient': False},
+            ),
+            PreviewCard(
+                filename='gradient_type',
+                variables={
+                    'omit_gradient': False,
+                    'gradient_type': 'original',
+                },
+            ),
+        ],
+    ),
+)
