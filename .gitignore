@@ -31,3 +31,5 @@ yml/
 missing.yml
 preferences.yml
 temp*.jpg
+/site
+/tests
