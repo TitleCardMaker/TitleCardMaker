@@ -9,6 +9,7 @@ __pycache__/
 # PEP 582
 __pypackages__/
 
+backend/
 /backend/app/cards/.objects/
 /backend/app/interfaces/.objects
 /backups/
