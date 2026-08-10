@@ -56,7 +56,9 @@ COPY --from=builder \
 EXPOSE 4242
 
 # Environment variables
+ARG TCM_IS_DEVELOP=FALSE
 ENV TCM_IS_DOCKER=TRUE \
+    TCM_IS_DEVELOP=${TCM_IS_DEVELOP} \
     TZ=UTC
 
 # Healthcheck command

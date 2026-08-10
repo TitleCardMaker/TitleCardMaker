@@ -40,9 +40,9 @@ RUN \
     useradd -u 314 -g 314 -m -s /bin/bash titlecardmaker && \
     # Install imagemagick and curl (for healthcheck)
     apt-get update && \
-    apt-get install -y --no-install-recommends \
-        curl imagemagick libmagickcore-6.q16-6-extra && \
-    cp backend/assets/policy.xml /etc/ImageMagick-6/policy.xml && \
+    apt-get install -y \
+        curl imagemagick && \
+    cp backend/assets/policy.xml /etc/ImageMagick-7/policy.xml && \
     # Remove apt cache and setup files
     rm -rf pyproject.toml /tmp/* /var/tmp/* /var/lib/apt/lists/* 
 
@@ -55,7 +55,9 @@ COPY --from=builder \
 EXPOSE 4242
 
 # Environment variables
+ARG TCM_IS_DEVELOP=FALSE
 ENV TCM_IS_DOCKER=TRUE \
+    TCM_IS_DEVELOP=${TCM_IS_DEVELOP} \
     TZ=UTC
 
 # Healthcheck command
