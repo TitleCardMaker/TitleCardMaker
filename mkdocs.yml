@@ -261,6 +261,7 @@ nav:
   - Help & Support: help_and_support.md
   - Version 1:
     - v1/index.md
+    - Migrating: getting_started/migrating.md
     - Configuration:
       - TMDb: v1/prefs/tmdb.md
     - Sync: v1/sync.md
