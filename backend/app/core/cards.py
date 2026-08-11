@@ -595,6 +595,8 @@ def _merge_card_settings(
 def resolve_card_settings(
         episode: Episode,
         library: Library | None = None,
+        *,
+        require_source_image: bool = True,
     ) -> dict:
     """
     Resolve the Title Card settings for the given Episode. This evalutes
@@ -603,6 +605,8 @@ def resolve_card_settings(
     Args:
         episode: Episode whose Card settings are being resolved.
         library: Library associated with this Card.
+        require_source_image: Whether to require a Source Image. This
+            should only be provided for preview card generation.
 
     Returns:
         The resolved Card settings as a dictionary.
@@ -784,6 +788,7 @@ def resolve_card_settings(
 
     # Exit if the source file does not exist
     if (CardClass.CardConfig.uses_source_images
+        and require_source_image
         and not card_settings['source_file'].exists()):
         log.debug((
             f'{episode} Card source image ({card_settings["source_file"]}) is '
@@ -1030,6 +1035,7 @@ def get_watched_statuses(
     Series. This queries all libraries of this Series.
 
     Args:
+        db: Database to query and update.
         series: Series whose Episodes are being updated.
         episodes: List of Episodes to update the statuses of.
     """

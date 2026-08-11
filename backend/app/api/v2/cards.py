@@ -128,27 +128,28 @@ def create_preview_card_for_episode(
                 setattr(font, attribute, value)
                 log.debug(f'Font[{font.id}].{attribute} = {value}')
 
-    # Determine appropriate Source and Output file
-    if not (source := episode.get_source_file('unique')).exists():
-        log.debug('Source image does not exist, using fallback')
-        source = INTERNAL_ASSET_DIRECTORY / 'preview' / 'unique.jpg'
-    episode.source_file = str(source)
-    output = (
-        INTERNAL_ASSET_DIRECTORY
-        / 'preview'
-        / f'card-unique{settings.card_extension}'
-    )
-    output.unlink(missing_ok=True)
-
     # If a library is available, use the first one
     library = None
     if episode.series.libraries:
         library = episode.series.libraries[0]
 
+    # Determine appropriate output file; always use webp for previews
+    # because the fallback image is blank, and we do not want to have
+    # previews implictly flatten the alpha channel
+    output = INTERNAL_ASSET_DIRECTORY / 'preview' / f'card-unique.webp'
+    output.unlink(missing_ok=True)
+
     # Create Card for this Episode
     try:
-        card_settings = resolve_card_settings(episode, library)
+        card_settings = resolve_card_settings(
+            episode, library, require_source_image=False,
+        )
         card_settings['card_file'] = output
+        if not card_settings['source_file'].exists():
+            log.debug('Source image does not exist, using fallback')
+            card_settings['source_file'] = (
+                INTERNAL_ASSET_DIRECTORY / 'blank.png'
+            )
     except UnknownCardType as exc:
         raise HTTPException(
             status_code=422,

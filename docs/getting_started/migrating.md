@@ -212,7 +212,7 @@ html[data-md-color-scheme="slate"] .fc-widget {
     },
 
     current_sponsor: {
-      text: "Are you a current project sponsor, or have you done a contribution of at least $15?",
+      text: "Are you a current project sponsor, or have you contributed at least $15?",
       options: [
         { label: "Yes", next: "no_action" },
         { label: "No", next: "previous_sponsor" },
