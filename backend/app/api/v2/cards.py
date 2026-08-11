@@ -79,7 +79,6 @@ def create_preview_card_for_episode(
         update_episode: UpdateEpisode = Body(...),
         update_series: UpdateSeries = Body(...),
         update_font: UpdateNamedFont | None = Body(default=None),
-        query_watched_statuses: bool = Query(default=False),
         db: Session = Depends(get_database),
     ) -> str:
     """
@@ -92,8 +91,6 @@ def create_preview_card_for_episode(
     - update_episode: UpdateEpisode containing fields to update.
     - update_series: UpdateSeries containing fields to update.
     - update_font: UpdateNamedFont containing fields to update.
-    - query_watched_statuses: Whether to query the watched statuses
-    associated with this Episode.
     """
 
     # Find associated Episode, raise 404 if DNE
@@ -130,10 +127,6 @@ def create_preview_card_for_episode(
             if getattr(font, attribute) != value:
                 setattr(font, attribute, value)
                 log.debug(f'Font[{font.id}].{attribute} = {value}')
-
-    # Set watch status(es) of the Episode
-    if query_watched_statuses:
-        get_watched_statuses(db, episode.series, [episode])
 
     # Determine appropriate Source and Output file
     if not (source := episode.get_source_file('unique')).exists():
