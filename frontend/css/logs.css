@@ -161,6 +161,11 @@ html.dark tr.red.marked    .log-level-badge { background: rgba(239,68,68,0.18); 
 }
 
 /* ── Prune section action row ────────────────────────────────────────────── */
+.log-prune-panel {
+  /* Keep the calendar popup above panels that follow this one. */
+  z-index: 1;
+}
+
 .log-prune-actions {
   display: flex;
   gap: 0.65rem;
@@ -177,7 +182,7 @@ span.redacted.text:not(:hover, :focus) {
 
 /* ── Pagination ──────────────────────────────────────────────────────────── */
 #log-table tfoot th {
-  padding: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
   background: transparent;
   border-top: 1px solid rgba(0, 0, 0, 0.07);
 }
