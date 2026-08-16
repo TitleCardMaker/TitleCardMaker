@@ -2,10 +2,10 @@ name: Docker Develop Release
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - develop
-      - web-ui
+  # push:
+  #   branches:
+  #     - develop
+  #     - web-ui
 
 jobs:
   docker-develop:
