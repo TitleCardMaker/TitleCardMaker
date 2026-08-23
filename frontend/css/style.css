@@ -590,6 +590,7 @@ html.dark .pill-filter-label {
   align-items: center;
   gap: 0.35em;
   padding: 0.3rem 0.8rem;
+  font-family: inherit;
   font-size: 0.9rem;
   font-weight: 600;
   text-transform: none;

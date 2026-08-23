@@ -902,6 +902,39 @@ let currentFilePage = 1;
 let isDrawing = false;
 
 /**
+ * Reconcile Source Image records with the files on disk, then refresh the
+ * current Series' Source Images.
+ */
+function rescanSourceImages() {
+  const $button = $('[data-action="rescan-source-images"]');
+  const $icon = $button.children('.icon');
+  setLoadingIcon($icon);
+  $button.toggleClass('disabled', true).prop('disabled', true);
+
+  $.ajax({
+    type: 'POST',
+    url: '/api/v2/sources/rescan',
+    /**
+     * Rescan completed successfully.
+     * @param { {created: number, updated: number, deleted: number} } result
+     * Summary of reconciled Source Image records.
+     */
+    success: result => {
+      showInfoToast(
+        `Source Image rescan complete: ${result.created} created, ` +
+        `${result.updated} updated, ${result.deleted} deleted`
+      );
+      getSourceFileData(1);
+    },
+    error: response => showErrorToast({title: 'Error Rescanning Source Images', response}),
+    complete: () => {
+      removeLoadingIcon($icon);
+      $button.toggleClass('disabled', false).prop('disabled', false);
+    },
+  });
+}
+
+/**
  * Query and display the Source Images on the webpage.
  * @param {number} page - Page number of source files to query and display.
  */
