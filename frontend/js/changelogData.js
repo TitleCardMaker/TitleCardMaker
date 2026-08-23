@@ -901,7 +901,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.15.0",
+    version: "v2.15.0",
     date: "April 27, 2025",
     sections: [
       {
@@ -1294,7 +1294,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.14.1",
+    version: "v2.14.1",
     date: "January 27, 2025",
     sections: [
       {
@@ -1598,7 +1598,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.14.0",
+    version: "v2.14.0",
     date: "November 29, 2024",
     sections: [
       {
@@ -2027,7 +2027,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.13.0",
+    version: "v2.13.0",
     date: "November 01, 2024",
     sections: [
       {
@@ -2348,7 +2348,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.12.1",
+    version: "v2.12.1",
     date: "September 22, 2024",
     sections: [
       {
@@ -2587,7 +2587,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.12.0",
+    version: "v2.12.0",
     date: "August 27, 2024",
     sections: [
       {
@@ -2965,7 +2965,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.11.0",
+    version: "v2.11.0",
     date: "July 21, 2024",
     sections: [
       {
@@ -3346,7 +3346,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.10.1",
+    version: "v2.10.1",
     date: "June 24, 2024",
     sections: [
       {
@@ -3634,7 +3634,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.10.0",
+    version: "v2.10.0",
     date: "May 11, 2024",
     sections: [
       {
@@ -3991,7 +3991,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.9.1",
+    version: "v2.9.1",
     date: "March 27, 2024",
     sections: [
       {
@@ -4302,7 +4302,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.9.0",
+    version: "v2.9.0",
     date: "March 10, 2024",
     sections: [
       {
@@ -4770,7 +4770,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.8.1",
+    version: "v2.8.1",
     date: "January 29, 2024",
     sections: [
       {
@@ -5015,7 +5015,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.8.0",
+    version: "v2.8.0",
     date: "January 17, 2024",
     sections: [
       {
@@ -5626,7 +5626,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.7.0",
+    version: "v2.7.0",
     date: "November 8, 2023",
     sections: [
       {
@@ -5968,7 +5968,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.6.0",
+    version: "v2.6.0",
     date: "October 7, 2023",
     sections: [
       {
@@ -6167,7 +6167,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.5.2",
+    version: "v2.5.2",
     date: "September 4, 2024",
     sections: [
       {
@@ -6343,7 +6343,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.5.1",
+    version: "v2.5.1",
     date: "August 18, 2023",
     sections: [
       {
@@ -6581,7 +6581,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.5.0",
+    version: "v2.5.0",
     date: "August 4, 2024",
     sections: [
       {
@@ -6768,7 +6768,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.4.1",
+    version: "v2.4.1",
     date: "July 17, 2023",
     sections: [
       {
@@ -6905,7 +6905,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.4.0",
+    version: "v2.4.0",
     date: "January 17, 2024",
     sections: [
       {
@@ -7093,7 +7093,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.3.0",
+    version: "v2.3.0",
     date: "July 2, 2023",
     sections: [
       {
@@ -7225,7 +7225,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.2.2",
+    version: "v2.2.2",
     date: "June 21, 2023",
     sections: [
       {
@@ -7299,7 +7299,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.2.1",
+    version: "v2.2.1",
     date: "June 16, 2023",
     sections: [
       {
@@ -7364,7 +7364,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.2.0",
+    version: "v2.2.0",
     date: "June 16, 2023",
     sections: [
       {
@@ -7467,7 +7467,7 @@ const CHANGELOG = [
     ]
   },
   {
-    version: "v2.0-alpha.1.0",
+    version: "v2.1.0",
     date: "June 14, 2023",
     sections: [
       {
