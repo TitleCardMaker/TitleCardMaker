@@ -286,7 +286,7 @@ function queryUnloadedCards(page=1) {
           const frag = rowTemplate.content.cloneNode(true);
           const rowEl = frag.querySelector('.missing-series-row');
 
-          rowEl.querySelector('.missing-series-poster').src = `/assets/${series_id}/poster-750.jpg`;
+          rowEl.querySelector('.missing-series-poster').src = `/assets/${series_id}/poster-750.jpg?q=${cards[0]?.series?.name || ""}`;
           rowEl.querySelector('[data-value="name"]').innerText = cards[0].series.name;
           rowEl.querySelector('[data-row="count"]').innerText = cards.length;
 

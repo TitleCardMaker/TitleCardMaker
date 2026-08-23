@@ -1,7 +1,6 @@
 # <img src="https://raw.githubusercontent.com/TitleCardMaker/TitleCardMaker/refs/heads/web-ui/.github/logos/profile.png" width="24" alt="logo"> TitleCardMaker
 [![](https://img.shields.io/github/release/TitleCardMaker/TitleCardMaker.svg)](https://github.com/TitleCardMaker/TitleCardMaker/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/titlecardmaker/titlecardmaker)](https://hub.docker.com/r/titlecardmaker/titlecardmaker)
-[![GitHub Develop Commits](https://img.shields.io/github/commits-since/TitleCardMaker/TitleCardMaker/latest/develop?label=Commits%20in%20Develop)](https://github.com/TitleCardMaker/TitleCardMaker/tree/develop)
 [![Discord](https://img.shields.io/discord/955533113734357125?logo=discord&logoColor=white)](https://discord.gg/bJ3bHtw8wH)
 [![Support](https://img.shields.io/badge/-Support_Development-9cf?color=informational)](https://github.com/sponsors/CollinHeist)
 

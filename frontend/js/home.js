@@ -248,7 +248,7 @@ function _populateSeriesRow(series, template) {
 
   // Set poster image src
   const poster = row.querySelector('td[data-row="name"] img');
-  poster.src = series.small_poster_url || `/assets/${series.id}/poster-750.jpg`;
+  poster.src = series.small_poster_url || `/assets/${series.id}/poster-750.jpg?${series?.name?.substring(0, 1) || ''}`;
 
   // Populate library dropdown
   if (series.libraries) {
