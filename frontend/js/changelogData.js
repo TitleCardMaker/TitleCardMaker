@@ -4,6 +4,151 @@
  */
 const CHANGELOG = [
   {
+    version: "v2.16.1",
+    date: "August 8, 2026",
+    sections: [
+      {
+        title: "Major Changes",
+        items: [
+          {
+            html: "Visually redesign all pages to be less Fomantic UI-specific",
+            children: [
+              { html: "Rewrite how season titles are entered" },
+              { html: "On the Series and Templates pages, the visible extras for a specific card type are now swapped via a dropdown, rather than 20+ tabs" },
+            ],
+          },
+          { html: "Display a message in the UI to indicate you must restart TCM for changes to the Scheduler to take effect" },
+          { html: "Make enabling Kanji translations much more user friendly by adding a simple Kanji checkbox" },
+          {
+            html: "Various performance improvements",
+            children: [
+              { html: "For example: only query Series images, logs, and Episode data when each respective tab is opened" },
+              { html: "Add eager- and selectinload- query modifiers to the SQL query for loading Series Cards - this should be an approximate 2x speed improvement" },
+              { html: "Significantly improve logging database performance by enabling WAL mode on the database connection (thanks @AnonFawkes for the suggestion)" },
+              { html: `Add Source Images as an explicit SQL table within the database; rather than dynamically "finding" source image files in your file system whenever they're utilized` },
+            ]
+          },
+          { html: "For Extras with explicitly defined allowable values - such as the Tinted Frame's Top Element extra allowing index, logo, omit, or title - display these options as dropdowns (not plain inputs) within the UI"},
+          { html: "Begin distributing frontend HTML/CSS/JS files as part of the code base, rather than loading via CDN, to improve usability in offline environments" },
+          { html: "Add ability to search for a Blueprint from any Series and import it while on the Series page - this can be used if you'd like to use a Blueprint on a Series it was not originally designed for" },
+          { html: "Add command line functionality to create Posters (season, movie, and genre) - this brings the CLI to feature parity of V1" },
+        ],
+      },
+      {
+        title: "Major Fixes",
+        items: [
+          { html: "Fix package-specific logging interception - was incorrectly intercepting logging from all packages" },
+          { html: "Handle timezone-unaware airdates from TMDb for episodes listed as movies" },
+          { html: "Improve handling of Scheduler crontabs which start or end with spaces" },
+          { html: "Improve the Series and Episode matching algorithms to improve handling of items with no metadata - these were previously always failing to match" },
+        ],
+      },
+      {
+        title: "Minor Changes",
+        items: [
+          {
+            html: `Add various new environment variables - you can read more about these <a href="https://titlecardmaker.com/user_guide/#environment-variables" target="_blank">here</a>`,
+            children: [
+              { html: "API connection timeout variables for each connection type (i.e. Emby, Jellyfin, etc.)" },
+              { html: "ImageMagick command timeout" },
+            ]
+          },
+          { html: "Add more verbose logging for non-JSON responses from various connections" },
+          { html: "Create a helper script for viewing and querying user log databases" },
+          { html: "Display a message if there are no Series logs, rather than just an empty page" },
+          { html: "Log environment variables and huey task intervals on boot" },
+          { html: "When performing many-to-many Episode matches, log a structured table of the match results to aid in debugging" },
+          { html: "Add the style modal (from the Settings page) to the Series and Template pages" },
+          { html: "Change the default database logging level to DEBUG (from TRACE) - this will reduce database sizes, but should be changed if needed for debugging" },
+        ],
+      },
+      {
+        title: "Minor Fixes",
+        items: [
+          { html: "Fix search-term highlighting for log messages which fit multiple style types" },
+          { html: "Properly mark refresh buttons as loading on the logs page" },
+          { html: "Fix typo on Series page tooltip" },
+          { html: "Handle connection errors during CardType initialization which could have resulted in TCM failing to boot" },
+          { html: "Fix the asset paths of various placeholder/web metadata files" },
+        ],
+      },
+      {
+        title: "Title Card Changes",
+        items: [
+          { html: "Add a builtin function <code>line_count</code> to get the number of lines in a piece of text - for example <code>{-20 if line_count(title_text) > 1 else 0}</code>"},
+          {
+            html: "All Card types",
+            children: [
+              { html: "Add command line interface functionality to all remaining card types" },
+            ]
+          },
+          {
+            html: "Banner",
+            children: [
+              { html: "Add the Episode Text Vertical Shift extra" }
+            ]
+          },
+          {
+            html: "Dictionary",
+            children: [
+              { html: "Change default word interword spacing from 100px to 75px, and scale it dynamically with the Word Size" },
+            ]
+          },
+          {
+            html: "Divider",
+            children: [
+              { html: "Fix divider height with partially hidden index text" },
+            ]
+          },
+          {
+            html: "Logo",
+            children: [
+              { html: "Add an Episode Text Font Size extra" },
+              { html: "Fix incorrect centering of episode text (for very long index text)" },
+            ]
+          },
+          {
+            html: "Music",
+            children: [
+              { html: "Fix subtitle format string" },
+            ]
+          },
+          {
+            html: "Overline",
+            children: [
+              { html: "Fix episode text font - was incorrectly using the wrong font file" },
+            ]
+          }
+        ]
+      },
+      {
+        title: "Documentation Changes",
+        items: [
+          { html: "Write and finalize documentation for all remaining pages" },
+          { html: "Add a note about changing branches to the Getting Started docs" },
+          { html: "Remove animated header on website" },
+          { html: "Update all Scheduler documentation to reflect changes to the basic/scheduler modes" },
+          { html: "Add a note on how to remove the word text in the Dictionary card" },
+          { html: "Fix the horizontal offset extra image for the Banner card" },
+          { html: "Relocate the documentation on available Environment Variables - they're now located in the User Guide" },
+          { html: `Document all command line image/card/poster creation <a href="https://titlecardmaker.com/user_guide/command_line/" target="_blank">here</a>` },
+        ]
+      },
+      {
+        title: "API Changes",
+        items: [
+          { html: "Remove all remaining deprecated API endpoints" },
+        ]
+      },
+      {
+        title: "Testing Changes",
+        items: [
+          { html: "Rewrite various tests to work with new frontend redesign" },
+        ]
+      }
+    ],
+  },
+  {
     version: "v2.16.0",
     date: "March 15, 2026",
     sections: [
