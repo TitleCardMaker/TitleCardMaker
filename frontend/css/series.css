@@ -176,7 +176,7 @@ html.dark .series-asset-season-label {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  width: 80%;
   border-radius: 10px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   background-color: rgba(0, 0, 0, 0.03);
@@ -229,7 +229,7 @@ html.dark .series-asset-frame {
 }
 
 .series-asset-frame--backdrop .series-asset-image {
-  max-height: 320px;
+  /* max-height: 320px; */
 }
 
 .series-asset-card--season .series-asset-frame--backdrop .series-asset-image {

@@ -93,7 +93,7 @@ def upgrade() -> None:
     except Exception:
         log.warning('Cannot access settings during migration - skipping backfill')
         log.debug(f'Upgraded SQL Schema to Version[{revision}]')
-        return
+        return None
 
     session = Session(bind=op.get_bind())
 
