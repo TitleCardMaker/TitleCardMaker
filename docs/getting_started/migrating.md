@@ -230,7 +230,27 @@ html[data-md-color-scheme="slate"] .fc-widget {
     },
 
     prior_sponsor_docker: {
-      text: "Change your docker image URL from <code>ghcr.io/titlecardmaker/titlecardmaker-webui</code> to <code>ghcr.io/titlecardmaker/titlecardmaker</code>.",
+      text: "Change your Docker image URL from <code>ghcr.io/titlecardmaker/titlecardmaker-webui</code> to <code>ghcr.io/titlecardmaker/titlecardmaker</code>.",
+      options: [
+        { label: "Finished", next: "start_v1_preserve_st3_0", check: true },
+      ],
+    },
+
+    prior_sponsor_docker_branch_check: {
+      text: "Did you use the <code>:develop</code> Docker tag?",
+      options: [
+        { label: "Yes", next: "prior_sponsor_docker_branch_check_yesdevelop" },
+        { label: "No", next: "prior_sponsor_docker_branch_check_nodevelop" },
+      ],
+    },
+
+    prior_sponsor_docker_branch_check_yesdevelop: {
+      text: "Change <code>:develop</code> in your Docker image URL to <code>:latest</code>.",
+      result: true,
+    },
+
+    prior_sponsor_docker_branch_check_nodevelop: {
+      text: "You do not need to take any further action.",
       result: true,
     },
 
