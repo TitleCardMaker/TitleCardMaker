@@ -258,7 +258,7 @@ nav:
   - Development:
     - Contributing: development/contributing.md
     - The API: development/api.md
-  - Help & Support: help_and_support.md
+  - Sponsors: sponsors.md
   - Version 1:
     - v1/index.md
     - Migrating: getting_started/migrating.md

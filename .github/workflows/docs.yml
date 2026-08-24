@@ -2,7 +2,9 @@ name: Update Documentation
 on:
   push:
     branches:
+      - docs
       - web-ui
+      - develop
 
 permissions:
   contents: write
