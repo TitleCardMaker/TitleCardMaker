@@ -28,11 +28,14 @@ using a filter tag within Sonarr.
 :fontawesome-solid-arrows-rotate: `Sync` from the side navigation bar.
 
 5. Under the Sonarr section of the page, click the
-<span class="example md-button">+ Add Sync</span> button.
+<span class="example md-button">+ New Sync</span> button.
 
 6. In the launched dialog, fill out the following information:
 
-    1. Enter the Sync Name as `Test Sync`
+    1. Select your Connection from the dropdown.
+
+    1. Enter the Sync Name as `Test Sync`.
+
     2. In the "Templates to Apply", select the `Tinted Frame` Template from
     [earlier](../creating_templates.md) in the tutorial.
 

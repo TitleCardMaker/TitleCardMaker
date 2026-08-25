@@ -181,7 +181,7 @@ nav:
       - TVDb: getting_started/connections/tvdb.md
     - Global Settings: getting_started/settings.md
     - Creating a Font: getting_started/custom_font.md
-    - Creating Templates: getting_started/creating_templates.md
+    - Creating a Template: getting_started/creating_templates.md
     - Creating the First Sync:
       - getting_started/first_sync/index.md
       - Emby: getting_started/first_sync/emby.md

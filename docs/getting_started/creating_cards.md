@@ -39,8 +39,9 @@ when you first add a Series to TCM).
 
 ## Assign the Custom Font
 
-3. Open the `Card Configuration` tab. In the `Font` dropdown, select the
-`Better call Saul` font created [earlier](./custom_font.md). Click <span class="example md-button">Save</span>.
+3. Open the `Card Config` tab. In the `Font` dropdown, select the
+`Better Call Saul` font created [earlier](./custom_font.md). Click
+<span class="example md-button">Save</span>.
 
 ## Source Images
 
@@ -79,7 +80,8 @@ with Source Image information.
 <span class="example md-button">Create Title Cards</span>.
 
 8. After waiting a small while for TCM to have created a few Cards, go to the
-_Title Cards_ section on the _Files_ tab and expand the _View Images_ accordion.
+_Title Cards_ section on the _Files_ tab and expand the _View Card Images_
+section.
 
 9. You should see that Title Cards have been created using the Tinted Frame card
 type (from the Template) with the custom Font applied.
@@ -99,6 +101,13 @@ was placed in the Template.
 
         Because we entered this extra for the Episode, the extra from the
         Series' Template is completely ignored.
+
+    ??? question "Recreating Cards?"
+
+        TCM re-analyzes a Card's settings to determine if it should be remade.
+        In this case, since we just changed a single settinf for a single Card,
+        TCM did not recreate the Card for any Episodes _other_ than Season 2
+        Episode 1.
 
 ## Load Cards into Your Media Server
 
@@ -149,11 +158,12 @@ artifacts from the tutorial. These are:
       the example Series — see [Creating the First Sync](./first_sync/index.md)
     - Optionally learn [manually adding a Series](./add_series.md)
     - Tweak automated Task schedules in [Rescheduling Tasks](./scheduler.md)
-    - Browse [Card Types](../card_types/index.md) for other looks
+    - Browse [Card Types](../card_types/index.md) for an overview of the
+      available card styles within TCM.
     - Import community [Blueprints](../blueprints.md) for pre-made styles
     - Set up [Integrations](../user_guide/integrations.md) (webhooks, Tautulli)
     - Review [Environment Variables](../user_guide/environment_variables.md) if
-      you need Docker permission or path tweaks
+      you need to make more advanced changes to TCM
     - Read the [User Guide](../user_guide/index.md) for detailed page-by-page
       documentation
 

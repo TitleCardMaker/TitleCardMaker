@@ -30,13 +30,13 @@ like this (in particular the font used for the __title text__ `Nacho`):
 the side navigation bar.
 
 2. Create a new font by clicking the
-<span class="example md-button">Create New Font</span> button.
+<span class="example md-button">New Font</span> button.
 
-3. Expand the created font by clicking the accordion called "Custom Font".
+3. Expand the created font by clicking the new item named "Black Custom Font".
 
 4. Rename the font "Better Call Saul"
 
-5. In the "Title Color" field, put `#FFFF61`.
+5. In the "Color" field, put `#FFFF61`.
 
     !!! note "Colors"
 
@@ -65,23 +65,23 @@ the side navigation bar.
 
     ??? question "What does this mean?"
 
-        The text case is what case to apply to the title text. E.g. uppercase,
-        lowercase, etc. The source case tells TCM to take the title directly as
-        it comes from the episode data source (the actual title) and to not
+        The text case is what case to apply to the title text; e.g. uppercase,
+        lowercase, etc. The "source" case tells TCM to take the title directly
+        as it comes from the episode data source (the actual title) and to not
         modify it.
 
 7. Download [this font](https://fontmeme.com/fonts/script1-script-casual-font/).
 
-8. In the "Font" file input, click `Browse` (or your Browser equivalent) and
-then select the file you just downloaded.
+8. In the "File" input, click `Browse` (or your Browser equivalent) and then
+select the file you just downloaded.
 
-9. Click <span class="example md-button">Save Changes</span> to save your
-changes _and_ upload the file.
+9. Click <span class="example md-button">Save</span> to save your changes
+_and_ upload the file.
 
     !!! note "The Font File"
     
         Behind the scenes, TCM will download the font file you just uploaded,
-        and store it internally (in your asset directory) - so you can now
+        and store it internally (in your `asset` directory) - so you can now
         delete it from your downloads folder without breaking its link to TCM.
 
 !!! success "Custom Font Created"
