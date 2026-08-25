@@ -6,6 +6,12 @@ description: >
 
 # Local Card Types
 
+!!! warning "Work in Progress"
+
+    This documentation is in the process of being updated and rewritten for the
+    public version of TCM. Please reach out for help on the Discord if you need
+    assistance.
+
 !!! warning "Programming Knowledge"
 
     The development of local card types is not very difficult, but it _does_
