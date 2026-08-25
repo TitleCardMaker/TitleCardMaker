@@ -185,41 +185,13 @@ below, grouped by how you are likely to use them.
 
 </div>
 
-## Selecting a Branch / Tag
+## Selecting a Branch
 
-TitleCardMaker follows the typical design pattern of lots of software packages,
-separating changes which are "in development" and "finalized". As a result, you
-have the option of selecting between either of these branches (or _tags_) for
-your version of TCM.
-
-!!! warning "Develop Branches / Tags"
-
-    If using the `develop` version of TCM, expect to encounter bugs which may
-    require frequently updating. If this sounds cumbersome, stick to the `main`
-    branch.
-
-!!! warning "Backwards Compatibility"
-
-    If there are changes to the TCM database schema, these are often
-    __irreversible__ - meaning swapping from `develop` to `main` is not
-    possible.
-
-### Docker
-
-| Tag Name        | Description                                               | Recommended For..                        |
-| :-------------: | :-------------------------------------------------------: | :--------------------------------------- |
-| `latest`        | The most up-to-date (stable) release                      | Most users[^1]                           |
-| `main`          | _Same as `latest`_                                        | It's recommended to use `latest`         |
-| `develop`       | The most feature-rich (unstable) release                  | Those wanting to try the latest features |
-| `main-armv7`    | Same as `latest`, but for those on an ARMv7 architecture  | _See `latest`_                           |
-| `develop-armv7` | Same as `develop`, but for those on an ARMv7 architecture | _See `develop`_                          |
-
-### Non-Docker
-
-| Branch Name | Description                              | Recommended For..                        |
-| :---------: | :--------------------------------------: | :--------------------------------------- |
-| `main`      | The most up-to-date (stable) release     | Most users[^1]                           |
-| `develop`   | The most feature-rich (unstable) release | Those wanting to try the latest features |
+All major releases of TitleCardMaker are publicly available to all users on the
+`main` branch for non-Docker deployments, or `:latest`, `:main`, the
+`:main-armv7` tags for Docker deployments. There are development branches/tags,
+but these are only available to project supports - see [here](../sponsors.md)
+for details.
 
 ## Environment Variables
 
@@ -260,13 +232,9 @@ your version of TCM.
         TCM_CONSOLE_LOG_LEVEL=WARNING
         ```
 
-All TitleCardMaker environment variables use the `TCM_` prefix. Variables are read
-from the process environment and, when present, from a `.env` file in the
+All TitleCardMaker environment variables use the `TCM_` prefix. Variables are
+read from the process environment and, when present, from a `.env` file in the
 application root.
 
 See the [Environment Variables](./environment_variables.md) reference for every
 available variable, defaults, and constraints.
-
-[^1]:
-    Unless you've encountered a bug which you personally _require_ and is only
-    available on `develop`.
