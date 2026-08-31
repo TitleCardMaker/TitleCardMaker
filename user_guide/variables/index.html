@@ -1,0 +1,2213 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Using internal Title Card variables in TitleCardMaker.
+">
+      
+      
+        <meta name="author" content="Collin Heist">
+      
+      
+        <link rel="canonical" href="https://titlecardmaker.com/user_guide/variables/">
+      
+      
+        <link rel="prev" href="../setting_priority/">
+      
+      
+        <link rel="next" href="../../card_types/">
+      
+      
+      <link rel="icon" href="../../assets/favicon.svg">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.16">
+    
+    
+      
+        <title>Custom Variables - TitleCardMaker</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="Custom Variables - TitleCardMaker" >
+      
+        <meta  property="og:description"  content="Using internal Title Card variables in TitleCardMaker.
+" >
+      
+        <meta  property="og:image"  content="https://titlecardmaker.com/assets/images/social/user_guide/variables.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="https://titlecardmaker.com/user_guide/variables/" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="Custom Variables - TitleCardMaker" >
+      
+        <meta  name="twitter:description"  content="Using internal Title Card variables in TitleCardMaker.
+" >
+      
+        <meta  name="twitter:image"  content="https://titlecardmaker.com/assets/images/social/user_guide/variables.png" >
+      
+    
+    
+   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"/><style>
+        html.glightbox-open { overflow: initial; height: 100%; }
+        .gslide-title { margin-top: 0px; user-select: text; }
+        .gslide-desc { color: #666; user-select: text; }
+        .gslide-image img { background: white; }
+        
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color);}
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color);}
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color);}
+            </style> <script src="../../assets/javascripts/glightbox.min.js"></script></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="red">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#custom-variables" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="TitleCardMaker" class="md-header__button md-logo" aria-label="TitleCardMaker" data-md-component="logo">
+      
+  <img src="../../assets/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            TitleCardMaker
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Custom Variables
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="red"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="red"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CollinHeist/TitleCardMaker" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CollinHeist/TitleCardMaker
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting_started/" class="md-tabs__link">
+          
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../blueprints/" class="md-tabs__link">
+        
+  
+    
+  
+  Blueprints
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+    
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../card_types/" class="md-tabs__link">
+          
+  
+    
+  
+  Card Types
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/contributing/" class="md-tabs__link">
+          
+  
+    
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../sponsors/" class="md-tabs__link">
+        
+  
+    
+  
+  Sponsors
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../v1/" class="md-tabs__link">
+          
+  
+    
+  
+  Version 1
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="TitleCardMaker" class="md-nav__button md-logo" aria-label="TitleCardMaker" data-md-component="logo">
+      
+  <img src="../../assets/logo.svg" alt="logo">
+
+    </a>
+    TitleCardMaker
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CollinHeist/TitleCardMaker" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CollinHeist/TitleCardMaker
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    <a href="../../getting_started/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blueprints/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Blueprints
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment_variables/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Environment Variables
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    <a href="../series/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Pages
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../command_line/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Command Line
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../integrations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Integrations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mask_images/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mask Images
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setting_priority/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Setting Priority
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Variables
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Variables
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#variable-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variable Reference
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Function Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Function Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#built-in-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Built-in Functions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    <a href="../../card_types/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Card Types
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    <a href="../../development/contributing/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Development
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../sponsors/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sponsors
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    <a href="../../v1/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Version 1
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="custom-variables">Custom Variables</h1>
+<p>Throughout <abbr title="TitleCardMaker">TCM</abbr>, all Card variables, inputs, and extras may take advantage of any
+of the internally defined variables can be used, allowing for more fine-tuned
+customization. Accessing these variables is done by specifying the variable name
+in curly brackets (<code>{}</code>), such as <code>{episode_number}</code>.</p>
+<p>This page documents all the available variables.</p>
+<h2 id="variable-reference">Variable Reference</h2>
+<p>For reference, each variable example is shown for the same
+<a href="https://www.imdb.com/title/tt1232253/">Episode</a> of Breaking Bad with some
+hypothetical <abbr title="TitleCardMaker">TCM</abbr> customizations.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:8"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><input id="__tabbed_1_6" name="__tabbed_1" type="radio" /><input id="__tabbed_1_7" name="__tabbed_1" type="radio" /><input id="__tabbed_1_8" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 9h2V7h-2m1 13c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m-1 15h2v-6h-2v6Z"/></svg></span> Inherent Metadata</label><label for="__tabbed_1_2"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 4v3h5.5v12h3V7H19V4H5Z"/></svg></span> Text Variables</label><label for="__tabbed_1_3"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2 1 21h22M12 6l7.53 13H4.47M11 10v4h2v-4m-2 6v2h2v-2"/></svg></span> Cardinal and Ordinal Numbers</label><label for="__tabbed_1_4"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-6 4.1L14.1 6l1.4 1.4L16.9 6 18 7.1l-1.4 1.4L18 9.9 16.9 11l-1.4-1.4-1.4 1.4L13 9.9l1.4-1.4L13 7.1m-6.8.6h5v1.5h-5V7.7m5.3 8.3h-2v2H8v-2H6v-1.5h2v-2h1.5v2h2V16m6.5 1.2h-5v-1.5h5v1.5m0-2.4h-5v-1.5h5v1.5Z"/></svg></span> Calculated Metadata</label><label for="__tabbed_1_5"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.12 14 7.5 7.67 9.87 14M6.5 5 1 19h2.25l1.12-3h6.25l1.13 3H14L8.5 5h-2M18 7l-5 5.07 1.41 1.43L17 10.9V17h2v-6.1l2.59 2.6L23 12.07 18 7Z"/></svg></span> Fonts</label><label for="__tabbed_1_6"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 20H4a2 2 0 0 1-2-2V6c0-1.11.89-2 2-2h6l2 2h7a2 2 0 0 1 2 2H4v10l2.14-8h17.07l-2.28 8.5c-.23.87-1.01 1.5-1.93 1.5Z"/></svg></span> Files</label><label for="__tabbed_1_7"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.59 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m6 14c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.72 1.23 6 1.23s4.39-.45 6-1.23V17m0-4.55c-1.3.95-3.58 1.55-6 1.55s-4.7-.6-6-1.55V9.64c1.47.83 3.61 1.36 6 1.36s4.53-.53 6-1.36v2.81M12 9C8.13 9 6 7.5 6 7s2.13-2 6-2 6 1.5 6 2-2.13 2-6 2Z"/></svg></span> Database IDs</label><label for="__tabbed_1_8"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 3a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2H3v2h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2v-2H8v-5a2 2 0 0 0-2-2 2 2 0 0 0 2-2V5h2V3m6 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3h2Z"/></svg></span> Internal Data</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<table>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>series_name</code></td>
+<td>Name of the Series</td>
+<td><code>Breaking Bad</code></td>
+</tr>
+<tr>
+<td><code>series_full_name</code></td>
+<td>Full name of the Series</td>
+<td><code>Breaking Bad (2008)</code></td>
+</tr>
+<tr>
+<td><code>year</code></td>
+<td>Series Release year</td>
+<td><code>2008</code></td>
+</tr>
+<tr>
+<td><code>season_number</code></td>
+<td>Season number</td>
+<td><code>2</code></td>
+</tr>
+<tr>
+<td><code>episode_number</code></td>
+<td>Episode number</td>
+<td><code>6</code></td>
+</tr>
+<tr>
+<td><code>absolute_number</code></td>
+<td>Absolute episode number</td>
+<td><code>13</code></td>
+</tr>
+<tr>
+<td><code>absolute_episode_number</code></td>
+<td>Absolute number (if available), otherwise the episode number</td>
+<td><code>13</code></td>
+</tr>
+<tr>
+<td><code>number_of_seasons</code></td>
+<td>Number of seasons in the Series</td>
+<td><code>5</code></td>
+</tr>
+<tr>
+<td><code>airdate</code></td>
+<td>Episode airdate<sup id="fnref:3"><a class="footnote-ref" href="#fn:3">3</a></sup></td>
+<td><code>2009-04-12</code></td>
+</tr>
+<tr>
+<td><code>watched</code></td>
+<td>Whether the Episode is watched or not</td>
+<td><code>true</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<table>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td>Original title of the Episode</td>
+<td><code>Peekaboo</code></td>
+</tr>
+<tr>
+<td><code>title_text</code></td>
+<td>Formatted title text of the Card<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup></td>
+<td><code>PEEKABOO</code></td>
+</tr>
+<tr>
+<td><code>hide_season_text</code></td>
+<td>Whether to hide season text</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>hide_episode_text</code></td>
+<td>Whether to hide episode text</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>season_text</code></td>
+<td>The season text of the Card</td>
+<td><code>Season 2</code></td>
+</tr>
+<tr>
+<td><code>episode_text</code></td>
+<td>The episode text of the Card</td>
+<td><code>Episode 6</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<div class="admonition warning">
+<p class="admonition-title">Deprecated Variables</p>
+<p>Previously, cardinal and ordinal spelling of numbers (e.g. <code>Two</code>,
+<code>Second</code>) were available as direct variables (<code>season_number_cardinal</code>).
+These are now accessed by the <code>to_cardinal()</code> and <code>to_ordinal()</code>
+functions. See <a href="#function-reference">here</a>.</p>
+</div>
+</div>
+<div class="tabbed-block">
+<table>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>season_episode_count</code></td>
+<td>Number of Episodes in the season</td>
+<td><code>13</code></td>
+</tr>
+<tr>
+<td><code>season_episode_max</code></td>
+<td>Maximum episode number in the season</td>
+<td><code>13</code></td>
+</tr>
+<tr>
+<td><code>season_absolute_max</code></td>
+<td>Maximum absolute episode number in the season</td>
+<td><code>20</code></td>
+</tr>
+<tr>
+<td><code>series_episode_count</code></td>
+<td>Total number of Episodes in the Series</td>
+<td><code>62</code></td>
+</tr>
+<tr>
+<td><code>series_episode_max</code></td>
+<td>Maximum episode number in the Series</td>
+<td><code>16</code></td>
+</tr>
+<tr>
+<td><code>series_absolute_max</code></td>
+<td>Maximum absolute episode number in the Series</td>
+<td><code>62</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition question">
+<p class="admonition-title">How do these differ?</p>
+<p>At first glance, the maximum and count variables (like
+<code>season_episode_count</code> and <code>season_episode_max</code>) might appear the same
+(and in most cases they are), but for Series where Episodes are missing
+these two would differ.</p>
+<p>For example, if I had Episodes 3-10 of Breaking Bad in <abbr title="TitleCardMaker">TCM</abbr>,
+<code>season_episode_count</code> would be <code>8</code>, while <code>season_episode_max</code> would be
+10.</p>
+<p>The same logic is true for their absolute-number equivalents.</p>
+</div>
+</div>
+<div class="tabbed-block">
+<table>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>font_color</code></td>
+<td>Font color</td>
+<td><code>yellow</code></td>
+</tr>
+<tr>
+<td><code>font_file</code></td>
+<td>File path to the font file</td>
+<td><code>/config/assets/fonts/0/Breaking Bad.ttf</code></td>
+</tr>
+<tr>
+<td><code>font_size</code></td>
+<td>Font size</td>
+<td><code>1.2</code></td>
+</tr>
+<tr>
+<td><code>font_kerning</code></td>
+<td>Font kerning</td>
+<td><code>2.3</code></td>
+</tr>
+<tr>
+<td><code>font_stroke_width</code></td>
+<td>Font stroke width</td>
+<td><code>1.0</code></td>
+</tr>
+<tr>
+<td><code>font_interline_spacing</code></td>
+<td>Font interline spacing</td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>font_interword_spacing</code></td>
+<td>Font interword spacing</td>
+<td><code>20</code></td>
+</tr>
+<tr>
+<td><code>font_vertical_shift</code></td>
+<td>Font vertical shift</td>
+<td><code>20</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p>For more information on the logo color attributes, see <code>get_image_color</code>
+under <a href="#function-reference">Function Reference</a> &gt; Date &amp; Color for details.</p>
+<table>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source_file</code></td>
+<td>Path to the Source Image</td>
+<td><code>/config/source/Breaking Bad (2008)/s2e6.jpg</code></td>
+</tr>
+<tr>
+<td><code>card_file</code></td>
+<td>Path to the Title Card</td>
+<td><code>/config/cards/Breaking Bad (2008)/Season 2/Breaking Bad (2008) - S02E06.jpg</code></td>
+</tr>
+<tr>
+<td><code>source_directory</code></td>
+<td>Path to the Series' source directory</td>
+<td><code>/config/source/Breaking Bad (2008)/</code></td>
+</tr>
+<tr>
+<td><code>backdrop_file</code></td>
+<td>Path to the backdrop file<sup id="fnref:5"><a class="footnote-ref" href="#fn:5">5</a></sup></td>
+<td><code>/config/source/Breaking Bad (2008)/backdrop.jpg</code></td>
+</tr>
+<tr>
+<td><code>logo_file</code></td>
+<td>Path to the logo file<sup id="fnref2:5"><a class="footnote-ref" href="#fn:5">5</a></sup></td>
+<td><code>/config/source/Breaking Bad (2008)/logo.png</code></td>
+</tr>
+<tr>
+<td><code>poster_file</code></td>
+<td>Path to the poster file</td>
+<td><code>/config/source/Breaking Bad (2008)/poster.jpg</code></td>
+</tr>
+<tr>
+<td><code>logo_color</code></td>
+<td>Primary color of the logo</td>
+<td><code>green</code></td>
+</tr>
+<tr>
+<td><code>logo_color_no_white</code></td>
+<td>Primary (non-white) color of the logo</td>
+<td><code>green</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<table>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>series_emby_id</code></td>
+<td>Emby ID of the Series</td>
+<td><code>0:TV Shows:abcdef</code></td>
+</tr>
+<tr>
+<td><code>series_imdb_id</code></td>
+<td>IMDb ID of the Series</td>
+<td><code>tt0903747</code></td>
+</tr>
+<tr>
+<td><code>series_jellyfin_id</code></td>
+<td>Jellyfin ID of the Series</td>
+<td><code>1:TV:def0123</code></td>
+</tr>
+<tr>
+<td><code>series_sonarr_id</code></td>
+<td>Sonarr ID of the Series</td>
+<td><code>3:25</code></td>
+</tr>
+<tr>
+<td><code>series_tmdb_id</code></td>
+<td><abbr title="TheMovieDatabase">TMDb</abbr> ID of the Series</td>
+<td><code>1396</code></td>
+</tr>
+<tr>
+<td><code>series_tvdb_id</code></td>
+<td><abbr title="TheTVDatabase">TVDb</abbr> ID of the Series</td>
+<td><code>81189</code></td>
+</tr>
+<tr>
+<td><code>series_tvrage_id</code></td>
+<td>TV Rage ID of the Series</td>
+<td><code>18164</code></td>
+</tr>
+<tr>
+<td><code>episode_emby_id</code></td>
+<td>Emby ID of the Episode</td>
+<td><code>0:TV Shows:993981</code></td>
+</tr>
+<tr>
+<td><code>episode_imdb_id</code></td>
+<td>IMDb ID of the Episode</td>
+<td><code>tt1232253</code></td>
+</tr>
+<tr>
+<td><code>episode_jellyfin_id</code></td>
+<td>Emby ID of the Episode</td>
+<td><code>1:TV:9d9da</code></td>
+</tr>
+<tr>
+<td><code>episode_tmdb_id</code></td>
+<td><abbr title="TheMovieDatabase">TMDb</abbr> ID of the Episode</td>
+<td><code>62097</code></td>
+</tr>
+<tr>
+<td><code>episode_tvdb_id</code></td>
+<td><abbr title="TheTVDatabase">TVDb</abbr> ID of the Episode</td>
+<td><code>438917</code></td>
+</tr>
+<tr>
+<td><code>episode_tvrage_id</code></td>
+<td>TV Rage ID of the Episode</td>
+<td><code>710919</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Emby, Jellyfin, and Sonarr IDs</p>
+<p>The IDs of Emby, Jellyfin, and Sonarr are all unique to your server(s)
+and libraries.</p>
+</div>
+</div>
+<div class="tabbed-block">
+<table>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>extras</code></td>
+<td>Any assigned extras</td>
+<td><em>See below</em></td>
+</tr>
+<tr>
+<td><code>NEWLINE</code></td>
+<td>A character to move text to a new line</td>
+<td><code>\n</code></td>
+</tr>
+<tr>
+<td><code>BACKSLASH</code></td>
+<td>The <span class="keys"><kbd class="key-backslash">\</kbd></span> character</td>
+<td><code>\</code></td>
+</tr>
+<tr>
+<td><code>BLANK</code></td>
+<td>Blank text<sup id="fnref:6"><a class="footnote-ref" href="#fn:6">6</a></sup></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Any assigned extras are added as their variable name. For example, if I
+specify the "Episode Text Color" extra for the Series, then the variable
+<code>episode_text_color</code> would provided. This can be used to add arbitrary extra
+data to a Card.</p>
+</div>
+</div>
+</div>
+<h2 id="function-reference">Function Reference</h2>
+<p>In addition to defining many variables which can be used, <abbr title="TitleCardMaker">TCM</abbr> also implements
+many functions which allow for more customization. Examples below use the same
+<a href="https://www.imdb.com/title/tt1232253/">Breaking Bad episode</a> as the variable
+reference: Season 2, Episode 6, airdate <code>2009-04-12</code>, title "Peekaboo".</p>
+<p>For more details on the available functions, see the following sections of </p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.06 18a3.99 3.99 0 0 1-.2-.89c-.67.7-1.48 1.05-2.41 1.05-.83 0-1.52-.24-2.05-.71-.53-.45-.8-1.06-.8-1.79 0-.88.33-1.56 1-2.05.67-.49 1.61-.73 2.83-.73h1.4v-.64c0-.49-.15-.88-.45-1.17-.3-.29-.75-.43-1.33-.43-.52 0-.95.12-1.3.36-.35.25-.52.54-.52.89h-1.46c0-.43.15-.84.45-1.24.28-.4.71-.71 1.22-.94.51-.21 1.06-.35 1.69-.35.98 0 1.74.24 2.29.73s.84 1.16.86 2.02V16c0 .8.1 1.42.3 1.88V18h-1.52m-2.4-1.12c.45 0 .88-.11 1.29-.32.4-.21.7-.49.88-.83v-1.57H18.7c-1.77 0-2.66.47-2.66 1.41 0 .43.15.73.46.96.3.23.68.35 1.16.35m-12.2-3.17h4.07L7.5 8.29l-2.04 5.42M6.64 6h1.72l4.71 12h-1.93l-.97-2.57H4.82L3.86 18H1.93L6.64 6Z"/></svg></span> Text Capitalization</label><label for="__tabbed_2_2"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 17V9H2V7h4v10H4m18-2a2 2 0 0 1-2 2h-4v-2h4v-2h-2v-2h2V9h-4V7h4a2 2 0 0 1 2 2v1.5a1.5 1.5 0 0 1-1.5 1.5 1.5 1.5 0 0 1 1.5 1.5V15m-8 0v2H8v-4a2 2 0 0 1 2-2h2V9H8V7h4a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2v2h4Z"/></svg></span> Number wording</label><label for="__tabbed_2_3"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 13h1.5v2.82l2.44 1.41-.75 1.3L15 16.69V13m4-5H5v11h4.67c-.43-.91-.67-1.93-.67-3a7 7 0 0 1 7-7c1.07 0 2.09.24 3 .67V8M5 21a2 2 0 0 1-2-2V5c0-1.11.89-2 2-2h1V1h2v2h8V1h2v2h1a2 2 0 0 1 2 2v6.1c1.24 1.26 2 2.99 2 4.9a7 7 0 0 1-7 7c-1.91 0-3.64-.76-4.9-2H5m11-9.85A4.85 4.85 0 0 0 11.15 16c0 2.68 2.17 4.85 4.85 4.85A4.85 4.85 0 0 0 20.85 16c0-2.68-2.17-4.85-4.85-4.85Z"/></svg></span> Date &amp; color</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1"><code>titlecase</code></label><label for="__tabbed_3_2"><code>to_lowercase</code></label><label for="__tabbed_3_3"><code>to_uppercase</code></label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Converts the given text to title case (capitalize the principal words).
+Useful for capitalizing cardinal or ordinal words, or episode titles.</p>
+<table>
+<thead>
+<tr>
+<th>Example Format string</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{titlecase(to_cardinal(season_number))}</code></td>
+<td><code>Two</code></td>
+</tr>
+<tr>
+<td><code>{titlecase(to_ordinal(episode_number))}</code></td>
+<td><code>Sixth</code></td>
+</tr>
+<tr>
+<td><code>{titlecase(title)}</code></td>
+<td><code>Peekaboo</code></td>
+</tr>
+<tr>
+<td><code>{titlecase("the great escape")}</code></td>
+<td><code>The Great Escape</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p>Converts the given text to lowercase.</p>
+<table>
+<thead>
+<tr>
+<th>Example Format string</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{to_lowercase(title)}</code></td>
+<td><code>peekaboo</code></td>
+</tr>
+<tr>
+<td><code>{to_lowercase(series_name)}</code></td>
+<td><code>breaking bad</code></td>
+</tr>
+<tr>
+<td><code>{to_lowercase("UPPERCASE")}</code></td>
+<td><code>uppercase</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p>Converts the given text to uppercase.</p>
+<table>
+<thead>
+<tr>
+<th>Example Format string</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{to_uppercase(title)}</code></td>
+<td><code>PEEKABOO</code></td>
+</tr>
+<tr>
+<td><code>{to_uppercase(series_name)}</code></td>
+<td><code>BREAKING BAD</code></td>
+</tr>
+<tr>
+<td><code>{to_uppercase(to_cardinal(episode_number))}</code></td>
+<td><code>SIX</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="tabbed-block">
+<div class="tabbed-set tabbed-alternate" data-tabs="4:4"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><input id="__tabbed_4_3" name="__tabbed_4" type="radio" /><input id="__tabbed_4_4" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1"><code>to_cardinal</code></label><label for="__tabbed_4_2"><code>to_ordinal</code></label><label for="__tabbed_4_3"><code>to_short_ordinal</code></label><label for="__tabbed_4_4"><code>to_roman_numeral</code></label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Converts the given number to its cardinal spelling (one, two, three,
+...)<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup>.</p>
+<table>
+<thead>
+<tr>
+<th>Example Format string</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{to_cardinal(episode_number)}</code></td>
+<td><code>six</code></td>
+</tr>
+<tr>
+<td><code>{to_cardinal(season_number)}</code></td>
+<td><code>two</code></td>
+</tr>
+<tr>
+<td><code>{to_cardinal(episode_number, 'fr')}</code></td>
+<td><code>six</code> (French)</td>
+</tr>
+<tr>
+<td><code>{to_cardinal(13, 'es')}</code></td>
+<td><code>trece</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p>Converts the given number to its ordinal spelling (first, second, third,
+...)<sup id="fnref2:2"><a class="footnote-ref" href="#fn:2">2</a></sup>.</p>
+<table>
+<thead>
+<tr>
+<th>Format string</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{to_ordinal(episode_number)}</code></td>
+<td><code>sixth</code></td>
+</tr>
+<tr>
+<td><code>{to_ordinal(season_number)}</code></td>
+<td><code>second</code></td>
+</tr>
+<tr>
+<td><code>{to_ordinal(episode_number, 'es')}</code></td>
+<td><code>sexto</code></td>
+</tr>
+<tr>
+<td><code>{to_ordinal(absolute_number)}</code></td>
+<td><code>thirteenth</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p>Converts the given number to a shorthand ordinal (1st, 2nd, 3rd,
+...)<sup id="fnref3:2"><a class="footnote-ref" href="#fn:2">2</a></sup>.</p>
+<table>
+<thead>
+<tr>
+<th>Format string</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{to_short_ordinal(season_number)}</code></td>
+<td><code>2nd</code></td>
+</tr>
+<tr>
+<td><code>{to_short_ordinal(episode_number)}</code></td>
+<td><code>6th</code></td>
+</tr>
+<tr>
+<td><code>{to_short_ordinal(season_number, 'ja')}</code></td>
+<td><code>2番目</code></td>
+</tr>
+<tr>
+<td><code>{to_short_ordinal(13)}</code></td>
+<td><code>13th</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p>Converts the given number to a Roman numeral (I, II, III, ...). Only
+supports numbers from 1 to 3999<sup id="fnref:4"><a class="footnote-ref" href="#fn:4">4</a></sup>.</p>
+<table>
+<thead>
+<tr>
+<th>Format string</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{to_roman_numeral(episode_number)}</code></td>
+<td><code>VI</code></td>
+</tr>
+<tr>
+<td><code>{to_roman_numeral(season_number)}</code></td>
+<td><code>II</code></td>
+</tr>
+<tr>
+<td><code>{to_roman_numeral(13)}</code></td>
+<td><code>XIII</code></td>
+</tr>
+<tr>
+<td><code>{to_roman_numeral(2024)}</code></td>
+<td><code>MMXXIV</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<details class="note">
+<summary>Supported Language Codes</summary>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Language</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>am</code></td>
+<td>Amharic</td>
+</tr>
+<tr>
+<td><code>ar</code></td>
+<td>Arabic</td>
+</tr>
+<tr>
+<td><code>cz</code></td>
+<td>Czech</td>
+</tr>
+<tr>
+<td><code>da</code></td>
+<td>Danish</td>
+</tr>
+<tr>
+<td><code>de</code></td>
+<td>German</td>
+</tr>
+<tr>
+<td><code>en</code></td>
+<td>English (the default)</td>
+</tr>
+<tr>
+<td><code>eo</code></td>
+<td>Esperanto</td>
+</tr>
+<tr>
+<td><code>es</code></td>
+<td>Spanish</td>
+</tr>
+<tr>
+<td><code>fa</code></td>
+<td>Farsi</td>
+</tr>
+<tr>
+<td><code>fi</code></td>
+<td>Finnish</td>
+</tr>
+<tr>
+<td><code>fr</code></td>
+<td>French</td>
+</tr>
+<tr>
+<td><code>fr_BE</code></td>
+<td>French (Belgium)</td>
+</tr>
+<tr>
+<td><code>fr_CH</code></td>
+<td>French (Switzerland)</td>
+</tr>
+<tr>
+<td><code>he</code></td>
+<td>Hebrew</td>
+</tr>
+<tr>
+<td><code>hu</code></td>
+<td>Hungarian</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>Indonesian</td>
+</tr>
+<tr>
+<td><code>it</code></td>
+<td>Italian</td>
+</tr>
+<tr>
+<td><code>ja</code></td>
+<td>Japanese</td>
+</tr>
+<tr>
+<td><code>kn</code></td>
+<td>Kannada</td>
+</tr>
+<tr>
+<td><code>ko</code></td>
+<td>Korean</td>
+</tr>
+<tr>
+<td><code>kz</code></td>
+<td>Kazakh</td>
+</tr>
+<tr>
+<td><code>lt</code></td>
+<td>Lithuanian</td>
+</tr>
+<tr>
+<td><code>lv</code></td>
+<td>Latvian</td>
+</tr>
+<tr>
+<td><code>nl</code></td>
+<td>Dutch</td>
+</tr>
+<tr>
+<td><code>no</code></td>
+<td>Norwegian</td>
+</tr>
+<tr>
+<td><code>pl</code></td>
+<td>Polish</td>
+</tr>
+<tr>
+<td><code>pt</code></td>
+<td>Portuguese</td>
+</tr>
+<tr>
+<td><code>pt_BR</code></td>
+<td>Portuguese (Brazil)</td>
+</tr>
+<tr>
+<td><code>ro</code></td>
+<td>Romanian</td>
+</tr>
+<tr>
+<td><code>ru</code></td>
+<td>Russian</td>
+</tr>
+<tr>
+<td><code>sl</code></td>
+<td>Slovenian</td>
+</tr>
+<tr>
+<td><code>sr</code></td>
+<td>Serbian</td>
+</tr>
+<tr>
+<td><code>sv</code></td>
+<td>Swedish</td>
+</tr>
+<tr>
+<td><code>te</code></td>
+<td>Telugu</td>
+</tr>
+<tr>
+<td><code>tg</code></td>
+<td>Tajik</td>
+</tr>
+<tr>
+<td><code>th</code></td>
+<td>Thai</td>
+</tr>
+<tr>
+<td><code>tr</code></td>
+<td>Turkish</td>
+</tr>
+<tr>
+<td><code>uk</code></td>
+<td>Ukrainian</td>
+</tr>
+<tr>
+<td><code>vi</code></td>
+<td>Vietnamese</td>
+</tr>
+</tbody>
+</table>
+</details>
+<div class="admonition tip">
+<p class="admonition-title">Cardinal vs. Ordinal Mnemonic</p>
+<p>An easy way to remember whether you want the cardinal or ordinal text is
+that <span class="keys"><kbd class="key-c">C</kbd></span>ardinal starts with a <span class="keys"><kbd class="key-c">C</kbd></span> like <span class="keys"><kbd class="key-c">C</kbd></span>ount - so one, two, three,
+etc.; while <span class="keys"><kbd class="key-o">O</kbd></span>ordinal starts with <span class="keys"><kbd class="key-o">O</kbd></span> like <span class="keys"><kbd class="key-o">O</kbd></span>rder - so first,
+second, third, etc.</p>
+</div>
+</div>
+<div class="tabbed-block">
+<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1"><code>format_date</code></label><label for="__tabbed_5_2"><code>get_image_color</code></label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Formats the given date using a <a href="https://strftime.org/">strftime</a>-style
+format string<sup id="fnref2:3"><a class="footnote-ref" href="#fn:3">3</a></sup>. Optional <code>timezone</code> can be <code>'local'</code> or a timezone
+name (e.g. <code>'America/New_York'</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Format string</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{format_date(airdate, '%B %d, %Y')}</code></td>
+<td><code>April 12, 2009</code></td>
+</tr>
+<tr>
+<td><code>{format_date(airdate, 'Week %-U of 52')}</code></td>
+<td><code>Week 15 of 52</code></td>
+</tr>
+<tr>
+<td><code>{format_date(airdate, '%Y-%m-%d')}</code></td>
+<td><code>2009-04-12</code></td>
+</tr>
+<tr>
+<td><code>{format_date(airdate, '%A')}</code></td>
+<td><code>Sunday</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p><abbr title="TitleCardMaker">TCM</abbr> can parse images for primary colors and use those in place of
+variables— similar to the in-<abbr title="User Interface">UI</abbr> <strong>Analyze Palette</strong> button. This
+function returns a color from any given image (e.g. logo or poster). See
+below for full details and arguments.</p>
+<div class="admonition example">
+<p class="admonition-title">Examples</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:3"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><input id="__tabbed_6_3" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Simple Example</label><label for="__tabbed_6_2">Secondary Color</label><label for="__tabbed_6_3">Ignore White Colors</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>The following usage will get the single most prominent color of
+the logo and fallback to <code>red</code> if one is not available.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">get_image_color</span><span class="p">(</span><span class="n">logo_file</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>The following usage will get the second most common color of the
+logo. This is useful if you want to automatically utilize an
+accent color.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">get_image_color</span><span class="p">(</span><span class="n">logo_file</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">"blue"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>The following usage will get the primary color of the poster,
+ignoring predominately white images.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">get_image_color</span><span class="p">(</span><span class="n">poster_file</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">"white"</span><span class="p">,</span> <span class="n">white_threshold</span><span class="o">=</span><span class="mi">210</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+</div>
+<p>The complete function signature is: </p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">get_image_color</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">image</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="o">/</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">fallback</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">colors</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="n">alpha_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">70</span><span class="p">,</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="n">black_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="n">white_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>If the above text does not make sense to you, see the provided examples
+for detail; or use the simplified <code>{logo_color}</code> or
+<code>{logo_color_no_white}</code> variables to avoid the function call altogether.</p>
+<p><strong>Arguments</strong></p>
+<dl>
+<dt><code>image</code></dt>
+<dd>The file to analyze. See the <strong>Files</strong> tab in the
+<a href="#variable-reference">Variable Reference</a> above for options;
+generally use <code>logo_file</code> to match the logo color.</dd>
+<dt><code>fallback</code></dt>
+<dd>The fallback color if analysis yields no meaningful results (e.g.
+file missing or no color at the given <code>index</code>).</dd>
+<dt><code>index</code></dt>
+<dd>Which color to return, zero-indexed. <code>0</code> = first (most primary)
+color, <code>1</code> = second, etc. Default: <code>0</code>.</dd>
+<dt><code>colors</code></dt>
+<dd>Number of colors to group the image into. Higher = finer gradations
+(more pixel-accurate but possibly similar shades); lower = similar
+colors bucketed together. Default: <code>8</code>.</dd>
+<dt><code>alpha_threshold</code></dt>
+<dd>Transparency threshold; pixels <em>more</em> transparent than this are
+ignored (e.g. <code>75</code> ignores pixels &gt;25% transparent). Range:
+<code>0</code>–<code>100</code>. Default: <code>70</code>.</dd>
+<dt><code>black_threshold</code></dt>
+<dd>RGB threshold below which a color is treated as black and ignored
+(e.g. <code>40</code> ignores <code>rgb(30,30,30)</code>). Range: <code>0</code>–<code>255</code>. Default:
+<code>40</code>.</dd>
+<dt><code>white_threshold</code></dt>
+<dd>RGB threshold above which a color is treated as white and ignored
+(e.g. <code>210</code> ignores <code>rgb(220,220,220)</code>). Range: <code>0</code>–<code>255</code>.
+Default: <code>256</code> (no white filtering).</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<h3 id="built-in-functions">Built-in Functions</h3>
+<div class="admonition info">
+<p class="admonition-title">Python built-ins</p>
+<p>Beyond the <abbr title="TitleCardMaker">TCM</abbr>-defined functions above, you can use methods of built-in
+Python types (strings, lists, datetime, etc.). See
+<a href="https://docs.python.org/3/library/stdtypes.html">the Python docs</a> for a
+complete reference, or ask on <a href="https://discord.gg/bJ3bHtw8wH">the Discord</a>.</p>
+</div>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>This is <em>after</em> any Font replacements, font case functions, and line
+splitting.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>The second argument to the function is the <em>language code</em>. Not all
+languages support cardinal and ordinal numbering. These will raise an error
+during Card creation.&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:2" title="Jump back to footnote 2 in the text">&#8617;</a><a class="footnote-backref" href="#fnref3:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:3">
+<p>To write the airdate in any format <em>other</em> than the default, the
+<code>format_date</code> function must be used. A reference of all date variables is
+available <a href="https://strftime.org/">here</a>.&#160;<a class="footnote-backref" href="#fnref:3" title="Jump back to footnote 3 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:3" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:4">
+<p>Roman numerals are not defined for values greater than <code>3999</code> (blame the
+Romans). These will raise an error during Card creation.&#160;<a class="footnote-backref" href="#fnref:4" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+<li id="fn:5">
+<p>If per-season assets are <a href="...">enabled</a> for the Series <strong>and</strong> exist,
+these will be used. Otherwise these are the Series-wide assets.&#160;<a class="footnote-backref" href="#fnref:5" title="Jump back to footnote 5 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:5" title="Jump back to footnote 5 in the text">&#8617;</a></p>
+</li>
+<li id="fn:6">
+<p>This is generally used if you want to <em>not</em> display any text in a
+particular field. This can also be done by specifying <code>{""}</code>.&#160;<a class="footnote-backref" href="#fnref:6" title="Jump back to footnote 6 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../setting_priority/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Setting Priority">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Setting Priority
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../card_types/" class="md-footer__link md-footer__link--next" aria-label="Next: Custom Card Types">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Custom Card Types
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/CollinHeist/TitleCardMaker" target="_blank" rel="noopener" title="TitleCardMaker GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://discord.gg/bJ3bHtw8wH" target="_blank" rel="noopener" title="TitleCardMaker Discord" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M524.531 69.836a1.5 1.5 0 0 0-.764-.7A485.065 485.065 0 0 0 404.081 32.03a1.816 1.816 0 0 0-1.923.91 337.461 337.461 0 0 0-14.9 30.6 447.848 447.848 0 0 0-134.426 0 309.541 309.541 0 0 0-15.135-30.6 1.89 1.89 0 0 0-1.924-.91 483.689 483.689 0 0 0-119.688 37.107 1.712 1.712 0 0 0-.788.676C39.068 183.651 18.186 294.69 28.43 404.354a2.016 2.016 0 0 0 .765 1.375 487.666 487.666 0 0 0 146.825 74.189 1.9 1.9 0 0 0 2.063-.676A348.2 348.2 0 0 0 208.12 430.4a1.86 1.86 0 0 0-1.019-2.588 321.173 321.173 0 0 1-45.868-21.853 1.885 1.885 0 0 1-.185-3.126 251.047 251.047 0 0 0 9.109-7.137 1.819 1.819 0 0 1 1.9-.256c96.229 43.917 200.41 43.917 295.5 0a1.812 1.812 0 0 1 1.924.233 234.533 234.533 0 0 0 9.132 7.16 1.884 1.884 0 0 1-.162 3.126 301.407 301.407 0 0 1-45.89 21.83 1.875 1.875 0 0 0-1 2.611 391.055 391.055 0 0 0 30.014 48.815 1.864 1.864 0 0 0 2.063.7A486.048 486.048 0 0 0 610.7 405.729a1.882 1.882 0 0 0 .765-1.352c12.264-126.783-20.532-236.912-86.934-334.541ZM222.491 337.58c-28.972 0-52.844-26.587-52.844-59.239s23.409-59.241 52.844-59.241c29.665 0 53.306 26.82 52.843 59.239 0 32.654-23.41 59.241-52.843 59.241Zm195.38 0c-28.971 0-52.843-26.587-52.843-59.239s23.409-59.241 52.843-59.241c29.667 0 53.307 26.82 52.844 59.239 0 32.654-23.177 59.241-52.844 59.241Z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://github.com/sponsors/CollinHeist" target="_blank" rel="noopener" title="Become a Sponsor" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="m47.6 300.4 180.7 168.7c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9l180.7-168.7c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141-45.6-7.6-92 7.3-124.6 39.9l-12 12-12-12c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "content.tabs.link", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "navigation.footer", "navigation.indexes", "content.code.copy", "content.code.annotate", "navigation.prune"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.bd41221c.min.js"></script>
+      
+    
+  <script>document$.subscribe(() => {const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});})</script></body>
+</html>
