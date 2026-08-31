@@ -327,11 +327,11 @@ Unraid users can directly add the container as a "template" within the UI.
     launch the TCM interface.
 
         ```bash
-        python3 -m pip install uv
+        python -m pip install uv
         ```
 
         ```bash
-        python3 -m uv run uvicorn server:app --host "0.0.0.0" --port 4242
+        python -m uv run uvicorn server:app --host "0.0.0.0" --port 4242
         ```
 
     5. You should see an output _like_ this:
